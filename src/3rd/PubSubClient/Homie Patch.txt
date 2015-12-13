@@ -1,0 +1,39 @@
+In .h
+
+include
+
+#include <functional>
+
+Replace
+
+#define MQTT_CALLBACK_SIGNATURE void (*callback)(char*,uint8_t*,unsigned int)
+
+with
+
+#define MQTT_CALLBACK_SIGNATURE std::function<void(char*, uint8_t*, unsigned int)>
+
+Replace in private
+
+MQTT_CALLBACK_SIGNATURE;
+
+with
+
+MQTT_CALLBACK_SIGNATURE callback;
+
+In .cpp
+
+Replace prototypes
+
+MQTT_CALLBACK_SIGNATURE
+
+to
+
+MQTT_CALLBACK_SIGNATURE callback
+
+Replace
+
+PubSubClient& PubSubClient::setCallback(void(*callback)(char*,uint8_t*,unsigned int)){
+
+to
+
+PubSubClient& PubSubClient::setCallback(MQTT_CALLBACK_SIGNATURE callback){
