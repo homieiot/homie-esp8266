@@ -1,6 +1,5 @@
-# Homie
-
-![Homie logo](logo.png)
+Homie for ESP8266
+=================
 
 An opiniated IoT framework for the ESP8266.
 
