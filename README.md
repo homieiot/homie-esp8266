@@ -1,7 +1,7 @@
 Homie for ESP8266
 =================
 
-An opiniated IoT framework for the ESP8266.
+An opinionated IoT framework for the ESP8266.
 
 ## Features
 
