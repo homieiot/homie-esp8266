@@ -9,7 +9,7 @@ void setupHandler() {
 }
 
 void loopHandler() {
-  if ((millis() - last_temperature_sent >= TEMPERATURE_INTERVAL * 1000UL || last_temperature_sent == 0) && !shutters->moving()) {
+  if ((millis() - last_temperature_sent >= TEMPERATURE_INTERVAL * 1000UL || last_temperature_sent == 0)) {
     float temperature = 22;
     Serial.print("Temperature: ");
     Serial.print(temperature);
