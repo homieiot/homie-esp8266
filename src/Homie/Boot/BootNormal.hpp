@@ -3,11 +3,11 @@
 #include <Arduino.h>
 #include <functional>
 #include <ESP8266WiFi.h>
-#include "../3rd/PubSubClient/src/PubSubClient.h"
-#include "../3rd/Bounce2/src/Bounce2.h"
-#include "Constants.hpp"
-#include "Config.hpp"
-#include "Blinker.hpp"
+#include "../../3rd/PubSubClient/src/PubSubClient.h"
+#include "../../3rd/Bounce2/src/Bounce2.h"
+#include "../Constants.hpp"
+#include "../Config.hpp"
+#include "../Blinker.hpp"
 #include "Boot.hpp"
 
 class BootNormal : public Boot {

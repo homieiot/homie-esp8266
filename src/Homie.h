@@ -4,10 +4,10 @@
 #include <Arduino.h>
 #include "Homie/Config.hpp"
 #include "Homie/Constants.hpp"
-#include "Homie/Boot.hpp"
-#include "Homie/BootNormal.hpp"
-#include "Homie/BootConfig.hpp"
-#include "Homie/BootOta.hpp"
+#include "Homie/Boot/Boot.hpp"
+#include "Homie/Boot/BootNormal.hpp"
+#include "Homie/Boot/BootConfig.hpp"
+#include "Homie/Boot/BootOta.hpp"
 
 class HomieClass {
   public:

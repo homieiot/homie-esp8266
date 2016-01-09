@@ -3,8 +3,8 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266httpUpdate.h>
-#include "Constants.hpp"
-#include "Config.hpp"
+#include "../Constants.hpp"
+#include "../Config.hpp"
 #include "Boot.hpp"
 
 class BootOta : public Boot {
