@@ -36,7 +36,8 @@ void BootConfig::setup() {
   this->_http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
   this->_http.on("/config", HTTP_PUT, std::bind(&BootConfig::_onConfigRequest, this));
   this->_http.on("/config", HTTP_OPTIONS, [this]() { // CORS
-    String cors = "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: PUT\r\nAccess-Control-Allow-Headers: Content-Type\r\n\r\n";
+    String cors;
+    cors += FPSTR(CORS);
     this->_http.sendContent(cors);
   });
   this->_http.begin();

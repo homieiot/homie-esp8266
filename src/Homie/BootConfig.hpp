@@ -8,6 +8,7 @@
 #include <DNSServer.h>
 #include "Boot.hpp"
 #include "Config.hpp"
+#include "Strings.hpp"
 
 class BootConfig : public Boot {
   public:

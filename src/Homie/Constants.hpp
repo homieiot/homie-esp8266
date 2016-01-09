@@ -5,6 +5,9 @@
 
 const int BAUD_RATE = 115200;
 
+const int HOMIE_PORT = 35589;
+const int OTA_PORT = 35590;
+
 const float PIN_RESET = D3;
 
 const float LED_WIFI_DELAY = 1;

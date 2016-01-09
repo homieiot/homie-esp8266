@@ -22,7 +22,7 @@ void BootNormal::_wifiConnect() {
 }
 
 void BootNormal::_mqttConnect() {
-  this->_shared_interface->mqtt->setServer(Config.homie_host, 35589);
+  this->_shared_interface->mqtt->setServer(Config.homie_host, HOMIE_PORT);
   this->_shared_interface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this,  std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   String topic = "devices/";
   topic += Config.hostname;
