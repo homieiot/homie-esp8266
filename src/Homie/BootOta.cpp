@@ -37,7 +37,7 @@ void BootOta::setup() {
   String dataToPass = Config.hostname;
   dataToPass += '=';
   dataToPass += this->_shared_interface->version;
-  t_httpUpdate_return ret = ESPhttpUpdate.update(Config.homie_host, OTA_PORT, "/ota", dataToPass);
+  t_httpUpdate_return ret = ESPhttpUpdate.update(Config.homie_host, OTA_PORT, "/ota", dataToPass, false, "", false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:
       Serial.println("Update failed");
@@ -54,9 +54,9 @@ void BootOta::setup() {
       ESP.restart();
       break;
     case HTTP_UPDATE_OK:
+      Serial.println("Successfully updated, rebooting");
       Config.boot_mode = BOOT_NORMAL;
       Config.save();
-      Serial.println("Successfully updated"); // may not be called, auto reboot
 
       ESP.restart();
       break;
