@@ -12,7 +12,7 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  String temp_hostname = String("homie-");
+  String temp_hostname = String("Homie-");
   temp_hostname += ESP.getChipId();
 
   WiFi.hostname(temp_hostname);
@@ -31,8 +31,11 @@ void BootConfig::setup() {
 
   this->_dns.setTTL(300);
   this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
-  this->_dns.start(53, "www.homieconfigurator.com", apIP);
+  this->_dns.start(53, "homie.config", apIP);
 
+  this->_http.on("/heart", HTTP_GET, [this]() {
+    this->_http.send(200, "application/json", "{\"heart\":\"beat\"}");
+  });
   this->_http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
   this->_http.on("/config", HTTP_PUT, std::bind(&BootConfig::_onConfigRequest, this));
   this->_http.on("/config", HTTP_OPTIONS, [this]() { // CORS
