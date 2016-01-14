@@ -3,6 +3,9 @@
 BootConfig::BootConfig()
 : Boot("config")
 , _http(80)
+, _ssid_count(0)
+, _last_wifi_scan(0)
+, _last_wifi_scan_ended(true)
 {
 }
 
@@ -29,6 +32,11 @@ void BootConfig::setup() {
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(ap_ssid.c_str());
 
+  // Trigger sync Wi-Fi scan (don't do before AP init or doesn't work)
+  this->_ssid_count = WiFi.scanNetworks();
+  this->_last_wifi_scan = millis();
+  this->_json_wifi_networks = this->_generateNetworksJson();
+
   this->_dns.setTTL(300);
   this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
   this->_dns.start(53, "homie.config", apIP);
@@ -46,14 +54,12 @@ void BootConfig::setup() {
   this->_http.begin();
 }
 
-void BootConfig::_onNetworksRequest() {
+String BootConfig::_generateNetworksJson() {
   DynamicJsonBuffer generatedJsonBuffer;
   JsonObject& json = generatedJsonBuffer.createObject();
 
-  byte ssid_count = WiFi.scanNetworks();
-
   JsonArray& networks = json.createNestedArray("networks");
-  for (int network = 0; network < ssid_count; network++) {
+  for (int network = 0; network < this->_ssid_count; network++) {
     JsonObject& json_network = generatedJsonBuffer.createObject();
     json_network["ssid"] = WiFi.SSID(network);
     json_network["rssi"] = WiFi.RSSI(network);
@@ -79,10 +85,13 @@ void BootConfig::_onNetworksRequest() {
   }
 
   // 75 bytes: {"ssid":"thisisa32characterlongstringyes!","rssi":-99,"encryption":"none"}, (-1 for leading ",")
-  char json_string[(75 * ssid_count) - 1];
+  char json_string[(75 * this->_ssid_count) - 1];
   size_t json_length = json.printTo(json_string, sizeof(json_string));
-  String json_arduino_string = String(json_string);
-  this->_http.send(200, "application/json", json_arduino_string);
+  return String(json_string);
+}
+
+void BootConfig::_onNetworksRequest() {
+  this->_http.send(200, "application/json", this->_json_wifi_networks);
 }
 
 void BootConfig::_onConfigRequest() {
@@ -136,4 +145,32 @@ void BootConfig::loop() {
 
   this->_dns.processNextRequest();
   this->_http.handleClient();
+
+  if (!this->_last_wifi_scan_ended) {
+    int8_t scan_result = WiFi.scanComplete();
+
+    switch (scan_result) {
+      case WIFI_SCAN_RUNNING:
+        return;
+      case WIFI_SCAN_FAILED:
+        Serial.println("Wi-Fi scan failed");
+        this->_ssid_count = 0;
+        break;
+      default:
+        Serial.println("Wi-Fi scan completed");
+        this->_ssid_count = scan_result;
+        this->_json_wifi_networks = this->_generateNetworksJson();
+        break;
+    }
+
+    this->_last_wifi_scan_ended = true;
+  }
+
+  unsigned long now = millis();
+  if (now - this->_last_wifi_scan > 20000UL && this->_last_wifi_scan_ended) {
+    Serial.println("Triggering Wi-Fi scan");
+    WiFi.scanNetworks(true);
+    this->_last_wifi_scan = now;
+    this->_last_wifi_scan_ended = false;
+  }
 }

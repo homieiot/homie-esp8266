@@ -19,7 +19,12 @@ class BootConfig : public Boot {
   private:
     ESP8266WebServer _http;
     DNSServer _dns;
+    byte _ssid_count;
+    unsigned long _last_wifi_scan;
+    bool _last_wifi_scan_ended;
+    String _json_wifi_networks;
 
     void _onNetworksRequest();
     void _onConfigRequest();
+    String _generateNetworksJson();
 };
