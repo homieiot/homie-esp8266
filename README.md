@@ -56,7 +56,7 @@ void loop() {
 
 An Homie device has 3 modes of operation:
 
-1. The `config` mode is the initial one. It spawns an AP and a JSON webserver. A client can connect to it, get the list of available networks, and send the credentials (Wi-Fi SSID, password, and the Homie server hostname/IP). Once the Homie device receives the credentials, it boots into normal mode.
+1. The `config` mode is the initial one. It spawns an AP and a JSON webserver. A client can connect to it, get the list of available networks, and send the credentials (Wi-Fi SSID, password, and the Homie server hostname/IP). See [Configuration API](#configuration-api). Once the Homie device receives the credentials, it boots into normal mode.
 
 2. The `normal` mode is the mode the device will be most of the time. It connects to the Wi-Fi, to the MQTT, it sends initial informations to the Homie server (like the local IP, the version of the firmware...) and it subscribes from the server to the subscriptions given (see `addSubscription()`) and to OTA events. It then runs the given `setup` function (see `setSetupFunction()`), and loops the given `loop` function (see `setLoopFunction()`). This provides a nice abstraction, as everything is handled in the lower level. If there is a network failure, it will try to auto-reconnect, endlessly. To return to the `config` mode, the user has to press the `FLASH` button of the ESP8266 board for 5 seconds.
 
@@ -159,3 +159,70 @@ As Homie uses EEPROM, first bytes of the EEPROM are used. This functions returns
 #### bool .readyToOperate ()
 
 Is the device in normal mode, configured and connected? You should not need this function. But maybe you will.
+
+## Configuration API
+
+When in `config` mode, the device spawns an open AP named `Homie-XXXXXXXX`. To configure it, you need to connect to this network.
+
+The device exposes a CORS-compliant HTTP server available at `http://homie.config` on port `80`. To bypass the built-in DNS server, you can also reach the server at `192.168.1.1`.
+
+### HTTP API
+
+#### GET `/heart`
+
+This is useful to ping the server to ensure the device is started.
+
+##### Response
+
+200 OK (application/json)
+
+```json
+{ "heart": "beat" }
+```
+
+#### GET `/networks`
+
+Retrieve the Wi-Fi networks the device can see.
+
+##### Response
+
+200 OK (application/json)
+
+```json
+{
+  "networks": [
+    { "ssid": "Network_2", "rssi": -82, "encryption": "wep" },
+    { "ssid": "Network_1", "rssi": -57, "encryption": "wpa" },
+    { "ssid": "Network_3", "rssi": -65, "encryption": "wpa2" },
+    { "ssid": "Network_5", "rssi": -94, "encryption": "none" },
+    { "ssid": "Network_4", "rssi": -89, "encryption": "auto" }
+  ]
+}
+```
+
+#### PUT `/config`
+
+Save the config to the device.
+
+##### Request body
+
+(application/json)
+
+```json
+{
+  "name": "kitchen-light",
+  "wifi_ssid": "Network_1",
+  "wifi_password": "I'm a Wi-Fi password!",
+  "homie_host": "192.168.1.10"
+}
+```
+
+`wifi_password` can be left blank if open network.
+
+##### Response
+
+200 OK (application/json)
+
+```json
+{ "success": true }
+```
