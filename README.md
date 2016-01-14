@@ -45,7 +45,7 @@ void loop() {
 ## Requirements
 
 * An ESP8266
-* The [Arduino IDE for ESP8266](https://github.com/esp8266/Arduino) (version 2.0.0 minimum)
+* The [Arduino IDE for ESP8266](https://github.com/esp8266/Arduino) (version 2.1.0 minimum)
 
 ## Installation
 
