@@ -56,7 +56,7 @@ void loop() {
 
 An Homie device has 3 modes of operation:
 
-1. The `config` mode is the initial one. It spawns an AP and a JSON webserver. A client can connect to it, get the list of available networks, and send the credentials (Wi-Fi SSID, password, and the Homie server hostname/IP). See [Configuration API](#configuration-api). Once the Homie device receives the credentials, it boots into normal mode.
+1. The `config` mode is the initial one. It spawns an AP and a JSON webserver. A client can connect to it, get the list of available networks, and send the credentials (Wi-Fi SSID, password, and the Homie server hostname/IP). There is a client available at [marvinroger/homie-esp8266-configurator](https://github.com/marvinroger/homie-esp8266-configurator). See [Configuration API](#configuration-api) if you want to implement your own client. Once the Homie device receives the credentials, it boots into normal mode.
 
 2. The `normal` mode is the mode the device will be most of the time. It connects to the Wi-Fi, to the MQTT, it sends initial informations to the Homie server (like the local IP, the version of the firmware...) and it subscribes from the server to the subscriptions given (see `addSubscription()`) and to OTA events. It then runs the given `setup` function (see `setSetupFunction()`), and loops the given `loop` function (see `setLoopFunction()`). This provides a nice abstraction, as everything is handled in the lower level. If there is a network failure, it will try to auto-reconnect, endlessly. To return to the `config` mode, the user has to press the `FLASH` button of the ESP8266 board for 5 seconds.
 
@@ -64,7 +64,7 @@ An Homie device has 3 modes of operation:
 
 ## API
 
-You don't have to instanciate an `Homie` instance, it is done internally.
+You don't have to instantiate an `Homie` instance, it is done internally.
 
 See examples folder for examples.
 
