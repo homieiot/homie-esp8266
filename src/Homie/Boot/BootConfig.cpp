@@ -6,6 +6,8 @@ BootConfig::BootConfig()
 , _ssid_count(0)
 , _last_wifi_scan(0)
 , _last_wifi_scan_ended(true)
+, _flagged_for_reboot(false)
+, _flagged_for_reboot_at(0)
 {
 }
 
@@ -96,6 +98,8 @@ void BootConfig::_onNetworksRequest() {
 }
 
 void BootConfig::_onConfigRequest() {
+  if (this->_flagged_for_reboot) { Serial.println("Device already configured"); return; }
+
   StaticJsonBuffer<JSON_OBJECT_SIZE(4)> parseJsonBuffer; // Max four elements in object
   JsonObject& parsed_json = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str());
   if (!parsed_json.success()) { Serial.println("Invalid or too big JSON"); return; }
@@ -136,9 +140,8 @@ void BootConfig::_onConfigRequest() {
 
   this->_http.send(200, "application/json", "{\"success\":true}");
 
-  delay(1000); // Might help for the network stack to send whole HTTP response
-
-  ESP.restart();
+  this->_flagged_for_reboot = true; // We don't reboot immediately, otherwise the response above is not sent
+  this->_flagged_for_reboot_at = millis();
 }
 
 void BootConfig::loop() {
@@ -146,6 +149,14 @@ void BootConfig::loop() {
 
   this->_dns.processNextRequest();
   this->_http.handleClient();
+
+  if (this->_flagged_for_reboot) {
+    if (millis() - this->_flagged_for_reboot_at >= 5000UL) {
+      ESP.restart();
+    }
+
+    return;
+  }
 
   if (!this->_last_wifi_scan_ended) {
     int8_t scan_result = WiFi.scanComplete();
@@ -168,7 +179,7 @@ void BootConfig::loop() {
   }
 
   unsigned long now = millis();
-  if (now - this->_last_wifi_scan > 20000UL && this->_last_wifi_scan_ended) {
+  if (now - this->_last_wifi_scan >= 20000UL && this->_last_wifi_scan_ended) {
     Serial.println("Triggering Wi-Fi scan");
     WiFi.scanNetworks(true);
     this->_last_wifi_scan = now;

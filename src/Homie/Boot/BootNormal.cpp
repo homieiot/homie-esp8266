@@ -155,7 +155,7 @@ void BootNormal::loop() {
 
   if (WiFi.status() != WL_CONNECTED) {
     unsigned long now = millis();
-    if (now - this->_last_wifi_reconnect_attempt > 20000UL || this->_last_wifi_reconnect_attempt == 0) {
+    if (now - this->_last_wifi_reconnect_attempt >= 20000UL || this->_last_wifi_reconnect_attempt == 0) {
       Serial.println("Attempting to connect to WiFi");
       this->_last_wifi_reconnect_attempt = now;
       Blinker.start(LED_WIFI_DELAY);
@@ -166,7 +166,7 @@ void BootNormal::loop() {
 
   if (!this->_shared_interface->mqtt->connected()) {
     unsigned long now = millis();
-    if (now - this->_last_mqtt_reconnect_attempt > 5000UL || this->_last_mqtt_reconnect_attempt == 0) {
+    if (now - this->_last_mqtt_reconnect_attempt >= 5000UL || this->_last_mqtt_reconnect_attempt == 0) {
       Serial.println("Attempting to connect to MQTT");
       this->_last_mqtt_reconnect_attempt = now;
       Blinker.start(LED_MQTT_DELAY);

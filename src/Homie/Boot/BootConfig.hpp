@@ -23,6 +23,8 @@ class BootConfig : public Boot {
     unsigned long _last_wifi_scan;
     bool _last_wifi_scan_ended;
     String _json_wifi_networks;
+    bool _flagged_for_reboot;
+    unsigned long _flagged_for_reboot_at;
 
     void _onNetworksRequest();
     void _onConfigRequest();
