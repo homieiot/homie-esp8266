@@ -22,7 +22,7 @@ class BootNormal : public Boot {
     unsigned long _last_wifi_reconnect_attempt;
     unsigned long _last_mqtt_reconnect_attempt;
     bool _flagged_for_ota;
-    int _mqtt_base_topic_length;
+    String _mqtt_base_topic;
     Bounce _resetDebouncer;
     WiFiClient _wifiClient;
 
