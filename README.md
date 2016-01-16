@@ -119,12 +119,6 @@ Set the reset function. If you use a library that uses EEPROM for example, you w
 
 * **`callback`**: Reset function
 
-#### void .setResettable (bool `resettable`)
-
-Is the device resettable? This is useful at runtime, because you might want the device not to be resettable when you have another library that is doing some unfinished work, like moving shutters for example.
-
-* **`resettable`**: Is the device resettable? Default value is `true`
-
 #### void .setSetupFunction (void (\*`callback`)(void))
 
 You can provide the function that will be called when operating in normal mode (when the device is configured and connected).
@@ -154,6 +148,12 @@ Using this function, you can send a value to a property, like a temperature for 
 * **`value`**: Payload
 * **`retained`**: Should the server retain this value, or is it a one-shot value?
 
+#### void .setResettable (bool `resettable`)
+
+Is the device resettable? This is useful at runtime, because you might want the device not to be resettable when you have another library that is doing some unfinished work, like moving shutters for example.
+
+* **`resettable`**: Is the device resettable? Default value is `true`
+
 #### int .getEepromOffset ()
 
 As Homie uses EEPROM, first bytes of the EEPROM are used. This functions returns the first byte that is free for you to use.
@@ -164,7 +164,7 @@ Is the device in normal mode, configured and connected? You should not need this
 
 ## Configuration API
 
-When in `config` mode, the device spawns an open AP named `Homie-XXXXXXXX`. To configure it, you need to connect to this network.
+When in `config` mode, the device spawns an open AP named `Homie-XXXXXXXX`. To configure it, you need to connect to this network. The password is the id (`XXXXXXXX`). For example, if the AP is named `Homie-00a2e44d`, the password is `00a2e44d`.
 
 The device exposes a CORS-compliant HTTP server available at `http://homie.config` on port `80`. To bypass the built-in DNS server, you can also reach the server at `192.168.1.1`.
 

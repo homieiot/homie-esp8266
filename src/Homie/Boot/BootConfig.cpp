@@ -17,22 +17,22 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  String temp_hostname = String("Homie-");
-  temp_hostname += ESP.getChipId();
+  char device_id[9];
+  sprintf(device_id, "%08x", ESP.getChipId());
 
-  WiFi.hostname(temp_hostname);
+  String tmp_hostname = String("Homie-");
+  tmp_hostname += device_id;
+
+  WiFi.hostname(tmp_hostname);
 
   digitalWrite(BUILTIN_LED, LOW);
-
-  String ap_ssid = String("Homie-");
-  ap_ssid += ESP.getChipId();
 
   WiFi.mode(WIFI_AP);
 
   IPAddress apIP(192, 168, 1, 1);
 
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(ap_ssid.c_str());
+  WiFi.softAP(tmp_hostname.c_str(), device_id);
 
   // Trigger sync Wi-Fi scan (don't do before AP init or doesn't work)
   this->_ssid_count = WiFi.scanNetworks();
