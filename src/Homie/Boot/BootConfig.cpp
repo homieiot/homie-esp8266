@@ -51,14 +51,12 @@ void BootConfig::setup() {
 
   this->_http.on("/heart", HTTP_GET, [this]() {
     Logger.logln("Received heart request");
-    this->_http.send(200, "application/json", "{\"heart\":\"beat\"}");
+    this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"heart\":\"beat\"}");
   });
   this->_http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
   this->_http.on("/config", HTTP_PUT, std::bind(&BootConfig::_onConfigRequest, this));
   this->_http.on("/config", HTTP_OPTIONS, [this]() { // CORS
-    String cors;
-    cors += FPSTR(CORS);
-    this->_http.sendContent(cors);
+    this->_http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
   this->_http.begin();
 }
@@ -102,14 +100,14 @@ String BootConfig::_generateNetworksJson() {
 
 void BootConfig::_onNetworksRequest() {
   Logger.logln("Received networks request");
-  this->_http.send(200, "application/json", this->_json_wifi_networks);
+  this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), this->_json_wifi_networks);
 }
 
 void BootConfig::_onConfigRequest() {
   Logger.logln("Received config request");
   if (this->_flagged_for_reboot) {
     Logger.logln("✖ Device already configured");
-    this->_http.send(403, "application/json", "{\"success\":false}");
+    this->_http.send(403, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
@@ -117,28 +115,28 @@ void BootConfig::_onConfigRequest() {
   JsonObject& parsed_json = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str());
   if (!parsed_json.success()) {
     Logger.logln("✖ Invalid or too big JSON");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
   if (!parsed_json.containsKey("name") || !parsed_json["name"].is<const char*>()) {
     Logger.logln("✖ name is not a string");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
   if (!parsed_json.containsKey("wifi_ssid") || !parsed_json["wifi_ssid"].is<const char*>()) {
     Logger.logln("✖ wifi_ssid is not a string");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
   if (!parsed_json.containsKey("wifi_password") || !parsed_json["wifi_password"].is<const char*>()) {
     Logger.logln("✖ wifi_password is not a string");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
   if (!parsed_json.containsKey("homie_host") || !parsed_json["homie_host"].is<const char*>()) {
     Logger.logln("✖ homie_host is not a string");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
@@ -149,17 +147,17 @@ void BootConfig::_onConfigRequest() {
 
   if (strcmp(req_name, "") == 0) {
     Logger.logln("✖ name is empty");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
   if (strcmp(req_wifi_ssid, "") == 0) {
     Logger.logln("✖ wifi_ssid is empty");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
   if (strcmp(req_homie_host, "") == 0) {
     Logger.logln("✖ homie_host is empty");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
@@ -167,14 +165,14 @@ void BootConfig::_onConfigRequest() {
   for (int i = 0; i < strlen(req_name); i++){
     if (!((req_name[i] >= 'a' && req_name[i] <= 'z') || (req_name[i] >= '0' && req_name[i] <= '9') || req_name[i] == '-')) {
       Logger.logln("✖ name contains unauthorized characters");
-      this->_http.send(400, "application/json", "{\"success\":false}");
+      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
       return;
     }
   }
   // Check if hostname doesn't start or end with '-'
   if (req_name[0] == '-' || req_name[strlen(req_name) - 1] == '-') {
     Logger.logln("✖ name starts or ends with a dash");
-    this->_http.send(400, "application/json", "{\"success\":false}");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
@@ -188,7 +186,7 @@ void BootConfig::_onConfigRequest() {
 
   Logger.logln("✔ Configured");
 
-  this->_http.send(200, "application/json", "{\"success\":true}");
+  this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":true}");
 
   this->_flagged_for_reboot = true; // We don't reboot immediately, otherwise the response above is not sent
   this->_flagged_for_reboot_at = millis();
