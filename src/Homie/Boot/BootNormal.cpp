@@ -92,7 +92,7 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
     message += input_char;
   }
   String unified = String(topic);
-  unified.remove(0, this->_mqtt_base_topic.length()); // Remove /devices/${id}/
+  unified.remove(0, this->_mqtt_base_topic.length() + 1); // Remove /devices/${id}/ - +1 for /
   if (unified == "$ota") {
     if (message != this->_shared_interface->version) {
       this->_flagged_for_ota = true;
