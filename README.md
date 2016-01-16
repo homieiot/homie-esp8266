@@ -15,7 +15,7 @@ Open http://marvinroger.github.io/homie-esp8266/ in your web browser.
 
 ## Usage
 
-In `config` mode, your Homie device will generate a Wi-FI AP named `Homie-XXXXXXXX`. Connect to it and follow the instructions that should show on the web page.
+In `config` mode, your Homie device will generate a Wi-FI AP named `Homie-XXXXXXXX`. The password is the id (`XXXXXXXX`). For example, if the AP is named `Homie-00a2e44d`, the password is `00a2e44d`. Connect to it and follow the instructions that should show on the web page.
 
 ## Contribute
 
