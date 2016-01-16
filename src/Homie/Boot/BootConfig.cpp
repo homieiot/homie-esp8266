@@ -84,8 +84,9 @@ String BootConfig::_generateNetworksJson() {
     networks.add(json_network);
   }
 
+  // 15 bytes: {"networks":[]}
   // 75 bytes: {"ssid":"thisisa32characterlongstringyes!","rssi":-99,"encryption":"none"}, (-1 for leading ",")
-  char json_string[(75 * this->_ssid_count) - 1];
+  char json_string[15 + (75 * this->_ssid_count) - 1];
   size_t json_length = json.printTo(json_string, sizeof(json_string));
   return String(json_string);
 }
