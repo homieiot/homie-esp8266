@@ -19,20 +19,22 @@ void BootOta::setup() {
 
   int wifi_attempts = 1;
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    if (wifi_attempts < 3) {
+    if (wifi_attempts <= 3) {
       WiFi.begin(Config.wifi_ssid, Config.wifi_password);
-      Serial.println("Retrying connection...");
+      Logger.log("Retrying Wi-Fi connection");
+      Logger.log(String(wifi_attempts));
+      Logger.logln("/3");
       wifi_attempts++;
     } else {
-      Serial.println("Connection failed, rebooting in normal mode...");
+      Logger.logln("✖ Connection failed, rebooting in normal mode...");
       Config.boot_mode = BOOT_NORMAL;
       Config.save();
 
       ESP.restart();
     }
   }
-  Serial.println("Connected to Wi-Fi");
-  Serial.println("Starting OTA...");
+  Logger.logln("✔ Connected to Wi-Fi");
+  Logger.logln("Starting OTA...");
 
   String dataToPass = Config.hostname;
   dataToPass += '=';
@@ -40,21 +42,21 @@ void BootOta::setup() {
   t_httpUpdate_return ret = ESPhttpUpdate.update(Config.homie_host, OTA_PORT, "/ota", dataToPass, false, "", false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:
-      Serial.println("Update failed");
+      Logger.logln("✖ Update failed");
       Config.boot_mode = BOOT_NORMAL;
       Config.save();
 
       ESP.restart();
       break;
     case HTTP_UPDATE_NO_UPDATES:
-      Serial.println("No updates");
+      Logger.logln("✖ No updates");
       Config.boot_mode = BOOT_NORMAL;
       Config.save();
 
       ESP.restart();
       break;
     case HTTP_UPDATE_OK:
-      Serial.println("Successfully updated, rebooting");
+      Logger.logln("✔ Success, rebooting");
       Config.boot_mode = BOOT_NORMAL;
       Config.save();
 

@@ -84,6 +84,12 @@ Handle Homie work. Must be called in `loop()`.
 
 ### Configuration functions
 
+#### void .setLogging (bool `logging`)
+
+Enable or disable Homie Serial logging.
+
+* **`logging`**: Whether or not to enable logging. By default, logging is enabled
+
 #### void .setVersion (const char\* `version`)
 
 Set the version of the sketch. This is useful for OTA, as Homie will check against the server if there is a newer version.

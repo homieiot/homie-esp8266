@@ -41,6 +41,10 @@ void HomieClass::loop(void) {
   this->_boot->loop();
 }
 
+void HomieClass::setLogging(bool logging) {
+  Logger.setLogging(logging);
+}
+
 void HomieClass::setVersion(const char* version) {
   this->_shared_interface.version = strdup(version);
 }

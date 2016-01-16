@@ -17,8 +17,11 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  char device_id[9];
+  char device_id[8 + 1];
   sprintf(device_id, "%08x", ESP.getChipId());
+
+  Logger.log("Device ID is ");
+  Logger.logln(device_id);
 
   String tmp_hostname = String("Homie-");
   tmp_hostname += device_id;
@@ -34,6 +37,9 @@ void BootConfig::setup() {
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(tmp_hostname.c_str(), device_id);
 
+  Logger.log("AP started as ");
+  Logger.logln(tmp_hostname);
+
   // Trigger sync Wi-Fi scan (don't do before AP init or doesn't work)
   this->_ssid_count = WiFi.scanNetworks();
   this->_last_wifi_scan = millis();
@@ -44,6 +50,7 @@ void BootConfig::setup() {
   this->_dns.start(53, "homie.config", apIP);
 
   this->_http.on("/heart", HTTP_GET, [this]() {
+    Logger.logln("Received heart request");
     this->_http.send(200, "application/json", "{\"heart\":\"beat\"}");
   });
   this->_http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
@@ -87,46 +94,89 @@ String BootConfig::_generateNetworksJson() {
   }
 
   // 15 bytes: {"networks":[]}
-  // 75 bytes: {"ssid":"thisisa32characterlongstringyes!","rssi":-99,"encryption":"none"}, (-1 for leading ",")
-  char json_string[15 + (75 * this->_ssid_count) - 1];
+  // 75 bytes: {"ssid":"thisisa32characterlongstringyes!","rssi":-99,"encryption":"none"}, (-1 for leading ","), +1 for terminator
+  char json_string[15 + (75 * this->_ssid_count) - 1 + 1];
   size_t json_length = json.printTo(json_string, sizeof(json_string));
   return String(json_string);
 }
 
 void BootConfig::_onNetworksRequest() {
+  Logger.logln("Received networks request");
   this->_http.send(200, "application/json", this->_json_wifi_networks);
 }
 
 void BootConfig::_onConfigRequest() {
-  if (this->_flagged_for_reboot) { Serial.println("Device already configured"); return; }
+  Logger.logln("Received config request");
+  if (this->_flagged_for_reboot) {
+    Logger.logln("✖ Device already configured");
+    this->_http.send(403, "application/json", "{\"success\":false}");
+    return;
+  }
 
   StaticJsonBuffer<JSON_OBJECT_SIZE(4)> parseJsonBuffer; // Max four elements in object
   JsonObject& parsed_json = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str());
-  if (!parsed_json.success()) { Serial.println("Invalid or too big JSON"); return; }
+  if (!parsed_json.success()) {
+    Logger.logln("✖ Invalid or too big JSON");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
 
-  if (!parsed_json.containsKey("name") || !parsed_json["name"].is<const char*>()) { Serial.println("Name is not a string"); return; }
-  if (!parsed_json.containsKey("wifi_ssid") || !parsed_json["wifi_ssid"].is<const char*>()) { Serial.println("Wi-Fi SSID is not a string"); return; }
-  if (!parsed_json.containsKey("wifi_password") || !parsed_json["wifi_password"].is<const char*>()) { Serial.println("Wi-Fi password is not a string"); return; }
-  if (!parsed_json.containsKey("homie_host") || !parsed_json["homie_host"].is<const char*>()) { Serial.println("Homie host is not a string"); return; }
+  if (!parsed_json.containsKey("name") || !parsed_json["name"].is<const char*>()) {
+    Logger.logln("✖ name is not a string");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
+  if (!parsed_json.containsKey("wifi_ssid") || !parsed_json["wifi_ssid"].is<const char*>()) {
+    Logger.logln("✖ wifi_ssid is not a string");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
+  if (!parsed_json.containsKey("wifi_password") || !parsed_json["wifi_password"].is<const char*>()) {
+    Logger.logln("✖ wifi_password is not a string");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
+  if (!parsed_json.containsKey("homie_host") || !parsed_json["homie_host"].is<const char*>()) {
+    Logger.logln("✖ homie_host is not a string");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
 
   const char* req_name = parsed_json["name"];
   const char* req_wifi_ssid = parsed_json["wifi_ssid"];
   const char* req_wifi_password = parsed_json["wifi_password"];
   const char* req_homie_host = parsed_json["homie_host"];
 
-  if (strcmp(req_name, "") == 0) { Serial.println("Name is empty"); return; }
-  if (strcmp(req_wifi_ssid, "") == 0) { Serial.println("Wi-Fi SSID is empty"); return; }
-  if (strcmp(req_homie_host, "") == 0) { Serial.println("Homie host is empty"); return; }
+  if (strcmp(req_name, "") == 0) {
+    Logger.logln("✖ name is empty");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
+  if (strcmp(req_wifi_ssid, "") == 0) {
+    Logger.logln("✖ wifi_ssid is empty");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
+  if (strcmp(req_homie_host, "") == 0) {
+    Logger.logln("✖ homie_host is empty");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
 
   // Check if hostname only [a-z0-9\-]
   for (int i = 0; i < strlen(req_name); i++){
     if (!((req_name[i] >= 'a' && req_name[i] <= 'z') || (req_name[i] >= '0' && req_name[i] <= '9') || req_name[i] == '-')) {
-      Serial.println("Name contains unauthorized characters");
+      Logger.logln("✖ name contains unauthorized characters");
+      this->_http.send(400, "application/json", "{\"success\":false}");
       return;
     }
   }
   // Check if hostname doesn't start or end with '-'
-  if (req_name[0] == '-' || req_name[strlen(req_name) - 1] == '-') { Serial.println("Name is starts or ends with a dash"); return; }
+  if (req_name[0] == '-' || req_name[strlen(req_name) - 1] == '-') {
+    Logger.logln("✖ name starts or ends with a dash");
+    this->_http.send(400, "application/json", "{\"success\":false}");
+    return;
+  }
 
   Config.hostname = req_name;
   Config.wifi_ssid = req_wifi_ssid;
@@ -136,7 +186,7 @@ void BootConfig::_onConfigRequest() {
   Config.configured = true;
   Config.save();
 
-  Serial.println("Configured");
+  Logger.logln("✔ Configured");
 
   this->_http.send(200, "application/json", "{\"success\":true}");
 
@@ -165,11 +215,11 @@ void BootConfig::loop() {
       case WIFI_SCAN_RUNNING:
         return;
       case WIFI_SCAN_FAILED:
-        Serial.println("Wi-Fi scan failed");
+        Logger.logln("✖ Wi-Fi scan failed");
         this->_ssid_count = 0;
         break;
       default:
-        Serial.println("Wi-Fi scan completed");
+        Logger.logln("✔ Wi-Fi scan completed");
         this->_ssid_count = scan_result;
         this->_json_wifi_networks = this->_generateNetworksJson();
         break;
@@ -180,7 +230,7 @@ void BootConfig::loop() {
 
   unsigned long now = millis();
   if (now - this->_last_wifi_scan >= 20000UL && this->_last_wifi_scan_ended) {
-    Serial.println("Triggering Wi-Fi scan");
+    Logger.logln("Triggering Wi-Fi scan");
     WiFi.scanNetworks(true);
     this->_last_wifi_scan = now;
     this->_last_wifi_scan_ended = false;

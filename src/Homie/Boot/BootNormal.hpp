@@ -8,6 +8,7 @@
 #include "../Constants.hpp"
 #include "../Config.hpp"
 #include "../Blinker.hpp"
+#include "../Logger.hpp"
 #include "Boot.hpp"
 
 class BootNormal : public Boot {

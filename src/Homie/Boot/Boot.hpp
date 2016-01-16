@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include "../Constants.hpp"
+#include "../Logger.hpp"
 
 class Boot {
   public:

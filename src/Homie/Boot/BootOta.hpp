@@ -5,6 +5,7 @@
 #include <ESP8266httpUpdate.h>
 #include "../Constants.hpp"
 #include "../Config.hpp"
+#include "../Logger.hpp"
 #include "Boot.hpp"
 
 class BootOta : public Boot {

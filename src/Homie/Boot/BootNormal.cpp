@@ -34,6 +34,8 @@ void BootNormal::_mqttConnect() {
 }
 
 void BootNormal::_mqttSetup() {
+  Logger.logln("Sending initial informations");
+
   String topic = this->_mqtt_base_topic;
   topic += "/$nodes";
 
@@ -96,8 +98,8 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
   if (unified == "$ota") {
     if (message != this->_shared_interface->version) {
       this->_flagged_for_ota = true;
-      Serial.print("Flagged for OTA v.");
-      Serial.println(message);
+      Logger.log("Flagged for OTA v.");
+      Logger.logln(message);
     }
     return;
   }
@@ -117,7 +119,7 @@ void BootNormal::_handleReset() {
   this->_resetDebouncer.update();
 
   if (this->_resetDebouncer.read() == LOW) {
-    Serial.println("Resetting");
+    Logger.logln("Resetting");
     Config.configured = false;
     Config.save();
 
@@ -148,7 +150,7 @@ void BootNormal::loop() {
   if (WiFi.status() != WL_CONNECTED) {
     unsigned long now = millis();
     if (now - this->_last_wifi_reconnect_attempt >= 20000UL || this->_last_wifi_reconnect_attempt == 0) {
-      Serial.println("Attempting to connect to WiFi");
+      Logger.logln("Attempting to connect to WiFi");
       this->_last_wifi_reconnect_attempt = now;
       Blinker.start(LED_WIFI_DELAY);
       this->_wifiConnect();
@@ -159,7 +161,7 @@ void BootNormal::loop() {
   if (!this->_shared_interface->mqtt->connected()) {
     unsigned long now = millis();
     if (now - this->_last_mqtt_reconnect_attempt >= 5000UL || this->_last_mqtt_reconnect_attempt == 0) {
-      Serial.println("Attempting to connect to MQTT");
+      Logger.logln("Attempting to connect to MQTT");
       this->_last_mqtt_reconnect_attempt = now;
       Blinker.start(LED_MQTT_DELAY);
       this->_mqttConnect();
@@ -173,7 +175,7 @@ void BootNormal::loop() {
   this->_shared_interface->loopFunction();
 
   if (this->_flagged_for_ota && this->_shared_interface->resettable) {
-    Serial.println("Rebooting in OTA mode");
+    Logger.logln("Rebooting in OTA mode");
     Config.boot_mode = BOOT_OTA;
     Config.save();
 

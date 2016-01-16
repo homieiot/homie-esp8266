@@ -14,10 +14,10 @@ void Boot::setup() {
   WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie
   WiFi.disconnect(); // Reset network state
 
-  Serial.println();
-  Serial.print("Booting in ");
-  Serial.print(this->_name);
-  Serial.println(" mode");
+  Logger.logln();
+  Logger.log("** Booting in ");
+  Logger.log(this->_name);
+  Logger.logln(" mode **");
 }
 
 void Boot::loop() {

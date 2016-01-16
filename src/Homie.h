@@ -2,6 +2,7 @@
 #define Homie_h
 
 #include <Arduino.h>
+#include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
 #include "Homie/Constants.hpp"
 #include "Homie/Boot/Boot.hpp"
@@ -16,6 +17,7 @@ class HomieClass {
     void setup();
     void loop();
 
+    void setLogging(bool logging);
     void setVersion(const char* version);
     void addNode(const char* name, const char* type);
     void addSubscription(const char* node, const char* property);
