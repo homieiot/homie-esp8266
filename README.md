@@ -229,8 +229,26 @@ Save the config to the device.
 
 ##### Response
 
+* In case of success:
+
 200 OK (application/json)
 
 ```json
 { "success": true }
+```
+
+* In case of error in the payload:
+
+400 Bad Request (application/json)
+
+```json
+{ "success": false }
+```
+
+* In case the device already received a valid configuration and is waiting for reboot:
+
+403 Forbidden (application/json)
+
+```json
+{ "success": false }
 ```
