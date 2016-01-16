@@ -11,7 +11,7 @@ Open http://marvinroger.github.io/homie-esp8266/ in your web browser.
 
 ### Locally
 
-[Download this repository](https://github.com/marvinroger/homie-esp8266-configurator/archive/master.zip) and open `index.html` in your web browser.
+[Download the content of this branch](https://github.com/marvinroger/homie-esp8266/archive/gh-pages.zip) and open `index.html` in your web browser.
 
 ## Usage
 
