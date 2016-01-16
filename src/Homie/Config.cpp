@@ -1,5 +1,7 @@
 #include "Config.hpp"
 
+using namespace HomieInternals;
+
 ConfigClass::ConfigClass()
 : _eeprom_began(false)
 , _custom_eeprom_size(0)
@@ -55,4 +57,4 @@ void ConfigClass::setCustomEepromSize(int count) {
   this->_custom_eeprom_size = count;
 }
 
-ConfigClass Config;
+ConfigClass HomieInternals::Config;

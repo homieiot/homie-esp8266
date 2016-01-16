@@ -1,5 +1,7 @@
 #include "Homie.h"
 
+using namespace HomieInternals;
+
 HomieClass::HomieClass() {
   this->_shared_interface.eepromCount = 0;
   this->_shared_interface.version = strdup("undefined");

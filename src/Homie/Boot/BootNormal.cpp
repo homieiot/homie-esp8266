@@ -1,5 +1,7 @@
 #include "BootNormal.hpp"
 
+using namespace HomieInternals;
+
 BootNormal::BootNormal(SharedInterface* shared_interface)
 : Boot("normal")
 , _shared_interface(shared_interface)

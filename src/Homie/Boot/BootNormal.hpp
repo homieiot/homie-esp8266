@@ -11,25 +11,27 @@
 #include "../Logger.hpp"
 #include "Boot.hpp"
 
-class BootNormal : public Boot {
-  public:
-    BootNormal(SharedInterface* shared_interface);
-    ~BootNormal();
-    void setup();
-    void loop();
+namespace HomieInternals {
+  class BootNormal : public Boot {
+    public:
+      BootNormal(SharedInterface* shared_interface);
+      ~BootNormal();
+      void setup();
+      void loop();
 
-  private:
-    SharedInterface* _shared_interface;
-    unsigned long _last_wifi_reconnect_attempt;
-    unsigned long _last_mqtt_reconnect_attempt;
-    bool _flagged_for_ota;
-    String _mqtt_base_topic;
-    Bounce _resetDebouncer;
-    WiFiClient _wifiClient;
+    private:
+      SharedInterface* _shared_interface;
+      unsigned long _last_wifi_reconnect_attempt;
+      unsigned long _last_mqtt_reconnect_attempt;
+      bool _flagged_for_ota;
+      String _mqtt_base_topic;
+      Bounce _resetDebouncer;
+      WiFiClient _wifiClient;
 
-    void _handleReset();
-    void _wifiConnect();
-    void _mqttConnect();
-    void _mqttSetup();
-    void _mqttCallback(char* topic, byte* payload, unsigned int length);
-};
+      void _handleReset();
+      void _wifiConnect();
+      void _mqttConnect();
+      void _mqttSetup();
+      void _mqttCallback(char* topic, byte* payload, unsigned int length);
+  };
+}

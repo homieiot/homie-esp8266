@@ -11,23 +11,25 @@
 #include "../Logger.hpp"
 #include "../Strings.hpp"
 
-class BootConfig : public Boot {
-  public:
-    BootConfig();
-    ~BootConfig();
-    void setup();
-    void loop();
-  private:
-    ESP8266WebServer _http;
-    DNSServer _dns;
-    byte _ssid_count;
-    unsigned long _last_wifi_scan;
-    bool _last_wifi_scan_ended;
-    String _json_wifi_networks;
-    bool _flagged_for_reboot;
-    unsigned long _flagged_for_reboot_at;
+namespace HomieInternals {
+  class BootConfig : public Boot {
+    public:
+      BootConfig();
+      ~BootConfig();
+      void setup();
+      void loop();
+    private:
+      ESP8266WebServer _http;
+      DNSServer _dns;
+      byte _ssid_count;
+      unsigned long _last_wifi_scan;
+      bool _last_wifi_scan_ended;
+      String _json_wifi_networks;
+      bool _flagged_for_reboot;
+      unsigned long _flagged_for_reboot_at;
 
-    void _onNetworksRequest();
-    void _onConfigRequest();
-    String _generateNetworksJson();
-};
+      void _onNetworksRequest();
+      void _onConfigRequest();
+      String _generateNetworksJson();
+  };
+}

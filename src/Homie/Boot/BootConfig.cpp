@@ -1,5 +1,7 @@
 #include "BootConfig.hpp"
 
+using namespace HomieInternals;
+
 BootConfig::BootConfig()
 : Boot("config")
 , _http(80)

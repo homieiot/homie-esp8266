@@ -8,13 +8,15 @@
 #include "../Logger.hpp"
 #include "Boot.hpp"
 
-class BootOta : public Boot {
-  public:
-    BootOta(SharedInterface* shared_interface);
-    ~BootOta();
-    void setup();
-    void loop();
+namespace HomieInternals {
+  class BootOta : public Boot {
+    public:
+      BootOta(SharedInterface* shared_interface);
+      ~BootOta();
+      void setup();
+      void loop();
 
-  private:
-    SharedInterface* _shared_interface;
-};
+    private:
+      SharedInterface* _shared_interface;
+  };
+}

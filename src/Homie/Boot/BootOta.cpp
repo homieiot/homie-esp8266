@@ -1,5 +1,7 @@
 #include "BootOta.hpp"
 
+using namespace HomieInternals;
+
 BootOta::BootOta(SharedInterface* shared_interface)
 : Boot("OTA")
 , _shared_interface(shared_interface)

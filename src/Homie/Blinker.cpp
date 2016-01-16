@@ -1,5 +1,7 @@
 #include "Blinker.hpp"
 
+using namespace HomieInternals;
+
 BlinkerClass::BlinkerClass()
 : _last_blink_pace(0)
 {
@@ -24,4 +26,4 @@ void BlinkerClass::_tick() {
   digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
 }
 
-BlinkerClass Blinker;
+BlinkerClass HomieInternals::Blinker;

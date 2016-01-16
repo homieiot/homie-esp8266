@@ -1,5 +1,7 @@
 #include "Logger.hpp"
 
+using namespace HomieInternals;
+
 LoggerClass::LoggerClass()
 : _logging_enabled(true)
 {
@@ -21,4 +23,4 @@ void LoggerClass::logln(String text) {
   }
 }
 
-LoggerClass Logger;
+LoggerClass HomieInternals::Logger;
