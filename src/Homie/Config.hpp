@@ -14,6 +14,9 @@ namespace HomieInternals {
       const char* wifi_ssid;
       const char* wifi_password;
       const char* homie_host;
+      uint16_t homie_port;
+      const char* homie_ota_path;
+      uint16_t homie_ota_port;
 
       ConfigClass();
       bool load();

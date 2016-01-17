@@ -88,7 +88,7 @@ String BootConfig::_generateNetworksJson() {
       case ENC_TYPE_AUTO:
         json_network["encryption"] = "auto";
         break;
-     }
+    }
 
     networks.add(json_network);
   }
@@ -113,7 +113,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  StaticJsonBuffer<JSON_OBJECT_SIZE(4)> parseJsonBuffer; // Max four elements in object
+  StaticJsonBuffer<JSON_OBJECT_SIZE(7)> parseJsonBuffer; // Max seven elements in object
   JsonObject& parsed_json = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str());
   if (!parsed_json.success()) {
     Logger.logln("✖ Invalid or too big JSON");
@@ -141,11 +141,38 @@ void BootConfig::_onConfigRequest() {
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
+  if (parsed_json.containsKey("homie_port") && !parsed_json["homie_port"].is<uint16_t>()) {
+    Logger.logln("✖ homie_port is not an unsigned integer");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    return;
+  }
+  if (parsed_json.containsKey("homie_ota_path") && !parsed_json["homie_ota_path"].is<const char*>()) {
+    Logger.logln("✖ homie_ota_path is not a string");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    return;
+  }
+  if (parsed_json.containsKey("homie_ota_port") && !parsed_json["homie_ota_port"].is<uint16_t>()) {
+    Logger.logln("✖ homie_ota_port is not an unsigned integer");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    return;
+  }
 
   const char* req_name = parsed_json["name"];
   const char* req_wifi_ssid = parsed_json["wifi_ssid"];
   const char* req_wifi_password = parsed_json["wifi_password"];
   const char* req_homie_host = parsed_json["homie_host"];
+  uint16_t req_homie_port = DEFAULT_HOMIE_PORT;
+  if (parsed_json.containsKey("homie_port")) {
+    req_homie_port = parsed_json["homie_port"].as<uint16_t>();
+  }
+  const char* req_homie_ota_path = DEFAULT_HOMIE_OTA_PATH;
+  if (parsed_json.containsKey("homie_ota_path")) {
+    req_homie_ota_path = parsed_json["homie_ota_path"];
+  }
+  uint16_t req_homie_ota_port = DEFAULT_HOMIE_OTA_PORT;
+  if (parsed_json.containsKey("homie_ota_port")) {
+    req_homie_ota_port = parsed_json["homie_ota_port"].as<uint16_t>();
+  }
 
   if (strcmp(req_name, "") == 0) {
     Logger.logln("✖ name is empty");
@@ -182,9 +209,13 @@ void BootConfig::_onConfigRequest() {
   Config.wifi_ssid = req_wifi_ssid;
   Config.wifi_password = req_wifi_password;
   Config.homie_host = req_homie_host;
+  Config.homie_port = req_homie_port;
+  Config.homie_ota_path = req_homie_ota_path;
+  Config.homie_ota_port = req_homie_ota_port;
   Config.boot_mode = BOOT_NORMAL;
   Config.configured = true;
   Config.save();
+  Config.log();
 
   Logger.logln("✔ Configured");
 

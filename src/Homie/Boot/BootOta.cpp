@@ -41,7 +41,7 @@ void BootOta::setup() {
   String dataToPass = Config.hostname;
   dataToPass += '=';
   dataToPass += this->_shared_interface->version;
-  t_httpUpdate_return ret = ESPhttpUpdate.update(Config.homie_host, OTA_PORT, "/ota", dataToPass, false, "", false);
+  t_httpUpdate_return ret = ESPhttpUpdate.update(Config.homie_host, Config.homie_ota_port, Config.homie_ota_path, dataToPass, false, "", false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:
       Logger.logln("✖ Update failed");
