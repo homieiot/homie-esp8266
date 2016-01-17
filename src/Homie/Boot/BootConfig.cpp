@@ -202,6 +202,7 @@ void BootConfig::loop() {
 
   if (this->_flagged_for_reboot) {
     if (millis() - this->_flagged_for_reboot_at >= 5000UL) {
+      Logger.logln("↻ Rebooting in normal mode");
       ESP.restart();
     }
 

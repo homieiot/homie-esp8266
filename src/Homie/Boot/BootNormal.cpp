@@ -127,6 +127,7 @@ void BootNormal::_handleReset() {
 
     this->_shared_interface->resetFunction();
 
+    Logger.logln("↻ Rebooting in config mode");
     ESP.restart();
   }
 }
@@ -177,7 +178,7 @@ void BootNormal::loop() {
   this->_shared_interface->loopFunction();
 
   if (this->_flagged_for_ota && this->_shared_interface->resettable) {
-    Logger.logln("Rebooting in OTA mode");
+    Logger.logln("↻ Rebooting in OTA mode");
     Config.boot_mode = BOOT_OTA;
     Config.save();
 
