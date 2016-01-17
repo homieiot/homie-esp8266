@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "Constants.hpp"
+#include "Logger.hpp"
 
 namespace HomieInternals {
   class ConfigClass {
@@ -18,6 +19,7 @@ namespace HomieInternals {
       bool load();
       void save();
       void setCustomEepromSize(int count);
+      void log();       // print the current config to log output
 
     private:
       ConfigStruct _config_struct;
