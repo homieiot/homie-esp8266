@@ -57,4 +57,20 @@ void ConfigClass::setCustomEepromSize(int count) {
   this->_custom_eeprom_size = count;
 }
 
+void ConfigClass::log() {
+  Logger.logln("Conifg: ");
+  Logger.log("  * configured: ");
+  Logger.logln(String(this->configured));
+  Logger.log("  * boot_mode: ");
+  Logger.logln(String(this->boot_mode));
+  Logger.log("  * hostname: ");
+  Logger.logln(this->hostname);
+  Logger.log("  * wifi_ssid: ");
+  Logger.logln(this->wifi_ssid);
+  Logger.log("  * wifi_password: ");
+  Logger.logln(this->wifi_password);
+  Logger.log("  * homie_host: ");
+  Logger.logln(this->homie_host);
+}
+
 ConfigClass HomieInternals::Config;
