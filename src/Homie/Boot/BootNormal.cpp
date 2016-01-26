@@ -25,7 +25,7 @@ void BootNormal::_wifiConnect() {
 }
 
 void BootNormal::_mqttConnect() {
-  this->_shared_interface->mqtt->setServer(Config.homie_host, HOMIE_PORT);
+  this->_shared_interface->mqtt->setServer(Config.homie_host, Config.homie_port);
   this->_shared_interface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   String topic = this->_mqtt_base_topic;
   topic += "/$online";
@@ -139,6 +139,8 @@ void BootNormal::setup() {
   this->_resetDebouncer.interval(5000UL);
 
   this->_shared_interface->setupFunction();
+
+  Config.log();
 }
 
 void BootNormal::loop() {

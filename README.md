@@ -221,11 +221,14 @@ Save the config to the device.
   "name": "kitchen-light",
   "wifi_ssid": "Network_1",
   "wifi_password": "I'm a Wi-Fi password!",
-  "homie_host": "192.168.1.10"
+  "homie_host": "192.168.1.10",
+  "homie_port": 35589,
+  "homie_ota_path": "/ota",
+  "homie_ota_port": 35590
 }
 ```
 
-`wifi_password` can be left blank if open network.
+`wifi_password` can be left blank if open network. `homie_port`, `homie_ota_path` and `homie_ota_port` are optional (default values are the ones indicaded in this json).
 
 ##### Response
 
