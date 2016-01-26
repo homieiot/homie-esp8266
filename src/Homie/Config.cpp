@@ -73,8 +73,6 @@ void ConfigClass::log() {
   Logger.logln(this->hostname);
   Logger.log("  * wifi_ssid: ");
   Logger.logln(this->wifi_ssid);
-  Logger.log("  * wifi_password: ");
-  Logger.logln(this->wifi_password);
   Logger.log("  * homie_host: ");
   Logger.logln(this->homie_host);
   Logger.log("  * homie_port: ");
