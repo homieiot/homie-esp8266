@@ -19,8 +19,16 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  char device_id[8 + 1];
-  sprintf(device_id, "%08x", ESP.getChipId());
+  char chip_id[6 + 1];
+  sprintf(chip_id, "%06x", ESP.getChipId());
+  char flash_chip_id[6 + 1];
+  sprintf(flash_chip_id, "%06x", ESP.getFlashChipId());
+
+  String truncated_flash_id = String(flash_chip_id);
+  truncated_flash_id = truncated_flash_id.substring(4);
+
+  String device_id = String(chip_id);
+  device_id += truncated_flash_id;
 
   Logger.log("Device ID is ");
   Logger.logln(device_id);
@@ -37,7 +45,7 @@ void BootConfig::setup() {
   IPAddress apIP(192, 168, 1, 1);
 
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(tmp_hostname.c_str(), device_id);
+  WiFi.softAP(tmp_hostname.c_str(), device_id.c_str());
 
   Logger.log("AP started as ");
   Logger.logln(tmp_hostname);
