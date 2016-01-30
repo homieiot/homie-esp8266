@@ -34,7 +34,7 @@ void inputHandler(String node, String property, String message) {
 void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
-  Homie.setVersion("1.0.0");
+  Homie.setFirmare("awesome-relay" ,"1.0.0");
   Homie.addNode("light", "light");
   Homie.addSubscription("light", "on");
   Homie.setInputHandler(inputHandler);
@@ -92,11 +92,12 @@ Enable or disable Homie Serial logging.
 
 * **`logging`**: Whether or not to enable logging. By default, logging is enabled
 
-#### void .setVersion (const char\* `version`)
+#### void .setFirmware (const char\* `name`, const char\* `version`)
 
-Set the version of the sketch. This is useful for OTA, as Homie will check against the server if there is a newer version.
+Set the name and version of the firmware. This is useful for OTA, as Homie will check against the server if there is a newer version.
 
-* **`version`**: Version of the sketch. Default value is `undefined`
+* **`name`**: Name of the firmware. Default value is `undefined`
+* **`version`**: Version of the firmware. Default value is `undefined`
 
 #### void .addNode (const char\* `name`, const char\* `type`)
 
@@ -220,7 +221,7 @@ Save the config to the device.
 
 ```json
 {
-  "name": "kitchen-light",
+  "name": "kitchen light",
   "wifi_ssid": "Network_1",
   "wifi_password": "I'm a Wi-Fi password!",
   "homie_host": "192.168.1.10",

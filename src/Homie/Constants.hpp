@@ -40,7 +40,8 @@ namespace HomieInternals {
 
   struct SharedInterface {
     int eepromCount;
-    char* version;
+    char* fwname;
+    char* fwversion;
     bool resettable;
     bool readyToOperate;
     std::vector<Node> nodes;
@@ -55,7 +56,7 @@ namespace HomieInternals {
   struct ConfigStruct {
     bool configured;
     BootMode boot_mode;
-    char hostname[EEPROM_LENGTH_HOSTNAME];
+    char name[EEPROM_LENGTH_HOSTNAME];
     char wifi_ssid[EEPROM_LENGTH_WIFI_SSID];
     char wifi_password[EEPROM_LENGTH_WIFI_PASSWORD];
     char homie_host[EEPROM_LENGTH_HOMIE_HOST];

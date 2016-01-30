@@ -8,6 +8,7 @@
 #include <DNSServer.h>
 #include "Boot.hpp"
 #include "../Config.hpp"
+#include "../Helpers.hpp"
 #include "../Logger.hpp"
 #include "../Strings.hpp"
 

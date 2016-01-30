@@ -32,7 +32,7 @@ bool ConfigClass::load() {
     return false;
   }
 
-  this->hostname = this->_config_struct.hostname;
+  this->name = this->_config_struct.name;
   this->wifi_ssid = this->_config_struct.wifi_ssid;
   this->wifi_password = this->_config_struct.wifi_password;
   this->homie_host = this->_config_struct.homie_host;
@@ -48,7 +48,7 @@ void ConfigClass::save() {
 
   this->_config_struct.configured = this->configured;
   this->_config_struct.boot_mode = this->boot_mode;
-  strcpy(this->_config_struct.hostname, this->hostname);
+  strcpy(this->_config_struct.name, this->name);
   strcpy(this->_config_struct.wifi_ssid, this->wifi_ssid);
   strcpy(this->_config_struct.wifi_password, this->wifi_password);
   strcpy(this->_config_struct.homie_host, this->homie_host);
@@ -64,22 +64,23 @@ void ConfigClass::setCustomEepromSize(int count) {
 }
 
 void ConfigClass::log() {
-  Logger.logln("Conifg: ");
-  Logger.log("  * configured: ");
+  Logger.logln("⚙ Config:");
+  Logger.log("  • configured: ");
   Logger.logln(String(this->configured));
-  Logger.log("  * boot_mode: ");
+  Logger.log("  • boot_mode: ");
   Logger.logln(String(this->boot_mode));
-  Logger.log("  * hostname: ");
-  Logger.logln(this->hostname);
-  Logger.log("  * wifi_ssid: ");
+  Logger.log("  • name: ");
+  Logger.logln(this->name);
+  Logger.log("  • wifi_ssid: ");
   Logger.logln(this->wifi_ssid);
-  Logger.log("  * homie_host: ");
+  Logger.logln("  • wifi_password hidden");
+  Logger.log("  • homie_host: ");
   Logger.logln(this->homie_host);
-  Logger.log("  * homie_port: ");
+  Logger.log("  • homie_port: ");
   Logger.logln(String(this->homie_port));
-  Logger.log("  * homie_ota_path: ");
+  Logger.log("  • homie_ota_path: ");
   Logger.logln(this->homie_ota_path);
-  Logger.log("  * homie_ota_port: ");
+  Logger.log("  • homie_ota_port: ");
   Logger.logln(String(this->homie_ota_port));
 }
 

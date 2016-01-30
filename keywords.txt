@@ -11,7 +11,7 @@ Homie	KEYWORD1
 setup	KEYWORD2
 loop	KEYWORD2
 setLogging	KEYWORD2
-setVersion	KEYWORD2
+setFirmware	KEYWORD2
 addNode	KEYWORD2
 setInputHandler	KEYWORD2
 addSubscription	KEYWORD2

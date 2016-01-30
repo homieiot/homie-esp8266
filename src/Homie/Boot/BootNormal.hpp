@@ -6,6 +6,7 @@
 #include "../../3rd/PubSubClient/src/PubSubClient.h"
 #include "../../3rd/Bounce2/src/Bounce2.h"
 #include "../Constants.hpp"
+#include "../Helpers.hpp"
 #include "../Config.hpp"
 #include "../Blinker.hpp"
 #include "../Logger.hpp"

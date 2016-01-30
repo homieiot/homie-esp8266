@@ -17,7 +17,7 @@ void inputHandler(String node, String property, String message) {
 void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
-  Homie.setVersion("1.0.0");
+  Homie.setFirmware("awesome-relay" ,"1.0.0");
   Homie.addNode("light", "light");
   Homie.addSubscription("light", "on");
   Homie.setInputHandler(inputHandler);

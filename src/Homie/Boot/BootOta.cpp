@@ -14,7 +14,6 @@ BootOta::~BootOta() {
 void BootOta::setup() {
   Boot::setup();
 
-  WiFi.hostname(Config.hostname);
   WiFi.mode(WIFI_STA);
 
   WiFi.begin(Config.wifi_ssid, Config.wifi_password);
@@ -38,9 +37,11 @@ void BootOta::setup() {
   Logger.logln("✔ Connected to Wi-Fi");
   Logger.logln("Starting OTA...");
 
-  String dataToPass = Config.hostname;
+  String dataToPass = Helpers::getDeviceId();
   dataToPass += '=';
-  dataToPass += this->_shared_interface->version;
+  dataToPass += this->_shared_interface->fwname;
+  dataToPass += '@';
+  dataToPass += this->_shared_interface->fwversion;
   t_httpUpdate_return ret = ESPhttpUpdate.update(Config.homie_host, Config.homie_ota_port, Config.homie_ota_path, dataToPass, false, "", false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:

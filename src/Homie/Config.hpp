@@ -10,7 +10,7 @@ namespace HomieInternals {
     public:
       bool configured;
       BootMode boot_mode;
-      const char* hostname;
+      const char* name;
       const char* wifi_ssid;
       const char* wifi_password;
       const char* homie_host;

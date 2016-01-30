@@ -5,6 +5,7 @@
 #include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
 #include "Homie/Constants.hpp"
+#include "Homie/Helpers.hpp"
 #include "Homie/Boot/Boot.hpp"
 #include "Homie/Boot/BootNormal.hpp"
 #include "Homie/Boot/BootConfig.hpp"
@@ -19,7 +20,7 @@ namespace HomieInternals {
       void loop();
 
       void setLogging(bool logging);
-      void setVersion(const char* version);
+      void setFirmware(const char* name, const char* version);
       void addNode(const char* name, const char* type);
       void addSubscription(const char* node, const char* property);
       void setInputHandler(void (*callback)(String node, String property, String message));

@@ -19,36 +19,24 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  char chip_id[6 + 1];
-  sprintf(chip_id, "%06x", ESP.getChipId());
-  char flash_chip_id[6 + 1];
-  sprintf(flash_chip_id, "%06x", ESP.getFlashChipId());
+  digitalWrite(BUILTIN_LED, LOW);
 
-  String truncated_flash_id = String(flash_chip_id);
-  truncated_flash_id = truncated_flash_id.substring(4);
-
-  String device_id = String(chip_id);
-  device_id += truncated_flash_id;
+  String device_id = Helpers::getDeviceId();
 
   Logger.log("Device ID is ");
   Logger.logln(device_id);
 
-  String tmp_hostname = String("Homie-");
-  tmp_hostname += device_id;
-
-  WiFi.hostname(tmp_hostname);
-
-  digitalWrite(BUILTIN_LED, LOW);
-
   WiFi.mode(WIFI_AP);
 
-  IPAddress apIP(192, 168, 1, 1);
+  IPAddress ap_ip(192, 168, 1, 1);
+  String ap_name = String("Homie-");
+  ap_name += device_id;
 
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(tmp_hostname.c_str(), device_id.c_str());
+  WiFi.softAPConfig(ap_ip, ap_ip, IPAddress(255, 255, 255, 0));
+  WiFi.softAP(ap_name.c_str(), device_id.c_str());
 
   Logger.log("AP started as ");
-  Logger.logln(tmp_hostname);
+  Logger.logln(ap_name);
 
   // Trigger sync Wi-Fi scan (don't do before AP init or doesn't work)
   this->_ssid_count = WiFi.scanNetworks();
@@ -57,7 +45,7 @@ void BootConfig::setup() {
 
   this->_dns.setTTL(300);
   this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
-  this->_dns.start(53, "homie.config", apIP);
+  this->_dns.start(53, "homie.config", ap_ip);
 
   this->_http.on("/heart", HTTP_GET, [this]() {
     Logger.logln("Received heart request");
@@ -199,22 +187,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  // Check if hostname only [a-z0-9\-]
-  for (int i = 0; i < strlen(req_name); i++){
-    if (!((req_name[i] >= 'a' && req_name[i] <= 'z') || (req_name[i] >= '0' && req_name[i] <= '9') || req_name[i] == '-')) {
-      Logger.logln("✖ name contains unauthorized characters");
-      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-      return;
-    }
-  }
-  // Check if hostname doesn't start or end with '-'
-  if (req_name[0] == '-' || req_name[strlen(req_name) - 1] == '-') {
-    Logger.logln("✖ name starts or ends with a dash");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-
-  Config.hostname = req_name;
+  Config.name = req_name;
   Config.wifi_ssid = req_wifi_ssid;
   Config.wifi_password = req_wifi_password;
   Config.homie_host = req_homie_host;

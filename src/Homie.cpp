@@ -4,7 +4,8 @@ using namespace HomieInternals;
 
 HomieClass::HomieClass() {
   this->_shared_interface.eepromCount = 0;
-  this->_shared_interface.version = strdup("undefined");
+  this->_shared_interface.fwname = strdup("undefined");
+  this->_shared_interface.fwversion = strdup("undefined");
   this->_shared_interface.resettable = true;
   this->_shared_interface.readyToOperate = false;
   this->_shared_interface.inputHandler = [](String node, String property, String message) {};
@@ -47,8 +48,9 @@ void HomieClass::setLogging(bool logging) {
   Logger.setLogging(logging);
 }
 
-void HomieClass::setVersion(const char* version) {
-  this->_shared_interface.version = strdup(version);
+void HomieClass::setFirmware(const char* name, const char* version) {
+  this->_shared_interface.fwname = strdup(name);
+  this->_shared_interface.fwversion = strdup(version);
 }
 
 void HomieClass::addNode(const char* name, const char* type) {
@@ -95,7 +97,7 @@ bool HomieClass::sendProperty(String node, String property, String value, bool r
   }
 
   String topic = "devices/";
-  topic += Config.hostname;
+  topic += Helpers::getDeviceId();
   topic += "/";
   topic += node;
   topic += "/";

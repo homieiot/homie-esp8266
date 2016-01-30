@@ -4,6 +4,7 @@
 #include <ESP8266WiFi.h>
 #include "../Constants.hpp"
 #include "../Logger.hpp"
+#include "../Helpers.hpp"
 
 namespace HomieInternals {
   class Boot {

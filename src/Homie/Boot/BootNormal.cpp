@@ -11,7 +11,7 @@ BootNormal::BootNormal(SharedInterface* shared_interface)
 {
   this->_shared_interface->mqtt = new PubSubClient(this->_wifiClient);
   this->_mqtt_base_topic = "devices/";
-  this->_mqtt_base_topic += Config.hostname;
+  this->_mqtt_base_topic += Helpers::getDeviceId();
 }
 
 BootNormal::~BootNormal() {
@@ -19,7 +19,6 @@ BootNormal::~BootNormal() {
 }
 
 void BootNormal::_wifiConnect() {
-  WiFi.hostname(Config.hostname);
   WiFi.mode(WIFI_STA);
   WiFi.begin(Config.wifi_ssid, Config.wifi_password);
 }
@@ -30,7 +29,7 @@ void BootNormal::_mqttConnect() {
   String topic = this->_mqtt_base_topic;
   topic += "/$online";
 
-  if (this->_shared_interface->mqtt->connect(Config.hostname, topic.c_str(), 2, true, "false")) {
+  if (this->_shared_interface->mqtt->connect(Helpers::getDeviceId().c_str(), topic.c_str(), 2, true, "false")) {
     this->_mqttSetup();
   }
 }
@@ -57,8 +56,8 @@ void BootNormal::_mqttSetup() {
   this->_shared_interface->mqtt->publish(topic.c_str(), "true", true);
 
   topic = this->_mqtt_base_topic;
-  topic += "/$version";
-  this->_shared_interface->mqtt->publish(topic.c_str(), this->_shared_interface->version, true);
+  topic += "/$name";
+  this->_shared_interface->mqtt->publish(topic.c_str(), Config.name, true);
 
   topic = this->_mqtt_base_topic;
   topic += "/$localip";
@@ -71,6 +70,14 @@ void BootNormal::_mqttSetup() {
   local_ip_str += ".";
   local_ip_str += local_ip[3];
   this->_shared_interface->mqtt->publish(topic.c_str(), local_ip_str.c_str(), true);
+
+  topic = this->_mqtt_base_topic;
+  topic += "/$fwname";
+  this->_shared_interface->mqtt->publish(topic.c_str(), this->_shared_interface->fwname, true);
+
+  topic = this->_mqtt_base_topic;
+  topic += "/$fwversion";
+  this->_shared_interface->mqtt->publish(topic.c_str(), this->_shared_interface->fwversion, true);
 
   topic = this->_mqtt_base_topic;
   topic += "/$ota";
@@ -98,7 +105,7 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
   String unified = String(topic);
   unified.remove(0, this->_mqtt_base_topic.length() + 1); // Remove /devices/${id}/ - +1 for /
   if (unified == "$ota") {
-    if (message != this->_shared_interface->version) {
+    if (message != this->_shared_interface->fwversion) {
       this->_flagged_for_ota = true;
       Logger.log("Flagged for OTA v.");
       Logger.logln(message);
@@ -155,7 +162,7 @@ void BootNormal::loop() {
   if (WiFi.status() != WL_CONNECTED) {
     unsigned long now = millis();
     if (now - this->_last_wifi_reconnect_attempt >= 20000UL || this->_last_wifi_reconnect_attempt == 0) {
-      Logger.logln("Attempting to connect to WiFi");
+      Logger.logln("Attempting to connect to Wi-Fi");
       this->_last_wifi_reconnect_attempt = now;
       Blinker.start(LED_WIFI_DELAY);
       this->_wifiConnect();
