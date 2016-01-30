@@ -5,6 +5,8 @@ Homie for ESP8266
 
 An opinionated IoT framework for the ESP8266.
 
+**Note the API is not yet stable and is subject to change.**
+
 ## Features
 
 * Easy credentials configuration through a Web UI
@@ -228,7 +230,7 @@ Save the config to the device.
 }
 ```
 
-`wifi_password` can be left blank if open network. `homie_port`, `homie_ota_path` and `homie_ota_port` are optional (default values are the ones indicaded in this json).
+`wifi_password` can be left blank if connecting to an open network. `homie_port`, `homie_ota_path` and `homie_ota_port` are optional (default values are the ones indicated in the above JSON).
 
 ##### Response
 

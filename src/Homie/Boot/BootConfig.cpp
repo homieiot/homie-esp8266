@@ -66,6 +66,7 @@ void BootConfig::setup() {
   this->_http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
   this->_http.on("/config", HTTP_PUT, std::bind(&BootConfig::_onConfigRequest, this));
   this->_http.on("/config", HTTP_OPTIONS, [this]() { // CORS
+    Logger.logln("Received CORS request for /config");
     this->_http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
   this->_http.begin();
