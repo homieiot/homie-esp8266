@@ -24,6 +24,7 @@ namespace HomieInternals {
       SharedInterface* _shared_interface;
       unsigned long _last_wifi_reconnect_attempt;
       unsigned long _last_mqtt_reconnect_attempt;
+      unsigned long _last_signal_sent;
       bool _flagged_for_ota;
       String _mqtt_base_topic;
       Bounce _resetDebouncer;

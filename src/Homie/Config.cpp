@@ -64,7 +64,7 @@ void ConfigClass::setCustomEepromSize(int count) {
 }
 
 void ConfigClass::log() {
-  Logger.logln("⚙ Config:");
+  Logger.logln("⚙ Stored configuration:");
   Logger.log("  • configured: ");
   Logger.logln(String(this->configured));
   Logger.log("  • boot_mode: ");
@@ -73,7 +73,7 @@ void ConfigClass::log() {
   Logger.logln(this->name);
   Logger.log("  • wifi_ssid: ");
   Logger.logln(this->wifi_ssid);
-  Logger.logln("  • wifi_password hidden");
+  Logger.logln("  • wifi_password not shown");
   Logger.log("  • homie_host: ");
   Logger.logln(this->homie_host);
   Logger.log("  • homie_port: ");
