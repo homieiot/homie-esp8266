@@ -3,7 +3,7 @@ Homie for ESP8266
 
 ![homie-esp8266](homie-esp8266.jpg)
 
-An opinionated IoT framework for the ESP8266.
+An ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT convention for the IoT.
 
 **Note the API is not yet stable and is subject to change.**
 
@@ -53,7 +53,7 @@ void loop() {
 
 ## Installation
 
-1. Download the [latest version](https://github.com/marvinroger/homie/archive/master.zip)
+1. Download the [latest version](https://github.com/marvinroger/homie-esp8266/archive/master.zip)
 2. Load the `.zip` with **Sketch → Include Library → Add .ZIP Library**
 
 ## How does it work?
