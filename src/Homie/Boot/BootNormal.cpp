@@ -29,7 +29,10 @@ void BootNormal::_mqttConnect() {
   String topic = this->_mqtt_base_topic;
   topic += "/$online";
 
-  if (this->_shared_interface->mqtt->connect(Helpers::getDeviceId().c_str(), topic.c_str(), 2, true, "false")) {
+  String client_id = String("Homie-");
+  client_id += Helpers::getDeviceId();
+
+  if (this->_shared_interface->mqtt->connect(client_id.c_str(), topic.c_str(), 2, true, "false")) {
     this->_mqttSetup();
   }
 }
