@@ -53,7 +53,7 @@ void loop() {
 
 ## Installation
 
-1. Download the [latest version](https://github.com/marvinroger/homie/archive/master.zip)
+1. Download the [latest version](https://github.com/marvinroger/homie-esp8266/archive/master.zip)
 2. Load the `.zip` with **Sketch → Include Library → Add .ZIP Library**
 
 ## How does it work?
