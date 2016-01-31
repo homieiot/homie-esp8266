@@ -194,7 +194,7 @@ void BootNormal::loop() {
     byte quality;
     if (rssi <= -100) {
       quality = 0;
-    } else if(rssi >= -50) {
+    } else if (rssi >= -50) {
       quality = 100;
     } else {
       quality = 2 * (rssi + 100);
