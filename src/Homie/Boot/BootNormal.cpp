@@ -97,6 +97,7 @@ void BootNormal::_mqttSetup() {
     topic += subscription.property;
     topic += "/set";
     this->_shared_interface->mqtt->subscribe(topic.c_str(), 1);
+    this->_shared_interface->mqtt->loop(); // see knolleary/pubsublient#98
   }
 }
 
