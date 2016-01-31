@@ -1,8 +1,9 @@
-// Copyright Benoit Blanchon 2014-2015
+// Copyright Benoit Blanchon 2014-2016
 // MIT License
 //
 // Arduino JSON library
 // https://github.com/bblanchon/ArduinoJson
+// If you like this project, please add a star!
 
 #pragma once
 
@@ -173,10 +174,8 @@ bool JsonVariant::is<signed long>() const;
 template <>  // in .cpp
 bool JsonVariant::is<double>() const;
 
-template <>
-inline bool JsonVariant::is<bool>() const {
-  return _type == Internals::JSON_BOOLEAN;
-}
+template <>  // int .cpp
+bool JsonVariant::is<bool>() const;
 
 template <>
 inline bool JsonVariant::is<char const *>() const {

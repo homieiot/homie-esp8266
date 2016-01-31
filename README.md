@@ -222,16 +222,45 @@ Save the config to the device.
 ```json
 {
   "name": "kitchen light",
-  "wifi_ssid": "Network_1",
-  "wifi_password": "I'm a Wi-Fi password!",
-  "homie_host": "192.168.1.10",
-  "homie_port": 35589,
-  "homie_ota_path": "/ota",
-  "homie_ota_port": 35590
+  "wifi": {
+    "ssid": "Network_1",
+    "password": "I'm a Wi-Fi password!"
+  },
+  "mqtt": {
+    "host": "192.168.1.10",
+    "port": 1883,
+    "auth": true,
+    "username": "user",
+    "password": "pass",
+    "ssl": true,
+    "fingerprint": "CF 05 98 89 CA FF 8E D8 5E 5C E0 C2 E4 F7 E6 C3 C7 50 DD 5C"
+  },
+  "ota": {
+    "enabled": true,
+    "host": "192.168.1.10",
+    "port": 80,
+    "path": "/custom_ota",
+    "ssl": true,
+    "fingerprint": "CF 05 98 89 CA FF 8E D8 5E 5C E0 C2 E4 F7 E6 C3 C7 50 DD 5C"
+  }
 }
 ```
 
-`wifi_password` can be left blank if connecting to an open network. `homie_port`, `homie_ota_path` and `homie_ota_port` are optional (default values are the ones indicated in the above JSON).
+The above JSON contains every field that can be customized.
+
+`name`, `wifi.ssid`, `wifi.password`, `mqtt.host` and `ota.enabled` are mandatory. `wifi.password` can be `""` if connecting to an open network.
+
+If `mqtt.auth` is `true`, `mqtt.username` and `mqtt.password` must be provided.
+
+Default values if not provided:
+
+* `mqtt.port`: `35589`
+* `mqtt.auth`: `false`
+* `mqtt.ssl`: `false`
+* `ota.host`: same as `mqtt.host`
+* `ota.port`: `35590`
+* `ota.path`: `/ota`
+* `ota.ssl`: `false`
 
 ##### Response
 

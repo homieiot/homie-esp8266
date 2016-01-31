@@ -29,6 +29,7 @@ namespace HomieInternals {
       String _mqtt_base_topic;
       Bounce _resetDebouncer;
       WiFiClient _wifiClient;
+      WiFiClientSecure _wifiClientSecure;
 
       void _handleReset();
       void _wifiConnect();

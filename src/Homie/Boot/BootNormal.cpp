@@ -10,7 +10,12 @@ BootNormal::BootNormal(SharedInterface* shared_interface)
 , _last_signal_sent(0)
 , _flagged_for_ota(false)
 {
-  this->_shared_interface->mqtt = new PubSubClient(this->_wifiClient);
+  if (Config.get().mqtt.ssl) {
+    this->_shared_interface->mqtt = new PubSubClient(this->_wifiClientSecure);
+  } else {
+    this->_shared_interface->mqtt = new PubSubClient(this->_wifiClient);
+  }
+
   this->_mqtt_base_topic = "devices/";
   this->_mqtt_base_topic += Helpers::getDeviceId();
 }
@@ -21,11 +26,11 @@ BootNormal::~BootNormal() {
 
 void BootNormal::_wifiConnect() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(Config.wifi_ssid, Config.wifi_password);
+  WiFi.begin(Config.get().wifi.ssid, Config.get().wifi.password);
 }
 
 void BootNormal::_mqttConnect() {
-  this->_shared_interface->mqtt->setServer(Config.homie_host, Config.homie_port);
+  this->_shared_interface->mqtt->setServer(Config.get().mqtt.host, Config.get().mqtt.port);
   this->_shared_interface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   String topic = this->_mqtt_base_topic;
   topic += "/$online";
@@ -33,7 +38,22 @@ void BootNormal::_mqttConnect() {
   String client_id = String("Homie-");
   client_id += Helpers::getDeviceId();
 
-  if (this->_shared_interface->mqtt->connect(client_id.c_str(), topic.c_str(), 2, true, "false")) {
+  bool connectResult;
+  if (Config.get().mqtt.auth) {
+    connectResult = this->_shared_interface->mqtt->connect(client_id.c_str(), topic.c_str(), 2, true, "false");
+  } else {
+    connectResult = this->_shared_interface->mqtt->connect(client_id.c_str(), Config.get().mqtt.username, Config.get().mqtt.password, topic.c_str(), 2, true, "false");
+  }
+
+  if (connectResult) {
+    if (Config.get().mqtt.ssl && !strcmp(Config.get().mqtt.fingerprint, "")) {
+      if(!this->_wifiClientSecure.verify(Config.get().mqtt.fingerprint, Config.get().mqtt.host)) {
+        Logger.logln("✖ MQTT SSL certificate mismatch");
+        this->_shared_interface->mqtt->disconnect();
+        return;
+      }
+    }
+
     this->_mqttSetup();
   }
 }
@@ -61,7 +81,7 @@ void BootNormal::_mqttSetup() {
 
   topic = this->_mqtt_base_topic;
   topic += "/$name";
-  this->_shared_interface->mqtt->publish(topic.c_str(), Config.name, true);
+  this->_shared_interface->mqtt->publish(topic.c_str(), Config.get().name, true);
 
   topic = this->_mqtt_base_topic;
   topic += "/$localip";
@@ -111,9 +131,16 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
   unified.remove(0, this->_mqtt_base_topic.length() + 1); // Remove /devices/${id}/ - +1 for /
   if (unified == "$ota") {
     if (message != this->_shared_interface->fwversion) {
-      this->_flagged_for_ota = true;
-      Logger.log("Flagged for OTA v.");
-      Logger.logln(message);
+      Logger.log("✴ OTA available (version ");
+      Logger.log(message);
+      Logger.logln(")");
+
+      if (Config.get().ota.enabled) {
+        this->_flagged_for_ota = true;
+        Serial.println("Flagged for OTA reboot");
+      } else {
+        Serial.println("OTA is disabled");
+      }
     }
     return;
   }
@@ -134,7 +161,7 @@ void BootNormal::_handleReset() {
 
   if (this->_resetDebouncer.read() == LOW) {
     Logger.logln("Resetting");
-    Config.configured = false;
+    Config.get().configured = false;
     Config.save();
 
     this->_shared_interface->resetFunction();
@@ -214,7 +241,7 @@ void BootNormal::loop() {
 
   if (this->_flagged_for_ota && this->_shared_interface->resettable) {
     Logger.logln("↻ Rebooting in OTA mode");
-    Config.boot_mode = BOOT_OTA;
+    Config.get().boot_mode = BOOT_OTA;
     Config.save();
 
     ESP.restart();

@@ -24,7 +24,7 @@ void HomieClass::setup(void) {
   if (!Config.load()) {
     this->_boot = new BootConfig();
   } else {
-    switch (Config.boot_mode) {
+    switch (Config.get().boot_mode) {
       case BOOT_NORMAL:
         this->_boot = new BootNormal(&this->_shared_interface);
         break;

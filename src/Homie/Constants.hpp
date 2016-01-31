@@ -6,9 +6,9 @@
 namespace HomieInternals {
   const int BAUD_RATE = 115200;
 
-  const uint16_t DEFAULT_HOMIE_PORT = 35589;
-  const uint16_t DEFAULT_HOMIE_OTA_PORT = 35590;
-  const char DEFAULT_HOMIE_OTA_PATH[] = "/ota";
+  const uint16_t DEFAULT_MQTT_PORT = 35589;
+  const uint16_t DEFAULT_OTA_PORT = 35590;
+  const char DEFAULT_OTA_PATH[] = "/ota";
 
   const float PIN_RESET = D3;
 
@@ -16,11 +16,16 @@ namespace HomieInternals {
   const float LED_MQTT_DELAY = 0.2;
 
   const int EEPROM_OFFSET = 0;
-  const int EEPROM_LENGTH_HOSTNAME = 32 + 1;
+  const int EEPROM_LENGTH_NAME = 32 + 1;
   const int EEPROM_LENGTH_WIFI_SSID = 32 + 1;
   const int EEPROM_LENGTH_WIFI_PASSWORD = 63 + 1;
-  const int EEPROM_LENGTH_HOMIE_HOST = 63 + 1;
-  const int EEPROM_LENGTH_HOMIE_OTA_PATH = 63 + 1;
+  const int EEPROM_LENGTH_MQTT_HOST = 63 + 1;
+  const int EEPROM_LENGTH_MQTT_USERNAME = 63 + 1;
+  const int EEPROM_LENGTH_MQTT_PASSWORD = 63 + 1;
+  const int EEPROM_LENGTH_MQTT_FINGERPRINT = 59 + 1;
+  const int EEPROM_LENGTH_OTA_HOST = EEPROM_LENGTH_MQTT_HOST;
+  const int EEPROM_LENGTH_OTA_PATH = 63 + 1;
+  const int EEPROM_LENGTH_OTA_FINGERPRINT = EEPROM_LENGTH_MQTT_FINGERPRINT;
 
   enum BootMode : byte {
     BOOT_NORMAL = 1,
@@ -56,13 +61,28 @@ namespace HomieInternals {
   struct ConfigStruct {
     bool configured;
     BootMode boot_mode;
-    char name[EEPROM_LENGTH_HOSTNAME];
-    char wifi_ssid[EEPROM_LENGTH_WIFI_SSID];
-    char wifi_password[EEPROM_LENGTH_WIFI_PASSWORD];
-    char homie_host[EEPROM_LENGTH_HOMIE_HOST];
-    uint16_t homie_port;
-    char homie_ota_path[EEPROM_LENGTH_HOMIE_OTA_PATH];
-    uint16_t homie_ota_port;
+    char name[EEPROM_LENGTH_NAME];
+    struct WiFi {
+      char ssid[EEPROM_LENGTH_WIFI_SSID];
+      char password[EEPROM_LENGTH_WIFI_PASSWORD];
+    } wifi;
+    struct MQTT {
+      char host[EEPROM_LENGTH_MQTT_HOST];
+      uint16_t port;
+      bool auth;
+      char username[EEPROM_LENGTH_MQTT_USERNAME];
+      char password[EEPROM_LENGTH_MQTT_PASSWORD];
+      bool ssl;
+      char fingerprint[EEPROM_LENGTH_MQTT_FINGERPRINT];
+    } mqtt;
+    struct OTA {
+      bool enabled;
+      char host[EEPROM_LENGTH_OTA_HOST];
+      uint16_t port;
+      char path[EEPROM_LENGTH_OTA_PATH];
+      bool ssl;
+      char fingerprint[EEPROM_LENGTH_OTA_FINGERPRINT];
+    } ota;
   };
 
   const int EEPROM_CONFIG_SIZE = sizeof(ConfigStruct);

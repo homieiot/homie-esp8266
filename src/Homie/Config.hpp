@@ -8,21 +8,12 @@
 namespace HomieInternals {
   class ConfigClass {
     public:
-      bool configured;
-      BootMode boot_mode;
-      const char* name;
-      const char* wifi_ssid;
-      const char* wifi_password;
-      const char* homie_host;
-      uint16_t homie_port;
-      const char* homie_ota_path;
-      uint16_t homie_ota_port;
-
       ConfigClass();
       bool load();
+      ConfigStruct& get();
       void save();
       void setCustomEepromSize(int count);
-      void log();       // print the current config to log output
+      void log(); // print the current config to log output
 
     private:
       ConfigStruct _config_struct;

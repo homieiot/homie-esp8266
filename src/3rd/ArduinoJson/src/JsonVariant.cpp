@@ -1,8 +1,9 @@
-// Copyright Benoit Blanchon 2014-2015
+// Copyright Benoit Blanchon 2014-2016
 // MIT License
 //
 // Arduino JSON library
 // https://github.com/bblanchon/ArduinoJson
+// If you like this project, please add a star!
 
 #include "../include/ArduinoJson/JsonVariant.hpp"
 
@@ -83,6 +84,16 @@ String JsonVariant::as<String>() const {
   else
     printTo(s);
   return s;
+}
+
+template <>
+bool JsonVariant::is<bool>() const {
+  if (_type == JSON_BOOLEAN) return true;
+
+  if (_type != JSON_UNPARSED || _content.asString == NULL) return false;
+
+  return !strcmp(_content.asString, "true") ||
+         !strcmp(_content.asString, "false");
 }
 
 template <>

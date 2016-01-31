@@ -20,41 +20,24 @@ bool ConfigClass::load() {
 
   EEPROM.get(EEPROM_OFFSET, this->_config_struct);
 
-  this->configured = this->_config_struct.configured;
-
-  if (!this->configured) {
+  if (!this->_config_struct.configured) {
     return false;
   }
 
-  this->boot_mode = this->_config_struct.boot_mode;
-
-  if (this->boot_mode != BOOT_CONFIG && this->boot_mode != BOOT_NORMAL && this->boot_mode != BOOT_OTA) {
+  if (this->_config_struct.boot_mode != BOOT_CONFIG && this->_config_struct.boot_mode != BOOT_NORMAL && this->_config_struct.boot_mode != BOOT_OTA) {
     return false;
   }
-
-  this->name = this->_config_struct.name;
-  this->wifi_ssid = this->_config_struct.wifi_ssid;
-  this->wifi_password = this->_config_struct.wifi_password;
-  this->homie_host = this->_config_struct.homie_host;
-  this->homie_port = this->_config_struct.homie_port;
-  this->homie_ota_path = this->_config_struct.homie_ota_path;
-  this->homie_ota_port = this->_config_struct.homie_ota_port;
 
   return true;
+}
+
+ConfigStruct& ConfigClass::get() {
+  return this->_config_struct;
 }
 
 void ConfigClass::save() {
   this->_eepromBegin();
 
-  this->_config_struct.configured = this->configured;
-  this->_config_struct.boot_mode = this->boot_mode;
-  strcpy(this->_config_struct.name, this->name);
-  strcpy(this->_config_struct.wifi_ssid, this->wifi_ssid);
-  strcpy(this->_config_struct.wifi_password, this->wifi_password);
-  strcpy(this->_config_struct.homie_host, this->homie_host);
-  this->_config_struct.homie_port = this->homie_port;
-  strcpy(this->_config_struct.homie_ota_path, this->homie_ota_path);
-  this->_config_struct.homie_ota_port = this->homie_ota_port;
   EEPROM.put(EEPROM_OFFSET, this->_config_struct);
   EEPROM.commit();
 }
@@ -66,22 +49,66 @@ void ConfigClass::setCustomEepromSize(int count) {
 void ConfigClass::log() {
   Logger.logln("⚙ Stored configuration:");
   Logger.log("  • configured: ");
-  Logger.logln(String(this->configured));
+  Logger.logln(this->_config_struct.configured ? "yes" : "no");
   Logger.log("  • boot_mode: ");
-  Logger.logln(String(this->boot_mode));
+  switch (this->_config_struct.boot_mode) {
+    case BOOT_CONFIG:
+      Logger.logln("config");
+      break;
+    case BOOT_NORMAL:
+      Logger.logln("normal");
+      break;
+    case BOOT_OTA:
+      Logger.logln("OTA");
+      break;
+    default:
+      Logger.logln("unknown");
+      break;
+  }
   Logger.log("  • name: ");
-  Logger.logln(this->name);
-  Logger.log("  • wifi_ssid: ");
-  Logger.logln(this->wifi_ssid);
-  Logger.logln("  • wifi_password not shown");
-  Logger.log("  • homie_host: ");
-  Logger.logln(this->homie_host);
-  Logger.log("  • homie_port: ");
-  Logger.logln(String(this->homie_port));
-  Logger.log("  • homie_ota_path: ");
-  Logger.logln(this->homie_ota_path);
-  Logger.log("  • homie_ota_port: ");
-  Logger.logln(String(this->homie_ota_port));
+  Logger.logln(this->_config_struct.name);
+
+  Logger.logln("  • wifi");
+  Logger.log("    • ssid: ");
+  Logger.logln(this->_config_struct.wifi.ssid);
+  Logger.logln("    • password not shown");
+
+  Logger.logln("  • mqtt");
+  Logger.log("    • host: ");
+  Logger.logln(this->_config_struct.mqtt.host);
+  Logger.log("    • port: ");
+  Logger.logln(String(this->_config_struct.mqtt.port));
+  Logger.log("    • auth: ");
+  Logger.logln(this->_config_struct.mqtt.auth ? "yes" : "no");
+  if (this->_config_struct.mqtt.auth) {
+    Logger.log("    • username: ");
+    Logger.logln(this->_config_struct.mqtt.username);
+    Logger.logln("    • password not shown");
+  }
+  Logger.log("    • ssl: ");
+  Logger.logln(this->_config_struct.mqtt.ssl ? "yes" : "no");
+  if (this->_config_struct.mqtt.ssl) {
+    Logger.log("    • fingerprint: ");
+    Logger.logln(this->_config_struct.mqtt.fingerprint);
+  }
+
+  Logger.logln("  • ota");
+  Logger.log("    • enabled: ");
+  Logger.logln(this->_config_struct.ota.enabled ? "yes" : "no");
+  if (this->_config_struct.ota.enabled) {
+    Logger.log("    • host: ");
+    Logger.logln(this->_config_struct.ota.host);
+    Logger.log("    • port: ");
+    Logger.logln(String(this->_config_struct.ota.port));
+    Logger.log("    • path: ");
+    Logger.logln(String(this->_config_struct.ota.path));
+    Logger.log("    • ssl: ");
+    Logger.logln(this->_config_struct.ota.ssl ? "yes" : "no");
+    if (this->_config_struct.mqtt.ssl) {
+      Logger.log("    • fingerprint: ");
+      Logger.logln(this->_config_struct.ota.fingerprint);
+    }
+  }
 }
 
 ConfigClass HomieInternals::Config;

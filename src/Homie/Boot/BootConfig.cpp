@@ -110,7 +110,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  StaticJsonBuffer<JSON_OBJECT_SIZE(7)> parseJsonBuffer; // Max seven elements in object
+  StaticJsonBuffer<JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(7) + JSON_OBJECT_SIZE(6)> parseJsonBuffer; // Max 4 elements at root, 2 elements in nested, etc...
   JsonObject& parsed_json = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str());
   if (!parsed_json.success()) {
     Logger.logln("✖ Invalid or too big JSON");
@@ -123,52 +123,168 @@ void BootConfig::_onConfigRequest() {
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
-  if (!parsed_json.containsKey("wifi_ssid") || !parsed_json["wifi_ssid"].is<const char*>()) {
-    Logger.logln("✖ wifi_ssid is not a string");
+
+  if (!parsed_json.containsKey("wifi") || !parsed_json["wifi"].is<JsonObject&>()) {
+    Logger.logln("✖ wifi is not an object");
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
-  if (!parsed_json.containsKey("wifi_password") || !parsed_json["wifi_password"].is<const char*>()) {
-    Logger.logln("✖ wifi_password is not a string");
+  if (!parsed_json["wifi"].as<JsonObject&>().containsKey("ssid") || !parsed_json["wifi"]["ssid"].is<const char*>()) {
+    Logger.logln("✖ wifi.ssid is not a string");
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
-  if (!parsed_json.containsKey("homie_host") || !parsed_json["homie_host"].is<const char*>()) {
-    Logger.logln("✖ homie_host is not a string");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (parsed_json.containsKey("homie_port") && !parsed_json["homie_port"].is<uint16_t>()) {
-    Logger.logln("✖ homie_port is not an unsigned integer");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (parsed_json.containsKey("homie_ota_path") && !parsed_json["homie_ota_path"].is<const char*>()) {
-    Logger.logln("✖ homie_ota_path is not a string");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (parsed_json.containsKey("homie_ota_port") && !parsed_json["homie_ota_port"].is<uint16_t>()) {
-    Logger.logln("✖ homie_ota_port is not an unsigned integer");
+  if (!parsed_json["wifi"].as<JsonObject&>().containsKey("password") || !parsed_json["wifi"]["password"].is<const char*>()) {
+    Logger.logln("✖ wifi.password is not a string");
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
+  if (!parsed_json.containsKey("mqtt") || !parsed_json["mqtt"].is<JsonObject&>()) {
+    Logger.logln("✖ mqtt is not an object");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    return;
+  }
+  if (!parsed_json["mqtt"].as<JsonObject&>().containsKey("host") || !parsed_json["mqtt"]["host"].is<const char*>()) {
+    Logger.logln("✖ mqtt.host is not a string");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    return;
+  }
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("port") && !parsed_json["mqtt"]["port"].is<uint16_t>()) {
+    Logger.logln("✖ mqtt.port is not an unsigned integer");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    return;
+  }
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("auth")) {
+    if (!parsed_json["mqtt"]["auth"].is<bool>()) {
+      Logger.logln("✖ mqtt.auth is not a boolean");
+      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+      return;
+    }
+
+    if (parsed_json["mqtt"]["auth"]) {
+      if (!parsed_json["mqtt"].as<JsonObject&>().containsKey("username") || !parsed_json["mqtt"]["username"].is<const char*>()) {
+        Logger.logln("✖ mqtt.username is not a string");
+        this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+        return;
+      }
+      if (!parsed_json["mqtt"].as<JsonObject&>().containsKey("password") || !parsed_json["mqtt"]["password"].is<const char*>()) {
+        Logger.logln("✖ mqtt.password is not a string");
+        this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+        return;
+      }
+    }
+  }
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("ssl")) {
+    if (!parsed_json["mqtt"]["ssl"].is<bool>()) {
+      Logger.logln("✖ mqtt.ssl is not a boolean");
+      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+      return;
+    }
+
+    if (parsed_json["mqtt"]["ssl"]) {
+      if (parsed_json["mqtt"].as<JsonObject&>().containsKey("fingerprint") && !parsed_json["mqtt"]["fingerprint"].is<const char*>()) {
+        Logger.logln("✖ mqtt.fingerprint is not a string");
+        this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+        return;
+      }
+    }
+  }
+
+  if (!parsed_json.containsKey("ota") || !parsed_json["ota"].is<JsonObject&>()) {
+    Logger.logln("✖ ota is not an object");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    return;
+  }
+  if (!parsed_json["ota"].as<JsonObject&>().containsKey("enabled") || !parsed_json["ota"]["enabled"].is<bool>()) {
+    Logger.logln("✖ ota.enabled is not a boolean");
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    return;
+  }
+  if (parsed_json["ota"]["enabled"]) {
+    if (parsed_json["ota"].as<JsonObject&>().containsKey("host") && !parsed_json["ota"]["host"].is<const char*>()) {
+      Logger.logln("✖ ota.host is not a string");
+      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+      return;
+    }
+    if (parsed_json["ota"].as<JsonObject&>().containsKey("port") && !parsed_json["ota"]["port"].is<uint16_t>()) {
+      Logger.logln("✖ ota.port is not an unsigned integer");
+      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+      return;
+    }
+    if (parsed_json["ota"].as<JsonObject&>().containsKey("path") && !parsed_json["ota"]["path"].is<const char*>()) {
+      Logger.logln("✖ ota.path is not a string");
+      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+      return;
+    }
+    if (parsed_json["ota"].as<JsonObject&>().containsKey("ssl")) {
+      if (!parsed_json["ota"]["ssl"].is<bool>()) {
+        Logger.logln("✖ ota.ssl is not a boolean");
+        this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+        return;
+      }
+
+      if (parsed_json["ota"]["ssl"]) {
+        if (parsed_json["ota"].as<JsonObject&>().containsKey("fingerprint") && !parsed_json["ota"]["fingerprint"].is<const char*>()) {
+          Logger.logln("✖ ota.fingerprint is not a string");
+          this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+          return;
+        }
+      }
+    }
+  }
+
   const char* req_name = parsed_json["name"];
-  const char* req_wifi_ssid = parsed_json["wifi_ssid"];
-  const char* req_wifi_password = parsed_json["wifi_password"];
-  const char* req_homie_host = parsed_json["homie_host"];
-  uint16_t req_homie_port = DEFAULT_HOMIE_PORT;
-  if (parsed_json.containsKey("homie_port")) {
-    req_homie_port = parsed_json["homie_port"].as<uint16_t>();
+  const char* req_wifi_ssid = parsed_json["wifi"]["ssid"];
+  const char* req_wifi_password = parsed_json["wifi"]["password"];
+  const char* req_mqtt_host = parsed_json["mqtt"]["host"];
+  uint16_t req_mqtt_port = DEFAULT_MQTT_PORT;
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("port")) {
+    req_mqtt_port = parsed_json["mqtt"]["port"];
   }
-  const char* req_homie_ota_path = DEFAULT_HOMIE_OTA_PATH;
-  if (parsed_json.containsKey("homie_ota_path")) {
-    req_homie_ota_path = parsed_json["homie_ota_path"];
+  bool req_mqtt_auth = false;
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("auth")) {
+    req_mqtt_auth = parsed_json["mqtt"]["auth"];
   }
-  uint16_t req_homie_ota_port = DEFAULT_HOMIE_OTA_PORT;
-  if (parsed_json.containsKey("homie_ota_port")) {
-    req_homie_ota_port = parsed_json["homie_ota_port"].as<uint16_t>();
+  const char* req_mqtt_username = "";
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("username")) {
+    req_mqtt_username = parsed_json["mqtt"]["username"];
+  }
+  const char* req_mqtt_password = "";
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("password")) {
+    req_mqtt_password = parsed_json["mqtt"]["password"];
+  }
+  bool req_mqtt_ssl = false;
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("ssl")) {
+    req_mqtt_ssl = parsed_json["mqtt"]["ssl"];
+  }
+  const char* req_mqtt_fingerprint = "";
+  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("fingerprint")) {
+    req_mqtt_fingerprint = parsed_json["mqtt"]["fingerprint"];
+  }
+  bool req_ota_enabled = false;
+  if (parsed_json["ota"].as<JsonObject&>().containsKey("enabled")) {
+    req_ota_enabled = parsed_json["ota"]["enabled"];
+  }
+  const char* req_ota_host = req_mqtt_host;
+  if (parsed_json["ota"].as<JsonObject&>().containsKey("host")) {
+    req_ota_host = parsed_json["ota"]["host"];
+  }
+  uint16_t req_ota_port = DEFAULT_OTA_PORT;
+  if (parsed_json["ota"].as<JsonObject&>().containsKey("port")) {
+    req_ota_port = parsed_json["ota"]["port"];
+  }
+  const char* req_ota_path = DEFAULT_OTA_PATH;
+  if (parsed_json["ota"].as<JsonObject&>().containsKey("path")) {
+    req_ota_path = parsed_json["ota"]["path"];
+  }
+  bool req_ota_ssl = false;
+  if (parsed_json["ota"].as<JsonObject&>().containsKey("ssl")) {
+    req_ota_ssl = parsed_json["ota"]["ssl"];
+  }
+  const char* req_ota_fingerprint = "";
+  if (parsed_json["ota"].as<JsonObject&>().containsKey("fingerprint")) {
+    req_ota_fingerprint = parsed_json["ota"]["fingerprint"];
   }
 
   if (strcmp(req_name, "") == 0) {
@@ -177,25 +293,34 @@ void BootConfig::_onConfigRequest() {
     return;
   }
   if (strcmp(req_wifi_ssid, "") == 0) {
-    Logger.logln("✖ wifi_ssid is empty");
+    Logger.logln("✖ wifi.ssid is empty");
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
-  if (strcmp(req_homie_host, "") == 0) {
-    Logger.logln("✖ homie_host is empty");
+  if (strcmp(req_mqtt_host, "") == 0) {
+    Logger.logln("✖ mqtt.host is empty");
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
-  Config.name = req_name;
-  Config.wifi_ssid = req_wifi_ssid;
-  Config.wifi_password = req_wifi_password;
-  Config.homie_host = req_homie_host;
-  Config.homie_port = req_homie_port;
-  Config.homie_ota_path = req_homie_ota_path;
-  Config.homie_ota_port = req_homie_ota_port;
-  Config.boot_mode = BOOT_NORMAL;
-  Config.configured = true;
+  Config.get().configured = true;
+  Config.get().boot_mode = BOOT_NORMAL;
+  strcpy(Config.get().name, req_name);
+  strcpy(Config.get().wifi.ssid, req_wifi_ssid);
+  strcpy(Config.get().wifi.password, req_wifi_password);
+  strcpy(Config.get().mqtt.host, req_mqtt_host);
+  Config.get().mqtt.port = req_mqtt_port;
+  Config.get().mqtt.auth = req_mqtt_auth;
+  strcpy(Config.get().mqtt.username, req_mqtt_username);
+  strcpy(Config.get().mqtt.password, req_mqtt_password);
+  Config.get().mqtt.ssl = req_mqtt_ssl;
+  strcpy(Config.get().mqtt.fingerprint, req_mqtt_fingerprint);
+  Config.get().ota.enabled = req_ota_enabled;
+  strcpy(Config.get().ota.host, req_ota_host);
+  Config.get().ota.port = req_ota_port;
+  strcpy(Config.get().ota.path, req_ota_path);
+  Config.get().ota.ssl = req_ota_ssl;
+  strcpy(Config.get().ota.fingerprint, req_ota_fingerprint);
   Config.save();
   Config.log();
 
@@ -214,7 +339,7 @@ void BootConfig::loop() {
   this->_http.handleClient();
 
   if (this->_flagged_for_reboot) {
-    if (millis() - this->_flagged_for_reboot_at >= 5000UL) {
+    if (millis() - this->_flagged_for_reboot_at >= 3000UL) {
       Logger.logln("↻ Rebooting in normal mode");
       ESP.restart();
     }
