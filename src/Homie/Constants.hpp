@@ -10,7 +10,7 @@ namespace HomieInternals {
   const uint16_t DEFAULT_HOMIE_OTA_PORT = 35590;
   const char DEFAULT_HOMIE_OTA_PATH[] = "/ota";
 
-  const float PIN_RESET = D3;
+  const uint8_t PIN_RESET = 0; // == D3 on nodeMCU
 
   const float LED_WIFI_DELAY = 1;
   const float LED_MQTT_DELAY = 0.2;
