@@ -44,7 +44,7 @@ void HomieClass::loop(void) {
   this->_boot->loop();
 }
 
-void HomieClass::setLogging(bool logging) {
+void HomieClass::enableLogging(bool logging) {
   Logger.setLogging(logging);
 }
 
@@ -57,7 +57,7 @@ void HomieClass::registerNode(HomieNode& node) {
   this->_shared_interface.nodes.push_back(node);
 }
 
-bool HomieClass::readyToOperate() {
+bool HomieClass::isReadyToOperate() {
   return this->_shared_interface.readyToOperate;
 }
 
@@ -65,7 +65,7 @@ void HomieClass::setResettable(bool resettable) {
   this->_shared_interface.resettable = resettable;
 }
 
-void HomieClass::setInputHandler(bool (*callback)(String node, String property, String message)) {
+void HomieClass::setGlobalInputHandler(bool (*callback)(String node, String property, String message)) {
   this->_shared_interface.inputHandler = callback;
 }
 
@@ -82,7 +82,7 @@ void HomieClass::setResetFunction(void (*callback)(void)) {
 }
 
 bool HomieClass::setNodeProperty(HomieNode& node, String property, String value, bool retained) {
-  if (!this->readyToOperate()) {
+  if (!this->isReadyToOperate()) {
     return false;
   }
 

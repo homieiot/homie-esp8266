@@ -91,7 +91,7 @@ Handle Homie work. Must be called in `loop()`.
 
 ### Configuration functions
 
-#### void Homie.setLogging (bool `logging`)
+#### void Homie.enableLogging (bool `logging`)
 
 Enable or disable Homie Serial logging.
 
@@ -118,7 +118,7 @@ On this node object, you can subscribe to a property with `node.subscribe(const 
 
 * **`property`**: Property to listen
 
-#### void .setInputHandler (void (\*`callback`)(String `node`, String `property`, String `message`))
+#### void .setGlobalInputHandler (void (\*`callback`)(String `node`, String `property`, String `message`))
 
 Set input handler for subscribed properties.
 
@@ -172,7 +172,7 @@ Is the device resettable? This is useful at runtime, because you might want the 
 
 As Homie uses EEPROM, first bytes of the EEPROM are used. This functions returns the first byte that is free for you to use.
 
-#### bool .readyToOperate ()
+#### bool .isReadyToOperate ()
 
 Is the device in normal mode, configured and connected? You should not need this function. But maybe you will.
 

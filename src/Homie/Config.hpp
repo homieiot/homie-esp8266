@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "Datatypes/ConfigStruct.hpp"
+#include "Helpers.hpp"
 #include "Logger.hpp"
 
 namespace HomieInternals {

@@ -48,9 +48,11 @@ void ConfigClass::setCustomEepromSize(int count) {
 
 void ConfigClass::log() {
   Logger.logln("⚙ Stored configuration:");
-  Logger.log("  • configured: ");
+  Logger.log("  • Device ID: ");
+  Logger.logln(Helpers::getDeviceId());
+  Logger.log("  • Configured: ");
   Logger.logln(this->_config_struct.configured ? "yes" : "no");
-  Logger.log("  • boot_mode: ");
+  Logger.log("  • Boot mode: ");
   switch (this->_config_struct.boot_mode) {
     case BOOT_CONFIG:
       Logger.logln("config");
@@ -65,47 +67,47 @@ void ConfigClass::log() {
       Logger.logln("unknown");
       break;
   }
-  Logger.log("  • name: ");
+  Logger.log("  • Name: ");
   Logger.logln(this->_config_struct.name);
 
-  Logger.logln("  • wifi");
-  Logger.log("    • ssid: ");
+  Logger.logln("  • Wi-Fi");
+  Logger.log("    • SSID: ");
   Logger.logln(this->_config_struct.wifi.ssid);
-  Logger.logln("    • password not shown");
+  Logger.logln("    • Password not shown");
 
-  Logger.logln("  • mqtt");
-  Logger.log("    • host: ");
+  Logger.logln("  • MQTT");
+  Logger.log("    • Host: ");
   Logger.logln(this->_config_struct.mqtt.host);
-  Logger.log("    • port: ");
+  Logger.log("    • Port: ");
   Logger.logln(String(this->_config_struct.mqtt.port));
-  Logger.log("    • auth: ");
+  Logger.log("    • Auth: ");
   Logger.logln(this->_config_struct.mqtt.auth ? "yes" : "no");
   if (this->_config_struct.mqtt.auth) {
-    Logger.log("    • username: ");
+    Logger.log("    • Username: ");
     Logger.logln(this->_config_struct.mqtt.username);
-    Logger.logln("    • password not shown");
+    Logger.logln("    • Password not shown");
   }
-  Logger.log("    • ssl: ");
+  Logger.log("    • SSL: ");
   Logger.logln(this->_config_struct.mqtt.ssl ? "yes" : "no");
   if (this->_config_struct.mqtt.ssl) {
-    Logger.log("    • fingerprint: ");
+    Logger.log("    • Fingerprint: ");
     Logger.logln(this->_config_struct.mqtt.fingerprint);
   }
 
-  Logger.logln("  • ota");
-  Logger.log("    • enabled: ");
+  Logger.logln("  • OTA");
+  Logger.log("    • Enabled: ");
   Logger.logln(this->_config_struct.ota.enabled ? "yes" : "no");
   if (this->_config_struct.ota.enabled) {
-    Logger.log("    • host: ");
+    Logger.log("    • Host: ");
     Logger.logln(this->_config_struct.ota.host);
-    Logger.log("    • port: ");
+    Logger.log("    • Port: ");
     Logger.logln(String(this->_config_struct.ota.port));
-    Logger.log("    • path: ");
+    Logger.log("    • Path: ");
     Logger.logln(String(this->_config_struct.ota.path));
-    Logger.log("    • ssl: ");
+    Logger.log("    • SSL: ");
     Logger.logln(this->_config_struct.ota.ssl ? "yes" : "no");
     if (this->_config_struct.mqtt.ssl) {
-      Logger.log("    • fingerprint: ");
+      Logger.log("    • Fingerprint: ");
       Logger.logln(this->_config_struct.ota.fingerprint);
     }
   }

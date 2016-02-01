@@ -22,15 +22,15 @@ namespace HomieInternals {
       void setup();
       void loop();
 
-      void setLogging(bool logging);
+      void enableLogging(bool logging);
       void setFirmware(const char* name, const char* version);
       void registerNode(HomieNode& node);
-      void setInputHandler(bool (*callback)(String node, String property, String message));
+      void setGlobalInputHandler(bool (*callback)(String node, String property, String message));
       void setResettable(bool resettable);
       void setResetFunction(void (*callback)(void));
       void setSetupFunction(void (*callback)(void));
       void setLoopFunction(void (*callback)(void));
-      bool readyToOperate();
+      bool isReadyToOperate();
       bool sentNodeProperty(HomieNode& node, const char* property, const char* value, bool retained = true) {
         this->setNodeProperty(node, String(property), String(value), retained);
       }
