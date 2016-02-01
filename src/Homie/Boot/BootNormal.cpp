@@ -156,7 +156,44 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
   }
   String node = unified.substring(0, separator);
   String property = unified.substring(separator + 1);
-  this->_shared_interface->inputHandler(node, property, message);
+
+  bool handled = this->_shared_interface->inputHandler(node, property, message);
+  if (handled) { return; }
+
+  int homieNodeIndex;
+  bool homieNodeFound = false;
+  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
+    HomieNode homieNode = this->_shared_interface->nodes[i];
+    if (node == homieNode.id) {
+      homieNodeFound = true;
+      homieNodeIndex = i;
+      handled = homieNode.inputHandler(property, message);
+      break;
+    }
+  }
+
+  if (!homieNodeFound) { return; }
+  if (handled) { return; }
+
+  HomieNode homieNode = this->_shared_interface->nodes[homieNodeIndex];
+
+  for (int i = 0; i < homieNode.subscriptions.size(); i++) {
+    Subscription subscription = homieNode.subscriptions[i];
+    if (property == subscription.property) {
+      handled = subscription.inputHandler(message);
+      break;
+    }
+  }
+
+  if (!handled) {
+    Logger.logln("No handlers handled the following message:");
+    Logger.log("  • node ID: ");
+    Logger.logln(node);
+    Logger.log("  • property: ");
+    Logger.logln(property);
+    Logger.log("  • message: ");
+    Logger.logln(message);
+  }
 }
 
 void BootNormal::_handleReset() {

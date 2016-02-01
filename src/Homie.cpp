@@ -8,7 +8,7 @@ HomieClass::HomieClass() {
   this->_shared_interface.fwversion = strdup("undefined");
   this->_shared_interface.resettable = true;
   this->_shared_interface.readyToOperate = false;
-  this->_shared_interface.inputHandler = [](String node, String property, String message) {};
+  this->_shared_interface.inputHandler = [](String node, String property, String message) { return false; };
   this->_shared_interface.setupFunction = [](void) {};
   this->_shared_interface.loopFunction = [](void) {};
   this->_shared_interface.resetFunction = [](void) {};
@@ -65,7 +65,7 @@ void HomieClass::setResettable(bool resettable) {
   this->_shared_interface.resettable = resettable;
 }
 
-void HomieClass::setInputHandler(void (*callback)(String node, String property, String message)) {
+void HomieClass::setInputHandler(bool (*callback)(String node, String property, String message)) {
   this->_shared_interface.inputHandler = callback;
 }
 

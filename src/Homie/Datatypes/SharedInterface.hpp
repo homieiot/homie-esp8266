@@ -12,7 +12,7 @@ namespace HomieInternals {
     bool resettable;
     bool readyToOperate;
     std::vector<HomieNode> nodes;
-    void (*inputHandler)(String node, String property, String message);
+    bool (*inputHandler)(String node, String property, String message);
     void (*setupFunction)(void);
     void (*loopFunction)(void);
     void (*resetFunction)(void);

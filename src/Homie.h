@@ -25,7 +25,7 @@ namespace HomieInternals {
       void setLogging(bool logging);
       void setFirmware(const char* name, const char* version);
       void registerNode(HomieNode& node);
-      void setInputHandler(void (*callback)(String node, String property, String message));
+      void setInputHandler(bool (*callback)(String node, String property, String message));
       void setResettable(bool resettable);
       void setResetFunction(void (*callback)(void));
       void setSetupFunction(void (*callback)(void));

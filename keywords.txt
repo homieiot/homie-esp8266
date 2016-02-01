@@ -3,6 +3,7 @@
 #######################################
 
 Homie	KEYWORD1
+HomieNode	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -22,6 +23,8 @@ readyToOperate	KEYWORD2
 setResettable	KEYWORD2
 setNodeProperty	KEYWORD2
 getEepromOffset	KEYWORD2
+
+subscribe	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

@@ -7,12 +7,13 @@
 
 class HomieNode {
   public:
-    HomieNode(const char* id, const char* type);
+    HomieNode(const char* id, const char* type, bool (*callback)(String property, String message) = [](String property, String message) { return false; });
 
-    void subscribe(const char* property);
+    void subscribe(const char* property, bool (*callback)(String message) = [](String message) { return false; });
 
     char* id;
     char* type;
+    bool (*inputHandler)(String property, String message);
     std::vector<HomieInternals::Subscription> subscriptions;
 };
 
