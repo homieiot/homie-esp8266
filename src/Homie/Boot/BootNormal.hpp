@@ -5,7 +5,9 @@
 #include <ESP8266WiFi.h>
 #include "../../3rd/PubSubClient/src/PubSubClient.h"
 #include "../../3rd/Bounce2/src/Bounce2.h"
+#include "../../HomieNode.h"
 #include "../Constants.hpp"
+#include "../Datatypes/SharedInterface.hpp"
 #include "../Helpers.hpp"
 #include "../Config.hpp"
 #include "../Blinker.hpp"

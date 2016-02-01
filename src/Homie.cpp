@@ -53,18 +53,8 @@ void HomieClass::setFirmware(const char* name, const char* version) {
   this->_shared_interface.fwversion = strdup(version);
 }
 
-void HomieClass::addNode(const char* name, const char* type) {
-  Node node;
-  node.name = strdup(name);
-  node.type = strdup(type);
+void HomieClass::registerNode(HomieNode& node) {
   this->_shared_interface.nodes.push_back(node);
-}
-
-void HomieClass::addSubscription(const char* node, const char* property) {
-  Subscription subscription;
-  subscription.node = strdup(node);
-  subscription.property = strdup(property);
-  this->_shared_interface.subscriptions.push_back(subscription);
 }
 
 bool HomieClass::readyToOperate() {
@@ -91,7 +81,7 @@ void HomieClass::setResetFunction(void (*callback)(void)) {
   this->_shared_interface.resetFunction = callback;
 }
 
-bool HomieClass::sendProperty(String node, String property, String value, bool retained) {
+bool HomieClass::setNodeProperty(HomieNode& node, String property, String value, bool retained) {
   if (!this->readyToOperate()) {
     return false;
   }
@@ -99,7 +89,7 @@ bool HomieClass::sendProperty(String node, String property, String value, bool r
   String topic = "devices/";
   topic += Helpers::getDeviceId();
   topic += "/";
-  topic += node;
+  topic += node.id;
   topic += "/";
   topic += property;
   return this->_shared_interface.mqtt->publish(topic.c_str(), value.c_str(), retained);

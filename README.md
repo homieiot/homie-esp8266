@@ -19,6 +19,8 @@ An ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT conventio
 
 const int PIN_RELAY = D1;
 
+HomieNode light("light", "light");
+
 void inputHandler(String node, String property, String message) {
   if (node != "light" || property != "on") {
     return;
@@ -26,8 +28,10 @@ void inputHandler(String node, String property, String message) {
 
   if (message == "true") {
     digitalWrite(PIN_RELAY, HIGH);
+    Homie.setNodeProperty(light, "on", "true"); // Update the state of the light
   } else if (message == "false") {
     digitalWrite(PIN_RELAY, LOW);
+    Homie.setNodeProperty(light, "on", "false");
   }
 }
 
@@ -35,8 +39,8 @@ void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
   Homie.setFirmware("awesome-relay" ,"1.0.0");
-  Homie.addNode("light", "light");
-  Homie.addSubscription("light", "on");
+  light.subscribe("on");
+  Homie.registerNode(light);
   Homie.setInputHandler(inputHandler);
   Homie.setup();
 }
@@ -74,11 +78,11 @@ See examples folder for examples.
 
 ### Core functions
 
-#### void .setup ()
+#### void Homie.setup ()
 
 Setup Homie. Must be called once in `setup()`, after Homie is configured (`addNode`, `addSubscription`...) and when you have set the initial state of GPIOs.
 
-#### void .loop ()
+#### void Homie.loop ()
 
 Handle Homie work. Must be called in `loop()`.
 
@@ -86,31 +90,31 @@ Handle Homie work. Must be called in `loop()`.
 
 ### Configuration functions
 
-#### void .setLogging (bool `logging`)
+#### void Homie.setLogging (bool `logging`)
 
 Enable or disable Homie Serial logging.
 
 * **`logging`**: Whether or not to enable logging. By default, logging is enabled
 
-#### void .setFirmware (const char\* `name`, const char\* `version`)
+#### void Homie.setFirmware (const char\* `name`, const char\* `version`)
 
 Set the name and version of the firmware. This is useful for OTA, as Homie will check against the server if there is a newer version.
 
 * **`name`**: Name of the firmware. Default value is `undefined`
 * **`version`**: Version of the firmware. Default value is `undefined`
 
-#### void .addNode (const char\* `name`, const char\* `type`)
+#### void Homie.registerNode (HomieNode `node`)
 
-Add a node to the device. A device might have multiple nodes, like a temperature one and an humidity one. See the Wiki to see all node types and the properties it exposes.
+Register a node. A device might have multiple nodes, like a temperature one and an humidity one.
 
-* **`name`**: Name of the node
-* **`type`**: Type of the node. See the Wiki
+* **`node`**: node to register. You can create a node like so:
 
-#### void .addSubscription (const char \* `node`, const char\* `property`)
+```c++
+HomieNode node("id", "type");
+```
 
-Subscribe to a property. A device might want to subscribe to a property (like `level` for a `shutters` node for example).
+On this node object, you can subscribe to a property with `node.subscribe(const char \* property)`. A device might want to subscribe to a property (like `level` for a `shutters` node for example).
 
-* **`node`**: Name of the node
 * **`property`**: Property to listen
 
 #### void .setInputHandler (void (\*`callback`)(String `node`, String `property`, String `message`))
@@ -148,11 +152,11 @@ Homie uses EEPROM internally, and the ESP8266 needs to know how many bytes are g
 
 ### Runtime functions
 
-#### void .sendProperty (String `node`, String `property`, String `value`, bool `retained` = true)
+#### void .setNodeProperty (HomieNode `node`, String `property`, String `value`, bool `retained` = true)
 
-Using this function, you can send a value to a property, like a temperature for example.
+Using this function, you can set the value of a node property, like a temperature for example.
 
-* **`node`**: Name of the node
+* **`node`**: HomieNode instance on which to set the property on
 * **`property`**: Property to send
 * **`value`**: Payload
 * **`retained`**: Should the server retain this value, or is it a one-shot value?

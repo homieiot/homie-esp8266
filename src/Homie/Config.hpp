@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <EEPROM.h>
-#include "Constants.hpp"
+#include "Datatypes/ConfigStruct.hpp"
 #include "Logger.hpp"
 
 namespace HomieInternals {

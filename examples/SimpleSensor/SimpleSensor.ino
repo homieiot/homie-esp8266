@@ -4,6 +4,8 @@ const int TEMPERATURE_INTERVAL = 300;
 
 unsigned long last_temperature_sent = 0;
 
+HomieNode temperatureNode("temperature", "temperature");
+
 void setupHandler() {
   // Do what you want to prepare your sensor
 }
@@ -14,7 +16,7 @@ void loopHandler() {
     Serial.print("Temperature: ");
     Serial.print(temperature);
     Serial.println(" °C");
-    if (Homie.sendProperty("temperature", "temperature", String(temperature), true)) {
+    if (Homie.setNodeProperty(temperatureNode, "temperature", String(temperature), true)) {
       last_temperature_sent = millis();
     } else {
       Serial.println("Sending failed");
@@ -24,7 +26,7 @@ void loopHandler() {
 
 void setup() {
   Homie.setFirmware("awesome-temperature", "1.0.0");
-  Homie.addNode("temperature", "temperature");
+  Homie.registerNode(temperatureNode);
   Homie.setSetupFunction(setupHandler);
   Homie.setLoopFunction(loopHandler);
   Homie.setup();

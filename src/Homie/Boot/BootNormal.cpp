@@ -66,8 +66,8 @@ void BootNormal::_mqttSetup() {
 
   String nodes = String();
   for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
-    Node node = this->_shared_interface->nodes[i];
-    nodes += node.name;
+    HomieNode node = this->_shared_interface->nodes[i];
+    nodes += node.id;
     nodes += ":";
     nodes += node.type;
     nodes += ",";
@@ -107,17 +107,20 @@ void BootNormal::_mqttSetup() {
   topic += "/$ota";
   this->_shared_interface->mqtt->subscribe(topic.c_str(), 1);
 
-  for (int i = 0; i < this->_shared_interface->subscriptions.size(); i++) {
-    Subscription subscription = this->_shared_interface->subscriptions[i];
+  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
+    HomieNode node = this->_shared_interface->nodes[i];
+    for (int i = 0; i < node.subscriptions.size(); i++) {
+      Subscription subscription = node.subscriptions[i];
 
-    topic = this->_mqtt_base_topic;
-    topic += "/";
-    topic += subscription.node;
-    topic += "/";
-    topic += subscription.property;
-    topic += "/set";
-    this->_shared_interface->mqtt->subscribe(topic.c_str(), 1);
-    this->_shared_interface->mqtt->loop(); // see knolleary/pubsublient#98
+      topic = this->_mqtt_base_topic;
+      topic += "/";
+      topic += node.id;
+      topic += "/";
+      topic += subscription.property;
+      topic += "/set";
+      this->_shared_interface->mqtt->subscribe(topic.c_str(), 1);
+      this->_shared_interface->mqtt->loop(); // see knolleary/pubsublient#98
+    }
   }
 }
 
