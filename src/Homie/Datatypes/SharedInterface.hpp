@@ -15,7 +15,7 @@ namespace HomieInternals {
     bool (*inputHandler)(String node, String property, String message);
     void (*setupFunction)(void);
     void (*loopFunction)(void);
-    void (*resetFunction)(void);
+    void (*resetHook)(void);
     PubSubClient* mqtt;
   };
 }

@@ -11,7 +11,7 @@ HomieClass::HomieClass() {
   this->_shared_interface.inputHandler = [](String node, String property, String message) { return false; };
   this->_shared_interface.setupFunction = [](void) {};
   this->_shared_interface.loopFunction = [](void) {};
-  this->_shared_interface.resetFunction = [](void) {};
+  this->_shared_interface.resetHook = [](void) {};
 }
 
 HomieClass::~HomieClass() {
@@ -77,8 +77,8 @@ void HomieClass::setLoopFunction(void (*callback)()) {
   this->_shared_interface.loopFunction = callback;
 }
 
-void HomieClass::setResetFunction(void (*callback)(void)) {
-  this->_shared_interface.resetFunction = callback;
+void HomieClass::setResetHook(void (*callback)(void)) {
+  this->_shared_interface.resetHook = callback;
 }
 
 bool HomieClass::setNodeProperty(HomieNode& node, String property, String value, bool retained) {

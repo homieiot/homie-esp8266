@@ -204,7 +204,7 @@ void BootNormal::_handleReset() {
     Config.get().configured = false;
     Config.save();
 
-    this->_shared_interface->resetFunction();
+    this->_shared_interface->resetHook();
 
     Logger.logln("↻ Rebooting in config mode");
     ESP.restart();
