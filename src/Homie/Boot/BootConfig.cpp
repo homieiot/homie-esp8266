@@ -118,120 +118,9 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  if (!parsed_json.containsKey("name") || !parsed_json["name"].is<const char*>()) {
-    Logger.logln("✖ name is not a string");
+  if (!Helpers::validateConfig(parsed_json)) {
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
-  }
-
-  if (!parsed_json.containsKey("wifi") || !parsed_json["wifi"].is<JsonObject&>()) {
-    Logger.logln("✖ wifi is not an object");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (!parsed_json["wifi"].as<JsonObject&>().containsKey("ssid") || !parsed_json["wifi"]["ssid"].is<const char*>()) {
-    Logger.logln("✖ wifi.ssid is not a string");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (!parsed_json["wifi"].as<JsonObject&>().containsKey("password") || !parsed_json["wifi"]["password"].is<const char*>()) {
-    Logger.logln("✖ wifi.password is not a string");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-
-  if (!parsed_json.containsKey("mqtt") || !parsed_json["mqtt"].is<JsonObject&>()) {
-    Logger.logln("✖ mqtt is not an object");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (!parsed_json["mqtt"].as<JsonObject&>().containsKey("host") || !parsed_json["mqtt"]["host"].is<const char*>()) {
-    Logger.logln("✖ mqtt.host is not a string");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("port") && !parsed_json["mqtt"]["port"].is<uint16_t>()) {
-    Logger.logln("✖ mqtt.port is not an unsigned integer");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("auth")) {
-    if (!parsed_json["mqtt"]["auth"].is<bool>()) {
-      Logger.logln("✖ mqtt.auth is not a boolean");
-      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-      return;
-    }
-
-    if (parsed_json["mqtt"]["auth"]) {
-      if (!parsed_json["mqtt"].as<JsonObject&>().containsKey("username") || !parsed_json["mqtt"]["username"].is<const char*>()) {
-        Logger.logln("✖ mqtt.username is not a string");
-        this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-        return;
-      }
-      if (!parsed_json["mqtt"].as<JsonObject&>().containsKey("password") || !parsed_json["mqtt"]["password"].is<const char*>()) {
-        Logger.logln("✖ mqtt.password is not a string");
-        this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-        return;
-      }
-    }
-  }
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("ssl")) {
-    if (!parsed_json["mqtt"]["ssl"].is<bool>()) {
-      Logger.logln("✖ mqtt.ssl is not a boolean");
-      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-      return;
-    }
-
-    if (parsed_json["mqtt"]["ssl"]) {
-      if (parsed_json["mqtt"].as<JsonObject&>().containsKey("fingerprint") && !parsed_json["mqtt"]["fingerprint"].is<const char*>()) {
-        Logger.logln("✖ mqtt.fingerprint is not a string");
-        this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-        return;
-      }
-    }
-  }
-
-  if (!parsed_json.containsKey("ota") || !parsed_json["ota"].is<JsonObject&>()) {
-    Logger.logln("✖ ota is not an object");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (!parsed_json["ota"].as<JsonObject&>().containsKey("enabled") || !parsed_json["ota"]["enabled"].is<bool>()) {
-    Logger.logln("✖ ota.enabled is not a boolean");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (parsed_json["ota"]["enabled"]) {
-    if (parsed_json["ota"].as<JsonObject&>().containsKey("host") && !parsed_json["ota"]["host"].is<const char*>()) {
-      Logger.logln("✖ ota.host is not a string");
-      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-      return;
-    }
-    if (parsed_json["ota"].as<JsonObject&>().containsKey("port") && !parsed_json["ota"]["port"].is<uint16_t>()) {
-      Logger.logln("✖ ota.port is not an unsigned integer");
-      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-      return;
-    }
-    if (parsed_json["ota"].as<JsonObject&>().containsKey("path") && !parsed_json["ota"]["path"].is<const char*>()) {
-      Logger.logln("✖ ota.path is not a string");
-      this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-      return;
-    }
-    if (parsed_json["ota"].as<JsonObject&>().containsKey("ssl")) {
-      if (!parsed_json["ota"]["ssl"].is<bool>()) {
-        Logger.logln("✖ ota.ssl is not a boolean");
-        this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-        return;
-      }
-
-      if (parsed_json["ota"]["ssl"]) {
-        if (parsed_json["ota"].as<JsonObject&>().containsKey("fingerprint") && !parsed_json["ota"]["fingerprint"].is<const char*>()) {
-          Logger.logln("✖ ota.fingerprint is not a string");
-          this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-          return;
-        }
-      }
-    }
   }
 
   const char* req_name = parsed_json["name"];
@@ -285,22 +174,6 @@ void BootConfig::_onConfigRequest() {
   const char* req_ota_fingerprint = "";
   if (parsed_json["ota"].as<JsonObject&>().containsKey("fingerprint")) {
     req_ota_fingerprint = parsed_json["ota"]["fingerprint"];
-  }
-
-  if (strcmp(req_name, "") == 0) {
-    Logger.logln("✖ name is empty");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (strcmp(req_wifi_ssid, "") == 0) {
-    Logger.logln("✖ wifi.ssid is empty");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
-  }
-  if (strcmp(req_mqtt_host, "") == 0) {
-    Logger.logln("✖ mqtt.host is empty");
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
-    return;
   }
 
   Config.get().configured = true;

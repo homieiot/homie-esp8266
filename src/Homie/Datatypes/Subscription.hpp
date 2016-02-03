@@ -1,8 +1,8 @@
 #pragma once
 
 namespace HomieInternals {
-  typedef struct {
+  struct Subscription {
     char* property;
     bool (*inputHandler)(String message);
-  } Subscription;
+  };
 }
