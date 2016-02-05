@@ -10,12 +10,17 @@ ConfigClass::ConfigClass()
 bool ConfigClass::_spiffsBegin() {
   if (!this->_spiffs_began) {
     this->_spiffs_began = SPIFFS.begin();
-    return this->_spiffs_began;
   }
+
+  if (!this->_spiffs_began) {
+    Logger.logln("✖ Cannot mount filesystem");
+  }
+
+  return this->_spiffs_began;
 }
 
 bool ConfigClass::load() {
-  this->_spiffsBegin();
+  if (!this->_spiffsBegin()) { return false; }
 
   this->_boot_mode = BOOT_CONFIG;
 
@@ -136,7 +141,7 @@ ConfigStruct& ConfigClass::get() {
 }
 
 void ConfigClass::erase() {
-  this->_spiffsBegin();
+  if (!this->_spiffsBegin()) { return; }
 
   if (!this->_spiffs_began) {
     Logger.logln("✖ Cannot mount filesystem");
@@ -148,12 +153,7 @@ void ConfigClass::erase() {
 }
 
 void ConfigClass::write(const String& config) {
-  this->_spiffsBegin();
-
-  if (!this->_spiffs_began) {
-    Logger.logln("✖ Cannot mount filesystem");
-    return;
-  }
+  if (!this->_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
 
@@ -168,12 +168,7 @@ void ConfigClass::write(const String& config) {
 }
 
 void ConfigClass::setOtaMode(bool enabled) {
-  this->_spiffsBegin();
-
-  if (!this->_spiffs_began) {
-    Logger.logln("✖ Cannot mount filesystem");
-    return;
-  }
+  if (!this->_spiffsBegin()) { return; }
 
   if (enabled) {
     File otaFile = SPIFFS.open(CONFIG_OTA_PATH, "w");
