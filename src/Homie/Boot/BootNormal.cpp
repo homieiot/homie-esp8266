@@ -16,8 +16,8 @@ BootNormal::BootNormal(SharedInterface* shared_interface)
     this->_shared_interface->mqtt = new PubSubClient(this->_wifiClient);
   }
 
-  this->_mqtt_base_topic = "devices/";
-  this->_mqtt_base_topic += Helpers::getDeviceId();
+  strcpy(this->_mqtt_base_topic, "devices/");
+  strcat(this->_mqtt_base_topic, Helpers.getDeviceId());
 }
 
 BootNormal::~BootNormal() {
@@ -32,17 +32,18 @@ void BootNormal::_wifiConnect() {
 void BootNormal::_mqttConnect() {
   this->_shared_interface->mqtt->setServer(Config.get().mqtt.host, Config.get().mqtt.port);
   this->_shared_interface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  String topic = this->_mqtt_base_topic;
-  topic += "/$online";
+  char topic[24 + 1];
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$online");
 
-  String client_id = String("Homie-");
-  client_id += Helpers::getDeviceId();
+  char client_id[14 + 1] = "Homie-";
+  strcat(client_id, Helpers.getDeviceId());
 
   bool connectResult;
   if (Config.get().mqtt.auth) {
-    connectResult = this->_shared_interface->mqtt->connect(client_id.c_str(), topic.c_str(), 2, true, "false");
+    connectResult = this->_shared_interface->mqtt->connect(client_id, topic, 2, true, "false");
   } else {
-    connectResult = this->_shared_interface->mqtt->connect(client_id.c_str(), Config.get().mqtt.username, Config.get().mqtt.password, topic.c_str(), 2, true, "false");
+    connectResult = this->_shared_interface->mqtt->connect(client_id, Config.get().mqtt.username, Config.get().mqtt.password, topic, 2, true, "false");
   }
 
   if (connectResult) {
@@ -61,8 +62,9 @@ void BootNormal::_mqttConnect() {
 void BootNormal::_mqttSetup() {
   Logger.logln("Sending initial informations");
 
-  String topic = this->_mqtt_base_topic;
-  topic += "/$nodes";
+  char topic[27 + 1];
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$nodes");
 
   String nodes = String();
   for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
@@ -73,52 +75,59 @@ void BootNormal::_mqttSetup() {
     nodes += ",";
   }
   nodes.remove(nodes.length() - 1, 1); // Remove last ,
-  this->_shared_interface->mqtt->publish(topic.c_str(), nodes.c_str(), true);
+  this->_shared_interface->mqtt->publish(topic, nodes.c_str(), true);
 
-  topic = this->_mqtt_base_topic;
-  topic += "/$online";
-  this->_shared_interface->mqtt->publish(topic.c_str(), "true", true);
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$online");
+  this->_shared_interface->mqtt->publish(topic, "true", true);
 
-  topic = this->_mqtt_base_topic;
-  topic += "/$name";
-  this->_shared_interface->mqtt->publish(topic.c_str(), Config.get().name, true);
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$name");
+  this->_shared_interface->mqtt->publish(topic, Config.get().name, true);
 
-  topic = this->_mqtt_base_topic;
-  topic += "/$localip";
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$localip");
   IPAddress local_ip = WiFi.localIP();
-  String local_ip_str = String(local_ip[0]);
-  local_ip_str += ".";
-  local_ip_str += local_ip[1];
-  local_ip_str += ".";
-  local_ip_str += local_ip[2];
-  local_ip_str += ".";
-  local_ip_str += local_ip[3];
-  this->_shared_interface->mqtt->publish(topic.c_str(), local_ip_str.c_str(), true);
+  char local_ip_str[15 + 1];
+  char local_ip_part_str[3 + 1];
+  itoa(local_ip[0], local_ip_part_str, 10);
+  strcpy(local_ip_str, local_ip_part_str);
+  strcat(local_ip_str, ".");
+  itoa(local_ip[1], local_ip_part_str, 10);
+  strcat(local_ip_str, local_ip_part_str);
+  strcat(local_ip_str, ".");
+  itoa(local_ip[2], local_ip_part_str, 10);
+  strcat(local_ip_str, local_ip_part_str);
+  strcat(local_ip_str, ".");
+  itoa(local_ip[3], local_ip_part_str, 10);
+  strcat(local_ip_str, local_ip_part_str);
+  this->_shared_interface->mqtt->publish(topic, local_ip_str, true);
 
-  topic = this->_mqtt_base_topic;
-  topic += "/$fwname";
-  this->_shared_interface->mqtt->publish(topic.c_str(), this->_shared_interface->fwname, true);
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$fwname");
+  this->_shared_interface->mqtt->publish(topic, this->_shared_interface->fwname, true);
 
-  topic = this->_mqtt_base_topic;
-  topic += "/$fwversion";
-  this->_shared_interface->mqtt->publish(topic.c_str(), this->_shared_interface->fwversion, true);
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$fwversion");
+  this->_shared_interface->mqtt->publish(topic, this->_shared_interface->fwversion, true);
 
-  topic = this->_mqtt_base_topic;
-  topic += "/$ota";
-  this->_shared_interface->mqtt->subscribe(topic.c_str(), 1);
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$ota");
+  this->_shared_interface->mqtt->subscribe(topic, 1);
 
   for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
     HomieNode node = this->_shared_interface->nodes[i];
     for (int i = 0; i < node.subscriptions.size(); i++) {
       Subscription subscription = node.subscriptions[i];
 
-      topic = this->_mqtt_base_topic;
-      topic += "/";
-      topic += node.id;
-      topic += "/";
-      topic += subscription.property;
-      topic += "/set";
-      this->_shared_interface->mqtt->subscribe(topic.c_str(), 1);
+      String dynamic_topic;
+      dynamic_topic = this->_mqtt_base_topic;
+      dynamic_topic += "/";
+      dynamic_topic += node.id;
+      dynamic_topic += "/";
+      dynamic_topic += subscription.property;
+      dynamic_topic += "/set";
+      this->_shared_interface->mqtt->subscribe(dynamic_topic.c_str(), 1);
       this->_shared_interface->mqtt->loop(); // see knolleary/pubsublient#98
     }
   }
@@ -131,7 +140,7 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
     message += input_char;
   }
   String unified = String(topic);
-  unified.remove(0, this->_mqtt_base_topic.length() + 1); // Remove /devices/${id}/ - +1 for /
+  unified.remove(0, strlen(this->_mqtt_base_topic) + 1); // Remove /devices/${id}/ - +1 for /
   if (unified == "$ota") {
     if (message != this->_shared_interface->fwversion) {
       Logger.log("✴ OTA available (version ");
@@ -187,11 +196,11 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
 
   if (!handled) {
     Logger.logln("No handlers handled the following message:");
-    Logger.log("  • node ID: ");
+    Logger.log("  • Node ID: ");
     Logger.logln(node);
-    Logger.log("  • property: ");
+    Logger.log("  • Property: ");
     Logger.logln(property);
-    Logger.log("  • message: ");
+    Logger.log("  • Message: ");
     Logger.logln(message);
   }
 }
@@ -267,10 +276,14 @@ void BootNormal::loop() {
       quality = 2 * (rssi + 100);
     }
 
-    String topic = this->_mqtt_base_topic;
-    topic += "/$signal";
+    char quality_str[3 + 1];
+    itoa(quality, quality_str, 10);
 
-    if (this->_shared_interface->mqtt->publish(topic.c_str(), (char*)String(quality).c_str(), true)) {
+    char topic[24 + 1];
+    strcpy(topic, this->_mqtt_base_topic);
+    strcat(topic, "/$signal");
+
+    if (this->_shared_interface->mqtt->publish(topic, quality_str, true)) {
       this->_last_signal_sent = now;
     }
   }

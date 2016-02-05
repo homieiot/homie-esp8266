@@ -6,9 +6,15 @@
 #include "Logger.hpp"
 
 namespace HomieInternals {
-  class Helpers {
+  class HelpersClass {
     public:
-      static String getDeviceId();
-      static bool validateConfig(JsonObject& object);
+      HelpersClass();
+      const char* getDeviceId();
+      bool validateConfig(JsonObject& object);
+
+    private:
+      char _device_id[8 + 1];
   };
+
+  extern HelpersClass Helpers;
 }

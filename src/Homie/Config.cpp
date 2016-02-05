@@ -48,7 +48,7 @@ bool ConfigClass::load() {
     return false;
   }
 
-  if (!Helpers::validateConfig(parsed_json)) {
+  if (!Helpers.validateConfig(parsed_json)) {
     return false;
   }
 
@@ -196,7 +196,7 @@ BootMode ConfigClass::getBootMode() {
 void ConfigClass::log() {
   Logger.logln("⚙ Stored configuration:");
   Logger.log("  • Device ID: ");
-  Logger.logln(Helpers::getDeviceId());
+  Logger.logln(Helpers.getDeviceId());
   Logger.log("  • Boot mode: ");
   switch (this->_boot_mode) {
     case BOOT_CONFIG:

@@ -83,7 +83,7 @@ bool HomieClass::setNodeProperty(HomieNode& node, String property, String value,
   }
 
   String topic = "devices/";
-  topic += Helpers::getDeviceId();
+  topic += Helpers.getDeviceId();
   topic += "/";
   topic += node.id;
   topic += "/";

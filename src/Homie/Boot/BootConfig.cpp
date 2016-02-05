@@ -21,7 +21,7 @@ void BootConfig::setup() {
 
   digitalWrite(BUILTIN_LED, LOW);
 
-  String device_id = Helpers::getDeviceId();
+  const char* device_id = Helpers.getDeviceId();
 
   Logger.log("Device ID is ");
   Logger.logln(device_id);
@@ -29,11 +29,11 @@ void BootConfig::setup() {
   WiFi.mode(WIFI_AP);
 
   IPAddress ap_ip(192, 168, 1, 1);
-  String ap_name = String("Homie-");
-  ap_name += device_id;
+  char ap_name[14 + 1] = "Homie-";
+  strcat(ap_name, Helpers.getDeviceId());
 
   WiFi.softAPConfig(ap_ip, ap_ip, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(ap_name.c_str(), device_id.c_str());
+  WiFi.softAP(ap_name, device_id);
 
   Logger.log("AP started as ");
   Logger.logln(ap_name);
@@ -118,7 +118,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  if (!Helpers::validateConfig(parsed_json)) {
+  if (!Helpers.validateConfig(parsed_json)) {
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }

@@ -2,23 +2,18 @@
 
 using namespace HomieInternals;
 
-
-String Helpers::getDeviceId() {
-  char chip_id[6 + 1];
-  sprintf(chip_id, "%06x", ESP.getChipId());
+HelpersClass::HelpersClass() {
   char flash_chip_id[6 + 1];
   sprintf(flash_chip_id, "%06x", ESP.getFlashChipId());
 
-  String truncated_flash_id = String(flash_chip_id);
-  truncated_flash_id = truncated_flash_id.substring(4);
-
-  String device_id = String(chip_id);
-  device_id += truncated_flash_id;
-
-  return device_id;
+  sprintf(this->_device_id, "%06x%s", ESP.getChipId(), flash_chip_id + strlen(flash_chip_id) - 2);
 }
 
-bool Helpers::validateConfig(JsonObject& object) {
+const char* HelpersClass::getDeviceId() {
+  return this->_device_id;
+}
+
+bool HelpersClass::validateConfig(JsonObject& object) {
   if (!object.containsKey("name") || !object["name"].is<const char*>()) {
     Logger.logln("✖ name is not a string");
     return false;
@@ -135,3 +130,5 @@ bool Helpers::validateConfig(JsonObject& object) {
 
   return true;
 }
+
+HelpersClass HomieInternals::Helpers;
