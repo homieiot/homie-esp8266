@@ -77,7 +77,7 @@ void HomieClass::setResetHook(void (*callback)(void)) {
   this->_shared_interface.resetHook = callback;
 }
 
-bool HomieClass::setNodeProperty(HomieNode& node, String property, String value, bool retained) {
+bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained) {
   if (!this->isReadyToOperate()) {
     return false;
   }
@@ -88,7 +88,7 @@ bool HomieClass::setNodeProperty(HomieNode& node, String property, String value,
   topic += node.id;
   topic += "/";
   topic += property;
-  return this->_shared_interface.mqtt->publish(topic.c_str(), value.c_str(), retained);
+  return this->_shared_interface.mqtt->publish(topic.c_str(), value, retained);
 }
 
 HomieClass Homie;

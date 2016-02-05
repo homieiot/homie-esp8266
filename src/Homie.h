@@ -31,10 +31,10 @@ namespace HomieInternals {
       void setSetupFunction(void (*callback)(void));
       void setLoopFunction(void (*callback)(void));
       bool isReadyToOperate();
-      bool setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained = true) {
-        this->setNodeProperty(node, String(property), String(value), retained);
+      bool setNodeProperty(HomieNode& node, String property, String value, bool retained = true) {
+        this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
       }
-      bool setNodeProperty(HomieNode& node, String property, String value, bool retained = true);
+      bool setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained = true);
     private:
       Boot* _boot;
       SharedInterface _shared_interface;

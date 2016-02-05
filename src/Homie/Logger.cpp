@@ -11,13 +11,13 @@ void LoggerClass::setLogging(bool enable) {
   this->_logging_enabled = enable;
 }
 
-void LoggerClass::log(String text) {
+void LoggerClass::log(const char* text) {
   if (this->_logging_enabled) {
     Serial.print(text);
   }
 }
 
-void LoggerClass::logln(String text) {
+void LoggerClass::logln(const char* text) {
   if (this->_logging_enabled) {
     Serial.println(text);
   }

@@ -7,14 +7,14 @@ namespace HomieInternals {
     public:
       LoggerClass();
       void setLogging(bool enable);
-      void log(const char* text) {
-        this->log(String(text));
+      void log(String text) {
+        this->log(text.c_str());
       }
-      void log(String text);
-      void logln(const char* text = "") {
-        this->logln(String(text));
+      void log(const char* text);
+      void logln(String text) {
+        this->logln(text.c_str());
       }
-      void logln(String text);
+      void logln(const char* text = "");
 
     private:
       bool _logging_enabled;
