@@ -3,7 +3,6 @@
 using namespace HomieInternals;
 
 HomieClass::HomieClass() {
-  this->_shared_interface.eepromCount = 0;
   this->_shared_interface.fwname = strdup("undefined");
   this->_shared_interface.fwversion = strdup("undefined");
   this->_shared_interface.resettable = true;
@@ -19,17 +18,14 @@ HomieClass::~HomieClass() {
 }
 
 void HomieClass::setup(void) {
-  Config.setCustomEepromSize(this->_shared_interface.eepromCount);
+  Serial.begin(BAUD_RATE);
 
   if (!Config.load()) {
     this->_boot = new BootConfig();
   } else {
-    switch (Config.get().boot_mode) {
+    switch (Config.getBootMode()) {
       case BOOT_NORMAL:
         this->_boot = new BootNormal(&this->_shared_interface);
-        break;
-      case BOOT_CONFIG:
-        this->_boot = new BootConfig();
         break;
       case BOOT_OTA:
         this->_boot = new BootOta(&this->_shared_interface);
@@ -93,15 +89,6 @@ bool HomieClass::setNodeProperty(HomieNode& node, String property, String value,
   topic += "/";
   topic += property;
   return this->_shared_interface.mqtt->publish(topic.c_str(), value.c_str(), retained);
-}
-
-
-void HomieClass::reserveEeprom(int bytes) {
-  this->_shared_interface.eepromCount = bytes;
-}
-
-int HomieClass::getEepromOffset() {
-  return EEPROM_CONFIG_SIZE + 1;
 }
 
 HomieClass Homie;

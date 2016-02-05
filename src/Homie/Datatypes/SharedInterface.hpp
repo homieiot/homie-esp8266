@@ -6,7 +6,6 @@
 
 namespace HomieInternals {
   struct SharedInterface {
-    int eepromCount;
     char* fwname;
     char* fwversion;
     bool resettable;

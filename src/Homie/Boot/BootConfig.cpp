@@ -110,7 +110,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  StaticJsonBuffer<JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(7) + JSON_OBJECT_SIZE(6)> parseJsonBuffer; // Max 4 elements at root, 2 elements in nested, etc...
+  StaticJsonBuffer<JSON_CONFIG_MAX_BUFFER_SIZE> parseJsonBuffer;
   JsonObject& parsed_json = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str());
   if (!parsed_json.success()) {
     Logger.logln("✖ Invalid or too big JSON");
@@ -123,79 +123,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  const char* req_name = parsed_json["name"];
-  const char* req_wifi_ssid = parsed_json["wifi"]["ssid"];
-  const char* req_wifi_password = parsed_json["wifi"]["password"];
-  const char* req_mqtt_host = parsed_json["mqtt"]["host"];
-  uint16_t req_mqtt_port = DEFAULT_MQTT_PORT;
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("port")) {
-    req_mqtt_port = parsed_json["mqtt"]["port"];
-  }
-  bool req_mqtt_auth = false;
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("auth")) {
-    req_mqtt_auth = parsed_json["mqtt"]["auth"];
-  }
-  const char* req_mqtt_username = "";
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("username")) {
-    req_mqtt_username = parsed_json["mqtt"]["username"];
-  }
-  const char* req_mqtt_password = "";
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("password")) {
-    req_mqtt_password = parsed_json["mqtt"]["password"];
-  }
-  bool req_mqtt_ssl = false;
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("ssl")) {
-    req_mqtt_ssl = parsed_json["mqtt"]["ssl"];
-  }
-  const char* req_mqtt_fingerprint = "";
-  if (parsed_json["mqtt"].as<JsonObject&>().containsKey("fingerprint")) {
-    req_mqtt_fingerprint = parsed_json["mqtt"]["fingerprint"];
-  }
-  bool req_ota_enabled = false;
-  if (parsed_json["ota"].as<JsonObject&>().containsKey("enabled")) {
-    req_ota_enabled = parsed_json["ota"]["enabled"];
-  }
-  const char* req_ota_host = req_mqtt_host;
-  if (parsed_json["ota"].as<JsonObject&>().containsKey("host")) {
-    req_ota_host = parsed_json["ota"]["host"];
-  }
-  uint16_t req_ota_port = DEFAULT_OTA_PORT;
-  if (parsed_json["ota"].as<JsonObject&>().containsKey("port")) {
-    req_ota_port = parsed_json["ota"]["port"];
-  }
-  const char* req_ota_path = DEFAULT_OTA_PATH;
-  if (parsed_json["ota"].as<JsonObject&>().containsKey("path")) {
-    req_ota_path = parsed_json["ota"]["path"];
-  }
-  bool req_ota_ssl = false;
-  if (parsed_json["ota"].as<JsonObject&>().containsKey("ssl")) {
-    req_ota_ssl = parsed_json["ota"]["ssl"];
-  }
-  const char* req_ota_fingerprint = "";
-  if (parsed_json["ota"].as<JsonObject&>().containsKey("fingerprint")) {
-    req_ota_fingerprint = parsed_json["ota"]["fingerprint"];
-  }
-
-  Config.get().configured = true;
-  Config.get().boot_mode = BOOT_NORMAL;
-  strcpy(Config.get().name, req_name);
-  strcpy(Config.get().wifi.ssid, req_wifi_ssid);
-  strcpy(Config.get().wifi.password, req_wifi_password);
-  strcpy(Config.get().mqtt.host, req_mqtt_host);
-  Config.get().mqtt.port = req_mqtt_port;
-  Config.get().mqtt.auth = req_mqtt_auth;
-  strcpy(Config.get().mqtt.username, req_mqtt_username);
-  strcpy(Config.get().mqtt.password, req_mqtt_password);
-  Config.get().mqtt.ssl = req_mqtt_ssl;
-  strcpy(Config.get().mqtt.fingerprint, req_mqtt_fingerprint);
-  Config.get().ota.enabled = req_ota_enabled;
-  strcpy(Config.get().ota.host, req_ota_host);
-  Config.get().ota.port = req_ota_port;
-  strcpy(Config.get().ota.path, req_ota_path);
-  Config.get().ota.ssl = req_ota_ssl;
-  strcpy(Config.get().ota.fingerprint, req_ota_fingerprint);
-  Config.save();
-  Config.log();
+  Config.write(this->_http.arg("plain"));
 
   Logger.logln("✔ Configured");
 

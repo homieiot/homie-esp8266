@@ -201,8 +201,7 @@ void BootNormal::_handleReset() {
 
   if (this->_resetDebouncer.read() == LOW) {
     Logger.logln("Resetting");
-    Config.get().configured = false;
-    Config.save();
+    Config.erase();
 
     this->_shared_interface->resetHook();
 
@@ -281,8 +280,7 @@ void BootNormal::loop() {
 
   if (this->_flagged_for_ota && this->_shared_interface->resettable) {
     Logger.logln("↻ Rebooting in OTA mode");
-    Config.get().boot_mode = BOOT_OTA;
-    Config.save();
+    Config.setOtaMode(true);
 
     ESP.restart();
   }

@@ -35,8 +35,6 @@ namespace HomieInternals {
         this->setNodeProperty(node, String(property), String(value), retained);
       }
       bool setNodeProperty(HomieNode& node, String property, String value, bool retained = true);
-      void reserveEeprom(int bytes);
-      int getEepromOffset();
     private:
       Boot* _boot;
       SharedInterface _shared_interface;

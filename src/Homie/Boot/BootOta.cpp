@@ -28,8 +28,7 @@ void BootOta::setup() {
       wifi_attempts++;
     } else {
       Logger.logln("✖ Connection failed, rebooting in normal mode...");
-      Config.get().boot_mode = BOOT_NORMAL;
-      Config.save();
+      Config.setOtaMode(false);
 
       ESP.restart();
     }
@@ -46,26 +45,17 @@ void BootOta::setup() {
   switch(ret) {
     case HTTP_UPDATE_FAILED:
       Logger.logln("✖ Update failed");
-      Config.get().boot_mode = BOOT_NORMAL;
-      Config.save();
-
-      ESP.restart();
       break;
     case HTTP_UPDATE_NO_UPDATES:
       Logger.logln("✖ No updates");
-      Config.get().boot_mode = BOOT_NORMAL;
-      Config.save();
-
-      ESP.restart();
       break;
     case HTTP_UPDATE_OK:
       Logger.logln("✔ Success, rebooting");
-      Config.get().boot_mode = BOOT_NORMAL;
-      Config.save();
-
-      ESP.restart();
       break;
   }
+
+  Config.setOtaMode(false);
+  ESP.restart();
 }
 
 void BootOta::loop() {

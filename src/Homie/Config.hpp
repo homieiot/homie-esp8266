@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <EEPROM.h>
+#include "FS.h"
 #include "Datatypes/ConfigStruct.hpp"
 #include "Helpers.hpp"
 #include "Logger.hpp"
@@ -12,16 +13,18 @@ namespace HomieInternals {
       ConfigClass();
       bool load();
       ConfigStruct& get();
-      void save();
-      void setCustomEepromSize(int count);
+      void erase();
+      void write(const String& config);
+      void setOtaMode(bool enabled);
+      BootMode getBootMode();
       void log(); // print the current config to log output
 
     private:
+      BootMode _boot_mode;
       ConfigStruct _config_struct;
-      bool _eeprom_began;
-      int _custom_eeprom_size;
+      bool _spiffs_began;
 
-      void _eepromBegin();
+      bool _spiffsBegin();
   };
 
   extern ConfigClass Config;

@@ -18,11 +18,9 @@ setGlobalInputHandler	KEYWORD2
 setSetupFunction	KEYWORD2
 setLoopFunction	KEYWORD2
 setResetHook	KEYWORD2
-reserveEeprom	KEYWORD2
 isReadyToOperate	KEYWORD2
 setResettable	KEYWORD2
 setNodeProperty	KEYWORD2
-getEepromOffset	KEYWORD2
 
 subscribe	KEYWORD2
 
