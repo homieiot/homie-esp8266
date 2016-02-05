@@ -8,7 +8,6 @@
 #define PubSubClient_h
 
 #include <Arduino.h>
-#include <functional>
 #include "IPAddress.h"
 #include "Client.h"
 #include "Stream.h"
@@ -18,16 +17,24 @@
 
 // MQTT_VERSION : Pick the version
 //#define MQTT_VERSION MQTT_VERSION_3_1
+#ifndef MQTT_VERSION
 #define MQTT_VERSION MQTT_VERSION_3_1_1
+#endif
 
 // MQTT_MAX_PACKET_SIZE : Maximum packet size
+#ifndef MQTT_MAX_PACKET_SIZE
 #define MQTT_MAX_PACKET_SIZE 128
+#endif
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
+#ifndef MQTT_KEEPALIVE
 #define MQTT_KEEPALIVE 15
+#endif
 
 // MQTT_SOCKET_TIMEOUT: socket timeout interval in Seconds
+#ifndef MQTT_SOCKET_TIMEOUT
 #define MQTT_SOCKET_TIMEOUT 15
+#endif
 
 // MQTT_MAX_TRANSFER_SIZE : limit how much data is passed to the network client
 //  in each write call. Needed for the Arduino Wifi Shield. Leave undefined to
@@ -66,7 +73,12 @@
 #define MQTTQOS1        (1 << 1)
 #define MQTTQOS2        (2 << 1)
 
-#define MQTT_CALLBACK_SIGNATURE std::function<void(char*, uint8_t*, unsigned int)>
+#ifdef ESP8266
+#include <functional>
+#define MQTT_CALLBACK_SIGNATURE std::function<void(char*, uint8_t*, unsigned int)> callback
+#else
+#define MQTT_CALLBACK_SIGNATURE void (*callback)(char*, uint8_t*, unsigned int)
+#endif
 
 class PubSubClient {
 private:
@@ -76,7 +88,7 @@ private:
    unsigned long lastOutActivity;
    unsigned long lastInActivity;
    bool pingOutstanding;
-   MQTT_CALLBACK_SIGNATURE callback;
+   MQTT_CALLBACK_SIGNATURE;
    uint16_t readPacket(uint8_t*);
    boolean readByte(uint8_t * result);
    boolean readByte(uint8_t * result, uint16_t * index);
