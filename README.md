@@ -10,7 +10,7 @@ An ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT conventio
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
-* [Cute JSON API](https://github.com/marvinroger/homie-esp8266/wiki/5.-Configuration-JSON-API) to configure the credentials of the device
+* [Cute JSON configuration file/API](https://github.com/marvinroger/homie-esp8266/wiki/5.-JSON-configuration-file---API) to configure the credentials of the device
 * [OTA support](https://github.com/marvinroger/homie-esp8266/wiki/4.-OTA)
 * Pretty straightforward sketches, a simple light for example:
 
