@@ -31,7 +31,7 @@ namespace HomieInternals {
       void setSetupFunction(void (*callback)(void));
       void setLoopFunction(void (*callback)(void));
       bool isReadyToOperate();
-      bool sentNodeProperty(HomieNode& node, const char* property, const char* value, bool retained = true) {
+      bool setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained = true) {
         this->setNodeProperty(node, String(property), String(value), retained);
       }
       bool setNodeProperty(HomieNode& node, String property, String value, bool retained = true);
