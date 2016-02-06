@@ -36,7 +36,9 @@ void BootOta::setup() {
   Logger.logln("✔ Connected to Wi-Fi");
   Logger.logln("Starting OTA...");
 
+
   String dataToPass = Helpers.getDeviceId();
+  dataToPass.reserve(1 + strlen(this->_shared_interface->fwname) + 1 + strlen(this->_shared_interface->fwversion) + 1);
   dataToPass += '=';
   dataToPass += this->_shared_interface->fwname;
   dataToPass += '@';

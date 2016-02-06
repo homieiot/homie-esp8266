@@ -67,7 +67,18 @@ void BootNormal::_mqttSetup() {
   strcpy(topic, this->_mqtt_base_topic);
   strcat(topic, "/$nodes");
 
+  int nodesLength = 0;
+  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
+    HomieNode node = this->_shared_interface->nodes[i];
+    nodesLength += strlen(node.id);
+    nodesLength += 1; // :
+    nodesLength += strlen(node.type);
+    nodesLength += 1; // ,
+  }
+  nodesLength += 1; // Leading \0
+
   String nodes = String();
+  nodes.reserve(nodesLength);
   for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
     HomieNode node = this->_shared_interface->nodes[i];
     nodes += node.id;
@@ -122,6 +133,7 @@ void BootNormal::_mqttSetup() {
       Subscription subscription = node.subscriptions[i];
 
       String dynamic_topic;
+      dynamic_topic.reserve(60 + 1); // we can go further, but it is three times faster if topic is within 60
       dynamic_topic = this->_mqtt_base_topic;
       dynamic_topic += "/";
       dynamic_topic += node.id;
@@ -135,11 +147,12 @@ void BootNormal::_mqttSetup() {
 }
 
 void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) {
-  String message = String();
+  String message;
+  message.reserve(length);
   for (int i = 0; i < length; i++) {
-    char input_char = (char)payload[i];
-    message += input_char;
+    message += (char)payload[i];
   }
+
   String unified = String(topic);
   unified.remove(0, strlen(this->_mqtt_base_topic) + 1); // Remove /devices/${id}/ - +1 for /
   if (unified == "$ota") {
