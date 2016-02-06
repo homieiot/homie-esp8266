@@ -30,6 +30,7 @@ namespace HomieInternals {
       void setResetHook(void (*callback)(void));
       void setResetTrigger(uint8_t pin, byte state, uint16_t time);
       void disableResetTrigger();
+      void setResetFunction(bool (*callback)(void));
       void setSetupFunction(void (*callback)(void));
       void setLoopFunction(void (*callback)(void));
       bool isReadyToOperate();

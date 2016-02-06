@@ -21,6 +21,8 @@ namespace HomieInternals {
     byte resetTriggerState;
     uint16_t resetTriggerTime;
 
+    bool (*resetFunction)(void);
+
     PubSubClient* mqtt;
   };
 }

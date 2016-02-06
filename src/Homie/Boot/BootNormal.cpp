@@ -9,6 +9,7 @@ BootNormal::BootNormal(SharedInterface* shared_interface)
 , _last_mqtt_reconnect_attempt(0)
 , _last_signal_sent(0)
 , _flagged_for_ota(false)
+, _flagged_for_reset(false)
 {
   if (Config.get().mqtt.ssl) {
     this->_shared_interface->mqtt = new PubSubClient(this->_wifiClientSecure);
@@ -210,14 +211,14 @@ void BootNormal::_handleReset() {
     this->_resetDebouncer.update();
 
     if (this->_resetDebouncer.read() == this->_shared_interface->resetTriggerState) {
-      Logger.logln("Resetting");
-      Config.erase();
-
-      this->_shared_interface->resetHook();
-
-      Logger.logln("↻ Rebooting in config mode");
-      ESP.restart();
+      this->_flagged_for_reset = true;
+      Logger.logln("Flagged for reset by pin");
     }
+  }
+
+  if (this->_shared_interface->resetFunction()) {
+    this->_flagged_for_reset = true;
+    Logger.logln("Flagged for reset by function");
   }
 }
 
@@ -239,8 +240,25 @@ void BootNormal::setup() {
 void BootNormal::loop() {
   Boot::loop();
 
-  if (this->_shared_interface->resettable) {
-    this->_handleReset();
+  this->_handleReset();
+
+  if (this->_flagged_for_reset && this->_shared_interface->resettable) {
+    Logger.logln("Device is in a resettable state");
+    Config.erase();
+    Logger.logln("Configuration erased");
+
+    this->_shared_interface->resetHook();
+
+    Logger.logln("↻ Rebooting in config mode");
+    ESP.restart();
+  }
+
+  if (this->_flagged_for_ota && this->_shared_interface->resettable) {
+    Logger.logln("Device is in a resettable state");
+    Config.setOtaMode(true);
+
+    Logger.logln("↻ Rebooting in OTA mode");
+    ESP.restart();
   }
 
   this->_shared_interface->readyToOperate = false;
@@ -296,13 +314,6 @@ void BootNormal::loop() {
 
   this->_shared_interface->readyToOperate = true;
   this->_shared_interface->loopFunction();
-
-  if (this->_flagged_for_ota && this->_shared_interface->resettable) {
-    Logger.logln("↻ Rebooting in OTA mode");
-    Config.setOtaMode(true);
-
-    ESP.restart();
-  }
 
   this->_shared_interface->mqtt->loop();
 }

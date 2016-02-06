@@ -15,6 +15,7 @@ HomieClass::HomieClass() {
   this->_shared_interface.resetTriggerPin = DEFAULT_RESET_PIN;
   this->_shared_interface.resetTriggerState = DEFAULT_RESET_STATE;
   this->_shared_interface.resetTriggerTime = DEFAULT_RESET_TIME;
+  this->_shared_interface.resetFunction = [](void) { return false; };
 }
 
 HomieClass::~HomieClass() {
@@ -67,6 +68,10 @@ void HomieClass::setResettable(bool resettable) {
 
 void HomieClass::setGlobalInputHandler(bool (*callback)(String node, String property, String message)) {
   this->_shared_interface.inputHandler = callback;
+}
+
+void HomieClass::setResetFunction(bool (*callback)()) {
+  this->_shared_interface.resetFunction = callback;
 }
 
 void HomieClass::setSetupFunction(void (*callback)()) {
