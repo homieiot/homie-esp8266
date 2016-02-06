@@ -301,7 +301,7 @@ void BootNormal::loop() {
   }
 
   unsigned long now = millis();
-  if (now - this->_last_signal_sent >= 300000UL || this->_last_signal_sent == 0) {
+  if (now - this->_last_signal_sent >= SIGNAL_QUALITY_SEND_INTERVAL || this->_last_signal_sent == 0) {
     Logger.logln("Sending Wi-Fi signal quality");
     int32_t rssi = WiFi.RSSI();
     byte quality;
