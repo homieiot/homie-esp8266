@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "../../3rd/PubSubClient/src/PubSubClient.h"
+#include <PubSubClient.h>
 #include "../../HomieNode.h"
 
 namespace HomieInternals {

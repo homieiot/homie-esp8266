@@ -3,8 +3,8 @@
 #include <Arduino.h>
 #include <functional>
 #include <ESP8266WiFi.h>
-#include "../../3rd/PubSubClient/src/PubSubClient.h"
-#include "../../3rd/Bounce2/src/Bounce2.h"
+#include <PubSubClient.h>
+#include <Bounce2.h>
 #include "../../HomieNode.h"
 #include "../Constants.hpp"
 #include "../Datatypes/SharedInterface.hpp"

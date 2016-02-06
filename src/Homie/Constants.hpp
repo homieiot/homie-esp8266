@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../3rd/ArduinoJson/src/ArduinoJson.h"
+#include <ArduinoJson.h>
 
 namespace HomieInternals {
   const int BAUD_RATE = 115200;

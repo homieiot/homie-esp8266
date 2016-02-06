@@ -5,7 +5,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
-#include "../../3rd/ArduinoJson/src/ArduinoJson.h"
+#include <ArduinoJson.h>
 #include "Boot.hpp"
 #include "../Config.hpp"
 #include "../Helpers.hpp"

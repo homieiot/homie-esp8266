@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#include "../3rd/ArduinoJson/src/ArduinoJson.h"
+#include <ArduinoJson.h>
 #include "Logger.hpp"
 
 namespace HomieInternals {

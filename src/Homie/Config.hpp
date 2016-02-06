@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <EEPROM.h>
+#include <ArduinoJson.h>
 #include "FS.h"
 #include "Datatypes/ConfigStruct.hpp"
 #include "Helpers.hpp"
