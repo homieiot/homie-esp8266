@@ -169,7 +169,7 @@ void BootConfig::loop() {
   }
 
   unsigned long now = millis();
-  if (now - this->_last_wifi_scan >= 20000UL && this->_last_wifi_scan_ended) {
+  if (now - this->_last_wifi_scan >= CONFIG_SCAN_INTERVAL && this->_last_wifi_scan_ended) {
     Logger.logln("Triggering Wi-Fi scan");
     WiFi.scanNetworks(true);
     this->_last_wifi_scan = now;

@@ -11,10 +11,14 @@ namespace HomieInternals {
 
   const uint8_t DEFAULT_RESET_PIN = 0; // == D3 on nodeMCU
   const byte DEFAULT_RESET_STATE = LOW;
-  const uint16_t DEFAULT_RESET_TIME = 5000UL;
+  const uint16_t DEFAULT_RESET_TIME = 5 * 1000;
 
   const char DEFAULT_FW_NAME[] = "undefined";
   const char DEFAULT_FW_VERSION[] = "undefined";
+
+  const int CONFIG_SCAN_INTERVAL = 20 * 1000;
+  const int WIFI_RECONNECT_INTERVAL = 20 * 1000;
+  const int MQTT_RECONNECT_INTERVAL = 5 * 1000;
 
   const float LED_WIFI_DELAY = 1;
   const float LED_MQTT_DELAY = 0.2;
