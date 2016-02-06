@@ -8,7 +8,6 @@ Boot::Boot(const char* name)
 }
 
 void Boot::setup() {
-  pinMode(PIN_RESET, INPUT_PULLUP);
   pinMode(BUILTIN_LED, OUTPUT);
   digitalWrite(BUILTIN_LED, HIGH); // low active
 

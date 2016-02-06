@@ -28,6 +28,8 @@ namespace HomieInternals {
       void setGlobalInputHandler(bool (*callback)(String node, String property, String message));
       void setResettable(bool resettable);
       void setResetHook(void (*callback)(void));
+      void setResetTrigger(uint8_t pin, byte state, uint16_t time);
+      void disableResetTrigger();
       void setSetupFunction(void (*callback)(void));
       void setLoopFunction(void (*callback)(void));
       bool isReadyToOperate();

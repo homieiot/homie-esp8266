@@ -206,26 +206,32 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
 }
 
 void BootNormal::_handleReset() {
-  this->_resetDebouncer.update();
+  if (this->_shared_interface->resetTriggerEnabled) {
+    this->_resetDebouncer.update();
 
-  if (this->_resetDebouncer.read() == LOW) {
-    Logger.logln("Resetting");
-    Config.erase();
+    if (this->_resetDebouncer.read() == this->_shared_interface->resetTriggerState) {
+      Logger.logln("Resetting");
+      Config.erase();
 
-    this->_shared_interface->resetHook();
+      this->_shared_interface->resetHook();
 
-    Logger.logln("↻ Rebooting in config mode");
-    ESP.restart();
+      Logger.logln("↻ Rebooting in config mode");
+      ESP.restart();
+    }
   }
 }
 
 void BootNormal::setup() {
   Boot::setup();
 
-  this->_resetDebouncer.attach(PIN_RESET);
-  this->_resetDebouncer.interval(5000UL);
+  if (this->_shared_interface->resetTriggerEnabled) {
+    pinMode(this->_shared_interface->resetTriggerPin, INPUT_PULLUP);
 
-  this->_shared_interface->setupFunction();
+    this->_resetDebouncer.attach(this->_shared_interface->resetTriggerPin);
+    this->_resetDebouncer.interval(this->_shared_interface->resetTriggerTime);
+
+    this->_shared_interface->setupFunction();
+  }
 
   Config.log();
 }

@@ -15,6 +15,12 @@ namespace HomieInternals {
     void (*setupFunction)(void);
     void (*loopFunction)(void);
     void (*resetHook)(void);
+
+    bool resetTriggerEnabled;
+    uint8_t resetTriggerPin;
+    byte resetTriggerState;
+    uint16_t resetTriggerTime;
+
     PubSubClient* mqtt;
   };
 }

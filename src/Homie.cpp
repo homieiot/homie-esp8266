@@ -3,14 +3,18 @@
 using namespace HomieInternals;
 
 HomieClass::HomieClass() {
-  this->_shared_interface.fwname = strdup("undefined");
-  this->_shared_interface.fwversion = strdup("undefined");
+  this->_shared_interface.fwname = strdup(DEFAULT_FW_NAME);
+  this->_shared_interface.fwversion = strdup(DEFAULT_FW_VERSION);
   this->_shared_interface.resettable = true;
   this->_shared_interface.readyToOperate = false;
   this->_shared_interface.inputHandler = [](String node, String property, String message) { return false; };
   this->_shared_interface.setupFunction = [](void) {};
   this->_shared_interface.loopFunction = [](void) {};
   this->_shared_interface.resetHook = [](void) {};
+  this->_shared_interface.resetTriggerEnabled = true;
+  this->_shared_interface.resetTriggerPin = DEFAULT_RESET_PIN;
+  this->_shared_interface.resetTriggerState = DEFAULT_RESET_STATE;
+  this->_shared_interface.resetTriggerTime = DEFAULT_RESET_TIME;
 }
 
 HomieClass::~HomieClass() {
@@ -75,6 +79,17 @@ void HomieClass::setLoopFunction(void (*callback)()) {
 
 void HomieClass::setResetHook(void (*callback)(void)) {
   this->_shared_interface.resetHook = callback;
+}
+
+void HomieClass::setResetTrigger(uint8_t pin, byte state, uint16_t time) {
+  this->_shared_interface.resetTriggerEnabled = true;
+  this->_shared_interface.resetTriggerPin = pin;
+  this->_shared_interface.resetTriggerState = state;
+  this->_shared_interface.resetTriggerTime = time;
+}
+
+void HomieClass::disableResetTrigger() {
+  this->_shared_interface.resetTriggerEnabled = false;
 }
 
 bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained) {
