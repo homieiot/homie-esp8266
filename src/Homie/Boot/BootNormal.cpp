@@ -133,7 +133,7 @@ void BootNormal::_mqttSetup() {
       Subscription subscription = node.subscriptions[i];
 
       String dynamic_topic;
-      dynamic_topic.reserve(60 + 1); // we can go further, but it is three times faster if topic is within 60
+      dynamic_topic.reserve(strlen(this->_mqtt_base_topic) + 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1);
       dynamic_topic = this->_mqtt_base_topic;
       dynamic_topic += "/";
       dynamic_topic += node.id;
