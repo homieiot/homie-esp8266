@@ -123,9 +123,11 @@ void BootNormal::_mqttSetup() {
   strcat(topic, "/$fwversion");
   this->_shared_interface->mqtt->publish(topic, this->_shared_interface->fwversion, true);
 
-  strcpy(topic, this->_mqtt_base_topic);
-  strcat(topic, "/$ota");
-  this->_shared_interface->mqtt->subscribe(topic, 1);
+  if (Config.get().ota.enabled) {
+    strcpy(topic, this->_mqtt_base_topic);
+    strcat(topic, "/$ota");
+    this->_shared_interface->mqtt->subscribe(topic, 1);
+  }
 
   for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
     HomieNode node = this->_shared_interface->nodes[i];
@@ -155,18 +157,13 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
 
   String unified = String(topic);
   unified.remove(0, strlen(this->_mqtt_base_topic) + 1); // Remove /devices/${id}/ - +1 for /
-  if (unified == "$ota") {
+  if (Config.get().ota.enabled && unified == "$ota") {
     if (message != this->_shared_interface->fwversion) {
       Logger.log("✴ OTA available (version ");
       Logger.log(message);
       Logger.logln(")");
-
-      if (Config.get().ota.enabled) {
-        this->_flagged_for_ota = true;
-        Serial.println("Flagged for OTA reboot");
-      } else {
-        Serial.println("OTA is disabled");
-      }
+      this->_flagged_for_ota = true;
+      Serial.println("Flagged for OTA");
     }
     return;
   }
