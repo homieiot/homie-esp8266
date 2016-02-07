@@ -7,6 +7,10 @@ LoggerClass::LoggerClass()
 {
 }
 
+bool LoggerClass::isEnabled() {
+  return this->_logging_enabled;
+}
+
 void LoggerClass::setLogging(bool enable) {
   this->_logging_enabled = enable;
 }

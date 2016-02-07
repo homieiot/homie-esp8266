@@ -7,6 +7,7 @@ namespace HomieInternals {
     public:
       LoggerClass();
       void setLogging(bool enable);
+      bool isEnabled();
       void log(String text) {
         this->log(text.c_str());
       }

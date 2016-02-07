@@ -23,7 +23,9 @@ HomieClass::~HomieClass() {
 }
 
 void HomieClass::setup(void) {
-  Serial.begin(BAUD_RATE);
+  if (Logger.isEnabled()) {
+    Serial.begin(BAUD_RATE);
+  }
 
   if (!Config.load()) {
     this->_boot = new BootConfig(&this->_shared_interface);
