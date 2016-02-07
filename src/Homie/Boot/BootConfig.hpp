@@ -8,6 +8,7 @@
 #include <ArduinoJson.h>
 #include "Boot.hpp"
 #include "../Config.hpp"
+#include "../Datatypes/SharedInterface.hpp"
 #include "../Helpers.hpp"
 #include "../Logger.hpp"
 #include "../Strings.hpp"
@@ -15,11 +16,12 @@
 namespace HomieInternals {
   class BootConfig : public Boot {
     public:
-      BootConfig();
+      BootConfig(SharedInterface* shared_interface);
       ~BootConfig();
       void setup();
       void loop();
     private:
+      SharedInterface* _shared_interface;
       ESP8266WebServer _http;
       DNSServer _dns;
       byte _ssid_count;
@@ -29,6 +31,7 @@ namespace HomieInternals {
       bool _flagged_for_reboot;
       unsigned long _flagged_for_reboot_at;
 
+      void _onDeviceInfoRequest();
       void _onNetworksRequest();
       void _onConfigRequest();
       String _generateNetworksJson();

@@ -2,8 +2,9 @@
 
 using namespace HomieInternals;
 
-BootConfig::BootConfig()
+BootConfig::BootConfig(SharedInterface* shared_interface)
 : Boot("config")
+, _shared_interface(shared_interface)
 , _http(80)
 , _ssid_count(0)
 , _last_wifi_scan(0)
@@ -51,6 +52,7 @@ void BootConfig::setup() {
     Logger.logln("Received heart request");
     this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"heart\":\"beat\"}");
   });
+  this->_http.on("/device-info", HTTP_GET, std::bind(&BootConfig::_onDeviceInfoRequest, this));
   this->_http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
   this->_http.on("/config", HTTP_PUT, std::bind(&BootConfig::_onConfigRequest, this));
   this->_http.on("/config", HTTP_OPTIONS, [this]() { // CORS
@@ -92,9 +94,39 @@ String BootConfig::_generateNetworksJson() {
 
   // 15 bytes: {"networks":[]}
   // 75 bytes: {"ssid":"thisisa32characterlongstringyes!","rssi":-99,"encryption":"none"}, (-1 for leading ","), +1 for terminator
-  char json_string[15 + (75 * this->_ssid_count) - 1 + 1];
-  size_t json_length = json.printTo(json_string, sizeof(json_string));
-  return String(json_string);
+  String json_string;
+  json_string.reserve(15 + (75 * this->_ssid_count) - 1 + 1);
+  json.printTo(json_string);
+  return json_string;
+}
+
+void BootConfig::_onDeviceInfoRequest() {
+  Logger.logln("Received device info request");
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.createObject();
+  json["device_id"] = Helpers.getDeviceId();
+  json["homie_version"] = VERSION;
+  JsonObject& firmware = json.createNestedObject("firmware");
+  firmware["name"] = this->_shared_interface->fwname;
+  firmware["version"] = this->_shared_interface->fwversion;
+
+  JsonArray& nodes = json.createNestedArray("nodes");
+  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
+    HomieNode node = this->_shared_interface->nodes[i];
+    JsonObject& json_node = jsonBuffer.createObject();
+    json_node["id"] = node.id;
+    json_node["type"] = node.type;
+
+    nodes.add(json_node);
+  }
+
+  // 110 bytes for {"homie_version":"11.10.0","firmware":{"name":"awesome-light-great-top","version":"11.10.0-beta"},"nodes":[]}
+  // 60 bytes for {"id":"lightifydefoulooooo","type":"lightifydefouloooo"}, (-1 for leading ","), +1 for terminator
+  String jsonString;
+  jsonString.reserve(110 + (60 * this->_shared_interface->nodes.size()) - 1 + 1);
+  json.printTo(jsonString);
+  this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), jsonString);
 }
 
 void BootConfig::_onNetworksRequest() {
