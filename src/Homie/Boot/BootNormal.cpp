@@ -123,6 +123,10 @@ void BootNormal::_mqttSetup() {
   strcat(topic, "/$fwversion");
   this->_shared_interface->mqtt->publish(topic, this->_shared_interface->fwversion, true);
 
+  strcpy(topic, this->_mqtt_base_topic);
+  strcat(topic, "/$reset");
+  this->_shared_interface->mqtt->subscribe(topic, 1);
+
   if (Config.get().ota.enabled) {
     strcpy(topic, this->_mqtt_base_topic);
     strcat(topic, "/$ota");
@@ -165,6 +169,11 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
       this->_flagged_for_ota = true;
       Serial.println("Flagged for OTA");
     }
+    return;
+  } else if (unified == "$reset" && message == "true") {
+    this->_shared_interface->mqtt->publish(topic, "false", true);
+    this->_flagged_for_reset = true;
+    Logger.logln("Flagged for reset by network");
     return;
   }
   unified.remove(unified.length() - 4, 4); // Remove /set
