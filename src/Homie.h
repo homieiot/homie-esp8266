@@ -35,7 +35,7 @@ namespace HomieInternals {
       void setLoopFunction(void (*callback)(void));
       bool isReadyToOperate();
       bool setNodeProperty(HomieNode& node, String property, String value, bool retained = true) {
-        this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
+        return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
       }
       bool setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained = true);
     private:
