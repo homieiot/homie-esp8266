@@ -136,10 +136,9 @@ class ConnectionStep extends React.Component {
           this.props.setStep(STEP_INFO);
         }
       });
-
-      interval = window.setInterval(heartbeat, 5 * 1000);
     };
 
+    interval = window.setInterval(heartbeat, 5 * 1000);
     heartbeat();
   }
 
@@ -188,10 +187,9 @@ class InfoStep extends React.Component {
           info: json
         });
       });
-
-      interval = window.setInterval(deviceinfo, 5 * 1000);
     };
 
+    interval = window.setInterval(deviceinfo, 5 * 1000);
     deviceinfo();
   }
 
@@ -287,10 +285,9 @@ class WifiStep extends React.Component {
           networks: json
         });
       });
-
-      interval = window.setInterval(networks, 5 * 1000);
     };
 
+    interval = window.setInterval(networks, 5 * 1000);
     networks();
   }
 
