@@ -2,7 +2,6 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import classNames from 'classnames';
 
 const BASE_API = 'http://homie.config';
 
@@ -176,6 +175,7 @@ class InfoStep extends React.Component {
   componentDidMount () {
     let interval;
     let deviceinfo = () => {
+      console.log('Triggering request');
       window.fetch(`${BASE_API}/device-info`).then((res) => {
         if (res.ok) {
           window.clearInterval(interval);
