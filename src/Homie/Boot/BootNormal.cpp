@@ -42,9 +42,9 @@ void BootNormal::_mqttConnect() {
 
   bool connectResult;
   if (Config.get().mqtt.auth) {
-    connectResult = this->_shared_interface->mqtt->connect(client_id, topic, 2, true, "false");
-  } else {
     connectResult = this->_shared_interface->mqtt->connect(client_id, Config.get().mqtt.username, Config.get().mqtt.password, topic, 2, true, "false");
+  } else {
+    connectResult = this->_shared_interface->mqtt->connect(client_id, topic, 2, true, "false");
   }
 
   if (connectResult) {
