@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
     <widget xmlns   = "http://www.w3.org/ns/widgets"
     xmlns:gap   = "http://phonegap.com/ns/1.0"
-    id          = "com.phonegap.example"
-    versionCode = "10" 
+    id          = "fr.marvinroger.homie-esp8266"
+    versionCode = "1" 
     version     = "1.0.0" >
 
 
     <name>Homie Setup</name>
 
     <description>
-      Setup your Homie device from this app ( 
+      Setup your Homie device from this app
     </description>
 
-    <author href="https://github.com/marvinroger/homie-esp8266" email="bonjourmarvin@marvinroger.fr">
-      Marvin Roger 
-    </author>
-
-
+	<platform name="android" />
+	<platform name="winphone" />
+	
+	<icon src="public/img/logo.png" />
+	<splash src="public/img/logo.png" />
+	
+	<feature name="http://api.phonegap.com/1.0/network" />
+	
 	<plugin name="cordova-plugin-whitelist" version="1" />
     <access origin="*" />
 </widget>
