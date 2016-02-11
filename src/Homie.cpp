@@ -10,7 +10,7 @@ HomieClass::HomieClass() {
   this->_shared_interface.inputHandler = [](String node, String property, String message) { return false; };
   this->_shared_interface.setupFunction = [](void) {};
   this->_shared_interface.loopFunction = [](void) {};
-  this->_shared_interface.resetHook = [](void) {};
+  this->_shared_interface.eventHandler = [](HomieEvent event) {};
   this->_shared_interface.resetTriggerEnabled = true;
   this->_shared_interface.resetTriggerPin = DEFAULT_RESET_PIN;
   this->_shared_interface.resetTriggerState = DEFAULT_RESET_STATE;
@@ -29,13 +29,16 @@ void HomieClass::setup(void) {
 
   if (!Config.load()) {
     this->_boot = new BootConfig(&this->_shared_interface);
+    this->_shared_interface.eventHandler(HOMIE_CONFIGURATION_MODE);
   } else {
     switch (Config.getBootMode()) {
       case BOOT_NORMAL:
         this->_boot = new BootNormal(&this->_shared_interface);
+        this->_shared_interface.eventHandler(HOMIE_NORMAL_MODE);
         break;
       case BOOT_OTA:
         this->_boot = new BootOta(&this->_shared_interface);
+        this->_shared_interface.eventHandler(HOMIE_OTA_MODE);
         break;
     }
   }
@@ -84,8 +87,8 @@ void HomieClass::setLoopFunction(void (*callback)()) {
   this->_shared_interface.loopFunction = callback;
 }
 
-void HomieClass::setResetHook(void (*callback)(void)) {
-  this->_shared_interface.resetHook = callback;
+void HomieClass::onEvent(void (*callback)(HomieEvent event)) {
+  this->_shared_interface.eventHandler = callback;
 }
 
 void HomieClass::setResetTrigger(uint8_t pin, byte state, uint16_t time) {

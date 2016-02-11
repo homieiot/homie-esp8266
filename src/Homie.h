@@ -27,7 +27,7 @@ namespace HomieInternals {
       void registerNode(HomieNode& node);
       void setGlobalInputHandler(bool (*callback)(String node, String property, String message));
       void setResettable(bool resettable);
-      void setResetHook(void (*callback)(void));
+      void onEvent(void (*callback)(HomieEvent event));
       void setResetTrigger(uint8_t pin, byte state, uint16_t time);
       void disableResetTrigger();
       void setResetFunction(bool (*callback)(void));

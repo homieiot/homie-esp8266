@@ -8,6 +8,10 @@ BootNormal::BootNormal(SharedInterface* shared_interface)
 , _last_wifi_reconnect_attempt(0)
 , _last_mqtt_reconnect_attempt(0)
 , _last_signal_sent(0)
+, _wifi_connect_notified(false)
+, _wifi_disconnect_notified(false)
+, _mqtt_connect_notified(false)
+, _mqtt_disconnect_notified(false)
 , _flagged_for_ota(false)
 , _flagged_for_reset(false)
 {
@@ -266,7 +270,7 @@ void BootNormal::loop() {
     Config.erase();
     Logger.logln("Configuration erased");
 
-    this->_shared_interface->resetHook();
+    this->_shared_interface->eventHandler(HOMIE_ABOUT_TO_RESET);
 
     Logger.logln("↻ Rebooting in config mode");
     ESP.restart();
@@ -283,6 +287,12 @@ void BootNormal::loop() {
   this->_shared_interface->readyToOperate = false;
 
   if (WiFi.status() != WL_CONNECTED) {
+    this->_wifi_connect_notified = false;
+    if (!this->_wifi_disconnect_notified) {
+      this->_shared_interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
+      this->_wifi_disconnect_notified = true;
+    }
+
     unsigned long now = millis();
     if (now - this->_last_wifi_reconnect_attempt >= WIFI_RECONNECT_INTERVAL || this->_last_wifi_reconnect_attempt == 0) {
       Logger.logln("⌔ Attempting to connect to Wi-Fi");
@@ -293,7 +303,19 @@ void BootNormal::loop() {
     return;
   }
 
+  this->_wifi_disconnect_notified = false;
+  if (!this->_wifi_connect_notified) {
+    this->_shared_interface->eventHandler(HOMIE_WIFI_CONNECTED);
+    this->_wifi_connect_notified = true;
+  }
+
   if (!this->_shared_interface->mqtt->connected()) {
+    this->_mqtt_connect_notified = false;
+    if (!this->_mqtt_disconnect_notified) {
+      this->_shared_interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
+      this->_mqtt_disconnect_notified = true;
+    }
+
     unsigned long now = millis();
     if (now - this->_last_mqtt_reconnect_attempt >= MQTT_RECONNECT_INTERVAL || this->_last_mqtt_reconnect_attempt == 0) {
       Logger.logln("⌔ Attempting to connect to MQTT");
@@ -304,6 +326,12 @@ void BootNormal::loop() {
     return;
   } else {
     Blinker.stop();
+  }
+
+  this->_mqtt_disconnect_notified = false;
+  if (!this->_mqtt_connect_notified) {
+    this->_shared_interface->eventHandler(HOMIE_MQTT_CONNECTED);
+    this->_mqtt_connect_notified = true;
   }
 
   unsigned long now = millis();

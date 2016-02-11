@@ -4,6 +4,7 @@
 
 Homie	KEYWORD1
 HomieNode	KEYWORD1
+HomieEvent	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -17,7 +18,7 @@ registerNode	KEYWORD2
 setGlobalInputHandler	KEYWORD2
 setSetupFunction	KEYWORD2
 setLoopFunction	KEYWORD2
-setResetHook	KEYWORD2
+onEvent	KEYWORD2
 setResetTrigger	KEYWORD2
 disableResetTrigger	KEYWORD2
 setResetFunction	KEYWORD2
@@ -30,3 +31,12 @@ subscribe	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+HOMIE_CONFIGURATION_MODE	LITERAL1
+HOMIE_NORMAL_MODE	LITERAL1
+HOMIE_OTA_MODE	LITERAL1
+HOMIE_ABOUT_TO_RESET	LITERAL1
+HOMIE_WIFI_CONNECTED	LITERAL1
+HOMIE_WIFI_DISCONNECTED	LITERAL1
+HOMIE_MQTT_CONNECTED	LITERAL1
+HOMIE_MQTT_DISCONNECTED	LITERAL1

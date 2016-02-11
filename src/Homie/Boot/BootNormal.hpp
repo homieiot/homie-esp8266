@@ -27,6 +27,10 @@ namespace HomieInternals {
       unsigned long _last_wifi_reconnect_attempt;
       unsigned long _last_mqtt_reconnect_attempt;
       unsigned long _last_signal_sent;
+      bool _wifi_connect_notified;
+      bool _wifi_disconnect_notified;
+      bool _mqtt_connect_notified;
+      bool _mqtt_disconnect_notified;
       bool _flagged_for_ota;
       bool _flagged_for_reset;
       char _mqtt_base_topic[16 + 1];

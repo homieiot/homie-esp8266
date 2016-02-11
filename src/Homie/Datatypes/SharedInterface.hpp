@@ -3,6 +3,7 @@
 #include <vector>
 #include <PubSubClient.h>
 #include "../../HomieNode.h"
+#include "../../HomieEvent.h"
 
 namespace HomieInternals {
   struct SharedInterface {
@@ -14,7 +15,7 @@ namespace HomieInternals {
     bool (*inputHandler)(String node, String property, String message);
     void (*setupFunction)(void);
     void (*loopFunction)(void);
-    void (*resetHook)(void);
+    void (*eventHandler)(HomieEvent event);
 
     bool resetTriggerEnabled;
     uint8_t resetTriggerPin;
