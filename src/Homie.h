@@ -23,6 +23,7 @@ namespace HomieInternals {
       void loop();
 
       void enableLogging(bool logging);
+      void enableBuiltInLedIndicator(bool enable);
       void setFirmware(const char* name, const char* version);
       void registerNode(HomieNode& node);
       void setGlobalInputHandler(bool (*callback)(String node, String property, String message));

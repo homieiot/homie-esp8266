@@ -2,14 +2,18 @@
 
 using namespace HomieInternals;
 
-Boot::Boot(const char* name)
-: _name(name)
+Boot::Boot(SharedInterface* shared_interface, const char* name)
+: _shared_interface(shared_interface)
+, _name(name)
+
 {
 }
 
 void Boot::setup() {
-  pinMode(BUILTIN_LED, OUTPUT);
-  digitalWrite(BUILTIN_LED, HIGH); // low active
+  if (this->_shared_interface->useBuiltInLed) {
+    pinMode(BUILTIN_LED, OUTPUT);
+    digitalWrite(BUILTIN_LED, HIGH); // low active
+  }
 
   WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie
   WiFi.disconnect(); // Reset network state

@@ -3,7 +3,7 @@
 using namespace HomieInternals;
 
 BootOta::BootOta(SharedInterface* shared_interface)
-: Boot("OTA")
+: Boot(shared_interface, "OTA")
 , _shared_interface(shared_interface)
 {
 }

@@ -3,7 +3,7 @@
 using namespace HomieInternals;
 
 BootNormal::BootNormal(SharedInterface* shared_interface)
-: Boot("normal")
+: Boot(shared_interface, "normal")
 , _shared_interface(shared_interface)
 , _last_wifi_reconnect_attempt(0)
 , _last_mqtt_reconnect_attempt(0)
@@ -297,7 +297,9 @@ void BootNormal::loop() {
     if (now - this->_last_wifi_reconnect_attempt >= WIFI_RECONNECT_INTERVAL || this->_last_wifi_reconnect_attempt == 0) {
       Logger.logln("⌔ Attempting to connect to Wi-Fi");
       this->_last_wifi_reconnect_attempt = now;
-      Blinker.start(LED_WIFI_DELAY);
+      if (this->_shared_interface->useBuiltInLed) {
+        Blinker.start(LED_WIFI_DELAY);
+      }
       this->_wifiConnect();
     }
     return;
@@ -320,12 +322,16 @@ void BootNormal::loop() {
     if (now - this->_last_mqtt_reconnect_attempt >= MQTT_RECONNECT_INTERVAL || this->_last_mqtt_reconnect_attempt == 0) {
       Logger.logln("⌔ Attempting to connect to MQTT");
       this->_last_mqtt_reconnect_attempt = now;
-      Blinker.start(LED_MQTT_DELAY);
+      if (this->_shared_interface->useBuiltInLed) {
+        Blinker.start(LED_MQTT_DELAY);
+      }
       this->_mqttConnect();
     }
     return;
   } else {
-    Blinker.stop();
+    if (this->_shared_interface->useBuiltInLed) {
+      Blinker.stop();
+    }
   }
 
   this->_mqtt_disconnect_notified = false;

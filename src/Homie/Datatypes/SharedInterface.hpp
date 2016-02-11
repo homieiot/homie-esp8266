@@ -17,6 +17,8 @@ namespace HomieInternals {
     void (*loopFunction)(void);
     void (*eventHandler)(HomieEvent event);
 
+    bool useBuiltInLed;
+
     bool resetTriggerEnabled;
     uint8_t resetTriggerPin;
     byte resetTriggerState;

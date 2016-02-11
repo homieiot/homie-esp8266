@@ -3,7 +3,7 @@
 using namespace HomieInternals;
 
 BootConfig::BootConfig(SharedInterface* shared_interface)
-: Boot("config")
+: Boot(shared_interface, "config")
 , _shared_interface(shared_interface)
 , _http(80)
 , _ssid_count(0)
@@ -20,7 +20,9 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  digitalWrite(BUILTIN_LED, LOW);
+  if (this->_shared_interface->useBuiltInLed) {
+    digitalWrite(BUILTIN_LED, LOW); // low active
+  }
 
   const char* device_id = Helpers.getDeviceId();
 

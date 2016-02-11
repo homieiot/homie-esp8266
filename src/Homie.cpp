@@ -7,6 +7,7 @@ HomieClass::HomieClass() {
   this->_shared_interface.fwversion = strdup(DEFAULT_FW_VERSION);
   this->_shared_interface.resettable = true;
   this->_shared_interface.readyToOperate = false;
+  this->_shared_interface.useBuiltInLed = true;
   this->_shared_interface.inputHandler = [](String node, String property, String message) { return false; };
   this->_shared_interface.setupFunction = [](void) {};
   this->_shared_interface.loopFunction = [](void) {};
@@ -52,6 +53,10 @@ void HomieClass::loop(void) {
 
 void HomieClass::enableLogging(bool logging) {
   Logger.setLogging(logging);
+}
+
+void HomieClass::enableBuiltInLedIndicator(bool enable) {
+  this->_shared_interface.useBuiltInLed = enable;
 }
 
 void HomieClass::setFirmware(const char* name, const char* version) {
