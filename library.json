@@ -1,11 +1,11 @@
 {
   "name": "Homie",
-  "keywords": "iot, home, automation, mqtt",
-  "description": "An opinionated home automation system for ESP8266 using MQTT",
+  "keywords": "iot, home, automation, mqtt, esp8266",
+  "description": "ESP8266 framework for Homie, a lightweight MQTT convention for the IoT",
   "authors":
   {
     "name": "Marvin Roger",
-    "url": "https://marvinroger.fr"
+    "url": "https://www.marvinroger.fr"
   },
   "repository":
   {
@@ -14,5 +14,22 @@
   },
   "version": "0.1.0",
   "frameworks": "arduino",
-  "platforms": "espressif"
+  "platforms": "espressif",
+  "dependencies": [
+    {
+      "name": "Json",
+      "authors": "Benoit Blanchon",
+      "frameworks": "arduino"
+    },
+    {
+      "name": "PubSubClient",
+      "authors": "Nick O'Leary",
+      "frameworks": "arduino"
+    },
+    {
+      "name": "Bounce2",
+      "authors": "Thomas O Fredericks",
+      "frameworks": "arduino"
+    }
+  ]
 }
