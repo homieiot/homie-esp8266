@@ -289,6 +289,7 @@ void BootNormal::loop() {
   if (WiFi.status() != WL_CONNECTED) {
     this->_wifi_connect_notified = false;
     if (!this->_wifi_disconnect_notified) {
+      this->_last_wifi_reconnect_attempt = 0;
       this->_shared_interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
       this->_wifi_disconnect_notified = true;
     }
@@ -314,6 +315,7 @@ void BootNormal::loop() {
   if (!this->_shared_interface->mqtt->connected()) {
     this->_mqtt_connect_notified = false;
     if (!this->_mqtt_disconnect_notified) {
+      this->_last_mqtt_reconnect_attempt = 0;
       this->_shared_interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
       this->_mqtt_disconnect_notified = true;
     }
