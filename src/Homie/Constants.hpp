@@ -6,8 +6,8 @@ namespace HomieInternals {
   const char VERSION[] = "1.0.0";
   const int BAUD_RATE = 115200;
 
-  const uint16_t DEFAULT_MQTT_PORT = 35589;
-  const uint16_t DEFAULT_OTA_PORT = 35590;
+  const uint16_t DEFAULT_MQTT_PORT = 1883;
+  const uint16_t DEFAULT_OTA_PORT = 80;
   const char DEFAULT_OTA_PATH[] = "/ota";
 
   const uint8_t DEFAULT_RESET_PIN = 0; // == D3 on nodeMCU
