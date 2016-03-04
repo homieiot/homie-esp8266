@@ -5,8 +5,6 @@ Homie for ESP8266
 
 An ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT convention for the IoT.
 
-**Note the API is not yet stable and is subject to change.**
-
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
