@@ -14,6 +14,7 @@ setup	KEYWORD2
 loop	KEYWORD2
 enableLogging	KEYWORD2
 enableBuiltInLedIndicator	KEYWORD2
+setBrand	KEYWORD2
 setFirmware	KEYWORD2
 registerNode	KEYWORD2
 setGlobalInputHandler	KEYWORD2

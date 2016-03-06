@@ -7,6 +7,7 @@
 
 namespace HomieInternals {
   struct SharedInterface {
+    char* brand;
     char* fwname;
     char* fwversion;
     bool resettable;

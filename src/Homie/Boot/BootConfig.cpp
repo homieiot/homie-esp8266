@@ -32,7 +32,9 @@ void BootConfig::setup() {
   WiFi.mode(WIFI_AP);
 
   IPAddress ap_ip(192, 168, 1, 1);
-  char ap_name[14 + 1] = "Homie-";
+  char ap_name[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
+  strcat(ap_name, this->_shared_interface->brand);
+  strcat(ap_name, "-");
   strcat(ap_name, Helpers.getDeviceId());
 
   WiFi.softAPConfig(ap_ip, ap_ip, IPAddress(255, 255, 255, 0));

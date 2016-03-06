@@ -18,7 +18,9 @@ void Boot::setup() {
   WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie
   WiFi.disconnect(); // Reset network state
 
-  char hostname[14 + 1] = "Homie-";
+  char hostname[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
+  strcat(hostname, this->_shared_interface->brand);
+  strcat(hostname, "-");
   strcat(hostname, Helpers.getDeviceId());
 
   WiFi.hostname(hostname);

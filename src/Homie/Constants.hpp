@@ -14,6 +14,7 @@ namespace HomieInternals {
   const byte DEFAULT_RESET_STATE = LOW;
   const uint16_t DEFAULT_RESET_TIME = 5 * 1000;
 
+  const char DEFAULT_BRAND[] = "Homie";
   const char DEFAULT_FW_NAME[] = "undefined";
   const char DEFAULT_FW_VERSION[] = "undefined";
 
