@@ -41,7 +41,9 @@ void BootNormal::_mqttConnect() {
   strcpy(topic, this->_mqtt_base_topic);
   strcat(topic, "/$online");
 
-  char client_id[14 + 1] = "Homie-";
+  char client_id[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
+  strcat(client_id, this->_shared_interface->brand);
+  strcat(client_id, "-");
   strcat(client_id, Helpers.getDeviceId());
 
   bool connectResult;

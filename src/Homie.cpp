@@ -3,6 +3,7 @@
 using namespace HomieInternals;
 
 HomieClass::HomieClass() {
+  this->_shared_interface.brand = strdup(DEFAULT_BRAND);
   this->_shared_interface.fwname = strdup(DEFAULT_FW_NAME);
   this->_shared_interface.fwversion = strdup(DEFAULT_FW_VERSION);
   this->_shared_interface.resettable = true;
@@ -62,6 +63,10 @@ void HomieClass::enableBuiltInLedIndicator(bool enable) {
 void HomieClass::setFirmware(const char* name, const char* version) {
   this->_shared_interface.fwname = strdup(name);
   this->_shared_interface.fwversion = strdup(version);
+}
+
+void HomieClass::setBrand(const char* name) {
+  this->_shared_interface.brand = strdup(name);
 }
 
 void HomieClass::registerNode(HomieNode& node) {
