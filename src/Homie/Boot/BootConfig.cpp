@@ -7,6 +7,7 @@ BootConfig::BootConfig(SharedInterface* shared_interface)
 , _shared_interface(shared_interface)
 , _http(80)
 , _ssid_count(0)
+, _wifi_scan_available(false)
 , _last_wifi_scan(0)
 , _last_wifi_scan_ended(true)
 , _flagged_for_reboot(false)
@@ -42,11 +43,6 @@ void BootConfig::setup() {
 
   Logger.log("AP started as ");
   Logger.logln(ap_name);
-
-  // Trigger sync Wi-Fi scan (don't do before AP init or doesn't work)
-  this->_ssid_count = WiFi.scanNetworks();
-  this->_last_wifi_scan = millis();
-  this->_json_wifi_networks = this->_generateNetworksJson();
 
   this->_dns.setTTL(300);
   this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
@@ -135,7 +131,11 @@ void BootConfig::_onDeviceInfoRequest() {
 
 void BootConfig::_onNetworksRequest() {
   Logger.logln("Received networks request");
-  this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), this->_json_wifi_networks);
+  if (this->_wifi_scan_available) {
+    this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), this->_json_wifi_networks);
+  } else {
+    this->_http.send(503, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_NETWORKS_FAILURE));
+  }
 }
 
 void BootConfig::_onConfigRequest() {
@@ -193,11 +193,13 @@ void BootConfig::loop() {
       case WIFI_SCAN_FAILED:
         Logger.logln("✖ Wi-Fi scan failed");
         this->_ssid_count = 0;
+        this->_last_wifi_scan = 0;
         break;
       default:
         Logger.logln("✔ Wi-Fi scan completed");
         this->_ssid_count = scan_result;
         this->_json_wifi_networks = this->_generateNetworksJson();
+        this->_wifi_scan_available = true;
         break;
     }
 
@@ -205,7 +207,7 @@ void BootConfig::loop() {
   }
 
   unsigned long now = millis();
-  if (now - this->_last_wifi_scan >= CONFIG_SCAN_INTERVAL && this->_last_wifi_scan_ended) {
+  if ((now - this->_last_wifi_scan >= CONFIG_SCAN_INTERVAL || this->_last_wifi_scan == 0) && this->_last_wifi_scan_ended) {
     Logger.logln("Triggering Wi-Fi scan");
     WiFi.scanNetworks(true);
     this->_last_wifi_scan = now;

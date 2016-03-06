@@ -25,6 +25,7 @@ namespace HomieInternals {
       ESP8266WebServer _http;
       DNSServer _dns;
       byte _ssid_count;
+      bool _wifi_scan_available;
       unsigned long _last_wifi_scan;
       bool _last_wifi_scan_ended;
       String _json_wifi_networks;
