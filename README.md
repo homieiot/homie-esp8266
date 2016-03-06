@@ -3,7 +3,7 @@ Homie for ESP8266
 
 ![homie-esp8266](homie-esp8266.jpg)
 
-An ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT convention for the IoT.
+An Arduino for ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT convention for the IoT.
 
 ## Features
 
@@ -11,6 +11,7 @@ An ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT conventio
 * [Cute JSON configuration file](https://github.com/marvinroger/homie-esp8266/wiki/5.-JSON-configuration-file) to configure the credentials of the device
 * [Cute API / Web UI / App](https://github.com/marvinroger/homie-esp8266/wiki/6.-Configuration-API) to get information about the device and to remotely send the configuration to the device
 * [OTA support](https://github.com/marvinroger/homie-esp8266/wiki/4.-OTA)
+* Available in the [PlatformIO registry](http://platformio.org/#!/lib/show/555/Homie)
 * Pretty straightforward sketches, a simple light for example:
 
 ```c++
