@@ -26,7 +26,7 @@ namespace HomieInternals {
       void enableBuiltInLedIndicator(bool enable);
       void setBrand(const char* name);
       void setFirmware(const char* name, const char* version);
-      void registerNode(HomieNode& node);
+      void registerNode(const HomieNode& node);
       void setGlobalInputHandler(bool (*callback)(String node, String property, String message));
       void setResettable(bool resettable);
       void onEvent(void (*callback)(HomieEvent event));
@@ -36,10 +36,10 @@ namespace HomieInternals {
       void setSetupFunction(void (*callback)(void));
       void setLoopFunction(void (*callback)(void));
       bool isReadyToOperate();
-      bool setNodeProperty(HomieNode& node, String property, String value, bool retained = true) {
+      bool setNodeProperty(const HomieNode& node, const String& property, const String& value, bool retained = true) {
         return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
       }
-      bool setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained = true);
+      bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
     private:
       Boot* _boot;
       SharedInterface _shared_interface;

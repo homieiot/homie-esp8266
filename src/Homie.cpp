@@ -69,7 +69,7 @@ void HomieClass::setBrand(const char* name) {
   this->_shared_interface.brand = strdup(name);
 }
 
-void HomieClass::registerNode(HomieNode& node) {
+void HomieClass::registerNode(const HomieNode& node) {
   this->_shared_interface.nodes.push_back(node);
 }
 
@@ -112,7 +112,7 @@ void HomieClass::disableResetTrigger() {
   this->_shared_interface.resetTriggerEnabled = false;
 }
 
-bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained) {
+bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained) {
   if (!this->isReadyToOperate()) {
     return false;
   }
