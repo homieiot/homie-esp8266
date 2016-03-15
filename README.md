@@ -40,7 +40,7 @@ bool lightOnHandler(String message) {
 void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
-  Homie.setFirmware("awesome-relay" ,"1.0.0");
+  Homie.setFirmware("awesome-relay", "1.0.0");
   light.subscribe("on", lightOnHandler);
   Homie.registerNode(light);
   Homie.setup();
