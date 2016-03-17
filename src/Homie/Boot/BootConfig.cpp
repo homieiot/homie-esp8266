@@ -48,6 +48,10 @@ void BootConfig::setup() {
   this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
   this->_dns.start(53, "homie.config", ap_ip);
 
+  this->_http.on("/", HTTP_GET, [this]() {
+    Logger.logln("Received index request");
+    this->_http.send(200, "text/plain", "See Configuration API usage: https://github.com/marvinroger/homie-esp8266/wiki/6.-Configuration-API");
+  });
   this->_http.on("/heart", HTTP_GET, [this]() {
     Logger.logln("Received heart request");
     this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"heart\":\"beat\"}");
