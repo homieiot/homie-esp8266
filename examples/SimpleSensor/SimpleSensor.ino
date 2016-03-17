@@ -12,7 +12,7 @@ void setupHandler() {
 
 void loopHandler() {
   if (millis() - last_temperature_sent >= TEMPERATURE_INTERVAL * 1000UL || last_temperature_sent == 0) {
-    float temperature = 22;
+    float temperature = 22; // Fake temperature here, for the example
     Serial.print("Temperature: ");
     Serial.print(temperature);
     Serial.println(" °C");
