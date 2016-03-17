@@ -13,7 +13,7 @@ namespace HomieInternals {
       bool validateConfig(JsonObject& object);
 
     private:
-      char _device_id[8 + 1];
+      char _deviceId[8 + 1];
   };
 
   extern HelpersClass Helpers;

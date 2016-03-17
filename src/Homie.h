@@ -42,7 +42,7 @@ namespace HomieInternals {
       bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
     private:
       Boot* _boot;
-      SharedInterface _shared_interface;
+      SharedInterface _sharedInterface;
   };
 }
 

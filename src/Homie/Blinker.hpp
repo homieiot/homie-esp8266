@@ -12,7 +12,7 @@ namespace HomieInternals {
 
     private:
       Ticker _ticker;
-      float _last_blink_pace;
+      float _lastBlinkPace;
 
       static void _tick();
   };

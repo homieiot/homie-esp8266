@@ -6,11 +6,11 @@ HelpersClass::HelpersClass() {
   char flash_chip_id[6 + 1];
   sprintf(flash_chip_id, "%06x", ESP.getFlashChipId());
 
-  sprintf(this->_device_id, "%06x%s", ESP.getChipId(), flash_chip_id + strlen(flash_chip_id) - 2);
+  sprintf(this->_deviceId, "%06x%s", ESP.getChipId(), flash_chip_id + strlen(flash_chip_id) - 2);
 }
 
 const char* HelpersClass::getDeviceId() {
-  return this->_device_id;
+  return this->_deviceId;
 }
 
 bool HelpersClass::validateConfig(JsonObject& object) {
@@ -112,18 +112,18 @@ bool HelpersClass::validateConfig(JsonObject& object) {
   }
 
   const char* name = object["name"];
-  const char* wifi_ssid = object["wifi"]["ssid"];
-  const char* mqtt_host = object["mqtt"]["host"];
+  const char* wifiSsid = object["wifi"]["ssid"];
+  const char* mqttHost = object["mqtt"]["host"];
 
   if (strcmp(name, "") == 0) {
     Logger.logln("✖ name is empty");
     return false;
   }
-  if (strcmp(wifi_ssid, "") == 0) {
+  if (strcmp(wifiSsid, "") == 0) {
     Logger.logln("✖ wifi.ssid is empty");
     return false;
   }
-  if (strcmp(mqtt_host, "") == 0) {
+  if (strcmp(mqttHost, "") == 0) {
     Logger.logln("✖ mqtt.host is empty");
     return false;
   }

@@ -7,26 +7,29 @@
 
 namespace HomieInternals {
   struct SharedInterface {
+    /***** User configurable data *****/
     char* brand;
-    char* fwname;
-    char* fwversion;
+    struct {
+      char* name;
+      char* version;
+    } firmware;
+    std::vector<HomieNode> registeredNodes;
+    bool useBuiltInLed;
+    // Reset
     bool resettable;
-    bool readyToOperate;
-    std::vector<HomieNode> nodes;
+    bool resetTriggerEnabled;
+    uint8_t resetTriggerPin;
+    byte resetTriggerState;
+    uint16_t resetTriggerTime;
+    bool (*resetFunction)(void);
+    // Callbacks
     bool (*inputHandler)(String node, String property, String message);
     void (*setupFunction)(void);
     void (*loopFunction)(void);
     void (*eventHandler)(HomieEvent event);
 
-    bool useBuiltInLed;
-
-    bool resetTriggerEnabled;
-    uint8_t resetTriggerPin;
-    byte resetTriggerState;
-    uint16_t resetTriggerTime;
-
-    bool (*resetFunction)(void);
-
+    /***** Runtime data *****/
+    bool readyToOperate;
     PubSubClient* mqtt;
   };
 }

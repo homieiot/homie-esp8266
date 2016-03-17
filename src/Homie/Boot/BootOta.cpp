@@ -2,9 +2,9 @@
 
 using namespace HomieInternals;
 
-BootOta::BootOta(SharedInterface* shared_interface)
-: Boot(shared_interface, "OTA")
-, _shared_interface(shared_interface)
+BootOta::BootOta(SharedInterface* sharedInterface)
+: Boot(sharedInterface, "OTA")
+, _sharedInterface(sharedInterface)
 {
 }
 
@@ -38,11 +38,11 @@ void BootOta::setup() {
 
 
   String dataToPass = Helpers.getDeviceId();
-  dataToPass.reserve(1 + strlen(this->_shared_interface->fwname) + 1 + strlen(this->_shared_interface->fwversion) + 1);
+  dataToPass.reserve(1 + strlen(this->_sharedInterface->firmware.name) + 1 + strlen(this->_sharedInterface->firmware.version) + 1);
   dataToPass += '=';
-  dataToPass += this->_shared_interface->fwname;
+  dataToPass += this->_sharedInterface->firmware.name;
   dataToPass += '@';
-  dataToPass += this->_shared_interface->fwversion;
+  dataToPass += this->_sharedInterface->firmware.version;
   t_httpUpdate_return ret = ESPhttpUpdate.update(Config.get().ota.host, Config.get().ota.port, Config.get().ota.path, dataToPass, Config.get().ota.ssl, Config.get().ota.fingerprint, false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:

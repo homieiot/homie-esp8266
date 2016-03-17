@@ -2,16 +2,16 @@
 
 using namespace HomieInternals;
 
-BootConfig::BootConfig(SharedInterface* shared_interface)
-: Boot(shared_interface, "config")
-, _shared_interface(shared_interface)
+BootConfig::BootConfig(SharedInterface* sharedInterface)
+: Boot(sharedInterface, "config")
+, _sharedInterface(sharedInterface)
 , _http(80)
-, _ssid_count(0)
-, _wifi_scan_available(false)
-, _last_wifi_scan(0)
-, _last_wifi_scan_ended(true)
-, _flagged_for_reboot(false)
-, _flagged_for_reboot_at(0)
+, _ssidCount(0)
+, _wifiScanAvailable(false)
+, _lastWifiScan(0)
+, _lastWifiScanEnded(true)
+, _flaggedForReboot(false)
+, _flaggedForRebootAt(0)
 {
 }
 
@@ -21,7 +21,7 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  if (this->_shared_interface->useBuiltInLed) {
+  if (this->_sharedInterface->useBuiltInLed) {
     digitalWrite(BUILTIN_LED, LOW); // low active
   }
 
@@ -34,7 +34,7 @@ void BootConfig::setup() {
 
   IPAddress ap_ip(192, 168, 1, 1);
   char ap_name[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
-  strcat(ap_name, this->_shared_interface->brand);
+  strcat(ap_name, this->_sharedInterface->brand);
   strcat(ap_name, "-");
   strcat(ap_name, Helpers.getDeviceId());
 
@@ -67,7 +67,7 @@ String BootConfig::_generateNetworksJson() {
   JsonObject& json = generatedJsonBuffer.createObject();
 
   JsonArray& networks = json.createNestedArray("networks");
-  for (int network = 0; network < this->_ssid_count; network++) {
+  for (int network = 0; network < this->_ssidCount; network++) {
     JsonObject& json_network = generatedJsonBuffer.createObject();
     json_network["ssid"] = WiFi.SSID(network);
     json_network["rssi"] = WiFi.RSSI(network);
@@ -95,7 +95,7 @@ String BootConfig::_generateNetworksJson() {
   // 15 bytes: {"networks":[]}
   // 75 bytes: {"ssid":"thisisa32characterlongstringyes!","rssi":-99,"encryption":"none"}, (-1 for leading ","), +1 for terminator
   String json_string;
-  json_string.reserve(15 + (75 * this->_ssid_count) - 1 + 1);
+  json_string.reserve(15 + (75 * this->_ssidCount) - 1 + 1);
   json.printTo(json_string);
   return json_string;
 }
@@ -108,12 +108,12 @@ void BootConfig::_onDeviceInfoRequest() {
   json["device_id"] = Helpers.getDeviceId();
   json["homie_version"] = VERSION;
   JsonObject& firmware = json.createNestedObject("firmware");
-  firmware["name"] = this->_shared_interface->fwname;
-  firmware["version"] = this->_shared_interface->fwversion;
+  firmware["name"] = this->_sharedInterface->firmware.name;
+  firmware["version"] = this->_sharedInterface->firmware.version;
 
   JsonArray& nodes = json.createNestedArray("nodes");
-  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
-    HomieNode node = this->_shared_interface->nodes[i];
+  for (int i = 0; i < this->_sharedInterface->registeredNodes.size(); i++) {
+    HomieNode node = this->_sharedInterface->registeredNodes[i];
     JsonObject& json_node = jsonBuffer.createObject();
     json_node["id"] = node.id;
     json_node["type"] = node.type;
@@ -124,15 +124,15 @@ void BootConfig::_onDeviceInfoRequest() {
   // 110 bytes for {"homie_version":"11.10.0","firmware":{"name":"awesome-light-great-top","version":"11.10.0-beta"},"nodes":[]}
   // 60 bytes for {"id":"lightifydefoulooooo","type":"lightifydefouloooo"}, (-1 for leading ","), +1 for terminator
   String jsonString;
-  jsonString.reserve(110 + (60 * this->_shared_interface->nodes.size()) - 1 + 1);
+  jsonString.reserve(110 + (60 * this->_sharedInterface->registeredNodes.size()) - 1 + 1);
   json.printTo(jsonString);
   this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), jsonString);
 }
 
 void BootConfig::_onNetworksRequest() {
   Logger.logln("Received networks request");
-  if (this->_wifi_scan_available) {
-    this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), this->_json_wifi_networks);
+  if (this->_wifiScanAvailable) {
+    this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), this->_jsonWifiNetworks);
   } else {
     this->_http.send(503, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_NETWORKS_FAILURE));
   }
@@ -140,7 +140,7 @@ void BootConfig::_onNetworksRequest() {
 
 void BootConfig::_onConfigRequest() {
   Logger.logln("Received config request");
-  if (this->_flagged_for_reboot) {
+  if (this->_flaggedForReboot) {
     Logger.logln("✖ Device already configured");
     this->_http.send(403, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
@@ -165,8 +165,8 @@ void BootConfig::_onConfigRequest() {
 
   this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":true}");
 
-  this->_flagged_for_reboot = true; // We don't reboot immediately, otherwise the response above is not sent
-  this->_flagged_for_reboot_at = millis();
+  this->_flaggedForReboot = true; // We don't reboot immediately, otherwise the response above is not sent
+  this->_flaggedForRebootAt = millis();
 }
 
 void BootConfig::loop() {
@@ -175,8 +175,8 @@ void BootConfig::loop() {
   this->_dns.processNextRequest();
   this->_http.handleClient();
 
-  if (this->_flagged_for_reboot) {
-    if (millis() - this->_flagged_for_reboot_at >= 3000UL) {
+  if (this->_flaggedForReboot) {
+    if (millis() - this->_flaggedForRebootAt >= 3000UL) {
       Logger.logln("↻ Rebooting in normal mode");
       ESP.restart();
     }
@@ -184,7 +184,7 @@ void BootConfig::loop() {
     return;
   }
 
-  if (!this->_last_wifi_scan_ended) {
+  if (!this->_lastWifiScanEnded) {
     int8_t scan_result = WiFi.scanComplete();
 
     switch (scan_result) {
@@ -192,25 +192,25 @@ void BootConfig::loop() {
         return;
       case WIFI_SCAN_FAILED:
         Logger.logln("✖ Wi-Fi scan failed");
-        this->_ssid_count = 0;
-        this->_last_wifi_scan = 0;
+        this->_ssidCount = 0;
+        this->_lastWifiScan = 0;
         break;
       default:
         Logger.logln("✔ Wi-Fi scan completed");
-        this->_ssid_count = scan_result;
-        this->_json_wifi_networks = this->_generateNetworksJson();
-        this->_wifi_scan_available = true;
+        this->_ssidCount = scan_result;
+        this->_jsonWifiNetworks = this->_generateNetworksJson();
+        this->_wifiScanAvailable = true;
         break;
     }
 
-    this->_last_wifi_scan_ended = true;
+    this->_lastWifiScanEnded = true;
   }
 
   unsigned long now = millis();
-  if ((now - this->_last_wifi_scan >= CONFIG_SCAN_INTERVAL || this->_last_wifi_scan == 0) && this->_last_wifi_scan_ended) {
+  if ((now - this->_lastWifiScan >= CONFIG_SCAN_INTERVAL || this->_lastWifiScan == 0) && this->_lastWifiScanEnded) {
     Logger.logln("Triggering Wi-Fi scan");
     WiFi.scanNetworks(true);
-    this->_last_wifi_scan = now;
-    this->_last_wifi_scan_ended = false;
+    this->_lastWifiScan = now;
+    this->_lastWifiScanEnded = false;
   }
 }

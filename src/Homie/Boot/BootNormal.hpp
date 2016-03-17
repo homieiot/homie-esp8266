@@ -17,23 +17,23 @@
 namespace HomieInternals {
   class BootNormal : public Boot {
     public:
-      BootNormal(SharedInterface* shared_interface);
+      BootNormal(SharedInterface* sharedInterface);
       ~BootNormal();
       void setup();
       void loop();
 
     private:
-      SharedInterface* _shared_interface;
-      unsigned long _last_wifi_reconnect_attempt;
-      unsigned long _last_mqtt_reconnect_attempt;
-      unsigned long _last_signal_sent;
-      bool _wifi_connect_notified;
-      bool _wifi_disconnect_notified;
-      bool _mqtt_connect_notified;
-      bool _mqtt_disconnect_notified;
-      bool _flagged_for_ota;
-      bool _flagged_for_reset;
-      char _mqtt_base_topic[16 + 1];
+      SharedInterface* _sharedInterface;
+      unsigned long _lastWifiReconnectAttempt;
+      unsigned long _lastMqttReconnectAttempt;
+      unsigned long _lastSignalSent;
+      bool _wifiConnectNotified;
+      bool _wifiDisconnectNotified;
+      bool _mqttConnectNotified;
+      bool _mqttDisconnectNotified;
+      bool _flaggedForOta;
+      bool _flaggedForReset;
+      char _mqttBaseTopic[16 + 1];
       Bounce _resetDebouncer;
       WiFiClient _wifiClient;
       WiFiClientSecure _wifiClientSecure;

@@ -16,21 +16,21 @@
 namespace HomieInternals {
   class BootConfig : public Boot {
     public:
-      BootConfig(SharedInterface* shared_interface);
+      BootConfig(SharedInterface* sharedInterface);
       ~BootConfig();
       void setup();
       void loop();
     private:
-      SharedInterface* _shared_interface;
+      SharedInterface* _sharedInterface;
       ESP8266WebServer _http;
       DNSServer _dns;
-      byte _ssid_count;
-      bool _wifi_scan_available;
-      unsigned long _last_wifi_scan;
-      bool _last_wifi_scan_ended;
-      String _json_wifi_networks;
-      bool _flagged_for_reboot;
-      unsigned long _flagged_for_reboot_at;
+      byte _ssidCount;
+      bool _wifiScanAvailable;
+      unsigned long _lastWifiScan;
+      bool _lastWifiScanEnded;
+      String _jsonWifiNetworks;
+      bool _flaggedForReboot;
+      unsigned long _flaggedForRebootAt;
 
       void _onDeviceInfoRequest();
       void _onNetworksRequest();

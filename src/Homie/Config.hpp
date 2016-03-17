@@ -21,9 +21,9 @@ namespace HomieInternals {
       void log(); // print the current config to log output
 
     private:
-      BootMode _boot_mode;
-      ConfigStruct _config_struct;
-      bool _spiffs_began;
+      BootMode _bootMode;
+      ConfigStruct _configStruct;
+      bool _spiffsBegan;
 
       bool _spiffsBegin();
   };

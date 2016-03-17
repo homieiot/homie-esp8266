@@ -3,21 +3,21 @@
 using namespace HomieInternals;
 
 BlinkerClass::BlinkerClass()
-: _last_blink_pace(0)
+: _lastBlinkPace(0)
 {
 }
 
-void BlinkerClass::start(float blink_pace) {
-  if (this->_last_blink_pace != blink_pace) {
-    this->_ticker.attach(blink_pace, this->_tick);
-    this->_last_blink_pace = blink_pace;
+void BlinkerClass::start(float blinkPace) {
+  if (this->_lastBlinkPace != blinkPace) {
+    this->_ticker.attach(blinkPace, this->_tick);
+    this->_lastBlinkPace = blinkPace;
   }
 }
 
 void BlinkerClass::stop() {
-  if (this->_last_blink_pace != 0) {
+  if (this->_lastBlinkPace != 0) {
     this->_ticker.detach();
-    this->_last_blink_pace = 0;
+    this->_lastBlinkPace = 0;
     digitalWrite(BUILTIN_LED, HIGH);
   }
 }

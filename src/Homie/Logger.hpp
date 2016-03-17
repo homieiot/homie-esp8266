@@ -18,7 +18,7 @@ namespace HomieInternals {
       void logln(const char* text = "");
 
     private:
-      bool _logging_enabled;
+      bool _loggingEnabled;
   };
 
   extern LoggerClass Logger;

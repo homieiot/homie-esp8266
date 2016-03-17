@@ -10,11 +10,11 @@
 namespace HomieInternals {
   class Boot {
     public:
-      Boot(SharedInterface* shared_interface, const char* name);
+      Boot(SharedInterface* sharedInterface, const char* name);
       virtual void setup();
       virtual void loop();
     private:
-      SharedInterface* _shared_interface;
+      SharedInterface* _sharedInterface;
       const char* _name;
   };
 }

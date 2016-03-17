@@ -3,26 +3,26 @@
 using namespace HomieInternals;
 
 LoggerClass::LoggerClass()
-: _logging_enabled(true)
+: _loggingEnabled(true)
 {
 }
 
 bool LoggerClass::isEnabled() {
-  return this->_logging_enabled;
+  return this->_loggingEnabled;
 }
 
 void LoggerClass::setLogging(bool enable) {
-  this->_logging_enabled = enable;
+  this->_loggingEnabled = enable;
 }
 
 void LoggerClass::log(const char* text) {
-  if (this->_logging_enabled) {
+  if (this->_loggingEnabled) {
     Serial.print(text);
   }
 }
 
 void LoggerClass::logln(const char* text) {
-  if (this->_logging_enabled) {
+  if (this->_loggingEnabled) {
     Serial.println(text);
   }
 }

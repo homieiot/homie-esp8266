@@ -2,31 +2,31 @@
 
 using namespace HomieInternals;
 
-BootNormal::BootNormal(SharedInterface* shared_interface)
-: Boot(shared_interface, "normal")
-, _shared_interface(shared_interface)
-, _last_wifi_reconnect_attempt(0)
-, _last_mqtt_reconnect_attempt(0)
-, _last_signal_sent(0)
-, _wifi_connect_notified(false)
-, _wifi_disconnect_notified(false)
-, _mqtt_connect_notified(false)
-, _mqtt_disconnect_notified(false)
-, _flagged_for_ota(false)
-, _flagged_for_reset(false)
+BootNormal::BootNormal(SharedInterface* sharedInterface)
+: Boot(sharedInterface, "normal")
+, _sharedInterface(sharedInterface)
+, _lastWifiReconnectAttempt(0)
+, _lastMqttReconnectAttempt(0)
+, _lastSignalSent(0)
+, _wifiConnectNotified(false)
+, _wifiDisconnectNotified(false)
+, _mqttConnectNotified(false)
+, _mqttDisconnectNotified(false)
+, _flaggedForOta(false)
+, _flaggedForReset(false)
 {
   if (Config.get().mqtt.ssl) {
-    this->_shared_interface->mqtt = new PubSubClient(this->_wifiClientSecure);
+    this->_sharedInterface->mqtt = new PubSubClient(this->_wifiClientSecure);
   } else {
-    this->_shared_interface->mqtt = new PubSubClient(this->_wifiClient);
+    this->_sharedInterface->mqtt = new PubSubClient(this->_wifiClient);
   }
 
-  strcpy(this->_mqtt_base_topic, "devices/");
-  strcat(this->_mqtt_base_topic, Helpers.getDeviceId());
+  strcpy(this->_mqttBaseTopic, "devices/");
+  strcat(this->_mqttBaseTopic, Helpers.getDeviceId());
 }
 
 BootNormal::~BootNormal() {
-  delete this->_shared_interface->mqtt;
+  delete this->_sharedInterface->mqtt;
 }
 
 void BootNormal::_wifiConnect() {
@@ -35,29 +35,29 @@ void BootNormal::_wifiConnect() {
 }
 
 void BootNormal::_mqttConnect() {
-  this->_shared_interface->mqtt->setServer(Config.get().mqtt.host, Config.get().mqtt.port);
-  this->_shared_interface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  this->_sharedInterface->mqtt->setServer(Config.get().mqtt.host, Config.get().mqtt.port);
+  this->_sharedInterface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   char topic[24 + 1];
-  strcpy(topic, this->_mqtt_base_topic);
+  strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$online");
 
   char client_id[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
-  strcat(client_id, this->_shared_interface->brand);
+  strcat(client_id, this->_sharedInterface->brand);
   strcat(client_id, "-");
   strcat(client_id, Helpers.getDeviceId());
 
   bool connectResult;
   if (Config.get().mqtt.auth) {
-    connectResult = this->_shared_interface->mqtt->connect(client_id, Config.get().mqtt.username, Config.get().mqtt.password, topic, 2, true, "false");
+    connectResult = this->_sharedInterface->mqtt->connect(client_id, Config.get().mqtt.username, Config.get().mqtt.password, topic, 2, true, "false");
   } else {
-    connectResult = this->_shared_interface->mqtt->connect(client_id, topic, 2, true, "false");
+    connectResult = this->_sharedInterface->mqtt->connect(client_id, topic, 2, true, "false");
   }
 
   if (connectResult) {
     if (Config.get().mqtt.ssl && !strcmp(Config.get().mqtt.fingerprint, "")) {
       if(!this->_wifiClientSecure.verify(Config.get().mqtt.fingerprint, Config.get().mqtt.host)) {
         Logger.logln("✖ MQTT SSL certificate mismatch");
-        this->_shared_interface->mqtt->disconnect();
+        this->_sharedInterface->mqtt->disconnect();
         return;
       }
     }
@@ -70,12 +70,12 @@ void BootNormal::_mqttSetup() {
   Logger.logln("Sending initial informations");
 
   char topic[27 + 1];
-  strcpy(topic, this->_mqtt_base_topic);
+  strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$nodes");
 
   int nodesLength = 0;
-  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
-    HomieNode node = this->_shared_interface->nodes[i];
+  for (int i = 0; i < this->_sharedInterface->registeredNodes.size(); i++) {
+    HomieNode node = this->_sharedInterface->registeredNodes[i];
     nodesLength += strlen(node.id);
     nodesLength += 1; // :
     nodesLength += strlen(node.type);
@@ -85,25 +85,25 @@ void BootNormal::_mqttSetup() {
 
   String nodes = String();
   nodes.reserve(nodesLength);
-  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
-    HomieNode node = this->_shared_interface->nodes[i];
+  for (int i = 0; i < this->_sharedInterface->registeredNodes.size(); i++) {
+    HomieNode node = this->_sharedInterface->registeredNodes[i];
     nodes += node.id;
     nodes += ":";
     nodes += node.type;
     nodes += ",";
   }
   nodes.remove(nodes.length() - 1, 1); // Remove last ,
-  this->_shared_interface->mqtt->publish(topic, nodes.c_str(), true);
+  this->_sharedInterface->mqtt->publish(topic, nodes.c_str(), true);
 
-  strcpy(topic, this->_mqtt_base_topic);
+  strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$online");
-  this->_shared_interface->mqtt->publish(topic, "true", true);
+  this->_sharedInterface->mqtt->publish(topic, "true", true);
 
-  strcpy(topic, this->_mqtt_base_topic);
+  strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$name");
-  this->_shared_interface->mqtt->publish(topic, Config.get().name, true);
+  this->_sharedInterface->mqtt->publish(topic, Config.get().name, true);
 
-  strcpy(topic, this->_mqtt_base_topic);
+  strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$localip");
   IPAddress local_ip = WiFi.localIP();
   char local_ip_str[15 + 1];
@@ -119,41 +119,41 @@ void BootNormal::_mqttSetup() {
   strcat(local_ip_str, ".");
   itoa(local_ip[3], local_ip_part_str, 10);
   strcat(local_ip_str, local_ip_part_str);
-  this->_shared_interface->mqtt->publish(topic, local_ip_str, true);
+  this->_sharedInterface->mqtt->publish(topic, local_ip_str, true);
 
-  strcpy(topic, this->_mqtt_base_topic);
+  strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$fwname");
-  this->_shared_interface->mqtt->publish(topic, this->_shared_interface->fwname, true);
+  this->_sharedInterface->mqtt->publish(topic, this->_sharedInterface->firmware.name, true);
 
-  strcpy(topic, this->_mqtt_base_topic);
+  strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$fwversion");
-  this->_shared_interface->mqtt->publish(topic, this->_shared_interface->fwversion, true);
+  this->_sharedInterface->mqtt->publish(topic, this->_sharedInterface->firmware.version, true);
 
-  strcpy(topic, this->_mqtt_base_topic);
+  strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$reset");
-  this->_shared_interface->mqtt->subscribe(topic, 1);
+  this->_sharedInterface->mqtt->subscribe(topic, 1);
 
   if (Config.get().ota.enabled) {
-    strcpy(topic, this->_mqtt_base_topic);
+    strcpy(topic, this->_mqttBaseTopic);
     strcat(topic, "/$ota");
-    this->_shared_interface->mqtt->subscribe(topic, 1);
+    this->_sharedInterface->mqtt->subscribe(topic, 1);
   }
 
-  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
-    HomieNode node = this->_shared_interface->nodes[i];
+  for (int i = 0; i < this->_sharedInterface->registeredNodes.size(); i++) {
+    HomieNode node = this->_sharedInterface->registeredNodes[i];
     for (int i = 0; i < node.subscriptions.size(); i++) {
       Subscription subscription = node.subscriptions[i];
 
       String dynamic_topic;
-      dynamic_topic.reserve(strlen(this->_mqtt_base_topic) + 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1);
-      dynamic_topic = this->_mqtt_base_topic;
+      dynamic_topic.reserve(strlen(this->_mqttBaseTopic) + 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1);
+      dynamic_topic = this->_mqttBaseTopic;
       dynamic_topic += "/";
       dynamic_topic += node.id;
       dynamic_topic += "/";
       dynamic_topic += subscription.property;
       dynamic_topic += "/set";
-      this->_shared_interface->mqtt->subscribe(dynamic_topic.c_str(), 1);
-      this->_shared_interface->mqtt->loop(); // see knolleary/pubsublient#98
+      this->_sharedInterface->mqtt->subscribe(dynamic_topic.c_str(), 1);
+      this->_sharedInterface->mqtt->loop(); // see knolleary/pubsublient#98
     }
   }
 }
@@ -166,19 +166,19 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
   }
 
   String unified = String(topic);
-  unified.remove(0, strlen(this->_mqtt_base_topic) + 1); // Remove /devices/${id}/ - +1 for /
+  unified.remove(0, strlen(this->_mqttBaseTopic) + 1); // Remove /devices/${id}/ - +1 for /
   if (Config.get().ota.enabled && unified == "$ota") {
-    if (message != this->_shared_interface->fwversion) {
+    if (message != this->_sharedInterface->firmware.version) {
       Logger.log("✴ OTA available (version ");
       Logger.log(message);
       Logger.logln(")");
-      this->_flagged_for_ota = true;
+      this->_flaggedForOta = true;
       Serial.println("Flagged for OTA");
     }
     return;
   } else if (unified == "$reset" && message == "true") {
-    this->_shared_interface->mqtt->publish(topic, "false", true);
-    this->_flagged_for_reset = true;
+    this->_sharedInterface->mqtt->publish(topic, "false", true);
+    this->_flaggedForReset = true;
     Logger.logln("Flagged for reset by network");
     return;
   }
@@ -192,13 +192,13 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
   String node = unified.substring(0, separator);
   String property = unified.substring(separator + 1);
 
-  bool handled = this->_shared_interface->inputHandler(node, property, message);
+  bool handled = this->_sharedInterface->inputHandler(node, property, message);
   if (handled) { return; }
 
   int homieNodeIndex;
   bool homieNodeFound = false;
-  for (int i = 0; i < this->_shared_interface->nodes.size(); i++) {
-    HomieNode homieNode = this->_shared_interface->nodes[i];
+  for (int i = 0; i < this->_sharedInterface->registeredNodes.size(); i++) {
+    HomieNode homieNode = this->_sharedInterface->registeredNodes[i];
     if (node == homieNode.id) {
       homieNodeFound = true;
       homieNodeIndex = i;
@@ -210,7 +210,7 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
   if (!homieNodeFound) { return; }
   if (handled) { return; }
 
-  HomieNode homieNode = this->_shared_interface->nodes[homieNodeIndex];
+  HomieNode homieNode = this->_sharedInterface->registeredNodes[homieNodeIndex];
 
   for (int i = 0; i < homieNode.subscriptions.size(); i++) {
     Subscription subscription = homieNode.subscriptions[i];
@@ -232,17 +232,17 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
 }
 
 void BootNormal::_handleReset() {
-  if (this->_shared_interface->resetTriggerEnabled) {
+  if (this->_sharedInterface->resetTriggerEnabled) {
     this->_resetDebouncer.update();
 
-    if (this->_resetDebouncer.read() == this->_shared_interface->resetTriggerState) {
-      this->_flagged_for_reset = true;
+    if (this->_resetDebouncer.read() == this->_sharedInterface->resetTriggerState) {
+      this->_flaggedForReset = true;
       Logger.logln("Flagged for reset by pin");
     }
   }
 
-  if (this->_shared_interface->resetFunction()) {
-    this->_flagged_for_reset = true;
+  if (this->_sharedInterface->resetFunction()) {
+    this->_flaggedForReset = true;
     Logger.logln("Flagged for reset by function");
   }
 }
@@ -250,13 +250,13 @@ void BootNormal::_handleReset() {
 void BootNormal::setup() {
   Boot::setup();
 
-  if (this->_shared_interface->resetTriggerEnabled) {
-    pinMode(this->_shared_interface->resetTriggerPin, INPUT_PULLUP);
+  if (this->_sharedInterface->resetTriggerEnabled) {
+    pinMode(this->_sharedInterface->resetTriggerPin, INPUT_PULLUP);
 
-    this->_resetDebouncer.attach(this->_shared_interface->resetTriggerPin);
-    this->_resetDebouncer.interval(this->_shared_interface->resetTriggerTime);
+    this->_resetDebouncer.attach(this->_sharedInterface->resetTriggerPin);
+    this->_resetDebouncer.interval(this->_sharedInterface->resetTriggerTime);
 
-    this->_shared_interface->setupFunction();
+    this->_sharedInterface->setupFunction();
   }
 
   Config.log();
@@ -267,18 +267,18 @@ void BootNormal::loop() {
 
   this->_handleReset();
 
-  if (this->_flagged_for_reset && this->_shared_interface->resettable) {
+  if (this->_flaggedForReset && this->_sharedInterface->resettable) {
     Logger.logln("Device is in a resettable state");
     Config.erase();
     Logger.logln("Configuration erased");
 
-    this->_shared_interface->eventHandler(HOMIE_ABOUT_TO_RESET);
+    this->_sharedInterface->eventHandler(HOMIE_ABOUT_TO_RESET);
 
     Logger.logln("↻ Rebooting in config mode");
     ESP.restart();
   }
 
-  if (this->_flagged_for_ota && this->_shared_interface->resettable) {
+  if (this->_flaggedForOta && this->_sharedInterface->resettable) {
     Logger.logln("Device is in a resettable state");
     Config.setOtaMode(true);
 
@@ -286,21 +286,21 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
-  this->_shared_interface->readyToOperate = false;
+  this->_sharedInterface->readyToOperate = false;
 
   if (WiFi.status() != WL_CONNECTED) {
-    this->_wifi_connect_notified = false;
-    if (!this->_wifi_disconnect_notified) {
-      this->_last_wifi_reconnect_attempt = 0;
-      this->_shared_interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
-      this->_wifi_disconnect_notified = true;
+    this->_wifiConnectNotified = false;
+    if (!this->_wifiDisconnectNotified) {
+      this->_lastWifiReconnectAttempt = 0;
+      this->_sharedInterface->eventHandler(HOMIE_WIFI_DISCONNECTED);
+      this->_wifiDisconnectNotified = true;
     }
 
     unsigned long now = millis();
-    if (now - this->_last_wifi_reconnect_attempt >= WIFI_RECONNECT_INTERVAL || this->_last_wifi_reconnect_attempt == 0) {
+    if (now - this->_lastWifiReconnectAttempt >= WIFI_RECONNECT_INTERVAL || this->_lastWifiReconnectAttempt == 0) {
       Logger.logln("⌔ Attempting to connect to Wi-Fi");
-      this->_last_wifi_reconnect_attempt = now;
-      if (this->_shared_interface->useBuiltInLed) {
+      this->_lastWifiReconnectAttempt = now;
+      if (this->_sharedInterface->useBuiltInLed) {
         Blinker.start(LED_WIFI_DELAY);
       }
       this->_wifiConnect();
@@ -308,44 +308,44 @@ void BootNormal::loop() {
     return;
   }
 
-  this->_wifi_disconnect_notified = false;
-  if (!this->_wifi_connect_notified) {
-    this->_shared_interface->eventHandler(HOMIE_WIFI_CONNECTED);
-    this->_wifi_connect_notified = true;
+  this->_wifiDisconnectNotified = false;
+  if (!this->_wifiConnectNotified) {
+    this->_sharedInterface->eventHandler(HOMIE_WIFI_CONNECTED);
+    this->_wifiConnectNotified = true;
   }
 
-  if (!this->_shared_interface->mqtt->connected()) {
-    this->_mqtt_connect_notified = false;
-    if (!this->_mqtt_disconnect_notified) {
-      this->_last_mqtt_reconnect_attempt = 0;
-      this->_shared_interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
-      this->_mqtt_disconnect_notified = true;
+  if (!this->_sharedInterface->mqtt->connected()) {
+    this->_mqttConnectNotified = false;
+    if (!this->_mqttDisconnectNotified) {
+      this->_lastMqttReconnectAttempt = 0;
+      this->_sharedInterface->eventHandler(HOMIE_MQTT_DISCONNECTED);
+      this->_mqttDisconnectNotified = true;
     }
 
     unsigned long now = millis();
-    if (now - this->_last_mqtt_reconnect_attempt >= MQTT_RECONNECT_INTERVAL || this->_last_mqtt_reconnect_attempt == 0) {
+    if (now - this->_lastMqttReconnectAttempt >= MQTT_RECONNECT_INTERVAL || this->_lastMqttReconnectAttempt == 0) {
       Logger.logln("⌔ Attempting to connect to MQTT");
-      this->_last_mqtt_reconnect_attempt = now;
-      if (this->_shared_interface->useBuiltInLed) {
+      this->_lastMqttReconnectAttempt = now;
+      if (this->_sharedInterface->useBuiltInLed) {
         Blinker.start(LED_MQTT_DELAY);
       }
       this->_mqttConnect();
     }
     return;
   } else {
-    if (this->_shared_interface->useBuiltInLed) {
+    if (this->_sharedInterface->useBuiltInLed) {
       Blinker.stop();
     }
   }
 
-  this->_mqtt_disconnect_notified = false;
-  if (!this->_mqtt_connect_notified) {
-    this->_shared_interface->eventHandler(HOMIE_MQTT_CONNECTED);
-    this->_mqtt_connect_notified = true;
+  this->_mqttDisconnectNotified = false;
+  if (!this->_mqttConnectNotified) {
+    this->_sharedInterface->eventHandler(HOMIE_MQTT_CONNECTED);
+    this->_mqttConnectNotified = true;
   }
 
   unsigned long now = millis();
-  if (now - this->_last_signal_sent >= SIGNAL_QUALITY_SEND_INTERVAL || this->_last_signal_sent == 0) {
+  if (now - this->_lastSignalSent >= SIGNAL_QUALITY_SEND_INTERVAL || this->_lastSignalSent == 0) {
     Logger.logln("Sending Wi-Fi signal quality");
     int32_t rssi = WiFi.RSSI();
     byte quality;
@@ -361,16 +361,16 @@ void BootNormal::loop() {
     itoa(quality, quality_str, 10);
 
     char topic[24 + 1];
-    strcpy(topic, this->_mqtt_base_topic);
+    strcpy(topic, this->_mqttBaseTopic);
     strcat(topic, "/$signal");
 
-    if (this->_shared_interface->mqtt->publish(topic, quality_str, true)) {
-      this->_last_signal_sent = now;
+    if (this->_sharedInterface->mqtt->publish(topic, quality_str, true)) {
+      this->_lastSignalSent = now;
     }
   }
 
-  this->_shared_interface->readyToOperate = true;
-  this->_shared_interface->loopFunction();
+  this->_sharedInterface->readyToOperate = true;
+  this->_sharedInterface->loopFunction();
 
-  this->_shared_interface->mqtt->loop();
+  this->_sharedInterface->mqtt->loop();
 }

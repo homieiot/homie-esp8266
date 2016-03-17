@@ -2,15 +2,15 @@
 
 using namespace HomieInternals;
 
-Boot::Boot(SharedInterface* shared_interface, const char* name)
-: _shared_interface(shared_interface)
+Boot::Boot(SharedInterface* sharedInterface, const char* name)
+: _sharedInterface(sharedInterface)
 , _name(name)
 
 {
 }
 
 void Boot::setup() {
-  if (this->_shared_interface->useBuiltInLed) {
+  if (this->_sharedInterface->useBuiltInLed) {
     pinMode(BUILTIN_LED, OUTPUT);
     digitalWrite(BUILTIN_LED, HIGH); // low active
   }
@@ -19,7 +19,7 @@ void Boot::setup() {
   WiFi.disconnect(); // Reset network state
 
   char hostname[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
-  strcat(hostname, this->_shared_interface->brand);
+  strcat(hostname, this->_sharedInterface->brand);
   strcat(hostname, "-");
   strcat(hostname, Helpers.getDeviceId());
 
