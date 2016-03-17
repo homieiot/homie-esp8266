@@ -2,7 +2,7 @@
 
 const int TEMPERATURE_INTERVAL = 300;
 
-unsigned long last_temperature_sent = 0;
+unsigned long lastTemperatureSent = 0;
 
 HomieNode temperatureNode("temperature", "temperature");
 
@@ -11,13 +11,13 @@ void setupHandler() {
 }
 
 void loopHandler() {
-  if (millis() - last_temperature_sent >= TEMPERATURE_INTERVAL * 1000UL || last_temperature_sent == 0) {
+  if (millis() - lastTemperatureSent >= TEMPERATURE_INTERVAL * 1000UL || lastTemperatureSent == 0) {
     float temperature = 22; // Fake temperature here, for the example
     Serial.print("Temperature: ");
     Serial.print(temperature);
     Serial.println(" °C");
     if (Homie.setNodeProperty(temperatureNode, "temperature", String(temperature), true)) {
-      last_temperature_sent = millis();
+      lastTemperatureSent = millis();
     } else {
       Serial.println("Sending failed");
     }
