@@ -22,7 +22,7 @@ void BlinkerClass::stop() {
   if (this->_lastBlinkPace != 0) {
     this->_ticker.detach();
     this->_lastBlinkPace = 0;
-    digitalWrite(this->_sharedInterface->ledPin, HIGH);
+    digitalWrite(this->_sharedInterface->ledPin, !this->_sharedInterface->ledOnState);
   }
 }
 
