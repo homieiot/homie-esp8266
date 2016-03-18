@@ -5,14 +5,13 @@ using namespace HomieInternals;
 Boot::Boot(SharedInterface* sharedInterface, const char* name)
 : _sharedInterface(sharedInterface)
 , _name(name)
-
 {
 }
 
 void Boot::setup() {
   if (this->_sharedInterface->useBuiltInLed) {
-    pinMode(BUILTIN_LED, OUTPUT);
-    digitalWrite(BUILTIN_LED, HIGH); // low active
+    pinMode(this->_sharedInterface->ledPin, OUTPUT);
+    digitalWrite(this->_sharedInterface->ledPin, !this->_sharedInterface->ledOnState);
   }
 
   WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie

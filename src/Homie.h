@@ -24,6 +24,7 @@ namespace HomieInternals {
 
       void enableLogging(bool logging);
       void enableBuiltInLedIndicator(bool enable);
+      void setLedPin(uint8_t pin, byte state);
       void setBrand(const char* name);
       void setFirmware(const char* name, const char* version);
       void registerNode(const HomieNode& node);

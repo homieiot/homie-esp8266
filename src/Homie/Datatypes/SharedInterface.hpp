@@ -14,7 +14,10 @@ namespace HomieInternals {
       char* version;
     } firmware;
     std::vector<HomieNode> registeredNodes;
+    // LED
     bool useBuiltInLed;
+    uint8_t ledPin;
+    byte ledOnState;
     // Reset
     bool resettable;
     bool resetTriggerEnabled;

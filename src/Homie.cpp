@@ -9,6 +9,8 @@ HomieClass::HomieClass() {
   this->_sharedInterface.resettable = true;
   this->_sharedInterface.readyToOperate = false;
   this->_sharedInterface.useBuiltInLed = true;
+  this->_sharedInterface.ledPin = BUILTIN_LED;
+  this->_sharedInterface.ledOnState = LOW;
   this->_sharedInterface.inputHandler = [](String node, String property, String message) { return false; };
   this->_sharedInterface.setupFunction = [](void) {};
   this->_sharedInterface.loopFunction = [](void) {};
@@ -18,6 +20,8 @@ HomieClass::HomieClass() {
   this->_sharedInterface.resetTriggerState = DEFAULT_RESET_STATE;
   this->_sharedInterface.resetTriggerTime = DEFAULT_RESET_TIME;
   this->_sharedInterface.resetFunction = [](void) { return false; };
+
+  Blinker.attachSharedInterface(&this->_sharedInterface);
 }
 
 HomieClass::~HomieClass() {
@@ -58,6 +62,11 @@ void HomieClass::enableLogging(bool logging) {
 
 void HomieClass::enableBuiltInLedIndicator(bool enable) {
   this->_sharedInterface.useBuiltInLed = enable;
+}
+
+void HomieClass::setLedPin(uint8_t pin, byte state) {
+  this->_sharedInterface.ledPin = pin;
+  this->_sharedInterface.ledOnState = state;
 }
 
 void HomieClass::setFirmware(const char* name, const char* version) {

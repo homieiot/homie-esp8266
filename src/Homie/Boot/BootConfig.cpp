@@ -22,7 +22,7 @@ void BootConfig::setup() {
   Boot::setup();
 
   if (this->_sharedInterface->useBuiltInLed) {
-    digitalWrite(BUILTIN_LED, LOW); // low active
+    digitalWrite(this->_sharedInterface->ledPin, this->_sharedInterface->ledOnState);
   }
 
   const char* device_id = Helpers.getDeviceId();
