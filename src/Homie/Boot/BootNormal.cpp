@@ -8,6 +8,7 @@ BootNormal::BootNormal(SharedInterface* sharedInterface)
 , _lastWifiReconnectAttempt(0)
 , _lastMqttReconnectAttempt(0)
 , _lastSignalSent(0)
+, _setupFunctionCalled(false)
 , _wifiConnectNotified(false)
 , _wifiDisconnectNotified(false)
 , _mqttConnectNotified(false)
@@ -255,8 +256,6 @@ void BootNormal::setup() {
 
     this->_resetDebouncer.attach(this->_sharedInterface->resetTriggerPin);
     this->_resetDebouncer.interval(this->_sharedInterface->resetTriggerTime);
-
-    this->_sharedInterface->setupFunction();
   }
 
   Config.log();
@@ -338,10 +337,18 @@ void BootNormal::loop() {
     }
   }
 
+  this->_sharedInterface->readyToOperate = true;
+
   this->_mqttDisconnectNotified = false;
   if (!this->_mqttConnectNotified) {
     this->_sharedInterface->eventHandler(HOMIE_MQTT_CONNECTED);
     this->_mqttConnectNotified = true;
+  }
+
+  if (!this->_setupFunctionCalled) {
+    Logger.logln("Calling setup function");
+    this->_sharedInterface->setupFunction();
+    this->_setupFunctionCalled = true;
   }
 
   unsigned long now = millis();
@@ -369,7 +376,6 @@ void BootNormal::loop() {
     }
   }
 
-  this->_sharedInterface->readyToOperate = true;
   this->_sharedInterface->loopFunction();
 
   this->_sharedInterface->mqtt->loop();
