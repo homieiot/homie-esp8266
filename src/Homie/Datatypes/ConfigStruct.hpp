@@ -12,6 +12,8 @@ namespace HomieInternals {
     struct MQTT {
       char host[CONFIG_MAX_LENGTH_MQTT_HOST];
       uint16_t port;
+      bool mdns;
+      char mdnsService[CONFIG_MAX_LENGTH_MQTT_HOST];
       bool auth;
       char username[CONFIG_MAX_LENGTH_MQTT_USERNAME];
       char password[CONFIG_MAX_LENGTH_MQTT_PASSWORD];
@@ -22,6 +24,8 @@ namespace HomieInternals {
       bool enabled;
       char host[CONFIG_MAX_LENGTH_OTA_HOST];
       uint16_t port;
+      bool mdns;
+      char mdnsService[CONFIG_MAX_LENGTH_OTA_HOST];
       char path[CONFIG_MAX_LENGTH_OTA_PATH];
       bool ssl;
       char fingerprint[CONFIG_MAX_LENGTH_OTA_FINGERPRINT];

@@ -36,7 +36,25 @@ void BootNormal::_wifiConnect() {
 }
 
 void BootNormal::_mqttConnect() {
-  this->_sharedInterface->mqtt->setServer(Config.get().mqtt.host, Config.get().mqtt.port);
+  const char* host = Config.get().mqtt.host;
+  uint16_t port = Config.get().mqtt.port;
+  /* if (Config.get().mqtt.mdns) {
+    Logger.log("Querying mDNS service ");
+    Logger.logln(Config.get().mqtt.mdnsService);
+
+    int n = MDNS.queryService(Config.get().mqtt.mdnsService, "tcp");
+    if (n == 0) {
+      Logger.logln("No services found");
+      return;
+    } else {
+      Logger.log(String(n));
+      Logger.logln(" service(s) found, using first");
+      host = MDNS.IP(0);
+      port = MDNS.port(0);
+    }
+  } */
+
+  this->_sharedInterface->mqtt->setServer(host, port);
   this->_sharedInterface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   char topic[24 + 1];
   strcpy(topic, this->_mqttBaseTopic);

@@ -66,7 +66,18 @@ bool ConfigClass::load() {
   const char* reqName = parsedJson["name"];
   const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
   const char* reqWifiPassword = parsedJson["wifi"]["password"];
-  const char* reqMqttHost = parsedJson["mqtt"]["host"];
+  bool reqMqttMdns = false;
+  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("mdns")) reqMqttMdns = true;
+  bool reqOtaMdns = false;
+  if (parsedJson["ota"].as<JsonObject&>().containsKey("mdns")) reqOtaMdns = true;
+
+  const char* reqMqttHost = "";
+  const char* reqMqttMdnsService = "";
+  if (reqMqttMdns) {
+    reqMqttMdnsService = parsedJson["mqtt"]["mdns"];
+  } else {
+    reqMqttHost = parsedJson["mqtt"]["host"];
+  }
   uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
@@ -96,7 +107,10 @@ bool ConfigClass::load() {
     reqOtaEnabled = parsedJson["ota"]["enabled"];
   }
   const char* reqOtaHost = reqMqttHost;
-  if (parsedJson["ota"].as<JsonObject&>().containsKey("host")) {
+  const char* reqOtaMdnsService = "";
+  if (reqOtaMdns) {
+    reqOtaMdnsService = parsedJson["ota"]["mdns"];
+  } else {
     reqOtaHost = parsedJson["ota"]["host"];
   }
   uint16_t reqOtaPort = DEFAULT_OTA_PORT;
@@ -121,6 +135,8 @@ bool ConfigClass::load() {
   strcpy(this->_configStruct.wifi.password, reqWifiPassword);
   strcpy(this->_configStruct.mqtt.host, reqMqttHost);
   this->_configStruct.mqtt.port = reqMqttPort;
+  this->_configStruct.mqtt.mdns = reqMqttMdns;
+  strcpy(this->_configStruct.mqtt.mdnsService, reqMqttMdnsService);
   this->_configStruct.mqtt.auth = reqMqttAuth;
   strcpy(this->_configStruct.mqtt.username, reqMqttUsername);
   strcpy(this->_configStruct.mqtt.password, reqMqttPassword);
@@ -129,6 +145,8 @@ bool ConfigClass::load() {
   this->_configStruct.ota.enabled = reqOtaEnabled;
   strcpy(this->_configStruct.ota.host, reqOtaHost);
   this->_configStruct.ota.port = reqOtaPort;
+  this->_configStruct.ota.mdns = reqOtaMdns;
+  strcpy(this->_configStruct.ota.mdnsService, reqOtaMdnsService);
   strcpy(this->_configStruct.ota.path, reqOtaPath);
   this->_configStruct.ota.ssl = reqOtaSsl;
   strcpy(this->_configStruct.ota.fingerprint, reqOtaFingerprint);
@@ -216,10 +234,15 @@ void ConfigClass::log() {
   Logger.logln("    • Password not shown");
 
   Logger.logln("  • MQTT");
-  Logger.log("    • Host: ");
-  Logger.log(this->_configStruct.mqtt.host);
-  Logger.logln(" "); // Needed because else ??? in serial monitor
-  Logger.log("    • Port: ");
+  if (this->_configStruct.mqtt.mdns) {
+    Logger.log("    • mDNS: ");
+    Logger.log(this->_configStruct.mqtt.mdnsService);
+  } else {
+    Logger.log("    • Host: ");
+    Logger.log(this->_configStruct.mqtt.host);
+    Logger.logln(" "); // Needed because else ??? in serial monitor
+    Logger.log("    • Port: ");
+  }
   Logger.logln(String(this->_configStruct.mqtt.port));
   Logger.log("    • Auth: ");
   Logger.logln(this->_configStruct.mqtt.auth ? "yes" : "no");
@@ -239,10 +262,15 @@ void ConfigClass::log() {
   Logger.log("    • Enabled: ");
   Logger.logln(this->_configStruct.ota.enabled ? "yes" : "no");
   if (this->_configStruct.ota.enabled) {
-    Logger.log("    • Host: ");
-    Logger.logln(this->_configStruct.ota.host);
-    Logger.log("    • Port: ");
-    Logger.logln(String(this->_configStruct.ota.port));
+    if (this->_configStruct.ota.mdns) {
+      Logger.log("    • mDNS: ");
+      Logger.log(this->_configStruct.ota.mdnsService);
+    } else {
+      Logger.log("    • Host: ");
+      Logger.log(this->_configStruct.ota.host);
+      Logger.logln(" "); // Needed because else ??? in serial monitor
+      Logger.log("    • Port: ");
+    }
     Logger.log("    • Path: ");
     Logger.logln(String(this->_configStruct.ota.path));
     Logger.log("    • SSL: ");

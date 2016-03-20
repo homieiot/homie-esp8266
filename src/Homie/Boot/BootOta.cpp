@@ -29,11 +29,31 @@ void BootOta::setup() {
     } else {
       Logger.logln("✖ Connection failed, rebooting in normal mode...");
       Config.setOtaMode(false);
-
       ESP.restart();
     }
   }
   Logger.logln("✔ Connected to Wi-Fi");
+
+  const char* host = Config.get().ota.host;
+  uint16_t port = Config.get().ota.port;
+  /*
+  if (Config.get().ota.mdns) {
+    Logger.log("Querying mDNS service ");
+    Logger.logln(Config.get().ota.mdnsService);
+
+    int n = MDNS.queryService(Config.get().ota.mdnsService, "tcp");
+    if (n == 0) {
+      Logger.logln("No services found");
+      Config.setOtaMode(false);
+      ESP.restart();
+    } else {
+      Logger.log(String(n));
+      Logger.logln(" service(s) found, using first");
+      host = MDNS.IP(0);
+      port = MDNS.port(0);
+    }
+  } */
+
   Logger.logln("Starting OTA...");
 
 
@@ -43,7 +63,7 @@ void BootOta::setup() {
   dataToPass += this->_sharedInterface->firmware.name;
   dataToPass += '@';
   dataToPass += this->_sharedInterface->firmware.version;
-  t_httpUpdate_return ret = ESPhttpUpdate.update(Config.get().ota.host, Config.get().ota.port, Config.get().ota.path, dataToPass, Config.get().ota.ssl, Config.get().ota.fingerprint, false);
+  t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass, Config.get().ota.ssl, Config.get().ota.fingerprint, false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:
       Logger.logln("✖ Update failed");

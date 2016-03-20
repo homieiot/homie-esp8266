@@ -36,13 +36,22 @@ bool HelpersClass::validateConfig(JsonObject& object) {
     Logger.logln("✖ mqtt is not an object");
     return false;
   }
-  if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
-    Logger.logln("✖ mqtt.host is not a string");
-    return false;
-  }
-  if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
-    Logger.logln("✖ mqtt.port is not an unsigned integer");
-    return false;
+  bool mqttMdns = false;
+  if (object["mqtt"].as<JsonObject&>().containsKey("mdns")) {
+    if (!object["mqtt"]["mdns"].is<const char*>()) {
+      Logger.logln("✖ mqtt.mdns is not a string");
+      return false;
+    }
+    mqttMdns = true;
+  } else {
+    if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
+      Logger.logln("✖ mqtt.host is not a string");
+      return false;
+    }
+    if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
+      Logger.logln("✖ mqtt.port is not an unsigned integer");
+      return false;
+    }
   }
   if (object["mqtt"].as<JsonObject&>().containsKey("auth")) {
     if (!object["mqtt"]["auth"].is<bool>()) {
@@ -83,14 +92,23 @@ bool HelpersClass::validateConfig(JsonObject& object) {
     Logger.logln("✖ ota.enabled is not a boolean");
     return false;
   }
+  bool otaMdns = false;
   if (object["ota"]["enabled"]) {
-    if (object["ota"].as<JsonObject&>().containsKey("host") && !object["ota"]["host"].is<const char*>()) {
-      Logger.logln("✖ ota.host is not a string");
-      return false;
-    }
-    if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<uint16_t>()) {
-      Logger.logln("✖ ota.port is not an unsigned integer");
-      return false;
+    if (object["ota"].as<JsonObject&>().containsKey("mdns")) {
+      if (!object["ota"]["mdns"].is<const char*>()) {
+        Logger.logln("✖ ota.mdns is not a string");
+        return false;
+      }
+      otaMdns = true;
+    } else {
+      if (!object["ota"].as<JsonObject&>().containsKey("host") || !object["ota"]["host"].is<const char*>()) {
+        Logger.logln("✖ ota.host is not a string");
+        return false;
+      }
+      if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<uint16_t>()) {
+        Logger.logln("✖ ota.port is not an unsigned integer");
+        return false;
+      }
     }
     if (object["ota"].as<JsonObject&>().containsKey("path") && !object["ota"]["path"].is<const char*>()) {
       Logger.logln("✖ ota.path is not a string");
@@ -113,7 +131,6 @@ bool HelpersClass::validateConfig(JsonObject& object) {
 
   const char* name = object["name"];
   const char* wifiSsid = object["wifi"]["ssid"];
-  const char* mqttHost = object["mqtt"]["host"];
 
   if (strcmp(name, "") == 0) {
     Logger.logln("✖ name is empty");
@@ -123,9 +140,18 @@ bool HelpersClass::validateConfig(JsonObject& object) {
     Logger.logln("✖ wifi.ssid is empty");
     return false;
   }
-  if (strcmp(mqttHost, "") == 0) {
-    Logger.logln("✖ mqtt.host is empty");
-    return false;
+  if (mqttMdns) {
+    const char* mqttMdnsService = object["mqtt"]["mdns"];
+    if (strcmp(mqttMdnsService, "") == 0) {
+      Logger.logln("✖ mqtt.mdns is empty");
+      return false;
+    }
+  } else {
+    const char* mqttHost = object["mqtt"]["host"];
+    if (strcmp(mqttHost, "") == 0) {
+      Logger.logln("✖ mqtt.host is empty");
+      return false;
+    }
   }
 
   return true;
