@@ -8,7 +8,7 @@
 #include <Bounce2.h>
 #include "../../HomieNode.h"
 #include "../Constants.hpp"
-#include "../Datatypes/SharedInterface.hpp"
+#include "../Datatypes/Interface.hpp"
 #include "../Helpers.hpp"
 #include "../Config.hpp"
 #include "../Blinker.hpp"
@@ -18,13 +18,13 @@
 namespace HomieInternals {
   class BootNormal : public Boot {
     public:
-      BootNormal(SharedInterface* sharedInterface);
+      BootNormal(Interface* interface);
       ~BootNormal();
       void setup();
       void loop();
 
     private:
-      SharedInterface* _sharedInterface;
+      Interface* _interface;
       unsigned long _lastWifiReconnectAttempt;
       unsigned long _lastMqttReconnectAttempt;
       unsigned long _lastSignalSent;

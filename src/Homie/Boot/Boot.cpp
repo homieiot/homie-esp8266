@@ -2,23 +2,23 @@
 
 using namespace HomieInternals;
 
-Boot::Boot(SharedInterface* sharedInterface, const char* name)
-: _sharedInterface(sharedInterface)
+Boot::Boot(Interface* interface, const char* name)
+: _interface(interface)
 , _name(name)
 {
 }
 
 void Boot::setup() {
-  if (this->_sharedInterface->useBuiltInLed) {
-    pinMode(this->_sharedInterface->ledPin, OUTPUT);
-    digitalWrite(this->_sharedInterface->ledPin, !this->_sharedInterface->ledOnState);
+  if (this->_interface->led.enable) {
+    pinMode(this->_interface->led.pin, OUTPUT);
+    digitalWrite(this->_interface->led.pin, !this->_interface->led.on);
   }
 
   WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie
   WiFi.disconnect(); // Reset network state
 
   char hostname[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
-  strcat(hostname, this->_sharedInterface->brand);
+  strcat(hostname, this->_interface->brand);
   strcat(hostname, "-");
   strcat(hostname, Helpers.getDeviceId());
 

@@ -6,26 +6,32 @@
 #include "../../HomieEvent.h"
 
 namespace HomieInternals {
-  struct SharedInterface {
+  struct Interface {
     /***** User configurable data *****/
     char* brand;
-    struct {
+
+    struct Firmware {
       char* name;
       char* version;
     } firmware;
+
+    struct LED {
+      bool enable;
+      uint8_t pin;
+      byte on;
+    } led;
+
+    struct Reset {
+      bool enable;
+      bool able;
+      uint8_t triggerPin;
+      byte triggerState;
+      uint16_t triggerTime;
+      bool (*userFunction)(void);
+    } reset;
+
     std::vector<HomieNode> registeredNodes;
-    // LED
-    bool useBuiltInLed;
-    uint8_t ledPin;
-    byte ledOnState;
-    // Reset
-    bool resettable;
-    bool resetTriggerEnabled;
-    uint8_t resetTriggerPin;
-    byte resetTriggerState;
-    uint16_t resetTriggerTime;
-    bool (*resetFunction)(void);
-    // Callbacks
+
     bool (*inputHandler)(String node, String property, String message);
     void (*setupFunction)(void);
     void (*loopFunction)(void);

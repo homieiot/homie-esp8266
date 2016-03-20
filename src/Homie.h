@@ -24,7 +24,7 @@ namespace HomieInternals {
 
       void enableLogging(bool logging);
       void enableBuiltInLedIndicator(bool enable);
-      void setLedPin(uint8_t pin, byte state);
+      void setLedPin(uint8_t pin, byte on);
       void setBrand(const char* name);
       void setFirmware(const char* name, const char* version);
       void registerNode(const HomieNode& node);
@@ -43,7 +43,7 @@ namespace HomieInternals {
       bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
     private:
       Boot* _boot;
-      SharedInterface _sharedInterface;
+      Interface _interface;
   };
 }
 

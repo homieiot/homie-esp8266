@@ -2,9 +2,9 @@
 
 using namespace HomieInternals;
 
-BootConfig::BootConfig(SharedInterface* sharedInterface)
-: Boot(sharedInterface, "config")
-, _sharedInterface(sharedInterface)
+BootConfig::BootConfig(Interface* interface)
+: Boot(interface, "config")
+, _interface(interface)
 , _http(80)
 , _ssidCount(0)
 , _wifiScanAvailable(false)
@@ -21,8 +21,8 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  if (this->_sharedInterface->useBuiltInLed) {
-    digitalWrite(this->_sharedInterface->ledPin, this->_sharedInterface->ledOnState);
+  if (this->_interface->led.enable) {
+    digitalWrite(this->_interface->led.pin, this->_interface->led.on);
   }
 
   const char* device_id = Helpers.getDeviceId();
@@ -34,7 +34,7 @@ void BootConfig::setup() {
 
   IPAddress ap_ip(192, 168, 1, 1);
   char ap_name[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
-  strcat(ap_name, this->_sharedInterface->brand);
+  strcat(ap_name, this->_interface->brand);
   strcat(ap_name, "-");
   strcat(ap_name, Helpers.getDeviceId());
 
@@ -112,12 +112,12 @@ void BootConfig::_onDeviceInfoRequest() {
   json["device_id"] = Helpers.getDeviceId();
   json["homie_version"] = VERSION;
   JsonObject& firmware = json.createNestedObject("firmware");
-  firmware["name"] = this->_sharedInterface->firmware.name;
-  firmware["version"] = this->_sharedInterface->firmware.version;
+  firmware["name"] = this->_interface->firmware.name;
+  firmware["version"] = this->_interface->firmware.version;
 
   JsonArray& nodes = json.createNestedArray("nodes");
-  for (int i = 0; i < this->_sharedInterface->registeredNodes.size(); i++) {
-    HomieNode node = this->_sharedInterface->registeredNodes[i];
+  for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
+    HomieNode node = this->_interface->registeredNodes[i];
     JsonObject& json_node = jsonBuffer.createObject();
     json_node["id"] = node.id;
     json_node["type"] = node.type;
@@ -128,7 +128,7 @@ void BootConfig::_onDeviceInfoRequest() {
   // 110 bytes for {"homie_version":"11.10.0","firmware":{"name":"awesome-light-great-top","version":"11.10.0-beta"},"nodes":[]}
   // 60 bytes for {"id":"lightifydefoulooooo","type":"lightifydefouloooo"}, (-1 for leading ","), +1 for terminator
   String jsonString;
-  jsonString.reserve(110 + (60 * this->_sharedInterface->registeredNodes.size()) - 1 + 1);
+  jsonString.reserve(110 + (60 * this->_interface->registeredNodes.size()) - 1 + 1);
   json.printTo(jsonString);
   this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), jsonString);
 }
