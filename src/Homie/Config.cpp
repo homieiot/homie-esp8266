@@ -110,7 +110,7 @@ bool ConfigClass::load() {
   const char* reqOtaMdnsService = "";
   if (reqOtaMdns) {
     reqOtaMdnsService = parsedJson["ota"]["mdns"];
-  } else {
+  } else if (parsedJson["ota"].as<JsonObject&>().containsKey("host")) {
     reqOtaHost = parsedJson["ota"]["host"];
   }
   uint16_t reqOtaPort = DEFAULT_OTA_PORT;
