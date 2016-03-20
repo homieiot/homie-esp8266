@@ -1,6 +1,6 @@
 #include <Homie.h>
 
-const int doorPin = 16;
+const int PIN_DOOR = 16;
 
 Bounce debouncer = Bounce(); // Bounce is built into Homie, so you can use it without including it first
 unsigned long lastDoorValue = -1;
@@ -23,9 +23,9 @@ void loopHandler() {
 }
 
 void setup() {
-  pinMode(doorPin, INPUT);
-  digitalWrite(doorPin, HIGH);
-  debouncer.attach(doorPin);
+  pinMode(PIN_DOOR, INPUT);
+  digitalWrite(PIN_DOOR, HIGH);
+  debouncer.attach(PIN_DOOR);
   debouncer.interval(50);
 
   Homie.setFirmware("awesome-door", "1.0.0");
