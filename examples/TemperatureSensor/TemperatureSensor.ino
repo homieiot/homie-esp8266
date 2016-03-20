@@ -7,7 +7,7 @@ unsigned long lastTemperatureSent = 0;
 HomieNode temperatureNode("temperature", "temperature");
 
 void setupHandler() {
-  // Do what you want to prepare your sensor
+  Homie.setNodeProperty(temperatureNode, "unit", "c", true);
 }
 
 void loopHandler() {

@@ -1,6 +1,6 @@
 #include <Homie.h>
 
-const int PIN_RELAY = 5;
+const int PIN_RELAY = 16;
 
 HomieNode lightNode("light", "switch");
 
@@ -23,6 +23,7 @@ bool lightOnHandler(String message) {
 void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
+
   Homie.setFirmware("awesome-relay", "1.0.0");
   lightNode.subscribe("on", lightOnHandler);
   Homie.registerNode(lightNode);
