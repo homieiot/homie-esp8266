@@ -275,7 +275,7 @@ void ConfigClass::log() {
     Logger.logln(String(this->_configStruct.ota.path));
     Logger.log("    • SSL: ");
     Logger.logln(this->_configStruct.ota.ssl ? "yes" : "no");
-    if (this->_configStruct.mqtt.ssl) {
+    if (this->_configStruct.ota.ssl) {
       Logger.log("    • Fingerprint: ");
       Logger.logln(this->_configStruct.ota.fingerprint);
     }
