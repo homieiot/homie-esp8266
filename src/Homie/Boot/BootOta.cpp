@@ -34,8 +34,8 @@ void BootOta::setup() {
   }
   Logger.logln("✔ Connected to Wi-Fi");
 
-  const char* host = Config.get().ota.host;
-  uint16_t port = Config.get().ota.port;
+  const char* host = Config.get().ota.server.host;
+  uint16_t port = Config.get().ota.server.port;
   /*
   if (Config.get().ota.mdns) {
     Logger.log("Querying mDNS service ");
@@ -63,7 +63,7 @@ void BootOta::setup() {
   dataToPass += this->_interface->firmware.name;
   dataToPass += '@';
   dataToPass += this->_interface->firmware.version;
-  t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass, Config.get().ota.ssl, Config.get().ota.fingerprint, false);
+  t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass, Config.get().ota.server.ssl.enabled, Config.get().ota.server.ssl.fingerprint, false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:
       Logger.logln("✖ Update failed");

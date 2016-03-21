@@ -10,13 +10,13 @@ BootNormal::BootNormal(Interface* interface)
 , _lastSignalSent(0)
 , _setupFunctionCalled(false)
 , _wifiConnectNotified(false)
-, _wifiDisconnectNotified(false)
+, _wifiDisconnectNotified(true)
 , _mqttConnectNotified(false)
-, _mqttDisconnectNotified(false)
+, _mqttDisconnectNotified(true)
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 {
-  if (Config.get().mqtt.ssl) {
+  if (Config.get().mqtt.server.ssl.enabled) {
     this->_interface->mqtt = new PubSubClient(this->_wifiClientSecure);
   } else {
     this->_interface->mqtt = new PubSubClient(this->_wifiClient);
@@ -36,8 +36,8 @@ void BootNormal::_wifiConnect() {
 }
 
 void BootNormal::_mqttConnect() {
-  const char* host = Config.get().mqtt.host;
-  uint16_t port = Config.get().mqtt.port;
+  const char* host = Config.get().mqtt.server.host;
+  uint16_t port = Config.get().mqtt.server.port;
   /* if (Config.get().mqtt.mdns) {
     Logger.log("Querying mDNS service ");
     Logger.logln(Config.get().mqtt.mdnsService);
@@ -60,7 +60,7 @@ void BootNormal::_mqttConnect() {
   strcpy(topic, this->_mqttBaseTopic);
   strcat(topic, "/$online");
 
-  char client_id[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
+  char client_id[MAX_LENGTH_WIFI_SSID] = "";
   strcat(client_id, this->_interface->brand);
   strcat(client_id, "-");
   strcat(client_id, Helpers.getDeviceId());
@@ -73,8 +73,9 @@ void BootNormal::_mqttConnect() {
   }
 
   if (connectResult) {
-    if (Config.get().mqtt.ssl && !strcmp(Config.get().mqtt.fingerprint, "")) {
-      if(!this->_wifiClientSecure.verify(Config.get().mqtt.fingerprint, Config.get().mqtt.host)) {
+    if (Config.get().mqtt.server.ssl.enabled && strcmp(Config.get().mqtt.server.ssl.fingerprint, "")) {
+      Logger.logln("Checking certificate");
+      if(!this->_wifiClientSecure.verify(Config.get().mqtt.server.ssl.fingerprint, Config.get().mqtt.server.host)) {
         Logger.logln("✖ MQTT SSL certificate mismatch");
         this->_interface->mqtt->disconnect();
         return;
@@ -309,6 +310,7 @@ void BootNormal::loop() {
     this->_wifiConnectNotified = false;
     if (!this->_wifiDisconnectNotified) {
       this->_lastWifiReconnectAttempt = 0;
+      Logger.logln("✖ Wi-Fi disconnected");
       this->_interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
       this->_wifiDisconnectNotified = true;
     }
@@ -327,6 +329,7 @@ void BootNormal::loop() {
 
   this->_wifiDisconnectNotified = false;
   if (!this->_wifiConnectNotified) {
+    Logger.logln("✔ Wi-Fi connected");
     this->_interface->eventHandler(HOMIE_WIFI_CONNECTED);
     this->_wifiConnectNotified = true;
   }
@@ -335,6 +338,7 @@ void BootNormal::loop() {
     this->_mqttConnectNotified = false;
     if (!this->_mqttDisconnectNotified) {
       this->_lastMqttReconnectAttempt = 0;
+      Logger.logln("✖ MQTT disconnected");
       this->_interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
       this->_mqttDisconnectNotified = true;
     }
@@ -359,6 +363,7 @@ void BootNormal::loop() {
 
   this->_mqttDisconnectNotified = false;
   if (!this->_mqttConnectNotified) {
+    Logger.logln("✔ MQTT connected");
     this->_interface->eventHandler(HOMIE_MQTT_CONNECTED);
     this->_mqttConnectNotified = true;
   }

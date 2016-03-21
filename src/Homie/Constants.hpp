@@ -29,16 +29,7 @@ namespace HomieInternals {
   const unsigned int JSON_CONFIG_MAX_BUFFER_SIZE = JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(7) + JSON_OBJECT_SIZE(6); // Max 4 elements at root, 2 elements in nested, etc...
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
   const char CONFIG_OTA_PATH[] = "/homie/ota";
-  const unsigned int CONFIG_MAX_LENGTH_NAME = 32 + 1;
-  const unsigned int CONFIG_MAX_LENGTH_WIFI_SSID = 32 + 1;
-  const unsigned int CONFIG_MAX_LENGTH_WIFI_PASSWORD = 63 + 1;
-  const unsigned int CONFIG_MAX_LENGTH_MQTT_HOST = 63 + 1;
-  const unsigned int CONFIG_MAX_LENGTH_MQTT_USERNAME = 63 + 1;
-  const unsigned int CONFIG_MAX_LENGTH_MQTT_PASSWORD = 63 + 1;
-  const unsigned int CONFIG_MAX_LENGTH_MQTT_FINGERPRINT = 59 + 1;
-  const unsigned int CONFIG_MAX_LENGTH_OTA_HOST = CONFIG_MAX_LENGTH_MQTT_HOST;
-  const unsigned int CONFIG_MAX_LENGTH_OTA_PATH = 63 + 1;
-  const unsigned int CONFIG_MAX_LENGTH_OTA_FINGERPRINT = CONFIG_MAX_LENGTH_MQTT_FINGERPRINT;
+  const unsigned int MAX_LENGTH_WIFI_SSID = 32 + 1;
 
   enum BootMode : byte {
     BOOT_NORMAL = 1,

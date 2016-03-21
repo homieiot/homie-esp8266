@@ -33,7 +33,7 @@ void BootConfig::setup() {
   WiFi.mode(WIFI_AP);
 
   IPAddress ap_ip(192, 168, 1, 1);
-  char ap_name[CONFIG_MAX_LENGTH_WIFI_SSID] = "";
+  char ap_name[MAX_LENGTH_WIFI_SSID] = "";
   strcat(ap_name, this->_interface->brand);
   strcat(ap_name, "-");
   strcat(ap_name, Helpers.getDeviceId());

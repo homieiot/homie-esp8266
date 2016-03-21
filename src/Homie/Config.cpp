@@ -130,26 +130,26 @@ bool ConfigClass::load() {
     reqOtaFingerprint = parsedJson["ota"]["fingerprint"];
   }
 
-  strcpy(this->_configStruct.name, reqName);
-  strcpy(this->_configStruct.wifi.ssid, reqWifiSsid);
-  strcpy(this->_configStruct.wifi.password, reqWifiPassword);
-  strcpy(this->_configStruct.mqtt.host, reqMqttHost);
-  this->_configStruct.mqtt.port = reqMqttPort;
-  this->_configStruct.mqtt.mdns = reqMqttMdns;
-  strcpy(this->_configStruct.mqtt.mdnsService, reqMqttMdnsService);
+  this->_configStruct.name = strdup(reqName);
+  this->_configStruct.wifi.ssid = strdup(reqWifiSsid);
+  this->_configStruct.wifi.password = strdup(reqWifiPassword);
+  this->_configStruct.mqtt.server.host = strdup(reqMqttHost);
+  this->_configStruct.mqtt.server.port = reqMqttPort;
+  this->_configStruct.mqtt.server.mdns.enabled = reqMqttMdns;
+  this->_configStruct.mqtt.server.mdns.service = strdup(reqMqttMdnsService);
   this->_configStruct.mqtt.auth = reqMqttAuth;
-  strcpy(this->_configStruct.mqtt.username, reqMqttUsername);
-  strcpy(this->_configStruct.mqtt.password, reqMqttPassword);
-  this->_configStruct.mqtt.ssl = reqMqttSsl;
-  strcpy(this->_configStruct.mqtt.fingerprint, reqMqttFingerprint);
+  this->_configStruct.mqtt.username = strdup(reqMqttUsername);
+  this->_configStruct.mqtt.password = strdup(reqMqttPassword);
+  this->_configStruct.mqtt.server.ssl.enabled = reqMqttSsl;
+  this->_configStruct.mqtt.server.ssl.fingerprint = strdup(reqMqttFingerprint);
   this->_configStruct.ota.enabled = reqOtaEnabled;
-  strcpy(this->_configStruct.ota.host, reqOtaHost);
-  this->_configStruct.ota.port = reqOtaPort;
-  this->_configStruct.ota.mdns = reqOtaMdns;
-  strcpy(this->_configStruct.ota.mdnsService, reqOtaMdnsService);
-  strcpy(this->_configStruct.ota.path, reqOtaPath);
-  this->_configStruct.ota.ssl = reqOtaSsl;
-  strcpy(this->_configStruct.ota.fingerprint, reqOtaFingerprint);
+  this->_configStruct.ota.server.host = strdup(reqOtaHost);
+  this->_configStruct.ota.server.port = reqOtaPort;
+  this->_configStruct.ota.server.mdns.enabled = reqOtaMdns;
+  this->_configStruct.ota.server.mdns.service = strdup(reqOtaMdnsService);
+  this->_configStruct.ota.path = strdup(reqOtaPath);
+  this->_configStruct.ota.server.ssl.enabled = reqOtaSsl;
+  this->_configStruct.ota.server.ssl.fingerprint = strdup(reqOtaFingerprint);
 
   return true;
 }
@@ -234,16 +234,15 @@ void ConfigClass::log() {
   Logger.logln("    • Password not shown");
 
   Logger.logln("  • MQTT");
-  if (this->_configStruct.mqtt.mdns) {
+  if (this->_configStruct.mqtt.server.mdns.enabled) {
     Logger.log("    • mDNS: ");
-    Logger.log(this->_configStruct.mqtt.mdnsService);
+    Logger.log(this->_configStruct.mqtt.server.mdns.service);
   } else {
     Logger.log("    • Host: ");
-    Logger.log(this->_configStruct.mqtt.host);
-    Logger.logln(" "); // Needed because else ??? in serial monitor
+    Logger.logln(this->_configStruct.mqtt.server.host);
     Logger.log("    • Port: ");
   }
-  Logger.logln(String(this->_configStruct.mqtt.port));
+  Logger.logln(String(this->_configStruct.mqtt.server.port));
   Logger.log("    • Auth: ");
   Logger.logln(this->_configStruct.mqtt.auth ? "yes" : "no");
   if (this->_configStruct.mqtt.auth) {
@@ -252,32 +251,31 @@ void ConfigClass::log() {
     Logger.logln("    • Password not shown");
   }
   Logger.log("    • SSL: ");
-  Logger.logln(this->_configStruct.mqtt.ssl ? "yes" : "no");
-  if (this->_configStruct.mqtt.ssl) {
+  Logger.logln(this->_configStruct.mqtt.server.ssl.enabled ? "yes" : "no");
+  if (this->_configStruct.mqtt.server.ssl.enabled) {
     Logger.log("    • Fingerprint: ");
-    Logger.logln(this->_configStruct.mqtt.fingerprint);
+    Logger.logln(this->_configStruct.mqtt.server.ssl.fingerprint);
   }
 
   Logger.logln("  • OTA");
   Logger.log("    • Enabled: ");
   Logger.logln(this->_configStruct.ota.enabled ? "yes" : "no");
   if (this->_configStruct.ota.enabled) {
-    if (this->_configStruct.ota.mdns) {
+    if (this->_configStruct.ota.server.mdns.enabled) {
       Logger.log("    • mDNS: ");
-      Logger.log(this->_configStruct.ota.mdnsService);
+      Logger.log(this->_configStruct.ota.server.mdns.service);
     } else {
       Logger.log("    • Host: ");
-      Logger.log(this->_configStruct.ota.host);
-      Logger.logln(" "); // Needed because else ??? in serial monitor
+      Logger.logln(this->_configStruct.ota.server.host);
       Logger.log("    • Port: ");
     }
     Logger.log("    • Path: ");
     Logger.logln(String(this->_configStruct.ota.path));
     Logger.log("    • SSL: ");
-    Logger.logln(this->_configStruct.ota.ssl ? "yes" : "no");
-    if (this->_configStruct.ota.ssl) {
+    Logger.logln(this->_configStruct.ota.server.ssl.enabled ? "yes" : "no");
+    if (this->_configStruct.ota.server.ssl.enabled) {
       Logger.log("    • Fingerprint: ");
-      Logger.logln(this->_configStruct.ota.fingerprint);
+      Logger.logln(this->_configStruct.ota.server.ssl.fingerprint);
     }
   }
 }

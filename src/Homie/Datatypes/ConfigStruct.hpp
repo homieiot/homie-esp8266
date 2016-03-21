@@ -4,34 +4,37 @@
 
 namespace HomieInternals {
   struct ConfigStruct {
-    char name[CONFIG_MAX_LENGTH_NAME];
+    char* name;
 
     struct WiFi {
-      char ssid[CONFIG_MAX_LENGTH_WIFI_SSID];
-      char password[CONFIG_MAX_LENGTH_WIFI_PASSWORD];
+      char* ssid;
+      char* password;
     } wifi;
 
-    struct MQTT {
-      char host[CONFIG_MAX_LENGTH_MQTT_HOST];
+    struct Server {
+      char* host;
       uint16_t port;
-      bool mdns;
-      char mdnsService[CONFIG_MAX_LENGTH_MQTT_HOST];
+      struct mDNS {
+        bool enabled;
+        char* service;
+      } mdns;
+      struct SSL {
+        bool enabled;
+        char* fingerprint;
+      } ssl;
+    };
+
+    struct MQTT {
+      Server server;
       bool auth;
-      char username[CONFIG_MAX_LENGTH_MQTT_USERNAME];
-      char password[CONFIG_MAX_LENGTH_MQTT_PASSWORD];
-      bool ssl;
-      char fingerprint[CONFIG_MAX_LENGTH_MQTT_FINGERPRINT];
+      char* username;
+      char* password;
     } mqtt;
 
     struct OTA {
       bool enabled;
-      char host[CONFIG_MAX_LENGTH_OTA_HOST];
-      uint16_t port;
-      bool mdns;
-      char mdnsService[CONFIG_MAX_LENGTH_OTA_HOST];
-      char path[CONFIG_MAX_LENGTH_OTA_PATH];
-      bool ssl;
-      char fingerprint[CONFIG_MAX_LENGTH_OTA_FINGERPRINT];
+      Server server;
+      char* path;
     } ota;
   };
 }
