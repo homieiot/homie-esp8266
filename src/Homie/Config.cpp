@@ -246,8 +246,10 @@ void ConfigClass::log() {
     Logger.log("    • Host: ");
     Logger.logln(this->_configStruct.mqtt.server.host);
     Logger.log("    • Port: ");
+    Logger.logln(String(this->_configStruct.mqtt.server.port));
   }
-  Logger.logln(String(this->_configStruct.mqtt.server.port));
+  Logger.log("    • Base topic: ");
+  Logger.logln(this->_configStruct.mqtt.baseTopic);
   Logger.log("    • Auth: ");
   Logger.logln(this->_configStruct.mqtt.auth ? "yes" : "no");
   if (this->_configStruct.mqtt.auth) {
