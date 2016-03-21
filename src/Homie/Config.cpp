@@ -82,6 +82,10 @@ bool ConfigClass::load() {
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
   }
+  const char* reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
+  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
+    reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
+  }
   bool reqMqttAuth = false;
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("auth")) {
     reqMqttAuth = parsedJson["mqtt"]["auth"];
@@ -137,6 +141,7 @@ bool ConfigClass::load() {
   this->_configStruct.mqtt.server.port = reqMqttPort;
   this->_configStruct.mqtt.server.mdns.enabled = reqMqttMdns;
   this->_configStruct.mqtt.server.mdns.service = strdup(reqMqttMdnsService);
+  this->_configStruct.mqtt.baseTopic = strdup(reqMqttBaseTopic);
   this->_configStruct.mqtt.auth = reqMqttAuth;
   this->_configStruct.mqtt.username = strdup(reqMqttUsername);
   this->_configStruct.mqtt.password = strdup(reqMqttPassword);

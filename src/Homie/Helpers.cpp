@@ -53,6 +53,10 @@ bool HelpersClass::validateConfig(JsonObject& object) {
       return false;
     }
   }
+  if (object["mqtt"].as<JsonObject&>().containsKey("base_topic") && !object["mqtt"]["base_topic"].is<const char*>()) {
+    Logger.logln("✖ mqtt.base_topic is not a string");
+    return false;
+  }
   if (object["mqtt"].as<JsonObject&>().containsKey("auth")) {
     if (!object["mqtt"]["auth"].is<bool>()) {
       Logger.logln("✖ mqtt.auth is not a boolean");

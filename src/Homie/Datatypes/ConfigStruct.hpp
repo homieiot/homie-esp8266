@@ -26,6 +26,7 @@ namespace HomieInternals {
 
     struct MQTT {
       Server server;
+      char* baseTopic;
       bool auth;
       char* username;
       char* password;

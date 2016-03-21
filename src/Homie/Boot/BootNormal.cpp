@@ -22,8 +22,8 @@ BootNormal::BootNormal(Interface* interface)
     this->_interface->mqtt = new PubSubClient(this->_wifiClient);
   }
 
-  strcpy(this->_mqttBaseTopic, "devices/");
-  strcat(this->_mqttBaseTopic, Helpers.getDeviceId());
+  strcpy(this->_mqttDeviceTopic, Config.get().mqtt.baseTopic);
+  strcat(this->_mqttDeviceTopic, Helpers.getDeviceId());
 }
 
 BootNormal::~BootNormal() {
@@ -57,7 +57,7 @@ void BootNormal::_mqttConnect() {
   this->_interface->mqtt->setServer(host, port);
   this->_interface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   char topic[24 + 1];
-  strcpy(topic, this->_mqttBaseTopic);
+  strcpy(topic, this->_mqttDeviceTopic);
   strcat(topic, "/$online");
 
   char client_id[MAX_LENGTH_WIFI_SSID] = "";
@@ -90,7 +90,7 @@ void BootNormal::_mqttSetup() {
   Logger.logln("Sending initial informations");
 
   char topic[27 + 1];
-  strcpy(topic, this->_mqttBaseTopic);
+  strcpy(topic, this->_mqttDeviceTopic);
   strcat(topic, "/$nodes");
 
   int nodesLength = 0;
@@ -115,15 +115,15 @@ void BootNormal::_mqttSetup() {
   nodes.remove(nodes.length() - 1, 1); // Remove last ,
   this->_interface->mqtt->publish(topic, nodes.c_str(), true);
 
-  strcpy(topic, this->_mqttBaseTopic);
+  strcpy(topic, this->_mqttDeviceTopic);
   strcat(topic, "/$online");
   this->_interface->mqtt->publish(topic, "true", true);
 
-  strcpy(topic, this->_mqttBaseTopic);
+  strcpy(topic, this->_mqttDeviceTopic);
   strcat(topic, "/$name");
   this->_interface->mqtt->publish(topic, Config.get().name, true);
 
-  strcpy(topic, this->_mqttBaseTopic);
+  strcpy(topic, this->_mqttDeviceTopic);
   strcat(topic, "/$localip");
   IPAddress local_ip = WiFi.localIP();
   char local_ip_str[15 + 1];
@@ -141,20 +141,20 @@ void BootNormal::_mqttSetup() {
   strcat(local_ip_str, local_ip_part_str);
   this->_interface->mqtt->publish(topic, local_ip_str, true);
 
-  strcpy(topic, this->_mqttBaseTopic);
+  strcpy(topic, this->_mqttDeviceTopic);
   strcat(topic, "/$fwname");
   this->_interface->mqtt->publish(topic, this->_interface->firmware.name, true);
 
-  strcpy(topic, this->_mqttBaseTopic);
+  strcpy(topic, this->_mqttDeviceTopic);
   strcat(topic, "/$fwversion");
   this->_interface->mqtt->publish(topic, this->_interface->firmware.version, true);
 
-  strcpy(topic, this->_mqttBaseTopic);
+  strcpy(topic, this->_mqttDeviceTopic);
   strcat(topic, "/$reset");
   this->_interface->mqtt->subscribe(topic, 1);
 
   if (Config.get().ota.enabled) {
-    strcpy(topic, this->_mqttBaseTopic);
+    strcpy(topic, this->_mqttDeviceTopic);
     strcat(topic, "/$ota");
     this->_interface->mqtt->subscribe(topic, 1);
   }
@@ -165,8 +165,8 @@ void BootNormal::_mqttSetup() {
       Subscription subscription = node.subscriptions[i];
 
       String dynamic_topic;
-      dynamic_topic.reserve(strlen(this->_mqttBaseTopic) + 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1);
-      dynamic_topic = this->_mqttBaseTopic;
+      dynamic_topic.reserve(strlen(this->_mqttDeviceTopic) + 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1);
+      dynamic_topic = this->_mqttDeviceTopic;
       dynamic_topic += "/";
       dynamic_topic += node.id;
       dynamic_topic += "/";
@@ -186,7 +186,7 @@ void BootNormal::_mqttCallback(char* topic, byte* payload, unsigned int length) 
   }
 
   String unified = String(topic);
-  unified.remove(0, strlen(this->_mqttBaseTopic) + 1); // Remove /devices/${id}/ - +1 for /
+  unified.remove(0, strlen(this->_mqttDeviceTopic) + 1); // Remove devices/${id}/ --- +1 for /
   if (Config.get().ota.enabled && unified == "$ota") {
     if (message != this->_interface->firmware.version) {
       Logger.log("✴ OTA available (version ");
@@ -391,7 +391,7 @@ void BootNormal::loop() {
     itoa(quality, quality_str, 10);
 
     char topic[24 + 1];
-    strcpy(topic, this->_mqttBaseTopic);
+    strcpy(topic, this->_mqttDeviceTopic);
     strcat(topic, "/$signal");
 
     if (this->_interface->mqtt->publish(topic, quality_str, true)) {
