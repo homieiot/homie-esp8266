@@ -73,7 +73,7 @@ void BootNormal::_mqttConnect() {
   }
 
   if (connectResult) {
-    if (Config.get().mqtt.ssl && !strcmp(Config.get().mqtt.fingerprint, "")) {
+    if (Config.get().mqtt.ssl && strcmp(Config.get().mqtt.fingerprint, "")) {
       if(!this->_wifiClientSecure.verify(Config.get().mqtt.fingerprint, Config.get().mqtt.host)) {
         Logger.logln("✖ MQTT SSL certificate mismatch");
         this->_interface->mqtt->disconnect();
