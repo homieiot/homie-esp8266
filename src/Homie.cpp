@@ -128,8 +128,7 @@ bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, co
   }
 
   String topic;
-  topic.reserve(7 + 1 + 8 + 1 + strlen(node.id) + 1 + strlen(property) + 1);
-  topic = "devices/";
+  topic = Config.get().mqtt.baseTopic;
   topic += Helpers.getDeviceId();
   topic += "/";
   topic += node.id;

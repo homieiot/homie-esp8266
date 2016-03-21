@@ -58,9 +58,8 @@ void BootNormal::_mqttConnect() {
 
   this->_interface->mqtt->setServer(host, port);
   this->_interface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  char topic[24 + 1];
-  strcpy(topic, this->_mqttDeviceTopic);
-  strcat(topic, "/$online");
+  String topic = this->_mqttDeviceTopic;
+  topic += "/$online";
 
   char client_id[MAX_LENGTH_WIFI_SSID] = "";
   strcat(client_id, this->_interface->brand);
@@ -69,9 +68,9 @@ void BootNormal::_mqttConnect() {
 
   bool connectResult;
   if (Config.get().mqtt.auth) {
-    connectResult = this->_interface->mqtt->connect(client_id, Config.get().mqtt.username, Config.get().mqtt.password, topic, 2, true, "false");
+    connectResult = this->_interface->mqtt->connect(client_id, Config.get().mqtt.username, Config.get().mqtt.password, topic.c_str(), 2, true, "false");
   } else {
-    connectResult = this->_interface->mqtt->connect(client_id, topic, 2, true, "false");
+    connectResult = this->_interface->mqtt->connect(client_id, topic.c_str(), 2, true, "false");
   }
 
   if (connectResult) {
@@ -91,9 +90,8 @@ void BootNormal::_mqttConnect() {
 void BootNormal::_mqttSetup() {
   Logger.logln("Sending initial informations");
 
-  char topic[27 + 1];
-  strcpy(topic, this->_mqttDeviceTopic);
-  strcat(topic, "/$nodes");
+  String topic = this->_mqttDeviceTopic;
+  topic += "/$nodes";
 
   int nodesLength = 0;
   for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
@@ -115,18 +113,18 @@ void BootNormal::_mqttSetup() {
     nodes += ",";
   }
   nodes.remove(nodes.length() - 1, 1); // Remove last ,
-  this->_interface->mqtt->publish(topic, nodes.c_str(), true);
+  this->_interface->mqtt->publish(topic.c_str(), nodes.c_str(), true);
 
-  strcpy(topic, this->_mqttDeviceTopic);
-  strcat(topic, "/$online");
-  this->_interface->mqtt->publish(topic, "true", true);
+  topic = this->_mqttDeviceTopic;
+  topic += "/$online";
+  this->_interface->mqtt->publish(topic.c_str(), "true", true);
 
-  strcpy(topic, this->_mqttDeviceTopic);
-  strcat(topic, "/$name");
-  this->_interface->mqtt->publish(topic, Config.get().name, true);
+  topic = this->_mqttDeviceTopic;
+  topic += "/$name";
+  this->_interface->mqtt->publish(topic.c_str(), Config.get().name, true);
 
-  strcpy(topic, this->_mqttDeviceTopic);
-  strcat(topic, "/$localip");
+  topic = this->_mqttDeviceTopic;
+  topic += "/$localip";
   IPAddress local_ip = WiFi.localIP();
   char local_ip_str[15 + 1];
   char local_ip_part_str[3 + 1];
@@ -141,24 +139,24 @@ void BootNormal::_mqttSetup() {
   strcat(local_ip_str, ".");
   itoa(local_ip[3], local_ip_part_str, 10);
   strcat(local_ip_str, local_ip_part_str);
-  this->_interface->mqtt->publish(topic, local_ip_str, true);
+  this->_interface->mqtt->publish(topic.c_str(), local_ip_str, true);
 
-  strcpy(topic, this->_mqttDeviceTopic);
-  strcat(topic, "/$fwname");
-  this->_interface->mqtt->publish(topic, this->_interface->firmware.name, true);
+  topic = this->_mqttDeviceTopic;
+  topic += "/$fwname";
+  this->_interface->mqtt->publish(topic.c_str(), this->_interface->firmware.name, true);
 
-  strcpy(topic, this->_mqttDeviceTopic);
-  strcat(topic, "/$fwversion");
-  this->_interface->mqtt->publish(topic, this->_interface->firmware.version, true);
+  topic = this->_mqttDeviceTopic;
+  topic += "/$fwversion";
+  this->_interface->mqtt->publish(topic.c_str(), this->_interface->firmware.version, true);
 
-  strcpy(topic, this->_mqttDeviceTopic);
-  strcat(topic, "/$reset");
-  this->_interface->mqtt->subscribe(topic, 1);
+  topic = this->_mqttDeviceTopic;
+  topic += "/$reset";
+  this->_interface->mqtt->subscribe(topic.c_str(), 1);
 
   if (Config.get().ota.enabled) {
-    strcpy(topic, this->_mqttDeviceTopic);
-    strcat(topic, "/$ota");
-    this->_interface->mqtt->subscribe(topic, 1);
+    topic = this->_mqttDeviceTopic;
+    topic += "/$ota";
+    this->_interface->mqtt->subscribe(topic.c_str(), 1);
   }
 
   for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
@@ -392,11 +390,10 @@ void BootNormal::loop() {
     char quality_str[3 + 1];
     itoa(quality, quality_str, 10);
 
-    char topic[24 + 1];
-    strcpy(topic, this->_mqttDeviceTopic);
-    strcat(topic, "/$signal");
+    String topic = this->_mqttDeviceTopic;
+    topic += "/$signal";
 
-    if (this->_interface->mqtt->publish(topic, quality_str, true)) {
+    if (this->_interface->mqtt->publish(topic.c_str(), quality_str, true)) {
       this->_lastSignalSent = now;
     }
   }
