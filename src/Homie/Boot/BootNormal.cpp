@@ -22,8 +22,10 @@ BootNormal::BootNormal(Interface* interface)
     this->_interface->mqtt = new PubSubClient(this->_wifiClient);
   }
 
-  strcpy(this->_mqttDeviceTopic, Config.get().mqtt.baseTopic);
-  strcat(this->_mqttDeviceTopic, Helpers.getDeviceId());
+  String baseTopic;
+  baseTopic += Config.get().mqtt.baseTopic;
+  baseTopic += Helpers.getDeviceId();
+  this->_mqttDeviceTopic = strdup(baseTopic.c_str());
 }
 
 BootNormal::~BootNormal() {
