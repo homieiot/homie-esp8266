@@ -123,7 +123,7 @@ void HomieClass::disableResetTrigger() {
 
 bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained) {
   if (!this->isReadyToOperate()) {
-    Logger.logln("setNodeProperty() impossible now");
+    Logger.logln(F("setNodeProperty() impossible now"));
     return false;
   }
 
@@ -131,9 +131,9 @@ bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, co
 
   strcpy(topic.get(), Config.get().mqtt.baseTopic);
   strcat(topic.get(), Helpers.getDeviceId());
-  strcat(topic.get(), "/");
+  strcat_P(topic.get(), PSTR("/"));
   strcat(topic.get(), node.id);
-  strcat(topic.get(), "/");
+  strcat_P(topic.get(), PSTR("/"));
   strcat(topic.get(), property);
   return this->_interface.mqtt->publish(topic.get(), value, retained);
 }

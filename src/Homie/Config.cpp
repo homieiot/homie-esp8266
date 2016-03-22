@@ -10,10 +10,7 @@ ConfigClass::ConfigClass()
 bool ConfigClass::_spiffsBegin() {
   if (!this->_spiffsBegan) {
     this->_spiffsBegan = SPIFFS.begin();
-  }
-
-  if (!this->_spiffsBegan) {
-    Logger.logln("✖ Cannot mount filesystem");
+    if (!this->_spiffsBegan) Logger.logln(F("✖ Cannot mount filesystem"));
   }
 
   return this->_spiffsBegan;
@@ -24,20 +21,15 @@ bool ConfigClass::load() {
 
   this->_bootMode = BOOT_CONFIG;
 
-  if (!this->_spiffsBegan) {
-    Logger.logln("✖ Cannot mount filesystem");
-    return false;
-  }
-
   if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
     Logger.log(CONFIG_FILE_PATH);
-    Logger.logln(" doesn't exist");
+    Logger.logln(F(" doesn't exist"));
     return false;
   }
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
-    Logger.logln("✖ Cannot open config file");
+    Logger.logln(F("✖ Cannot open config file"));
     return false;
   }
 
@@ -49,7 +41,7 @@ bool ConfigClass::load() {
   StaticJsonBuffer<JSON_CONFIG_MAX_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(buf.get());
   if (!parsedJson.success()) {
-    Logger.logln("✖ Invalid or too big config file");
+    Logger.logln(F("✖ Invalid or too big config file"));
     return false;
   }
 
@@ -166,11 +158,6 @@ ConfigStruct& ConfigClass::get() {
 void ConfigClass::erase() {
   if (!this->_spiffsBegin()) { return; }
 
-  if (!this->_spiffsBegan) {
-    Logger.logln("✖ Cannot mount filesystem");
-    return;
-  }
-
   SPIFFS.remove(CONFIG_FILE_PATH);
   SPIFFS.remove(CONFIG_OTA_PATH);
 }
@@ -182,7 +169,7 @@ void ConfigClass::write(const String& config) {
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
   if (!configFile) {
-    Logger.logln("✖ Cannot open config file");
+    Logger.logln(F("✖ Cannot open config file"));
     return;
   }
 
@@ -196,7 +183,7 @@ void ConfigClass::setOtaMode(bool enabled) {
   if (enabled) {
     File otaFile = SPIFFS.open(CONFIG_OTA_PATH, "w");
     if (!otaFile) {
-      Logger.logln("✖ Cannot open OTA file");
+      Logger.logln(F("✖ Cannot open OTA file"));
       return;
     }
 
@@ -212,77 +199,77 @@ BootMode ConfigClass::getBootMode() {
 }
 
 void ConfigClass::log() {
-  Logger.logln("⚙ Stored configuration:");
-  Logger.log("  • Device ID: ");
+  Logger.logln(F("⚙ Stored configuration:"));
+  Logger.log(F("  • Device ID: "));
   Logger.logln(Helpers.getDeviceId());
-  Logger.log("  • Boot mode: ");
+  Logger.log(F("  • Boot mode: "));
   switch (this->_bootMode) {
     case BOOT_CONFIG:
-      Logger.logln("configuration");
+      Logger.logln(F("configuration"));
       break;
     case BOOT_NORMAL:
-      Logger.logln("normal");
+      Logger.logln(F("normal"));
       break;
     case BOOT_OTA:
-      Logger.logln("OTA");
+      Logger.logln(F("OTA"));
       break;
     default:
-      Logger.logln("unknown");
+      Logger.logln(F("unknown"));
       break;
   }
-  Logger.log("  • Name: ");
+  Logger.log(F("  • Name: "));
   Logger.logln(this->_configStruct.name);
 
-  Logger.logln("  • Wi-Fi");
-  Logger.log("    • SSID: ");
+  Logger.logln(F("  • Wi-Fi"));
+  Logger.log(F("    • SSID: "));
   Logger.logln(this->_configStruct.wifi.ssid);
-  Logger.logln("    • Password not shown");
+  Logger.logln(F("    • Password not shown"));
 
-  Logger.logln("  • MQTT");
+  Logger.logln(F("  • MQTT"));
   if (this->_configStruct.mqtt.server.mdns.enabled) {
-    Logger.log("    • mDNS: ");
+    Logger.log(F("    • mDNS: "));
     Logger.log(this->_configStruct.mqtt.server.mdns.service);
   } else {
-    Logger.log("    • Host: ");
+    Logger.log(F("    • Host: "));
     Logger.logln(this->_configStruct.mqtt.server.host);
-    Logger.log("    • Port: ");
+    Logger.log(F("    • Port: "));
     Logger.logln(String(this->_configStruct.mqtt.server.port));
   }
-  Logger.log("    • Base topic: ");
+  Logger.log(F("    • Base topic: "));
   Logger.logln(this->_configStruct.mqtt.baseTopic);
-  Logger.log("    • Auth: ");
+  Logger.log(F("    • Auth: "));
   Logger.logln(this->_configStruct.mqtt.auth ? "yes" : "no");
   if (this->_configStruct.mqtt.auth) {
-    Logger.log("    • Username: ");
+    Logger.log(F("    • Username: "));
     Logger.logln(this->_configStruct.mqtt.username);
-    Logger.logln("    • Password not shown");
+    Logger.logln(F("    • Password not shown"));
   }
-  Logger.log("    • SSL: ");
+  Logger.log(F("    • SSL: "));
   Logger.logln(this->_configStruct.mqtt.server.ssl.enabled ? "yes" : "no");
   if (this->_configStruct.mqtt.server.ssl.enabled) {
-    Logger.log("    • Fingerprint: ");
+    Logger.log(F("    • Fingerprint: "));
     Logger.logln(this->_configStruct.mqtt.server.ssl.fingerprint);
   }
 
-  Logger.logln("  • OTA");
-  Logger.log("    • Enabled: ");
+  Logger.logln(F("  • OTA"));
+  Logger.log(F("    • Enabled: "));
   Logger.logln(this->_configStruct.ota.enabled ? "yes" : "no");
   if (this->_configStruct.ota.enabled) {
     if (this->_configStruct.ota.server.mdns.enabled) {
-      Logger.log("    • mDNS: ");
+      Logger.log(F("    • mDNS: "));
       Logger.log(this->_configStruct.ota.server.mdns.service);
     } else {
-      Logger.log("    • Host: ");
+      Logger.log(F("    • Host: "));
       Logger.logln(this->_configStruct.ota.server.host);
-      Logger.log("    • Port: ");
+      Logger.log(F("    • Port: "));
       Logger.logln(String(this->_configStruct.ota.server.port));
     }
-    Logger.log("    • Path: ");
+    Logger.log(F("    • Path: "));
     Logger.logln(String(this->_configStruct.ota.path));
-    Logger.log("    • SSL: ");
+    Logger.log(F("    • SSL: "));
     Logger.logln(this->_configStruct.ota.server.ssl.enabled ? "yes" : "no");
     if (this->_configStruct.ota.server.ssl.enabled) {
-      Logger.log("    • Fingerprint: ");
+      Logger.log(F("    • Fingerprint: "));
       Logger.logln(this->_configStruct.ota.server.ssl.fingerprint);
     }
   }

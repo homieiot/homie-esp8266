@@ -19,15 +19,15 @@ void Boot::setup() {
 
   char hostname[MAX_LENGTH_WIFI_SSID] = "";
   strcat(hostname, this->_interface->brand);
-  strcat(hostname, "-");
+  strcat_P(hostname, PSTR("-"));
   strcat(hostname, Helpers.getDeviceId());
 
   WiFi.hostname(hostname);
 
   Logger.logln();
-  Logger.log("** Booting in ");
+  Logger.log(F("** Booting in "));
   Logger.log(this->_name);
-  Logger.logln(" mode **");
+  Logger.logln(F(" mode **"));
 }
 
 void Boot::loop() {

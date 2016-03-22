@@ -22,17 +22,17 @@ void BootOta::setup() {
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
     if (wifi_attempts <= 3) {
       WiFi.begin(Config.get().wifi.ssid, Config.get().wifi.password);
-      Logger.log("Retrying Wi-Fi connection");
+      Logger.log(F("Retrying Wi-Fi connection"));
       Logger.log(String(wifi_attempts));
-      Logger.logln("/3");
+      Logger.logln(F("/3"));
       wifi_attempts++;
     } else {
-      Logger.logln("✖ Connection failed, rebooting in normal mode...");
+      Logger.logln(F("✖ Connection failed, rebooting in normal mode..."));
       Config.setOtaMode(false);
       ESP.restart();
     }
   }
-  Logger.logln("✔ Connected to Wi-Fi");
+  Logger.logln(F("✔ Connected to Wi-Fi"));
 
   const char* host = Config.get().ota.server.host;
   uint16_t port = Config.get().ota.server.port;
@@ -54,7 +54,7 @@ void BootOta::setup() {
     }
   } */
 
-  Logger.logln("Starting OTA...");
+  Logger.logln(F("Starting OTA..."));
 
 
   std::unique_ptr<char[]> dataToPass(new char[strlen(Helpers.getDeviceId()) + 1 + strlen(this->_interface->firmware.name) + 1 + strlen(this->_interface->firmware.version) + 1]);
@@ -66,13 +66,13 @@ void BootOta::setup() {
   t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass.get(), Config.get().ota.server.ssl.enabled, Config.get().ota.server.ssl.fingerprint, false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:
-      Logger.logln("✖ Update failed");
+      Logger.logln(F("✖ Update failed"));
       break;
     case HTTP_UPDATE_NO_UPDATES:
-      Logger.logln("✖ No updates");
+      Logger.logln(F("✖ No updates"));
       break;
     case HTTP_UPDATE_OK:
-      Logger.logln("✔ Success, rebooting");
+      Logger.logln(F("✔ Success, rebooting"));
       break;
   }
 
