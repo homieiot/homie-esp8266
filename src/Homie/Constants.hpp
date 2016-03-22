@@ -3,7 +3,7 @@
 #include <ArduinoJson.h>
 
 namespace HomieInternals {
-  const char VERSION[] = "1.0.0";
+  const char VERSION[] = "1.3.0";
   const int BAUD_RATE = 115200;
 
   const uint16_t DEFAULT_MQTT_PORT = 1883;
