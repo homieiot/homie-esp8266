@@ -275,6 +275,7 @@ void ConfigClass::log() {
       Logger.log("    • Host: ");
       Logger.logln(this->_configStruct.ota.server.host);
       Logger.log("    • Port: ");
+      Logger.logln(String(this->_configStruct.ota.server.port));
     }
     Logger.log("    • Path: ");
     Logger.logln(String(this->_configStruct.ota.path));
