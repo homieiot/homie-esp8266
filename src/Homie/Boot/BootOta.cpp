@@ -57,13 +57,13 @@ void BootOta::setup() {
   Logger.logln("Starting OTA...");
 
 
-  String dataToPass = Helpers.getDeviceId();
-  dataToPass.reserve(1 + strlen(this->_interface->firmware.name) + 1 + strlen(this->_interface->firmware.version) + 1);
-  dataToPass += '=';
-  dataToPass += this->_interface->firmware.name;
-  dataToPass += '@';
-  dataToPass += this->_interface->firmware.version;
-  t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass, Config.get().ota.server.ssl.enabled, Config.get().ota.server.ssl.fingerprint, false);
+  std::unique_ptr<char[]> dataToPass(new char[strlen(Helpers.getDeviceId()) + 1 + strlen(this->_interface->firmware.name) + 1 + strlen(this->_interface->firmware.version) + 1]);
+  strcpy(dataToPass.get(), Helpers.getDeviceId());
+  strcat(dataToPass.get(), "=");
+  strcat(dataToPass.get(), this->_interface->firmware.name);
+  strcat(dataToPass.get(), "@");
+  strcat(dataToPass.get(), this->_interface->firmware.version);
+  t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass.get(), Config.get().ota.server.ssl.enabled, Config.get().ota.server.ssl.fingerprint, false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:
       Logger.logln("✖ Update failed");

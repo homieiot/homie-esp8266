@@ -127,14 +127,15 @@ bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, co
     return false;
   }
 
-  String topic;
-  topic = Config.get().mqtt.baseTopic;
-  topic += Helpers.getDeviceId();
-  topic += "/";
-  topic += node.id;
-  topic += "/";
-  topic += property;
-  return this->_interface.mqtt->publish(topic.c_str(), value, retained);
+  std::unique_ptr<char[]> topic(new char[strlen(Config.get().mqtt.baseTopic) + strlen(Helpers.getDeviceId()) + 1 + strlen(node.id) + 1 + strlen(property) + 1]);
+
+  strcpy(topic.get(), Config.get().mqtt.baseTopic);
+  strcat(topic.get(), Helpers.getDeviceId());
+  strcat(topic.get(), "/");
+  strcat(topic.get(), node.id);
+  strcat(topic.get(), "/");
+  strcat(topic.get(), property);
+  return this->_interface.mqtt->publish(topic.get(), value, retained);
 }
 
 HomieClass Homie;

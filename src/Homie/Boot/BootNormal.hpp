@@ -36,6 +36,7 @@ namespace HomieInternals {
       bool _flaggedForOta;
       bool _flaggedForReset;
       char* _mqttDeviceTopic;
+      char* _mqttTopicBuffer;
       Bounce _resetDebouncer;
       WiFiClient _wifiClient;
       WiFiClientSecure _wifiClientSecure;

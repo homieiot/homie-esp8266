@@ -66,8 +66,8 @@ void BootConfig::setup() {
   this->_http.begin();
 }
 
-String BootConfig::_generateNetworksJson() {
-  DynamicJsonBuffer generatedJsonBuffer;
+void BootConfig::_generateNetworksJson() {
+  DynamicJsonBuffer generatedJsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(this->_ssidCount) + (this->_ssidCount * JSON_OBJECT_SIZE(3))); // 1 at root, 3 in childrend
   JsonObject& json = generatedJsonBuffer.createObject();
 
   JsonArray& networks = json.createNestedArray("networks");
@@ -98,16 +98,16 @@ String BootConfig::_generateNetworksJson() {
 
   // 15 bytes: {"networks":[]}
   // 75 bytes: {"ssid":"thisisa32characterlongstringyes!","rssi":-99,"encryption":"none"}, (-1 for leading ","), +1 for terminator
-  String json_string;
-  json_string.reserve(15 + (75 * this->_ssidCount) - 1 + 1);
-  json.printTo(json_string);
-  return json_string;
+  char* jsonString = new char[15 + (75 * this->_ssidCount) - 1 + 1];
+  json.printTo(jsonString, sizeof(jsonString));
+  delete[] this->_jsonWifiNetworks;
+  this->_jsonWifiNetworks = jsonString;
 }
 
 void BootConfig::_onDeviceInfoRequest() {
   Logger.logln("Received device info request");
 
-  DynamicJsonBuffer jsonBuffer;
+  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(this->_interface->registeredNodes.size()) + (this->_interface->registeredNodes.size() * JSON_OBJECT_SIZE(2)));
   JsonObject& json = jsonBuffer.createObject();
   json["device_id"] = Helpers.getDeviceId();
   json["homie_version"] = VERSION;
@@ -127,10 +127,9 @@ void BootConfig::_onDeviceInfoRequest() {
 
   // 110 bytes for {"homie_version":"11.10.0","firmware":{"name":"awesome-light-great-top","version":"11.10.0-beta"},"nodes":[]}
   // 60 bytes for {"id":"lightifydefoulooooo","type":"lightifydefouloooo"}, (-1 for leading ","), +1 for terminator
-  String jsonString;
-  jsonString.reserve(110 + (60 * this->_interface->registeredNodes.size()) - 1 + 1);
-  json.printTo(jsonString);
-  this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), jsonString);
+  std::unique_ptr<char[]> jsonString(new char[110 + (60 * this->_interface->registeredNodes.size()) - 1 + 1]);
+  json.printTo(jsonString.get(), sizeof(jsonString.get()));
+  this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), jsonString.get());
 }
 
 void BootConfig::_onNetworksRequest() {
@@ -202,7 +201,7 @@ void BootConfig::loop() {
       default:
         Logger.logln("✔ Wi-Fi scan completed");
         this->_ssidCount = scan_result;
-        this->_jsonWifiNetworks = this->_generateNetworksJson();
+        this->_generateNetworksJson();
         this->_wifiScanAvailable = true;
         break;
     }

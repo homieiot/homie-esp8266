@@ -28,13 +28,13 @@ namespace HomieInternals {
       bool _wifiScanAvailable;
       unsigned long _lastWifiScan;
       bool _lastWifiScanEnded;
-      String _jsonWifiNetworks;
+      char* _jsonWifiNetworks;
       bool _flaggedForReboot;
       unsigned long _flaggedForRebootAt;
 
       void _onDeviceInfoRequest();
       void _onNetworksRequest();
       void _onConfigRequest();
-      String _generateNetworksJson();
+      void _generateNetworksJson();
   };
 }

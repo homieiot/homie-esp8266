@@ -22,14 +22,17 @@ BootNormal::BootNormal(Interface* interface)
     this->_interface->mqtt = new PubSubClient(this->_wifiClient);
   }
 
-  String baseTopic;
-  baseTopic += Config.get().mqtt.baseTopic;
-  baseTopic += Helpers.getDeviceId();
-  this->_mqttDeviceTopic = strdup(baseTopic.c_str());
+  this->_mqttDeviceTopic = new char[strlen(Config.get().mqtt.baseTopic) + strlen(Helpers.getDeviceId()) + 1]();
+  strcpy(this->_mqttDeviceTopic, Config.get().mqtt.baseTopic);
+  strcat(this->_mqttDeviceTopic, Helpers.getDeviceId());
+
+  this->_mqttTopicBuffer = new char[strlen(this->_mqttDeviceTopic) + 11 + 1](); // Greater topic is /$fwversion (11)
 }
 
 BootNormal::~BootNormal() {
   delete this->_interface->mqtt;
+  delete[] this->_mqttDeviceTopic;
+  delete[] this->_mqttTopicBuffer;
 }
 
 void BootNormal::_wifiConnect() {
@@ -58,8 +61,8 @@ void BootNormal::_mqttConnect() {
 
   this->_interface->mqtt->setServer(host, port);
   this->_interface->mqtt->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  String topic = this->_mqttDeviceTopic;
-  topic += "/$online";
+  strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+  strcat(this->_mqttTopicBuffer, "/$online");
 
   char client_id[MAX_LENGTH_WIFI_SSID] = "";
   strcat(client_id, this->_interface->brand);
@@ -68,9 +71,9 @@ void BootNormal::_mqttConnect() {
 
   bool connectResult;
   if (Config.get().mqtt.auth) {
-    connectResult = this->_interface->mqtt->connect(client_id, Config.get().mqtt.username, Config.get().mqtt.password, topic.c_str(), 2, true, "false");
+    connectResult = this->_interface->mqtt->connect(client_id, Config.get().mqtt.username, Config.get().mqtt.password, this->_mqttTopicBuffer, 2, true, "false");
   } else {
-    connectResult = this->_interface->mqtt->connect(client_id, topic.c_str(), 2, true, "false");
+    connectResult = this->_interface->mqtt->connect(client_id, this->_mqttTopicBuffer, 2, true, "false");
   }
 
   if (connectResult) {
@@ -90,8 +93,8 @@ void BootNormal::_mqttConnect() {
 void BootNormal::_mqttSetup() {
   Logger.logln("Sending initial informations");
 
-  String topic = this->_mqttDeviceTopic;
-  topic += "/$nodes";
+  strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+  strcat(this->_mqttTopicBuffer, "/$nodes");
 
   int nodesLength = 0;
   for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
@@ -101,30 +104,30 @@ void BootNormal::_mqttSetup() {
     nodesLength += strlen(node.type);
     nodesLength += 1; // ,
   }
+  nodesLength -= 1; // Last ,
   nodesLength += 1; // Leading \0
 
-  String nodes = String();
-  nodes.reserve(nodesLength);
+  std::unique_ptr<char[]> nodes(new char[nodesLength]);
+  strcpy(nodes.get(), "");
   for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
     HomieNode node = this->_interface->registeredNodes[i];
-    nodes += node.id;
-    nodes += ":";
-    nodes += node.type;
-    nodes += ",";
+    strcat(nodes.get(), node.id);
+    strcat(nodes.get(), ":");
+    strcat(nodes.get(), node.type);
+    if (i != this->_interface->registeredNodes.size() - 1) strcat(nodes.get(), ",");
   }
-  nodes.remove(nodes.length() - 1, 1); // Remove last ,
-  this->_interface->mqtt->publish(topic.c_str(), nodes.c_str(), true);
+  this->_interface->mqtt->publish(this->_mqttTopicBuffer, nodes.get(), true);
 
-  topic = this->_mqttDeviceTopic;
-  topic += "/$online";
-  this->_interface->mqtt->publish(topic.c_str(), "true", true);
+  strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+  strcat(this->_mqttTopicBuffer, "/$online");
+  this->_interface->mqtt->publish(this->_mqttTopicBuffer, "true", true);
 
-  topic = this->_mqttDeviceTopic;
-  topic += "/$name";
-  this->_interface->mqtt->publish(topic.c_str(), Config.get().name, true);
+  strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+  strcat(this->_mqttTopicBuffer, "/$name");
+  this->_interface->mqtt->publish(this->_mqttTopicBuffer, Config.get().name, true);
 
-  topic = this->_mqttDeviceTopic;
-  topic += "/$localip";
+  strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+  strcat(this->_mqttTopicBuffer, "/$localip");
   IPAddress local_ip = WiFi.localIP();
   char local_ip_str[15 + 1];
   char local_ip_part_str[3 + 1];
@@ -139,24 +142,24 @@ void BootNormal::_mqttSetup() {
   strcat(local_ip_str, ".");
   itoa(local_ip[3], local_ip_part_str, 10);
   strcat(local_ip_str, local_ip_part_str);
-  this->_interface->mqtt->publish(topic.c_str(), local_ip_str, true);
+  this->_interface->mqtt->publish(this->_mqttTopicBuffer, local_ip_str, true);
 
-  topic = this->_mqttDeviceTopic;
-  topic += "/$fwname";
-  this->_interface->mqtt->publish(topic.c_str(), this->_interface->firmware.name, true);
+  strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+  strcat(this->_mqttTopicBuffer, "/$fwname");
+  this->_interface->mqtt->publish(this->_mqttTopicBuffer, this->_interface->firmware.name, true);
 
-  topic = this->_mqttDeviceTopic;
-  topic += "/$fwversion";
-  this->_interface->mqtt->publish(topic.c_str(), this->_interface->firmware.version, true);
+  strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+  strcat(this->_mqttTopicBuffer, "/$fwversion");
+  this->_interface->mqtt->publish(this->_mqttTopicBuffer, this->_interface->firmware.version, true);
 
-  topic = this->_mqttDeviceTopic;
-  topic += "/$reset";
-  this->_interface->mqtt->subscribe(topic.c_str(), 1);
+  strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+  strcat(this->_mqttTopicBuffer, "/$reset");
+  this->_interface->mqtt->subscribe(this->_mqttTopicBuffer, 1);
 
   if (Config.get().ota.enabled) {
-    topic = this->_mqttDeviceTopic;
-    topic += "/$ota";
-    this->_interface->mqtt->subscribe(topic.c_str(), 1);
+    strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+    strcat(this->_mqttTopicBuffer, "/$ota");
+    this->_interface->mqtt->subscribe(this->_mqttTopicBuffer, 1);
   }
 
   for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
@@ -164,15 +167,14 @@ void BootNormal::_mqttSetup() {
     for (int i = 0; i < node.subscriptions.size(); i++) {
       Subscription subscription = node.subscriptions[i];
 
-      String dynamic_topic;
-      dynamic_topic.reserve(strlen(this->_mqttDeviceTopic) + 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1);
-      dynamic_topic = this->_mqttDeviceTopic;
-      dynamic_topic += "/";
-      dynamic_topic += node.id;
-      dynamic_topic += "/";
-      dynamic_topic += subscription.property;
-      dynamic_topic += "/set";
-      this->_interface->mqtt->subscribe(dynamic_topic.c_str(), 1);
+      std::unique_ptr<char[]> topicSub(new char[strlen(this->_mqttDeviceTopic) + 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1]);
+      strcpy(topicSub.get(), this->_mqttDeviceTopic);
+      strcat(topicSub.get(), "/");
+      strcat(topicSub.get(), node.id);
+      strcat(topicSub.get(), "/");
+      strcat(topicSub.get(), subscription.property);
+      strcat(topicSub.get(), "/set");
+      this->_interface->mqtt->subscribe(topicSub.get(), 1);
       this->_interface->mqtt->loop(); // see knolleary/pubsublient#98
     }
   }
@@ -390,10 +392,10 @@ void BootNormal::loop() {
     char quality_str[3 + 1];
     itoa(quality, quality_str, 10);
 
-    String topic = this->_mqttDeviceTopic;
-    topic += "/$signal";
+    strcpy(this->_mqttTopicBuffer, this->_mqttDeviceTopic);
+    strcat(this->_mqttTopicBuffer, "/$signal");
 
-    if (this->_interface->mqtt->publish(topic.c_str(), quality_str, true)) {
+    if (this->_interface->mqtt->publish(this->_mqttTopicBuffer, quality_str, true)) {
       this->_lastSignalSent = now;
     }
   }
