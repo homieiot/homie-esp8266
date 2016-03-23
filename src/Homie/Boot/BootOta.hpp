@@ -13,12 +13,11 @@
 namespace HomieInternals {
   class BootOta : public Boot {
     public:
-      BootOta(Interface* interface);
+      BootOta();
       ~BootOta();
       void setup();
       void loop();
 
     private:
-      Interface* _interface;
   };
 }

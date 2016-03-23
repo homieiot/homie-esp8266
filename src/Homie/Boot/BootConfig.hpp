@@ -16,12 +16,11 @@
 namespace HomieInternals {
   class BootConfig : public Boot {
     public:
-      BootConfig(Interface* interface);
+      BootConfig();
       ~BootConfig();
       void setup();
       void loop();
     private:
-      Interface* _interface;
       ESP8266WebServer _http;
       DNSServer _dns;
       byte _ssidCount;

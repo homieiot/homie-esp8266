@@ -2,10 +2,12 @@
 
 using namespace HomieInternals;
 
-Boot::Boot(Interface* interface, const char* name)
-: _interface(interface)
-, _name(name)
+Boot::Boot(const char* name) : _name(name)
 {
+}
+
+void Boot::attachInterface(Interface* interface) {
+  _interface = interface;
 }
 
 void Boot::setup() {

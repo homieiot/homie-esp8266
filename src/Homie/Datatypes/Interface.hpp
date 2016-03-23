@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <PubSubClient.h>
+#include "../MqttClient.hpp"
 #include "../../HomieNode.h"
 #include "../../HomieEvent.h"
 
@@ -39,6 +39,6 @@ namespace HomieInternals {
 
     /***** Runtime data *****/
     bool readyToOperate;
-    PubSubClient* mqtt;
+    MqttClient mqtt;
   };
 }

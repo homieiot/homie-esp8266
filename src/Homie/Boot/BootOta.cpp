@@ -2,9 +2,8 @@
 
 using namespace HomieInternals;
 
-BootOta::BootOta(Interface* interface)
-: Boot(interface, "OTA")
-, _interface(interface)
+BootOta::BootOta()
+: Boot("OTA")
 {
 }
 

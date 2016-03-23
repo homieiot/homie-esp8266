@@ -10,6 +10,7 @@ namespace HomieInternals {
   const uint16_t DEFAULT_OTA_PORT = 80;
   const char DEFAULT_MQTT_BASE_TOPIC[] = "devices/";
   const char DEFAULT_OTA_PATH[] = "/ota";
+  const unsigned char MAX_NODE_PROPERTY_LENGTH = 20;
 
   const uint8_t DEFAULT_RESET_PIN = 0; // == D3 on nodeMCU
   const byte DEFAULT_RESET_STATE = LOW;

@@ -105,7 +105,7 @@ bool HelpersClass::validateConfig(JsonObject& object) {
       }
       otaMdns = true;
     } else {
-      if (!object["ota"].as<JsonObject&>().containsKey("host") || !object["ota"]["host"].is<const char*>()) {
+      if (object["ota"].as<JsonObject&>().containsKey("host") && !object["ota"]["host"].is<const char*>()) {
         Logger.logln(F("✖ ota.host is not a string"));
         return false;
       }

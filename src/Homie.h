@@ -5,6 +5,7 @@
 #include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
 #include "Homie/Datatypes/ConfigStruct.hpp"
+#include "Homie/MqttClient.hpp"
 #include "Homie/Constants.hpp"
 #include "Homie/Helpers.hpp"
 #include "Homie/Boot/Boot.hpp"
@@ -43,7 +44,11 @@ namespace HomieInternals {
       bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
     private:
       Boot* _boot;
+      BootNormal _bootNormal;
+      BootConfig _bootConfig;
+      BootOta _bootOta;
       Interface _interface;
+      unsigned char _longestSubDeviceTopic;
   };
 }
 

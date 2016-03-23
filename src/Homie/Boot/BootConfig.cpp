@@ -2,9 +2,8 @@
 
 using namespace HomieInternals;
 
-BootConfig::BootConfig(Interface* interface)
-: Boot(interface, "config")
-, _interface(interface)
+BootConfig::BootConfig()
+: Boot("config")
 , _http(80)
 , _ssidCount(0)
 , _wifiScanAvailable(false)

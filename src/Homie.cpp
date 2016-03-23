@@ -3,6 +3,8 @@
 using namespace HomieInternals;
 
 HomieClass::HomieClass() {
+  this->_longestSubDeviceTopic = sizeof("/$fwversion") + 1;
+
   this->_interface.brand = strdup(DEFAULT_BRAND);
   this->_interface.firmware.name = strdup(DEFAULT_FW_NAME);
   this->_interface.firmware.version = strdup(DEFAULT_FW_VERSION);
@@ -22,10 +24,12 @@ HomieClass::HomieClass() {
   this->_interface.readyToOperate = false;
 
   Blinker.attachInterface(&this->_interface);
+  this->_bootNormal.attachInterface(&this->_interface);
+  this->_bootOta.attachInterface(&this->_interface);
+  this->_bootConfig.attachInterface(&this->_interface);
 }
 
 HomieClass::~HomieClass() {
-  delete this->_boot;
 }
 
 void HomieClass::setup(void) {
@@ -34,16 +38,17 @@ void HomieClass::setup(void) {
   }
 
   if (!Config.load()) {
-    this->_boot = new BootConfig(&this->_interface);
+    this->_boot = &this->_bootConfig;
     this->_interface.eventHandler(HOMIE_CONFIGURATION_MODE);
   } else {
     switch (Config.getBootMode()) {
       case BOOT_NORMAL:
-        this->_boot = new BootNormal(&this->_interface);
+        this->_boot = &this->_bootNormal;
+        this->_interface.mqtt.initBuffer(strlen(Config.get().mqtt.baseTopic) + strlen(Helpers.getDeviceId()) + this->_longestSubDeviceTopic + 1);
         this->_interface.eventHandler(HOMIE_NORMAL_MODE);
         break;
       case BOOT_OTA:
-        this->_boot = new BootOta(&this->_interface);
+        this->_boot = &this->_bootOta;
         this->_interface.eventHandler(HOMIE_OTA_MODE);
         break;
     }
@@ -80,6 +85,17 @@ void HomieClass::setBrand(const char* name) {
 
 void HomieClass::registerNode(const HomieNode& node) {
   this->_interface.registeredNodes.push_back(node);
+
+  unsigned char subDeviceTopicSize;
+
+  subDeviceTopicSize = 1 + strlen(node.id) + 1 + MAX_NODE_PROPERTY_LENGTH + 1; // / node.id / prop
+  if (subDeviceTopicSize > this->_longestSubDeviceTopic) this->_longestSubDeviceTopic = subDeviceTopicSize;
+
+  for (int i = 0; i < node.subscriptions.size(); i++) {
+    Subscription subscription = node.subscriptions[i];
+    subDeviceTopicSize = 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1; // / node.id / sub.prop /set
+    if (subDeviceTopicSize > this->_longestSubDeviceTopic) this->_longestSubDeviceTopic = subDeviceTopicSize;
+  }
 }
 
 bool HomieClass::isReadyToOperate() {
@@ -127,15 +143,13 @@ bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, co
     return false;
   }
 
-  std::unique_ptr<char[]> topic(new char[strlen(Config.get().mqtt.baseTopic) + strlen(Helpers.getDeviceId()) + 1 + strlen(node.id) + 1 + strlen(property) + 1]);
-
-  strcpy(topic.get(), Config.get().mqtt.baseTopic);
-  strcat(topic.get(), Helpers.getDeviceId());
-  strcat_P(topic.get(), PSTR("/"));
-  strcat(topic.get(), node.id);
-  strcat_P(topic.get(), PSTR("/"));
-  strcat(topic.get(), property);
-  return this->_interface.mqtt->publish(topic.get(), value, retained);
+  strcpy(this->_interface.mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(this->_interface.mqtt.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(this->_interface.mqtt.getTopicBuffer(), PSTR("/"));
+  strcat(this->_interface.mqtt.getTopicBuffer(), node.id);
+  strcat_P(this->_interface.mqtt.getTopicBuffer(), PSTR("/"));
+  strcat(this->_interface.mqtt.getTopicBuffer(), property);
+  return this->_interface.mqtt.publish(value, retained);
 }
 
 HomieClass Homie;

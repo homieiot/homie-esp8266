@@ -4,11 +4,11 @@
 #include <functional>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
-#include <PubSubClient.h>
 #include <Bounce2.h>
 #include "../../HomieNode.h"
 #include "../Constants.hpp"
 #include "../Datatypes/Interface.hpp"
+#include "../MqttClient.hpp"
 #include "../Helpers.hpp"
 #include "../Config.hpp"
 #include "../Blinker.hpp"
@@ -18,13 +18,12 @@
 namespace HomieInternals {
   class BootNormal : public Boot {
     public:
-      BootNormal(Interface* interface);
+      BootNormal();
       ~BootNormal();
       void setup();
       void loop();
 
     private:
-      Interface* _interface;
       unsigned long _lastWifiReconnectAttempt;
       unsigned long _lastMqttReconnectAttempt;
       unsigned long _lastSignalSent;
@@ -35,16 +34,12 @@ namespace HomieInternals {
       bool _mqttDisconnectNotified;
       bool _flaggedForOta;
       bool _flaggedForReset;
-      char* _mqttDeviceTopic;
-      char* _mqttTopicBuffer;
       Bounce _resetDebouncer;
-      WiFiClient _wifiClient;
-      WiFiClientSecure _wifiClientSecure;
 
       void _handleReset();
       void _wifiConnect();
       void _mqttConnect();
       void _mqttSetup();
-      void _mqttCallback(char* topic, byte* payload, unsigned int length);
+      void _mqttCallback(char* topic, char* message);
   };
 }
