@@ -3,11 +3,9 @@
 using namespace HomieInternals;
 
 HomieClass::HomieClass() {
-  this->_longestSubDeviceTopic = sizeof("/$fwversion") + 1;
-
-  this->_interface.brand = strdup(DEFAULT_BRAND);
-  this->_interface.firmware.name = strdup(DEFAULT_FW_NAME);
-  this->_interface.firmware.version = strdup(DEFAULT_FW_VERSION);
+  strcpy(this->_interface.brand, DEFAULT_BRAND);
+  strcpy(this->_interface.firmware.name, DEFAULT_FW_NAME);
+  strcpy(this->_interface.firmware.version, DEFAULT_FW_VERSION);
   this->_interface.led.enable = true;
   this->_interface.led.pin = BUILTIN_LED;
   this->_interface.led.on = LOW;
@@ -16,14 +14,15 @@ HomieClass::HomieClass() {
   this->_interface.reset.triggerPin = DEFAULT_RESET_PIN;
   this->_interface.reset.triggerState = DEFAULT_RESET_STATE;
   this->_interface.reset.triggerTime = DEFAULT_RESET_TIME;
-  this->_interface.reset.userFunction = [](void) { return false; };
-  this->_interface.inputHandler = [](String node, String property, String message) { return false; };
-  this->_interface.setupFunction = [](void) {};
-  this->_interface.loopFunction = [](void) {};
+  this->_interface.reset.userFunction = []() { return false; };
+  this->_interface.globalInputHandler = [](String node, String property, String message) { return false; };
+  this->_interface.setupFunction = []() {};
+  this->_interface.loopFunction = []() {};
   this->_interface.eventHandler = [](HomieEvent event) {};
   this->_interface.readyToOperate = false;
 
   Blinker.attachInterface(&this->_interface);
+
   this->_bootNormal.attachInterface(&this->_interface);
   this->_bootOta.attachInterface(&this->_interface);
   this->_bootConfig.attachInterface(&this->_interface);
@@ -32,7 +31,7 @@ HomieClass::HomieClass() {
 HomieClass::~HomieClass() {
 }
 
-void HomieClass::setup(void) {
+void HomieClass::setup() {
   if (Logger.isEnabled()) {
     Serial.begin(BAUD_RATE);
   }
@@ -44,7 +43,6 @@ void HomieClass::setup(void) {
     switch (Config.getBootMode()) {
       case BOOT_NORMAL:
         this->_boot = &this->_bootNormal;
-        this->_interface.mqtt.initBuffer(strlen(Config.get().mqtt.baseTopic) + strlen(Helpers.getDeviceId()) + this->_longestSubDeviceTopic + 1);
         this->_interface.eventHandler(HOMIE_NORMAL_MODE);
         break;
       case BOOT_OTA:
@@ -57,7 +55,7 @@ void HomieClass::setup(void) {
   this->_boot->setup();
 }
 
-void HomieClass::loop(void) {
+void HomieClass::loop() {
   this->_boot->loop();
 }
 
@@ -75,27 +73,31 @@ void HomieClass::setLedPin(uint8_t pin, byte on) {
 }
 
 void HomieClass::setFirmware(const char* name, const char* version) {
-  this->_interface.firmware.name = strdup(name);
-  this->_interface.firmware.version = strdup(version);
+  if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
+    Logger.logln(F("setFirmware(): either the name or version string is too long"));
+    abort();
+  }
+
+  strcpy(this->_interface.firmware.name, name);
+  strcpy(this->_interface.firmware.version, version);
 }
 
 void HomieClass::setBrand(const char* name) {
-  this->_interface.brand = strdup(name);
+  if (strlen(name) + 1 > MAX_BRAND_LENGTH) {
+    Logger.logln(F("setBrand(): the brand string is too long"));
+    abort();
+  }
+
+  strcpy(this->_interface.brand, name);
 }
 
-void HomieClass::registerNode(const HomieNode& node) {
-  this->_interface.registeredNodes.push_back(node);
-
-  unsigned char subDeviceTopicSize;
-
-  subDeviceTopicSize = 1 + strlen(node.id) + 1 + MAX_NODE_PROPERTY_LENGTH + 1; // / node.id / prop
-  if (subDeviceTopicSize > this->_longestSubDeviceTopic) this->_longestSubDeviceTopic = subDeviceTopicSize;
-
-  for (int i = 0; i < node.subscriptions.size(); i++) {
-    Subscription subscription = node.subscriptions[i];
-    subDeviceTopicSize = 1 + strlen(node.id) + 1 + strlen(subscription.property) + 4 + 1; // / node.id / sub.prop /set
-    if (subDeviceTopicSize > this->_longestSubDeviceTopic) this->_longestSubDeviceTopic = subDeviceTopicSize;
+void HomieClass::registerNode(HomieNode& node) {
+  if (this->_interface.registeredNodesCount > MAX_REGISTERED_NODES_COUNT) {
+    Serial.println(F("register(): the max registered nodes count has been reached"));
+    abort();
   }
+
+  this->_interface.registeredNodes[this->_interface.registeredNodesCount++] = &node;
 }
 
 bool HomieClass::isReadyToOperate() {
@@ -106,24 +108,24 @@ void HomieClass::setResettable(bool resettable) {
   this->_interface.reset.able = resettable;
 }
 
-void HomieClass::setGlobalInputHandler(bool (*callback)(String node, String property, String message)) {
-  this->_interface.inputHandler = callback;
+void HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
+  this->_interface.globalInputHandler = inputHandler;
 }
 
-void HomieClass::setResetFunction(bool (*callback)()) {
-  this->_interface.reset.userFunction = callback;
+void HomieClass::setResetFunction(ResetFunction function) {
+  this->_interface.reset.userFunction = function;
 }
 
-void HomieClass::setSetupFunction(void (*callback)()) {
-  this->_interface.setupFunction = callback;
+void HomieClass::setSetupFunction(OperationFunction function) {
+  this->_interface.setupFunction = function;
 }
 
-void HomieClass::setLoopFunction(void (*callback)()) {
-  this->_interface.loopFunction = callback;
+void HomieClass::setLoopFunction(OperationFunction function) {
+  this->_interface.loopFunction = function;
 }
 
-void HomieClass::onEvent(void (*callback)(HomieEvent event)) {
-  this->_interface.eventHandler = callback;
+void HomieClass::onEvent(EventHandler handler) {
+  this->_interface.eventHandler = handler;
 }
 
 void HomieClass::setResetTrigger(uint8_t pin, byte state, uint16_t time) {
@@ -137,19 +139,20 @@ void HomieClass::disableResetTrigger() {
   this->_interface.reset.enable = false;
 }
 
-bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained) {
+bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained) {
   if (!this->isReadyToOperate()) {
     Logger.logln(F("setNodeProperty() impossible now"));
     return false;
   }
 
-  strcpy(this->_interface.mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface.mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface.mqtt.getTopicBuffer(), PSTR("/"));
-  strcat(this->_interface.mqtt.getTopicBuffer(), node.id);
-  strcat_P(this->_interface.mqtt.getTopicBuffer(), PSTR("/"));
-  strcat(this->_interface.mqtt.getTopicBuffer(), property);
-  return this->_interface.mqtt.publish(value, retained);
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/"));
+  strcat(MqttClient.getTopicBuffer(), node.getId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/"));
+  strcat(MqttClient.getTopicBuffer(), property);
+
+  return MqttClient.publish(value, retained);
 }
 
 HomieClass Homie;

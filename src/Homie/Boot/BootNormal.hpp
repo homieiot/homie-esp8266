@@ -7,6 +7,7 @@
 #include <Bounce2.h>
 #include "../../HomieNode.h"
 #include "../Constants.hpp"
+#include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
 #include "../MqttClient.hpp"
 #include "../Helpers.hpp"

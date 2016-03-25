@@ -44,117 +44,87 @@ void BootNormal::_mqttConnect() {
     }
   } */
 
-  this->_interface->mqtt.setServer(host, port, Config.get().mqtt.server.ssl.fingerprint);
-  this->_interface->mqtt.setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2));
-  strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$online"));
+  MqttClient.setServer(host, port, Config.get().mqtt.server.ssl.fingerprint);
+  MqttClient.setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2));
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/$online"));
 
-  char client_id[MAX_LENGTH_WIFI_SSID] = "";
-  strcat(client_id, this->_interface->brand);
-  strcat_P(client_id, PSTR("-"));
-  strcat(client_id, Helpers.getDeviceId());
+  char clientId[MAX_WIFI_SSID_LENGTH];
+  strcpy(clientId, this->_interface->brand);
+  strcat_P(clientId, PSTR("-"));
+  strcat(clientId, Helpers.getDeviceId());
 
-  if (this->_interface->mqtt.connect(client_id, "false", 2, true, Config.get().mqtt.auth, Config.get().mqtt.username, Config.get().mqtt.password)) {
+  if (MqttClient.connect(clientId, "false", 2, true, Config.get().mqtt.auth, Config.get().mqtt.username, Config.get().mqtt.password)) {
+    Logger.logln(F("Success"));
     this->_mqttSetup();
+  } else {
+    Logger.logln(F("Failure"));
   }
 }
 
 void BootNormal::_mqttSetup() {
   Logger.logln(F("Sending initial informations"));
 
-  strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$nodes"));
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/$nodes"));
 
-  int nodesLength = 0;
-  for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
-    HomieNode node = this->_interface->registeredNodes[i];
-    nodesLength += strlen(node.id);
-    nodesLength += 1; // :
-    nodesLength += strlen(node.type);
-    if (i != this->_interface->registeredNodes.size() - 1) nodesLength++;
+  char nodes[MAX_REGISTERED_NODES_COUNT * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
+  strcpy_P(nodes, PSTR(""));
+  for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
+    HomieNode* node = this->_interface->registeredNodes[i];
+    strcat(nodes, node->getId());
+    strcat_P(nodes, PSTR(":"));
+    strcat(nodes, node->getType());
+    if (i != this->_interface->registeredNodesCount - 1) strcat_P(nodes, PSTR(","));
   }
-  nodesLength++; // Leading \0
+  MqttClient.publish(nodes, true);
 
-  std::unique_ptr<char[]> nodes(new char[nodesLength]);
-  strcpy_P(nodes.get(), PSTR(""));
-  for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
-    HomieNode node = this->_interface->registeredNodes[i];
-    strcat(nodes.get(), node.id);
-    strcat_P(nodes.get(), PSTR(":"));
-    strcat(nodes.get(), node.type);
-    if (i != this->_interface->registeredNodes.size() - 1) strcat_P(nodes.get(), PSTR(","));
-  }
-  this->_interface->mqtt.publish(nodes.get(), true);
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/$online"));
+  MqttClient.publish("true", true);
 
-  strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$online"));
-  this->_interface->mqtt.publish("true", true);
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/$name"));
+  MqttClient.publish(Config.get().name, true);
 
-  strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$name"));
-  this->_interface->mqtt.publish(Config.get().name, true);
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/$localip"));
+  IPAddress localIp = WiFi.localIP();
+  char localIpStr[15 + 1];
+  char localIpPartStr[3 + 1];
+  itoa(localIp[0], localIpPartStr, 10);
+  strcpy(localIpStr, localIpPartStr);
+  strcat_P(localIpStr, PSTR("."));
+  itoa(localIp[1], localIpPartStr, 10);
+  strcat(localIpStr, localIpPartStr);
+  strcat_P(localIpStr, PSTR("."));
+  itoa(localIp[2], localIpPartStr, 10);
+  strcat(localIpStr, localIpPartStr);
+  strcat_P(localIpStr, PSTR("."));
+  itoa(localIp[3], localIpPartStr, 10);
+  strcat(localIpStr, localIpPartStr);
+  MqttClient.publish(localIpStr, true);
 
-  strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$localip"));
-  IPAddress local_ip = WiFi.localIP();
-  char local_ip_str[15 + 1];
-  char local_ip_part_str[3 + 1];
-  itoa(local_ip[0], local_ip_part_str, 10);
-  strcpy(local_ip_str, local_ip_part_str);
-  strcat_P(local_ip_str, PSTR("."));
-  itoa(local_ip[1], local_ip_part_str, 10);
-  strcat(local_ip_str, local_ip_part_str);
-  strcat_P(local_ip_str, PSTR("."));
-  itoa(local_ip[2], local_ip_part_str, 10);
-  strcat(local_ip_str, local_ip_part_str);
-  strcat_P(local_ip_str, PSTR("."));
-  itoa(local_ip[3], local_ip_part_str, 10);
-  strcat(local_ip_str, local_ip_part_str);
-  this->_interface->mqtt.publish(local_ip_str, true);
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/$fwname"));
+  MqttClient.publish(this->_interface->firmware.name, true);
 
-  strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$fwname"));
-  this->_interface->mqtt.publish(this->_interface->firmware.name, true);
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/$fwversion"));
+  MqttClient.publish(this->_interface->firmware.version, true);
 
-  strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$fwversion"));
-  this->_interface->mqtt.publish(this->_interface->firmware.version, true);
-
-  strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$reset"));
-  this->_interface->mqtt.subscribe(1);
-
-  if (Config.get().ota.enabled) {
-    strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-    strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-    strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$ota"));
-    this->_interface->mqtt.subscribe(1);
-  }
-
-  for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
-    HomieNode node = this->_interface->registeredNodes[i];
-    for (int i = 0; i < node.subscriptions.size(); i++) {
-      Subscription subscription = node.subscriptions[i];
-
-      strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-      strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-      strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/"));
-      strcat(this->_interface->mqtt.getTopicBuffer(), node.id);
-      strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/"));
-      strcat(this->_interface->mqtt.getTopicBuffer(), subscription.property);
-      strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/set"));
-      this->_interface->mqtt.subscribe(1);
-      this->_interface->mqtt.loop(); // see knolleary/pubsublient#98
-    }
-  }
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/#"));
+  Logger.logln(F("Subscribing to topics"));
+  MqttClient.subscribe(1);
 }
 
 void BootNormal::_mqttCallback(char* topic, char* payload) {
@@ -171,53 +141,77 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     }
     return;
   } else if (unified == "$reset" && message == "true") {
-    strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-    strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-    strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$reset"));
-    this->_interface->mqtt.publish("false", true);
+    strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+    strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+    strcat_P(MqttClient.getTopicBuffer(), PSTR("/$reset"));
+    MqttClient.publish("false", true);
     this->_flaggedForReset = true;
     Logger.logln(F("Flagged for reset by network"));
     return;
   }
+
+  if (unified.substring(unified.length() - 4) != "/set") {
+    return; // Invalid message
+  }
+
+  // Implicit node property
+
   unified.remove(unified.length() - 4, 4); // Remove /set
   int separator;
   for (int i = 0; i < unified.length(); i++) {
     if (unified.charAt(i) == '/') {
       separator = i;
+      break;
     }
   }
   String node = unified.substring(0, separator);
   String property = unified.substring(separator + 1);
 
-  bool handled = this->_interface->inputHandler(node, property, message);
-  if (handled) { return; }
-
-  int homieNodeIndex;
-  bool homieNodeFound = false;
-  for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
-    HomieNode homieNode = this->_interface->registeredNodes[i];
-    if (node == homieNode.id) {
-      homieNodeFound = true;
+  int homieNodeIndex = -1;
+  for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
+    HomieNode* homieNode = this->_interface->registeredNodes[i];
+    if (node == homieNode->getId()) {
       homieNodeIndex = i;
-      handled = homieNode.inputHandler(property, message);
       break;
     }
   }
 
-  if (!homieNodeFound) { return; }
-  if (handled) { return; }
+  if (homieNodeIndex == -1) {
+    Logger.log("Node ");
+    Logger.log(node);
+    Logger.logln(" not registered");
+    return;
+  }
 
-  HomieNode homieNode = this->_interface->registeredNodes[homieNodeIndex];
+  HomieNode* homieNode = this->_interface->registeredNodes[homieNodeIndex];
 
-  for (int i = 0; i < homieNode.subscriptions.size(); i++) {
-    Subscription subscription = homieNode.subscriptions[i];
+  int homieNodePropertyIndex = -1;
+  for (int i = 0; i < homieNode->getSubscriptionsCount(); i++) {
+    Subscription subscription = homieNode->getSubscriptions()[i];
     if (property == subscription.property) {
-      handled = subscription.inputHandler(message);
+      homieNodePropertyIndex = i;
       break;
     }
   }
 
-  if (!handled) {
+  if (homieNodePropertyIndex == -1) {
+    Logger.log("Node ");
+    Logger.log(node);
+    Logger.log(" not subscribed to ");
+    Logger.logln(property);
+    return;
+  }
+
+  Subscription homieNodeSubscription = homieNode->getSubscriptions()[homieNodePropertyIndex];
+
+  bool handled = this->_interface->globalInputHandler(node, property, message);
+  if (handled) return;
+
+  handled = homieNode->getInputHandler()(property, message);
+  if (handled) return;
+
+  handled = homieNodeSubscription.inputHandler(message);
+  if (!handled){
     Logger.logln(F("No handlers handled the following message:"));
     Logger.log(F("  • Node ID: "));
     Logger.logln(node);
@@ -247,7 +241,7 @@ void BootNormal::_handleReset() {
 void BootNormal::setup() {
   Boot::setup();
 
-  this->_interface->mqtt.initMqtt(Config.get().mqtt.server.ssl.enabled);
+  MqttClient.initMqtt(Config.get().mqtt.server.ssl.enabled);
 
   if (this->_interface->reset.enable) {
     pinMode(this->_interface->reset.triggerPin, INPUT_PULLUP);
@@ -313,7 +307,7 @@ void BootNormal::loop() {
     this->_wifiConnectNotified = true;
   }
 
-  if (!this->_interface->mqtt.connected()) {
+  if (!MqttClient.connected()) {
     this->_mqttConnectNotified = false;
     if (!this->_mqttDisconnectNotified) {
       this->_lastMqttReconnectAttempt = 0;
@@ -366,19 +360,19 @@ void BootNormal::loop() {
       quality = 2 * (rssi + 100);
     }
 
-    char quality_str[3 + 1];
-    itoa(quality, quality_str, 10);
+    char qualityStr[3 + 1];
+    itoa(quality, qualityStr, 10);
 
-    strcpy(this->_interface->mqtt.getTopicBuffer(), Config.get().mqtt.baseTopic);
-    strcat(this->_interface->mqtt.getTopicBuffer(), Helpers.getDeviceId());
-    strcat_P(this->_interface->mqtt.getTopicBuffer(), PSTR("/$signal"));
+    strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+    strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+    strcat_P(MqttClient.getTopicBuffer(), PSTR("/$signal"));
 
-    if (this->_interface->mqtt.publish(quality_str, true)) {
+    if (MqttClient.publish(qualityStr, true)) {
       this->_lastSignalSent = now;
     }
   }
 
   this->_interface->loopFunction();
 
-  this->_interface->mqtt.loop();
+  MqttClient.loop();
 }

@@ -4,6 +4,7 @@
 #include <ESP8266WiFi.h>
 #include "../Datatypes/Interface.hpp"
 #include "../Constants.hpp"
+#include "../Limits.hpp"
 #include "../Logger.hpp"
 #include "../Helpers.hpp"
 

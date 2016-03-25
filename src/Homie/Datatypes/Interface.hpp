@@ -1,18 +1,18 @@
 #pragma once
 
-#include <vector>
-#include "../MqttClient.hpp"
+#include "../Limits.hpp"
+#include "./Callbacks.hpp"
 #include "../../HomieNode.h"
 #include "../../HomieEvent.h"
 
 namespace HomieInternals {
   struct Interface {
     /***** User configurable data *****/
-    char* brand;
+    char brand[MAX_BRAND_LENGTH];
 
     struct Firmware {
-      char* name;
-      char* version;
+      char name[MAX_FIRMWARE_NAME_LENGTH];
+      char version[MAX_FIRMWARE_VERSION_LENGTH];
     } firmware;
 
     struct LED {
@@ -27,18 +27,18 @@ namespace HomieInternals {
       uint8_t triggerPin;
       byte triggerState;
       uint16_t triggerTime;
-      bool (*userFunction)(void);
+      ResetFunction userFunction;
     } reset;
 
-    std::vector<HomieNode> registeredNodes;
+    HomieNode* registeredNodes[MAX_REGISTERED_NODES_COUNT];
+    unsigned char registeredNodesCount;
 
-    bool (*inputHandler)(String node, String property, String message);
-    void (*setupFunction)(void);
-    void (*loopFunction)(void);
-    void (*eventHandler)(HomieEvent event);
+    GlobalInputHandler globalInputHandler;
+    OperationFunction setupFunction;
+    OperationFunction loopFunction;
+    EventHandler eventHandler;
 
     /***** Runtime data *****/
     bool readyToOperate;
-    MqttClient mqtt;
   };
 }

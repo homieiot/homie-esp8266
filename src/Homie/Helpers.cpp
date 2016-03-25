@@ -3,10 +3,10 @@
 using namespace HomieInternals;
 
 HelpersClass::HelpersClass() {
-  char flash_chip_id[6 + 1];
-  sprintf(flash_chip_id, "%06x", ESP.getFlashChipId());
+  char flashChipId[6 + 1];
+  sprintf(flashChipId, "%06x", ESP.getFlashChipId());
 
-  sprintf(this->_deviceId, "%06x%s", ESP.getChipId(), flash_chip_id + strlen(flash_chip_id) - 2);
+  sprintf(this->_deviceId, "%06x%s", ESP.getChipId(), flashChipId + strlen(flashChipId) - 2);
 }
 
 const char* HelpersClass::getDeviceId() {

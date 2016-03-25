@@ -24,28 +24,28 @@ void BootConfig::setup() {
     digitalWrite(this->_interface->led.pin, this->_interface->led.on);
   }
 
-  const char* device_id = Helpers.getDeviceId();
+  const char* deviceId = Helpers.getDeviceId();
 
   Logger.log(F("Device ID is "));
-  Logger.logln(device_id);
+  Logger.logln(deviceId);
 
   WiFi.mode(WIFI_AP);
 
-  IPAddress ap_ip(192, 168, 1, 1);
-  char ap_name[MAX_LENGTH_WIFI_SSID];
-  strcpy(ap_name, this->_interface->brand);
-  strcat_P(ap_name, PSTR("-"));
-  strcat(ap_name, Helpers.getDeviceId());
+  IPAddress apIp(192, 168, 1, 1);
+  char apName[MAX_WIFI_SSID_LENGTH];
+  strcpy(apName, this->_interface->brand);
+  strcat_P(apName, PSTR("-"));
+  strcat(apName, Helpers.getDeviceId());
 
-  WiFi.softAPConfig(ap_ip, ap_ip, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(ap_name, device_id);
+  WiFi.softAPConfig(apIp, apIp, IPAddress(255, 255, 255, 0));
+  WiFi.softAP(apName, deviceId);
 
   Logger.log(F("AP started as "));
-  Logger.logln(ap_name);
+  Logger.logln(apName);
 
   this->_dns.setTTL(300);
   this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
-  this->_dns.start(53, F("homie.config"), ap_ip);
+  this->_dns.start(53, F("homie.config"), apIp);
 
   this->_http.on("/", HTTP_GET, [this]() {
     Logger.logln(F("Received index request"));
@@ -73,31 +73,31 @@ void BootConfig::_generateNetworksJson() {
   JsonArray& networks = json.createNestedArray("networks");
   for (int network = 0; network < this->_ssidCount; network++) {
     jsonLength += 36; // {"ssid":"","rssi":,"encryption":""},
-    JsonObject& json_network = generatedJsonBuffer.createObject();
+    JsonObject& jsonNetwork = generatedJsonBuffer.createObject();
     jsonLength += WiFi.SSID(network).length();
-    json_network["ssid"] = WiFi.SSID(network);
+    jsonNetwork["ssid"] = WiFi.SSID(network);
     jsonLength += 4;
-    json_network["rssi"] = WiFi.RSSI(network);
+    jsonNetwork["rssi"] = WiFi.RSSI(network);
     jsonLength += 4;
     switch (WiFi.encryptionType(network)) {
       case ENC_TYPE_WEP:
-        json_network["encryption"] = "wep";
+        jsonNetwork["encryption"] = "wep";
         break;
       case ENC_TYPE_TKIP:
-        json_network["encryption"] = "wpa";
+        jsonNetwork["encryption"] = "wpa";
         break;
       case ENC_TYPE_CCMP:
-        json_network["encryption"] = "wpa2";
+        jsonNetwork["encryption"] = "wpa2";
         break;
       case ENC_TYPE_NONE:
-        json_network["encryption"] = "none";
+        jsonNetwork["encryption"] = "none";
         break;
       case ENC_TYPE_AUTO:
-        json_network["encryption"] = "auto";
+        jsonNetwork["encryption"] = "auto";
         break;
     }
 
-    networks.add(json_network);
+    networks.add(jsonNetwork);
   }
 
   jsonLength++; // \0
@@ -110,7 +110,7 @@ void BootConfig::_generateNetworksJson() {
 void BootConfig::_onDeviceInfoRequest() {
   Logger.logln(F("Received device info request"));
 
-  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(this->_interface->registeredNodes.size()) + (this->_interface->registeredNodes.size() * JSON_OBJECT_SIZE(2)));
+  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(this->_interface->registeredNodesCount) + (this->_interface->registeredNodesCount * JSON_OBJECT_SIZE(2)));
   int jsonLength = 82; // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[]}
   JsonObject& json = jsonBuffer.createObject();
   jsonLength += strlen(Helpers.getDeviceId());
@@ -124,16 +124,16 @@ void BootConfig::_onDeviceInfoRequest() {
   firmware["version"] = this->_interface->firmware.version;
 
   JsonArray& nodes = json.createNestedArray("nodes");
-  for (int i = 0; i < this->_interface->registeredNodes.size(); i++) {
+  for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
     jsonLength += 20; // {"id":"","type":""},
-    HomieNode node = this->_interface->registeredNodes[i];
-    JsonObject& json_node = jsonBuffer.createObject();
-    jsonLength += strlen(node.id);
-    json_node["id"] = node.id;
-    jsonLength += strlen(node.type);
-    json_node["type"] = node.type;
+    HomieNode* node = this->_interface->registeredNodes[i];
+    JsonObject& jsonNode = jsonBuffer.createObject();
+    jsonLength += strlen(node->getId());
+    jsonNode["id"] = node->getId();
+    jsonLength += strlen(node->getType());
+    jsonNode["type"] = node->getType();
 
-    nodes.add(json_node);
+    nodes.add(jsonNode);
   }
 
   jsonLength++; // \0
@@ -160,15 +160,15 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  StaticJsonBuffer<JSON_CONFIG_MAX_BUFFER_SIZE> parseJsonBuffer;
-  JsonObject& parsed_json = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str());
-  if (!parsed_json.success()) {
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
+  JsonObject& parsedJson = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str());
+  if (!parsedJson.success()) {
     Logger.logln(F("✖ Invalid or too big JSON"));
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
-  if (!Helpers.validateConfig(parsed_json)) {
+  if (!Helpers.validateConfig(parsedJson)) {
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
@@ -199,9 +199,9 @@ void BootConfig::loop() {
   }
 
   if (!this->_lastWifiScanEnded) {
-    int8_t scan_result = WiFi.scanComplete();
+    int8_t scanResult = WiFi.scanComplete();
 
-    switch (scan_result) {
+    switch (scanResult) {
       case WIFI_SCAN_RUNNING:
         return;
       case WIFI_SCAN_FAILED:
@@ -211,7 +211,7 @@ void BootConfig::loop() {
         break;
       default:
         Logger.logln(F("✔ Wi-Fi scan completed"));
-        this->_ssidCount = scan_result;
+        this->_ssidCount = scanResult;
         this->_generateNetworksJson();
         this->_wifiScanAvailable = true;
         break;

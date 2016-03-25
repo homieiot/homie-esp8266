@@ -8,6 +8,7 @@
 #include <ArduinoJson.h>
 #include "Boot.hpp"
 #include "../Config.hpp"
+#include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
 #include "../Helpers.hpp"
 #include "../Logger.hpp"

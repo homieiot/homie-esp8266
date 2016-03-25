@@ -2,15 +2,51 @@
 
 using namespace HomieInternals;
 
-HomieNode::HomieNode(const char* id, const char* type, bool (*callback)(String property, String message)) {
-  this->id = strdup(id);
-  this->type = strdup(type);
-  this->inputHandler = callback;
+HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
+: _inputHandler(inputHandler)
+, _subscriptionsCount(0) {
+  if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
+    Serial.println(F("HomieNode(): either the id or type string is too long"));
+    abort();
+  }
+
+  this->_id = id;
+  this->_type = type;
 }
 
-void HomieNode::subscribe(const char* property, bool (*callback)(String message)) {
+void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandler) {
+  if (strlen(property) + 1 > MAX_NODE_PROPERTY_LENGTH) {
+    Serial.println(F("subscribe(): the property string is too long"));
+    abort();
+  }
+
+  if (this->_subscriptionsCount > MAX_SUBSCRIPTIONS_COUNT_PER_NODE) {
+    Serial.println(F("subscribe(): the max subscription count has been reached"));
+    abort();
+  }
+
   Subscription subscription;
-  subscription.property = strdup(property);
-  subscription.inputHandler = callback;
-  this->subscriptions.push_back(subscription);
+  strcpy(subscription.property, property);
+  subscription.inputHandler = inputHandler;
+  this->_subscriptions[this->_subscriptionsCount++] = subscription;
+}
+
+const char* HomieNode::getId() {
+  return this->_id;
+}
+
+const char* HomieNode::getType() {
+  return this->_type;
+}
+
+Subscription* HomieNode::getSubscriptions() {
+  return this->_subscriptions;
+}
+
+unsigned char HomieNode::getSubscriptionsCount() {
+  return this->_subscriptionsCount;
+}
+
+NodeInputHandler HomieNode::getInputHandler() {
+  return this->_inputHandler;
 }

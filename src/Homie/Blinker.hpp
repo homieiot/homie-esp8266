@@ -9,7 +9,7 @@ namespace HomieInternals {
     public:
       BlinkerClass();
       void attachInterface(Interface* interface);
-      void start(float blink_pace);
+      void start(float blinkPace);
       void stop();
 
     private:

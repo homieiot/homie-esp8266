@@ -5,15 +5,16 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "Logger.hpp"
+#include "Constants.hpp"
+#include "Limits.hpp"
 
 namespace HomieInternals {
-  class MqttClient {
+  class MqttClientClass {
     public:
-      MqttClient();
-      ~MqttClient();
+      MqttClientClass();
+      ~MqttClientClass();
 
       void initMqtt(bool secure);
-      void initBuffer(unsigned char maxTopicLength);
       char* getTopicBuffer();
       void setCallback(std::function<void(char* topic, char* message)> callback);
       void setServer(const char* host, unsigned int port, const char* fingerprint);
@@ -28,12 +29,15 @@ namespace HomieInternals {
       WiFiClient _wifiClient;
       WiFiClientSecure _wifiClientSecure;
       PubSubClient _pubSubClient;
-      char* _topicBuffer;
+      char _topicBuffer[TOPIC_BUFFER_LENGTH];
       bool _secure;
-      char* _host;
-      char* _fingerprint;
+      const char* _host;
+      const char* _fingerprint;
+      unsigned char _subscribeWithoutLoop;
 
       void _callback(char* topic, byte* payload, unsigned int length);
       std::function<void(char* topic, char* message)> _userCallback;
   };
+
+  extern MqttClientClass MqttClient;
 }

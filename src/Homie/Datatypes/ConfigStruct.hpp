@@ -1,41 +1,42 @@
 #pragma once
 
 #include "../Constants.hpp"
+#include "../Limits.hpp"
 
 namespace HomieInternals {
   struct ConfigStruct {
-    char* name;
+    char name[MAX_FRIENDLY_NAME_LENGTH];
 
     struct WiFi {
-      char* ssid;
-      char* password;
+      char ssid[MAX_WIFI_SSID_LENGTH];
+      char password[MAX_WIFI_PASSWORD_LENGTH];
     } wifi;
 
     struct Server {
-      char* host;
+      char host[MAX_HOSTNAME_LENGTH];
       uint16_t port;
       struct mDNS {
         bool enabled;
-        char* service;
+        char service[MAX_HOSTNAME_LENGTH];
       } mdns;
       struct SSL {
         bool enabled;
-        char* fingerprint;
+        char fingerprint[MAX_FINGERPRINT_LENGTH];
       } ssl;
     };
 
     struct MQTT {
       Server server;
-      char* baseTopic;
+      char baseTopic[MAX_MQTT_BASE_TOPIC_LENGTH];
       bool auth;
-      char* username;
-      char* password;
+      char username[MAX_MQTT_CREDS_LENGTH];
+      char password[MAX_MQTT_CREDS_LENGTH];
     } mqtt;
 
     struct OTA {
       bool enabled;
       Server server;
-      char* path;
+      char path[MAX_OTA_PATH_LENGTH];
     } ota;
   };
 }

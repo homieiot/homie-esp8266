@@ -35,11 +35,11 @@ bool ConfigClass::load() {
 
   size_t configSize = configFile.size();
 
-  std::unique_ptr<char[]> buf(new char[configSize]);
-  configFile.readBytes(buf.get(), configSize);
+  char buf[MAX_JSON_CONFIG_FILE_BUFFER_SIZE];
+  configFile.readBytes(buf, configSize);
 
-  StaticJsonBuffer<JSON_CONFIG_MAX_BUFFER_SIZE> jsonBuffer;
-  JsonObject& parsedJson = jsonBuffer.parseObject(buf.get());
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
+  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
   if (!parsedJson.success()) {
     Logger.logln(F("✖ Invalid or too big config file"));
     return false;
@@ -126,27 +126,27 @@ bool ConfigClass::load() {
     reqOtaFingerprint = parsedJson["ota"]["fingerprint"];
   }
 
-  this->_configStruct.name = strdup(reqName);
-  this->_configStruct.wifi.ssid = strdup(reqWifiSsid);
-  this->_configStruct.wifi.password = strdup(reqWifiPassword);
-  this->_configStruct.mqtt.server.host = strdup(reqMqttHost);
+  strcpy(this->_configStruct.name, reqName);
+  strcpy(this->_configStruct.wifi.ssid, reqWifiSsid);
+  strcpy(this->_configStruct.wifi.password, reqWifiPassword);
+  strcpy(this->_configStruct.mqtt.server.host, reqMqttHost);
   this->_configStruct.mqtt.server.port = reqMqttPort;
   this->_configStruct.mqtt.server.mdns.enabled = reqMqttMdns;
-  this->_configStruct.mqtt.server.mdns.service = strdup(reqMqttMdnsService);
-  this->_configStruct.mqtt.baseTopic = strdup(reqMqttBaseTopic);
+  strcpy(this->_configStruct.mqtt.server.mdns.service, reqMqttMdnsService);
+  strcpy(this->_configStruct.mqtt.baseTopic, reqMqttBaseTopic);
   this->_configStruct.mqtt.auth = reqMqttAuth;
-  this->_configStruct.mqtt.username = strdup(reqMqttUsername);
-  this->_configStruct.mqtt.password = strdup(reqMqttPassword);
+  strcpy(this->_configStruct.mqtt.username, reqMqttUsername);
+  strcpy(this->_configStruct.mqtt.password, reqMqttPassword);
   this->_configStruct.mqtt.server.ssl.enabled = reqMqttSsl;
-  this->_configStruct.mqtt.server.ssl.fingerprint = strdup(reqMqttFingerprint);
+  strcpy(this->_configStruct.mqtt.server.ssl.fingerprint, reqMqttFingerprint);
   this->_configStruct.ota.enabled = reqOtaEnabled;
-  this->_configStruct.ota.server.host = strdup(reqOtaHost);
+  strcpy(this->_configStruct.ota.server.host, reqOtaHost);
   this->_configStruct.ota.server.port = reqOtaPort;
   this->_configStruct.ota.server.mdns.enabled = reqOtaMdns;
-  this->_configStruct.ota.server.mdns.service = strdup(reqOtaMdnsService);
-  this->_configStruct.ota.path = strdup(reqOtaPath);
+  strcpy(this->_configStruct.ota.server.mdns.service, reqOtaMdnsService);
+  strcpy(this->_configStruct.ota.path, reqOtaPath);
   this->_configStruct.ota.server.ssl.enabled = reqOtaSsl;
-  this->_configStruct.ota.server.ssl.fingerprint = strdup(reqOtaFingerprint);
+  strcpy(this->_configStruct.ota.server.ssl.fingerprint, reqOtaFingerprint);
 
   return true;
 }

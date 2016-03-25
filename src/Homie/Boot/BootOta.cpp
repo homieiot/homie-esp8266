@@ -17,14 +17,14 @@ void BootOta::setup() {
 
   WiFi.begin(Config.get().wifi.ssid, Config.get().wifi.password);
 
-  int wifi_attempts = 1;
+  int wifiAttempts = 1;
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    if (wifi_attempts <= 3) {
+    if (wifiAttempts <= 3) {
       WiFi.begin(Config.get().wifi.ssid, Config.get().wifi.password);
       Logger.log(F("Retrying Wi-Fi connection"));
-      Logger.log(String(wifi_attempts));
+      Logger.log(String(wifiAttempts));
       Logger.logln(F("/3"));
-      wifi_attempts++;
+      wifiAttempts++;
     } else {
       Logger.logln(F("✖ Connection failed, rebooting in normal mode..."));
       Config.setOtaMode(false);
@@ -56,13 +56,13 @@ void BootOta::setup() {
   Logger.logln(F("Starting OTA..."));
 
 
-  std::unique_ptr<char[]> dataToPass(new char[strlen(Helpers.getDeviceId()) + 1 + strlen(this->_interface->firmware.name) + 1 + strlen(this->_interface->firmware.version) + 1]);
-  strcpy(dataToPass.get(), Helpers.getDeviceId());
-  strcat(dataToPass.get(), "=");
-  strcat(dataToPass.get(), this->_interface->firmware.name);
-  strcat(dataToPass.get(), "@");
-  strcat(dataToPass.get(), this->_interface->firmware.version);
-  t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass.get(), Config.get().ota.server.ssl.enabled, Config.get().ota.server.ssl.fingerprint, false);
+  char dataToPass[8 + 1 + (MAX_FIRMWARE_NAME_LENGTH - 1) + 1 + (MAX_FIRMWARE_VERSION_LENGTH - 1) + 1];
+  strcpy(dataToPass, Helpers.getDeviceId());
+  strcat(dataToPass, "=");
+  strcat(dataToPass, this->_interface->firmware.name);
+  strcat(dataToPass, "@");
+  strcat(dataToPass, this->_interface->firmware.version);
+  t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass, Config.get().ota.server.ssl.enabled, Config.get().ota.server.ssl.fingerprint, false);
   switch(ret) {
     case HTTP_UPDATE_FAILED:
       Logger.logln(F("✖ Update failed"));
