@@ -146,7 +146,7 @@ bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const ch
   }
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/"));
   strcat(MqttClient.getTopicBuffer(), node.getId());
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/"));

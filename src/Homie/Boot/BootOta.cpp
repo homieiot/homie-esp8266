@@ -56,8 +56,8 @@ void BootOta::setup() {
   Logger.logln(F("Starting OTA..."));
 
 
-  char dataToPass[8 + 1 + (MAX_FIRMWARE_NAME_LENGTH - 1) + 1 + (MAX_FIRMWARE_VERSION_LENGTH - 1) + 2 + (MAX_FIRMWARE_VERSION_LENGTH - 1) + 1];
-  strcpy(dataToPass, Helpers.getDeviceId());
+  char dataToPass[(MAX_DEVICE_ID_LENGTH - 1) + 1 + (MAX_FIRMWARE_NAME_LENGTH - 1) + 1 + (MAX_FIRMWARE_VERSION_LENGTH - 1) + 2 + (MAX_FIRMWARE_VERSION_LENGTH - 1) + 1];
+  strcpy(dataToPass, Config.get().deviceId);
   strcat(dataToPass, "=");
   strcat(dataToPass, this->_interface->firmware.name);
   strcat(dataToPass, "@");

@@ -18,6 +18,10 @@ bool HelpersClass::validateConfig(JsonObject& object) {
     Logger.logln(F("✖ name is not a string"));
     return false;
   }
+  if (object.containsKey("device_id") && !object["device_id"].is<const char*>()) {
+    Logger.logln(F("✖ device_id is not a string"));
+    return false;
+  }
 
   if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject&>()) {
     Logger.logln(F("✖ wifi is not an object"));

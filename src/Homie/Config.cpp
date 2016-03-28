@@ -80,6 +80,10 @@ bool ConfigClass::load() {
   } else {
     reqMqttHost = parsedJson["mqtt"]["host"];
   }
+  const char* reqDeviceId = Helpers.getDeviceId();
+  if (parsedJson.containsKey("device_id")) {
+    reqDeviceId = parsedJson["device_id"];
+  }
   uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
@@ -139,6 +143,7 @@ bool ConfigClass::load() {
   strcpy(this->_configStruct.name, reqName);
   strcpy(this->_configStruct.wifi.ssid, reqWifiSsid);
   strcpy(this->_configStruct.wifi.password, reqWifiPassword);
+  strcpy(this->_configStruct.deviceId, reqDeviceId);
   strcpy(this->_configStruct.mqtt.server.host, reqMqttHost);
   this->_configStruct.mqtt.server.port = reqMqttPort;
   this->_configStruct.mqtt.server.mdns.enabled = reqMqttMdns;
@@ -216,6 +221,8 @@ void ConfigClass::log() {
   Logger.logln(F("⚙ Stored configuration:"));
   Logger.log(F("  • Hardware device ID: "));
   Logger.logln(Helpers.getDeviceId());
+  Logger.log(F("  • Device ID: "));
+  Logger.logln(this->_configStruct.deviceId);
   Logger.log(F("  • Boot mode: "));
   switch (this->_bootMode) {
     case BOOT_CONFIG:

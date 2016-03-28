@@ -47,13 +47,13 @@ void BootNormal::_mqttConnect() {
   MqttClient.setServer(host, port, Config.get().mqtt.server.ssl.fingerprint);
   MqttClient.setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2));
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$online"));
 
   char clientId[MAX_WIFI_SSID_LENGTH];
   strcpy(clientId, this->_interface->brand);
   strcat_P(clientId, PSTR("-"));
-  strcat(clientId, Helpers.getDeviceId());
+  strcat(clientId, Config.get().deviceId);
 
   if (MqttClient.connect(clientId, "false", 2, true, Config.get().mqtt.auth, Config.get().mqtt.username, Config.get().mqtt.password)) {
     Logger.logln(F("Success"));
@@ -67,7 +67,7 @@ void BootNormal::_mqttSetup() {
   Logger.logln(F("Sending initial informations"));
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$nodes"));
 
   char nodes[MAX_REGISTERED_NODES_COUNT * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
@@ -82,17 +82,17 @@ void BootNormal::_mqttSetup() {
   MqttClient.publish(nodes, true);
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$online"));
   MqttClient.publish("true", true);
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$name"));
   MqttClient.publish(Config.get().name, true);
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$localip"));
   IPAddress localIp = WiFi.localIP();
   char localIpStr[15 + 1];
@@ -111,30 +111,30 @@ void BootNormal::_mqttSetup() {
   MqttClient.publish(localIpStr, true);
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$fwname"));
   MqttClient.publish(this->_interface->firmware.name, true);
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$fwversion"));
   MqttClient.publish(this->_interface->firmware.version, true);
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/+/+/set"));
   Logger.logln(F("Subscribing to /set topics"));
   MqttClient.subscribe(1);
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$reset"));
   Logger.logln(F("Subscribing to $reset topic"));
   MqttClient.subscribe(1);
 
   if (Config.get().ota.enabled) {
     strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-    strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+    strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$ota"));
     Logger.logln(F("Subscribing to $ota topic"));
     MqttClient.subscribe(1);
@@ -144,7 +144,7 @@ void BootNormal::_mqttSetup() {
 void BootNormal::_mqttCallback(char* topic, char* payload) {
   String message = String(payload);
   String unified = String(topic);
-  unified.remove(0, strlen(Config.get().mqtt.baseTopic) + strlen(Helpers.getDeviceId()) + 1); // Remove devices/${id}/ --- +1 for /
+  unified.remove(0, strlen(Config.get().mqtt.baseTopic) + strlen(Config.get().deviceId) + 1); // Remove devices/${id}/ --- +1 for /
 
   // Device properties
   if (Config.get().ota.enabled && unified == "$ota") {
@@ -159,7 +159,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     return;
   } else if (unified == "$reset" && message == "true") {
     strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-    strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+    strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$reset"));
     MqttClient.publish("false", true);
     this->_flaggedForReset = true;
@@ -376,7 +376,7 @@ void BootNormal::loop() {
     itoa(quality, qualityStr, 10);
 
     strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-    strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+    strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$signal"));
 
     if (MqttClient.publish(qualityStr, true)) {

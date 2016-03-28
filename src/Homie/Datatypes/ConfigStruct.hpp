@@ -6,6 +6,7 @@
 namespace HomieInternals {
   struct ConfigStruct {
     char name[MAX_FRIENDLY_NAME_LENGTH];
+    char deviceId[MAX_DEVICE_ID_LENGTH];
 
     struct WiFi {
       char ssid[MAX_WIFI_SSID_LENGTH];
