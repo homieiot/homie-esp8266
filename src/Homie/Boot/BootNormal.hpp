@@ -33,6 +33,7 @@ namespace HomieInternals {
       bool _wifiDisconnectNotified;
       bool _mqttConnectNotified;
       bool _mqttDisconnectNotified;
+      char _otaVersion[MAX_FIRMWARE_VERSION_LENGTH];
       bool _flaggedForOta;
       bool _flaggedForReset;
       Bounce _resetDebouncer;

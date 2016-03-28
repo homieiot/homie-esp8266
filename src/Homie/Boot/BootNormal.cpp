@@ -152,6 +152,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
       Logger.log(F("✴ OTA available (version "));
       Logger.log(message);
       Logger.logln(")");
+      strcpy(this->_otaVersion, payload);
       this->_flaggedForOta = true;
       Serial.println(F("Flagged for OTA"));
     }
@@ -282,7 +283,7 @@ void BootNormal::loop() {
 
   if (this->_flaggedForOta && this->_interface->reset.able) {
     Logger.logln(F("Device is in a resettable state"));
-    Config.setOtaMode(true);
+    Config.setOtaMode(true, this->_otaVersion);
 
     Logger.logln(F("↻ Rebooting in OTA mode"));
     ESP.restart();

@@ -37,6 +37,7 @@ bool ConfigClass::load() {
 
   char buf[MAX_JSON_CONFIG_FILE_BUFFER_SIZE];
   configFile.readBytes(buf, configSize);
+  configFile.close();
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(buf);
@@ -51,6 +52,15 @@ bool ConfigClass::load() {
 
   if (SPIFFS.exists(CONFIG_OTA_PATH)) {
     this->_bootMode = BOOT_OTA;
+
+    File otaFile = SPIFFS.open(CONFIG_OTA_PATH, "r");
+    if (otaFile) {
+      size_t otaSize = otaFile.size();
+      otaFile.readBytes(this->_otaVersion, otaSize);
+      otaFile.close();
+    } else {
+      Logger.logln(F("✖ Cannot open OTA file"));
+    }
   } else {
     this->_bootMode = BOOT_NORMAL;
   }
@@ -177,7 +187,7 @@ void ConfigClass::write(const String& config) {
   configFile.close();
 }
 
-void ConfigClass::setOtaMode(bool enabled) {
+void ConfigClass::setOtaMode(bool enabled, const char* version) {
   if (!this->_spiffsBegin()) { return; }
 
   if (enabled) {
@@ -187,11 +197,15 @@ void ConfigClass::setOtaMode(bool enabled) {
       return;
     }
 
-    otaFile.print(1);
+    otaFile.print(version);
     otaFile.close();
   } else {
     SPIFFS.remove(CONFIG_OTA_PATH);
   }
+}
+
+const char* ConfigClass::getOtaVersion() {
+  return this->_otaVersion;
 }
 
 BootMode ConfigClass::getBootMode() {
