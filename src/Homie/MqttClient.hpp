@@ -32,6 +32,7 @@ namespace HomieInternals {
       char _topicBuffer[TOPIC_BUFFER_LENGTH];
       bool _secure;
       const char* _host;
+      unsigned int _port;
       const char* _fingerprint;
       unsigned char _subscribeWithoutLoop;
 

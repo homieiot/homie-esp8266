@@ -271,7 +271,6 @@ void ConfigClass::log() {
     Logger.log(F("    • Fingerprint: "));
     if (strcmp_P(this->_configStruct.mqtt.server.ssl.fingerprint, PSTR("")) == 0) Logger.logln("unset");
     else Logger.logln(this->_configStruct.mqtt.server.ssl.fingerprint);
-    Logger.logln(this->_configStruct.mqtt.server.ssl.fingerprint);
   }
 
   Logger.logln(F("  • OTA"));

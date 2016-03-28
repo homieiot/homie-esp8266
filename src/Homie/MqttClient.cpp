@@ -16,6 +16,8 @@ void MqttClientClass::initMqtt(bool secure) {
     this->_pubSubClient.setClient(this->_wifiClient);
   }
 
+  this->_secure = secure;
+
   this->_pubSubClient.setCallback(std::bind(&MqttClientClass::_callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
@@ -29,25 +31,33 @@ void MqttClientClass::setCallback(std::function<void(char* topic, char* message)
 
 void MqttClientClass::setServer(const char* host, unsigned int port, const char* fingerprint) {
   this->_host = host;
+  this->_port = port;
   this->_fingerprint = fingerprint;
   this->_pubSubClient.setServer(this->_host, port);
 }
 
 bool MqttClientClass::connect(const char* clientId, const char* willMessage, unsigned char willQos, bool willRetain, bool auth, const char* username, const char* password) {
+  if (this->_secure && !(strcmp_P(this->_fingerprint, PSTR("")) == 0)) {
+    Logger.logln(F("Checking certificate"));
+    if (!this->_wifiClientSecure.connect(this->_host, this->_port)) {
+      this->_wifiClientSecure.stop();
+      return false;
+    }
+
+    if (!this->_wifiClientSecure.verify(this->_fingerprint, this->_host)) {
+      Logger.logln(F("✖ MQTT SSL certificate mismatch"));
+      this->_wifiClientSecure.stop();
+      return false;
+    }
+
+    this->_wifiClientSecure.stop();
+  }
+
   bool result;
   if (auth) {
     result = this->_pubSubClient.connect(clientId, username, password, this->_topicBuffer, willQos, willRetain, willMessage);
   } else {
     result = this->_pubSubClient.connect(clientId, this->_topicBuffer, willQos, willRetain, willMessage);
-  }
-
-  if (this->_secure && !(strcmp_P(this->_fingerprint, PSTR("")) == 0)) {
-    Logger.logln(F("Checking certificate"));
-    if(!this->_wifiClientSecure.verify(this->_fingerprint, this->_host)) {
-      Logger.logln(F("✖ MQTT SSL certificate mismatch"));
-      this->_pubSubClient.disconnect();
-      return false;
-    }
   }
 
   return result;
