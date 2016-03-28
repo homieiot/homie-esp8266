@@ -2,18 +2,20 @@
 
 using namespace HomieInternals;
 
-HelpersClass::HelpersClass() {
+char Helpers::_deviceId[] = ""; // need to define the static variable
+
+void Helpers::generateDeviceId() {
   char flashChipId[6 + 1];
   sprintf(flashChipId, "%06x", ESP.getFlashChipId());
 
-  sprintf(this->_deviceId, "%06x%s", ESP.getChipId(), flashChipId + strlen(flashChipId) - 2);
+  sprintf(Helpers::_deviceId, "%06x%s", ESP.getChipId(), flashChipId + strlen(flashChipId) - 2);
 }
 
-const char* HelpersClass::getDeviceId() {
-  return this->_deviceId;
+const char* Helpers::getDeviceId() {
+  return Helpers::_deviceId;
 }
 
-bool HelpersClass::validateConfig(JsonObject& object) {
+bool Helpers::validateConfig(JsonObject& object) {
   if (!object.containsKey("name") || !object["name"].is<const char*>()) {
     Logger.logln(F("✖ name is not a string"));
     return false;
@@ -164,5 +166,3 @@ bool HelpersClass::validateConfig(JsonObject& object) {
 
   return true;
 }
-
-HelpersClass HomieInternals::Helpers;

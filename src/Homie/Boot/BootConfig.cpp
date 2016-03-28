@@ -24,7 +24,7 @@ void BootConfig::setup() {
     digitalWrite(this->_interface->led.pin, this->_interface->led.on);
   }
 
-  const char* deviceId = Helpers.getDeviceId();
+  const char* deviceId = Helpers::getDeviceId();
 
   Logger.log(F("Device ID is "));
   Logger.logln(deviceId);
@@ -35,7 +35,7 @@ void BootConfig::setup() {
   char apName[MAX_WIFI_SSID_LENGTH];
   strcpy(apName, this->_interface->brand);
   strcat_P(apName, PSTR("-"));
-  strcat(apName, Helpers.getDeviceId());
+  strcat(apName, Helpers::getDeviceId());
 
   WiFi.softAPConfig(apIp, apIp, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apName, deviceId);
@@ -113,8 +113,8 @@ void BootConfig::_onDeviceInfoRequest() {
   DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(this->_interface->registeredNodesCount) + (this->_interface->registeredNodesCount * JSON_OBJECT_SIZE(2)));
   int jsonLength = 82; // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[]}
   JsonObject& json = jsonBuffer.createObject();
-  jsonLength += strlen(Helpers.getDeviceId());
-  json["device_id"] = Helpers.getDeviceId();
+  jsonLength += strlen(Helpers::getDeviceId());
+  json["device_id"] = Helpers::getDeviceId();
   jsonLength += strlen(VERSION);
   json["homie_version"] = VERSION;
   JsonObject& firmware = json.createNestedObject("firmware");
@@ -168,7 +168,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  if (!Helpers.validateConfig(parsedJson)) {
+  if (!Helpers::validateConfig(parsedJson)) {
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }

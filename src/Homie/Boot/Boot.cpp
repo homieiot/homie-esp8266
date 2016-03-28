@@ -22,7 +22,7 @@ void Boot::setup() {
   char hostname[MAX_WIFI_SSID_LENGTH];
   strcpy(hostname, this->_interface->brand);
   strcat_P(hostname, PSTR("-"));
-  strcat(hostname, Helpers.getDeviceId());
+  strcat(hostname, Helpers::getDeviceId());
 
   WiFi.hostname(hostname);
 

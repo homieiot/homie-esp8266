@@ -46,7 +46,7 @@ bool ConfigClass::load() {
     return false;
   }
 
-  if (!Helpers.validateConfig(parsedJson)) {
+  if (!Helpers::validateConfig(parsedJson)) {
     return false;
   }
 
@@ -80,7 +80,7 @@ bool ConfigClass::load() {
   } else {
     reqMqttHost = parsedJson["mqtt"]["host"];
   }
-  const char* reqDeviceId = Helpers.getDeviceId();
+  const char* reqDeviceId = Helpers::getDeviceId();
   if (parsedJson.containsKey("device_id")) {
     reqDeviceId = parsedJson["device_id"];
   }
@@ -220,7 +220,7 @@ BootMode ConfigClass::getBootMode() {
 void ConfigClass::log() {
   Logger.logln(F("⚙ Stored configuration:"));
   Logger.log(F("  • Hardware device ID: "));
-  Logger.logln(Helpers.getDeviceId());
+  Logger.logln(Helpers::getDeviceId());
   Logger.log(F("  • Device ID: "));
   Logger.logln(this->_configStruct.deviceId);
   Logger.log(F("  • Boot mode: "));

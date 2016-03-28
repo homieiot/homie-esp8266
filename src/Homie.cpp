@@ -21,6 +21,8 @@ HomieClass::HomieClass() {
   this->_interface.eventHandler = [](HomieEvent event) {};
   this->_interface.readyToOperate = false;
 
+  Helpers::generateDeviceId();
+
   Blinker.attachInterface(&this->_interface);
 
   this->_bootNormal.attachInterface(&this->_interface);
