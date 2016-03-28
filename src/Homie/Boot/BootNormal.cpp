@@ -122,15 +122,31 @@ void BootNormal::_mqttSetup() {
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
-  strcat_P(MqttClient.getTopicBuffer(), PSTR("/#"));
-  Logger.logln(F("Subscribing to topics"));
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/+/+/set"));
+  Logger.logln(F("Subscribing to /set topics"));
   MqttClient.subscribe(1);
+
+  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+  strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+  strcat_P(MqttClient.getTopicBuffer(), PSTR("/$reset"));
+  Logger.logln(F("Subscribing to $reset topic"));
+  MqttClient.subscribe(1);
+
+  if (Config.get().ota.enabled) {
+    strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+    strcat(MqttClient.getTopicBuffer(), Helpers.getDeviceId());
+    strcat_P(MqttClient.getTopicBuffer(), PSTR("/$ota"));
+    Logger.logln(F("Subscribing to $ota topic"));
+    MqttClient.subscribe(1);
+  }
 }
 
 void BootNormal::_mqttCallback(char* topic, char* payload) {
   String message = String(payload);
   String unified = String(topic);
   unified.remove(0, strlen(Config.get().mqtt.baseTopic) + strlen(Helpers.getDeviceId()) + 1); // Remove devices/${id}/ --- +1 for /
+
+  // Device properties
   if (Config.get().ota.enabled && unified == "$ota") {
     if (message != this->_interface->firmware.version) {
       Logger.log(F("✴ OTA available (version "));
@@ -150,12 +166,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     return;
   }
 
-  if (unified.substring(unified.length() - 4) != "/set") {
-    return; // Invalid message
-  }
-
-  // Implicit node property
-
+  // Implicit node properties
   unified.remove(unified.length() - 4, 4); // Remove /set
   int separator;
   for (int i = 0; i < unified.length(); i++) {
