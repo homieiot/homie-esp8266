@@ -263,6 +263,11 @@ void BootNormal::setup() {
   }
 
   Config.log();
+
+  if (Config.get().mqtt.server.ssl.enabled) {
+    system_update_cpu_freq(SYS_CPU_160MHZ);
+    Logger.logln("Using SSL, pushing CPU freq to 160MHz");
+  }
 }
 
 void BootNormal::loop() {

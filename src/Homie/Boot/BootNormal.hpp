@@ -16,6 +16,10 @@
 #include "../Logger.hpp"
 #include "Boot.hpp"
 
+extern "C" {
+  #include "user_interface.h"
+}
+
 namespace HomieInternals {
   class BootNormal : public Boot {
     public:
