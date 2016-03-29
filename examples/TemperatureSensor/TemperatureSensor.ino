@@ -16,10 +16,10 @@ void loopHandler() {
     Serial.print("Temperature: ");
     Serial.print(temperature);
     Serial.println(" °C");
-    if (Homie.setNodeProperty(temperatureNode, "temperature", String(temperature), true)) {
+    if (Homie.setNodeProperty(temperatureNode, "degrees", String(temperature), true)) {
       lastTemperatureSent = millis();
     } else {
-      Serial.println("Sending failed");
+      Serial.println("Temperature sending failed");
     }
   }
 }
