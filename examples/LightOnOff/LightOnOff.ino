@@ -4,12 +4,12 @@ const int PIN_RELAY = 16;
 
 HomieNode lightNode("light", "switch");
 
-bool lightOnHandler(String message) {
-  if (message == "true") {
+bool lightOnHandler(String value) {
+  if (value == "true") {
     digitalWrite(PIN_RELAY, HIGH);
     Homie.setNodeProperty(lightNode, "on", "true"); // Update the state of the light
     Serial.println("Light is on");
-  } else if (message == "false") {
+  } else if (value == "false") {
     digitalWrite(PIN_RELAY, LOW);
     Homie.setNodeProperty(lightNode, "on", "false");
     Serial.println("Light is off");

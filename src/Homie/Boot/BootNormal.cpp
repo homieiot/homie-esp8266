@@ -224,12 +224,12 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
 
   handled = homieNodeSubscription.inputHandler(message);
   if (!handled){
-    Logger.logln(F("No handlers handled the following message:"));
+    Logger.logln(F("No handlers handled the following packet:"));
     Logger.log(F("  • Node ID: "));
     Logger.logln(node);
     Logger.log(F("  • Property: "));
     Logger.logln(property);
-    Logger.log(F("  • Message: "));
+    Logger.log(F("  • Value: "));
     Logger.logln(message);
   }
 }

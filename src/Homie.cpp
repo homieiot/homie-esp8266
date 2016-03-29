@@ -15,7 +15,7 @@ HomieClass::HomieClass() {
   this->_interface.reset.triggerState = DEFAULT_RESET_STATE;
   this->_interface.reset.triggerTime = DEFAULT_RESET_TIME;
   this->_interface.reset.userFunction = []() { return false; };
-  this->_interface.globalInputHandler = [](String node, String property, String message) { return false; };
+  this->_interface.globalInputHandler = [](String node, String property, String value) { return false; };
   this->_interface.setupFunction = []() {};
   this->_interface.loopFunction = []() {};
   this->_interface.eventHandler = [](HomieEvent event) {};
@@ -61,8 +61,8 @@ void HomieClass::loop() {
   this->_boot->loop();
 }
 
-void HomieClass::enableLogging(bool logging) {
-  Logger.setLogging(logging);
+void HomieClass::enableLogging(bool enable) {
+  Logger.setLogging(enable);
 }
 
 void HomieClass::enableBuiltInLedIndicator(bool enable) {

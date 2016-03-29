@@ -5,9 +5,9 @@
 namespace HomieInternals {
   typedef void (*OperationFunction)();
 
-  typedef bool (*GlobalInputHandler)(String nodeId, String property, String message);
-  typedef bool (*NodeInputHandler)(String property, String message);
-  typedef bool (*PropertyInputHandler)(String message);
+  typedef bool (*GlobalInputHandler)(String nodeId, String property, String value);
+  typedef bool (*NodeInputHandler)(String property, String value);
+  typedef bool (*PropertyInputHandler)(String value);
 
   typedef void (*EventHandler)(HomieEvent event);
 

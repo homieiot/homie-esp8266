@@ -8,9 +8,9 @@
 
 class HomieNode {
   public:
-    HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](String property, String message) { return false; });
+    HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](String property, String value) { return false; });
 
-    void subscribe(const char* property, HomieInternals::PropertyInputHandler inputHandler = [](String message) { return false; });
+    void subscribe(const char* property, HomieInternals::PropertyInputHandler inputHandler = [](String value) { return false; });
 
     const char* getId();
     const char* getType();
