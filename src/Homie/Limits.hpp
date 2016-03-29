@@ -4,7 +4,7 @@
 
 namespace HomieInternals {
   const unsigned int MAX_JSON_CONFIG_FILE_BUFFER_SIZE = 1000;
-  const unsigned int MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE = JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(7) + JSON_OBJECT_SIZE(6); // Max 4 elements at root, 2 elements in nested, etc...
+  const unsigned int MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE = JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(8) + JSON_OBJECT_SIZE(6); // Max 5 elements at root, 2 elements in nested, etc...
 
   const unsigned char MAX_WIFI_SSID_LENGTH = 32 + 1;
   const unsigned char MAX_WIFI_PASSWORD_LENGTH = 63 + 1;

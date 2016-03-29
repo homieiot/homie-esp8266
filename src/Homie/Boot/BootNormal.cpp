@@ -158,7 +158,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
         this->_flaggedForOta = true;
         Logger.logln(F("Flagged for OTA"));
       } else {
-        Logger.logln("Version string received is too loong");
+        Logger.logln("Version string received is too long");
       }
     }
     return;
