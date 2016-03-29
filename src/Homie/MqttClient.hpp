@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
-
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "Logger.hpp"
@@ -36,7 +34,7 @@ namespace HomieInternals {
       const char* _fingerprint;
       unsigned char _subscribeWithoutLoop;
 
-      void _callback(char* topic, byte* payload, unsigned int length);
+      void _callback(char* topic, unsigned char* payload, unsigned int length);
       std::function<void(char* topic, char* message)> _userCallback;
   };
 

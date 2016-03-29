@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
-#include <EEPROM.h>
 #include <ArduinoJson.h>
 #include "FS.h"
 #include "Datatypes/ConfigStruct.hpp"
@@ -14,7 +12,7 @@ namespace HomieInternals {
     public:
       ConfigClass();
       bool load();
-      ConfigStruct& get();
+      const ConfigStruct& get();
       void erase();
       void write(const String& config);
       void setOtaMode(bool enabled, const char* version = "");

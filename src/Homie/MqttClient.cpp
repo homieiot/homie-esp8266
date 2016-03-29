@@ -88,7 +88,7 @@ bool MqttClientClass::connected() {
   return this->_pubSubClient.connected();
 }
 
-void MqttClientClass::_callback(char* topic, byte* payload, unsigned int length) {
+void MqttClientClass::_callback(char* topic, unsigned char* payload, unsigned int length) {
   char buf[128];
   for (int i = 0; i < length; i++) {
     char tempString[2];

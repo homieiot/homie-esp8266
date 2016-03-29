@@ -69,7 +69,7 @@ void HomieClass::enableBuiltInLedIndicator(bool enable) {
   this->_interface.led.enable = enable;
 }
 
-void HomieClass::setLedPin(uint8_t pin, byte on) {
+void HomieClass::setLedPin(unsigned char pin, unsigned char on) {
   this->_interface.led.pin = pin;
   this->_interface.led.on = on;
 }
@@ -130,7 +130,7 @@ void HomieClass::onEvent(EventHandler handler) {
   this->_interface.eventHandler = handler;
 }
 
-void HomieClass::setResetTrigger(uint8_t pin, byte state, uint16_t time) {
+void HomieClass::setResetTrigger(unsigned char pin, unsigned char state, unsigned int time) {
   this->_interface.reset.enable = true;
   this->_interface.reset.triggerPin = pin;
   this->_interface.reset.triggerState = state;

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
-
 #include <ArduinoJson.h>
 #include "Limits.hpp"
 #include "Logger.hpp"
@@ -11,14 +9,14 @@ namespace HomieInternals {
     public:
       static void generateDeviceId();
       static const char* getDeviceId();
-      static bool validateConfig(JsonObject& object);
+      static bool validateConfig(const JsonObject& object);
 
     private:
       static char _deviceId[8 + 1];
 
-      static bool _validateConfigRoot(JsonObject& object);
-      static bool _validateConfigWifi(JsonObject& object);
-      static bool _validateConfigMqtt(JsonObject& object);
-      static bool _validateConfigOta(JsonObject& object);
+      static bool _validateConfigRoot(const JsonObject& object);
+      static bool _validateConfigWifi(const JsonObject& object);
+      static bool _validateConfigMqtt(const JsonObject& object);
+      static bool _validateConfigOta(const JsonObject& object);
   };
 }

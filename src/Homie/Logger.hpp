@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Arduino.h>
+#include "Arduino.h"
 
 namespace HomieInternals {
   class LoggerClass {

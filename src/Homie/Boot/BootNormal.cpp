@@ -27,7 +27,7 @@ void BootNormal::_wifiConnect() {
 
 void BootNormal::_mqttConnect() {
   const char* host = Config.get().mqtt.server.host;
-  uint16_t port = Config.get().mqtt.server.port;
+  unsigned int port = Config.get().mqtt.server.port;
   /* if (Config.get().mqtt.mdns) {
     Logger.log("Querying mDNS service ");
     Logger.logln(Config.get().mqtt.mdnsService);
@@ -368,7 +368,7 @@ void BootNormal::loop() {
   if (now - this->_lastSignalSent >= SIGNAL_QUALITY_SEND_INTERVAL || this->_lastSignalSent == 0) {
     Logger.logln(F("Sending Wi-Fi signal quality"));
     int32_t rssi = WiFi.RSSI();
-    byte quality;
+    unsigned char quality;
     if (rssi <= -100) {
       quality = 0;
     } else if (rssi >= -50) {

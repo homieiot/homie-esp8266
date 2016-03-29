@@ -17,16 +17,16 @@ namespace HomieInternals {
 
     struct LED {
       bool enable;
-      uint8_t pin;
+      unsigned char pin;
       byte on;
     } led;
 
     struct Reset {
       bool enable;
       bool able;
-      uint8_t triggerPin;
+      unsigned char triggerPin;
       byte triggerState;
-      uint16_t triggerTime;
+      unsigned int triggerTime;
       ResetFunction userFunction;
     } reset;
 

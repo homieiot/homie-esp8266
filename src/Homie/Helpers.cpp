@@ -15,7 +15,7 @@ const char* Helpers::getDeviceId() {
   return Helpers::_deviceId;
 }
 
-bool Helpers::validateConfig(JsonObject& object) {
+bool Helpers::validateConfig(const JsonObject& object) {
   if (!_validateConfigRoot(object)) return false;
   if (!_validateConfigWifi(object)) return false;
   if (!_validateConfigMqtt(object)) return false;
@@ -24,7 +24,7 @@ bool Helpers::validateConfig(JsonObject& object) {
   return true;
 }
 
-bool Helpers::_validateConfigRoot(JsonObject& object) {
+bool Helpers::_validateConfigRoot(const JsonObject& object) {
   if (!object.containsKey("name") || !object["name"].is<const char*>()) {
     Logger.logln(F("✖ name is not a string"));
     return false;
@@ -54,7 +54,7 @@ bool Helpers::_validateConfigRoot(JsonObject& object) {
   return true;
 }
 
-bool Helpers::_validateConfigWifi(JsonObject& object) {
+bool Helpers::_validateConfigWifi(const JsonObject& object) {
   if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject&>()) {
     Logger.logln(F("✖ wifi is not an object"));
     return false;
@@ -85,7 +85,7 @@ bool Helpers::_validateConfigWifi(JsonObject& object) {
   return true;
 }
 
-bool Helpers::_validateConfigMqtt(JsonObject& object) {
+bool Helpers::_validateConfigMqtt(const JsonObject& object) {
   if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject&>()) {
     Logger.logln(F("✖ mqtt is not an object"));
     return false;
@@ -110,7 +110,7 @@ bool Helpers::_validateConfigMqtt(JsonObject& object) {
       Logger.logln(F("✖ mqtt.host is too long"));
       return false;
     }
-    if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
+    if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<unsigned int>()) {
       Logger.logln(F("✖ mqtt.port is not an unsigned integer"));
       return false;
     }
@@ -182,7 +182,7 @@ bool Helpers::_validateConfigMqtt(JsonObject& object) {
   return true;
 }
 
-bool Helpers::_validateConfigOta(JsonObject& object) {
+bool Helpers::_validateConfigOta(const JsonObject& object) {
   if (!object.containsKey("ota") || !object["ota"].is<JsonObject&>()) {
     Logger.logln(F("✖ ota is not an object"));
     return false;
@@ -214,7 +214,7 @@ bool Helpers::_validateConfigOta(JsonObject& object) {
           return false;
         }
       }
-      if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<uint16_t>()) {
+      if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<unsigned int>()) {
         Logger.logln(F("✖ ota.port is not an unsigned integer"));
         return false;
       }

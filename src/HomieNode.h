@@ -1,7 +1,7 @@
 #ifndef HomieNode_h
 #define HomieNode_h
 
-#include <Arduino.h>
+#include "Arduino.h"
 #include "Homie/Datatypes/Subscription.hpp"
 #include "Homie/Datatypes/Callbacks.hpp"
 #include "Homie/Limits.hpp"

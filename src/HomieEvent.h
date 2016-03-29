@@ -1,9 +1,7 @@
 #ifndef HomieEvent_h
 #define HomieEvent_h
 
-#include <Arduino.h>
-
-enum HomieEvent : byte {
+enum HomieEvent : unsigned char {
     HOMIE_CONFIGURATION_MODE = 1,
     HOMIE_NORMAL_MODE = 2,
     HOMIE_OTA_MODE = 3,

@@ -28,7 +28,7 @@ namespace HomieInternals {
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
   const char CONFIG_OTA_PATH[] = "/homie/ota";
 
-  enum BootMode : byte {
+  enum BootMode : unsigned char {
     BOOT_NORMAL = 1,
     BOOT_CONFIG = 2,
     BOOT_OTA = 3

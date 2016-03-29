@@ -1,12 +1,8 @@
 #ifndef Homie_h
 #define Homie_h
 
-#include <Arduino.h>
 #include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
-#include "Homie/Datatypes/ConfigStruct.hpp"
-#include "Homie/Datatypes/Callbacks.hpp"
-#include "Homie/MqttClient.hpp"
 #include "Homie/Constants.hpp"
 #include "Homie/Limits.hpp"
 #include "Homie/Helpers.hpp"
@@ -27,14 +23,14 @@ namespace HomieInternals {
 
       void enableLogging(bool logging);
       void enableBuiltInLedIndicator(bool enable);
-      void setLedPin(uint8_t pin, byte on);
+      void setLedPin(unsigned char pin, unsigned char on);
       void setBrand(const char* name);
       void setFirmware(const char* name, const char* version);
       void registerNode(HomieNode& node);
       void setGlobalInputHandler(GlobalInputHandler globalInputHandler);
       void setResettable(bool resettable);
       void onEvent(EventHandler handler);
-      void setResetTrigger(uint8_t pin, byte state, uint16_t time);
+      void setResetTrigger(unsigned char pin, unsigned char state, unsigned int time);
       void disableResetTrigger();
       void setResetFunction(ResetFunction function);
       void setSetupFunction(OperationFunction function);

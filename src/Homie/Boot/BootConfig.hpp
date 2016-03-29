@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
 #include <functional>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -24,7 +23,7 @@ namespace HomieInternals {
     private:
       ESP8266WebServer _http;
       DNSServer _dns;
-      byte _ssidCount;
+      unsigned char _ssidCount;
       bool _wifiScanAvailable;
       unsigned long _lastWifiScan;
       bool _lastWifiScanEnded;

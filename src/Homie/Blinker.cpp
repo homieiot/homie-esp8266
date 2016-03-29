@@ -26,7 +26,7 @@ void BlinkerClass::stop() {
   }
 }
 
-void BlinkerClass::_tick(byte pin) {
+void BlinkerClass::_tick(unsigned char pin) {
   digitalWrite(pin, !digitalRead(pin));
 }
 

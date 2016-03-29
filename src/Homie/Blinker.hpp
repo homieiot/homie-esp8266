@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
 #include <Ticker.h>
 #include "Datatypes/Interface.hpp"
 
@@ -17,7 +16,7 @@ namespace HomieInternals {
       Ticker _ticker;
       float _lastBlinkPace;
 
-      static void _tick(byte pin);
+      static void _tick(unsigned char pin);
   };
 
   extern BlinkerClass Blinker;

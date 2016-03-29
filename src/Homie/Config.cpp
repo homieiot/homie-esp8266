@@ -84,7 +84,7 @@ bool ConfigClass::load() {
   if (parsedJson.containsKey("device_id")) {
     reqDeviceId = parsedJson["device_id"];
   }
-  uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
+  unsigned int reqMqttPort = DEFAULT_MQTT_PORT;
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
   }
@@ -123,7 +123,7 @@ bool ConfigClass::load() {
   } else if (parsedJson["ota"].as<JsonObject&>().containsKey("host")) {
     reqOtaHost = parsedJson["ota"]["host"];
   }
-  uint16_t reqOtaPort = DEFAULT_OTA_PORT;
+  unsigned int reqOtaPort = DEFAULT_OTA_PORT;
   if (parsedJson["ota"].as<JsonObject&>().containsKey("port")) {
     reqOtaPort = parsedJson["ota"]["port"];
   }
@@ -166,7 +166,7 @@ bool ConfigClass::load() {
   return true;
 }
 
-ConfigStruct& ConfigClass::get() {
+const ConfigStruct& ConfigClass::get() {
   return this->_configStruct;
 }
 

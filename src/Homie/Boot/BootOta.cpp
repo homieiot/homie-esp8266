@@ -34,7 +34,7 @@ void BootOta::setup() {
   Logger.logln(F("✔ Connected to Wi-Fi"));
 
   const char* host = Config.get().ota.server.host;
-  uint16_t port = Config.get().ota.server.port;
+  unsigned int port = Config.get().ota.server.port;
   /*
   if (Config.get().ota.mdns) {
     Logger.log("Querying mDNS service ");
