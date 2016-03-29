@@ -12,6 +12,7 @@ BootNormal::BootNormal()
 , _wifiDisconnectNotified(true)
 , _mqttConnectNotified(false)
 , _mqttDisconnectNotified(true)
+, _otaVersion({'\0'})
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 {

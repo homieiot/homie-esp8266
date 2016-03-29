@@ -191,7 +191,6 @@ bool Helpers::_validateConfigOta(const JsonObject& object) {
     Logger.logln(F("✖ ota.enabled is not a boolean"));
     return false;
   }
-  bool mdns = false;
   if (object["ota"]["enabled"]) {
     if (object["ota"].as<JsonObject&>().containsKey("mdns")) {
       if (!object["ota"]["mdns"].is<const char*>()) {
@@ -202,7 +201,6 @@ bool Helpers::_validateConfigOta(const JsonObject& object) {
         Logger.logln(F("✖ ota.mdns is too long"));
         return false;
       }
-      mdns = true;
     } else {
       if (object["ota"].as<JsonObject&>().containsKey("host")) {
         if (!object["ota"]["host"].is<const char*>()) {

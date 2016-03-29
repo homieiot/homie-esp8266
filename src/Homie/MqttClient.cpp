@@ -3,7 +3,13 @@
 using namespace HomieInternals;
 
 MqttClientClass::MqttClientClass()
-: _subscribeWithoutLoop(0) {
+: _topicBuffer({'\0'})
+, _secure(false)
+, _host(nullptr)
+, _port(0)
+, _fingerprint(nullptr)
+, _subscribeWithoutLoop(0)
+{
 }
 
 MqttClientClass::~MqttClientClass() {

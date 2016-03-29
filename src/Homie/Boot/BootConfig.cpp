@@ -9,6 +9,7 @@ BootConfig::BootConfig()
 , _wifiScanAvailable(false)
 , _lastWifiScan(0)
 , _lastWifiScanEnded(true)
+, _jsonWifiNetworks(nullptr)
 , _flaggedForReboot(false)
 , _flaggedForRebootAt(0)
 {

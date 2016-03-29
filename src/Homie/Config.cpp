@@ -4,6 +4,8 @@ using namespace HomieInternals;
 
 ConfigClass::ConfigClass()
 : _spiffsBegan(false)
+, _configStruct()
+, _otaVersion({'\0'})
 {
 }
 

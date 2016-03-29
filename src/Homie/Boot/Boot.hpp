@@ -10,7 +10,7 @@
 namespace HomieInternals {
   class Boot {
     public:
-      Boot(const char* name);
+      explicit Boot(const char* name);
       virtual void setup();
       virtual void loop();
 

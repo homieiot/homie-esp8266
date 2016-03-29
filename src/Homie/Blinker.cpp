@@ -4,6 +4,7 @@ using namespace HomieInternals;
 
 BlinkerClass::BlinkerClass()
 : _lastBlinkPace(0)
+, _interface(nullptr)
 {
 }
 
