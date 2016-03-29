@@ -2,7 +2,7 @@
 
 using namespace HomieInternals;
 
-HomieClass::HomieClass() {
+HomieClass::HomieClass() : _setup(false) {
   strcpy(this->_interface.brand, DEFAULT_BRAND);
   strcpy(this->_interface.firmware.name, DEFAULT_FW_NAME);
   strcpy(this->_interface.firmware.version, DEFAULT_FW_VERSION);
@@ -33,10 +33,20 @@ HomieClass::HomieClass() {
 HomieClass::~HomieClass() {
 }
 
+void HomieClass::_checkBeforeSetup(String functionName) {
+  if (_setup) {
+    Logger.log(functionName);
+    Logger.logln(F(": has to be called before setup()"));
+    abort();
+  }
+}
+
 void HomieClass::setup() {
   if (Logger.isEnabled()) {
     Serial.begin(BAUD_RATE);
   }
+
+  _setup = true;
 
   if (!Config.load()) {
     this->_boot = &this->_bootConfig;
@@ -62,19 +72,26 @@ void HomieClass::loop() {
 }
 
 void HomieClass::enableLogging(bool enable) {
+  this->_checkBeforeSetup(F("enableLogging()"));
+
   Logger.setLogging(enable);
 }
 
 void HomieClass::enableBuiltInLedIndicator(bool enable) {
+  this->_checkBeforeSetup(F("enableBuiltInLedIndicator()"));
+
   this->_interface.led.enable = enable;
 }
 
 void HomieClass::setLedPin(unsigned char pin, unsigned char on) {
+  this->_checkBeforeSetup(F("setLedPin()"));
+
   this->_interface.led.pin = pin;
   this->_interface.led.on = on;
 }
 
 void HomieClass::setFirmware(const char* name, const char* version) {
+  this->_checkBeforeSetup(F("setFirmware()"));
   if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
     Logger.logln(F("setFirmware(): either the name or version string is too long"));
     abort();
@@ -85,6 +102,7 @@ void HomieClass::setFirmware(const char* name, const char* version) {
 }
 
 void HomieClass::setBrand(const char* name) {
+  this->_checkBeforeSetup(F("setBrand()"));
   if (strlen(name) + 1 > MAX_BRAND_LENGTH) {
     Logger.logln(F("setBrand(): the brand string is too long"));
     abort();
@@ -94,6 +112,7 @@ void HomieClass::setBrand(const char* name) {
 }
 
 void HomieClass::registerNode(HomieNode& node) {
+  this->_checkBeforeSetup(F("registerNode()"));
   if (this->_interface.registeredNodesCount > MAX_REGISTERED_NODES_COUNT) {
     Serial.println(F("register(): the max registered nodes count has been reached"));
     abort();
@@ -111,26 +130,38 @@ void HomieClass::setResettable(bool resettable) {
 }
 
 void HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
+  this->_checkBeforeSetup(F("setGlobalInputHandler()"));
+
   this->_interface.globalInputHandler = inputHandler;
 }
 
 void HomieClass::setResetFunction(ResetFunction function) {
+  this->_checkBeforeSetup(F("setResetFunction()"));
+
   this->_interface.reset.userFunction = function;
 }
 
 void HomieClass::setSetupFunction(OperationFunction function) {
+  this->_checkBeforeSetup(F("setSetupFunction()"));
+
   this->_interface.setupFunction = function;
 }
 
 void HomieClass::setLoopFunction(OperationFunction function) {
+  this->_checkBeforeSetup(F("setLoopFunction()"));
+
   this->_interface.loopFunction = function;
 }
 
 void HomieClass::onEvent(EventHandler handler) {
+  this->_checkBeforeSetup(F("onEvent()"));
+
   this->_interface.eventHandler = handler;
 }
 
 void HomieClass::setResetTrigger(unsigned char pin, unsigned char state, unsigned int time) {
+  this->_checkBeforeSetup(F("setResetTrigger()"));
+
   this->_interface.reset.enable = true;
   this->_interface.reset.triggerPin = pin;
   this->_interface.reset.triggerState = state;
@@ -138,6 +169,8 @@ void HomieClass::setResetTrigger(unsigned char pin, unsigned char state, unsigne
 }
 
 void HomieClass::disableResetTrigger() {
+  this->_checkBeforeSetup(F("disableResetTrigger()"));
+
   this->_interface.reset.enable = false;
 }
 

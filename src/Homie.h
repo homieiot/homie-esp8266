@@ -41,11 +41,14 @@ namespace HomieInternals {
       }
       bool setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained = true);
     private:
+      bool _setup;
       Boot* _boot;
       BootNormal _bootNormal;
       BootConfig _bootConfig;
       BootOta _bootOta;
       Interface _interface;
+
+      void _checkBeforeSetup(String functionName);
   };
 }
 
