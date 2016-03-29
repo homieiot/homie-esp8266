@@ -30,7 +30,7 @@ namespace HomieInternals {
 
   enum BootMode : unsigned char {
     BOOT_NORMAL = 1,
-    BOOT_CONFIG = 2,
-    BOOT_OTA = 3
+    BOOT_CONFIG,
+    BOOT_OTA
   };
 }
