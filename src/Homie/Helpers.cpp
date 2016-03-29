@@ -20,9 +20,19 @@ bool Helpers::validateConfig(JsonObject& object) {
     Logger.logln(F("✖ name is not a string"));
     return false;
   }
-  if (object.containsKey("device_id") && !object["device_id"].is<const char*>()) {
-    Logger.logln(F("✖ device_id is not a string"));
+  if (strlen(object["name"]) + 1 > MAX_FRIENDLY_NAME_LENGTH) {
+    Logger.logln(F("✖ name is too long"));
     return false;
+  }
+  if (object.containsKey("device_id")) {
+    if (!object["device_id"].is<const char*>()) {
+      Logger.logln(F("✖ device_id is not a string"));
+      return false;
+    }
+    if (strlen(object["device_id"]) + 1 > MAX_DEVICE_ID_LENGTH) {
+      Logger.logln(F("✖ device_id is too long"));
+      return false;
+    }
   }
 
   if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject&>()) {
@@ -33,8 +43,16 @@ bool Helpers::validateConfig(JsonObject& object) {
     Logger.logln(F("✖ wifi.ssid is not a string"));
     return false;
   }
+  if (strlen(object["wifi"]["ssid"]) + 1 > MAX_WIFI_SSID_LENGTH) {
+    Logger.logln(F("✖ wifi.ssid is too long"));
+    return false;
+  }
   if (!object["wifi"].as<JsonObject&>().containsKey("password") || !object["wifi"]["password"].is<const char*>()) {
     Logger.logln(F("✖ wifi.password is not a string"));
+    return false;
+  }
+  if (strlen(object["wifi"]["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
+    Logger.logln(F("✖ wifi.password is too long"));
     return false;
   }
 
@@ -48,10 +66,18 @@ bool Helpers::validateConfig(JsonObject& object) {
       Logger.logln(F("✖ mqtt.mdns is not a string"));
       return false;
     }
+    if (strlen(object["mqtt"]["mdns"]) + 1 > MAX_HOSTNAME_LENGTH) {
+      Logger.logln(F("✖ mqtt.mdns is too long"));
+      return false;
+    }
     mqttMdns = true;
   } else {
     if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
       Logger.logln(F("✖ mqtt.host is not a string"));
+      return false;
+    }
+    if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
+      Logger.logln(F("✖ mqtt.host is too long"));
       return false;
     }
     if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
@@ -59,9 +85,16 @@ bool Helpers::validateConfig(JsonObject& object) {
       return false;
     }
   }
-  if (object["mqtt"].as<JsonObject&>().containsKey("base_topic") && !object["mqtt"]["base_topic"].is<const char*>()) {
-    Logger.logln(F("✖ mqtt.base_topic is not a string"));
-    return false;
+  if (object["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
+    if (!object["mqtt"]["base_topic"].is<const char*>()) {
+      Logger.logln(F("✖ mqtt.base_topic is not a string"));
+      return false;
+    }
+
+    if (strlen(object["mqtt"]["base_topic"]) + 1 > MAX_MQTT_BASE_TOPIC_LENGTH) {
+      Logger.logln(F("✖ mqtt.base_topic is too long"));
+      return false;
+    }
   }
   if (object["mqtt"].as<JsonObject&>().containsKey("auth")) {
     if (!object["mqtt"]["auth"].is<bool>()) {
@@ -74,8 +107,16 @@ bool Helpers::validateConfig(JsonObject& object) {
         Logger.logln(F("✖ mqtt.username is not a string"));
         return false;
       }
+      if (strlen(object["mqtt"]["username"]) + 1 > MAX_MQTT_CREDS_LENGTH) {
+        Logger.logln(F("✖ mqtt.username is too long"));
+        return false;
+      }
       if (!object["mqtt"].as<JsonObject&>().containsKey("password") || !object["mqtt"]["password"].is<const char*>()) {
         Logger.logln(F("✖ mqtt.password is not a string"));
+        return false;
+      }
+      if (strlen(object["mqtt"]["password"]) + 1 > MAX_MQTT_CREDS_LENGTH) {
+        Logger.logln(F("✖ mqtt.password is too long"));
         return false;
       }
     }
@@ -109,20 +150,36 @@ bool Helpers::validateConfig(JsonObject& object) {
         Logger.logln(F("✖ ota.mdns is not a string"));
         return false;
       }
+      if (strlen(object["ota"]["mdns"]) + 1 > MAX_HOSTNAME_LENGTH) {
+        Logger.logln(F("✖ ota.mdns is too long"));
+        return false;
+      }
       otaMdns = true;
     } else {
-      if (object["ota"].as<JsonObject&>().containsKey("host") && !object["ota"]["host"].is<const char*>()) {
-        Logger.logln(F("✖ ota.host is not a string"));
-        return false;
+      if (object["ota"].as<JsonObject&>().containsKey("host")) {
+        if (!object["ota"]["host"].is<const char*>()) {
+          Logger.logln(F("✖ ota.host is not a string"));
+          return false;
+        }
+        if (strlen(object["ota"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
+          Logger.logln(F("✖ ota.host is too long"));
+          return false;
+        }
       }
       if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<uint16_t>()) {
         Logger.logln(F("✖ ota.port is not an unsigned integer"));
         return false;
       }
     }
-    if (object["ota"].as<JsonObject&>().containsKey("path") && !object["ota"]["path"].is<const char*>()) {
-      Logger.logln(F("✖ ota.path is not a string"));
-      return false;
+    if (object["ota"].as<JsonObject&>().containsKey("path")) {
+      if (!object["ota"]["path"].is<const char*>()) {
+        Logger.logln(F("✖ ota.path is not a string"));
+        return false;
+      }
+      if (strlen(object["ota"]["path"]) + 1 > MAX_OTA_PATH_LENGTH) {
+        Logger.logln(F("✖ ota.path is too long"));
+        return false;
+      }
     }
     if (object["ota"].as<JsonObject&>().containsKey("ssl")) {
       if (!object["ota"]["ssl"].is<bool>()) {

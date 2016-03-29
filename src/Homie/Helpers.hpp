@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 #include <ArduinoJson.h>
+#include "Limits.hpp"
 #include "Logger.hpp"
 
 namespace HomieInternals {
