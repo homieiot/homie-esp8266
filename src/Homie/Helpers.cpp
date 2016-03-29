@@ -16,6 +16,15 @@ const char* Helpers::getDeviceId() {
 }
 
 bool Helpers::validateConfig(JsonObject& object) {
+  if (!_validateConfigRoot(object)) return false;
+  if (!_validateConfigWifi(object)) return false;
+  if (!_validateConfigMqtt(object)) return false;
+  if (!_validateConfigOta(object)) return false;
+
+  return true;
+}
+
+bool Helpers::_validateConfigRoot(JsonObject& object) {
   if (!object.containsKey("name") || !object["name"].is<const char*>()) {
     Logger.logln(F("✖ name is not a string"));
     return false;
@@ -35,6 +44,17 @@ bool Helpers::validateConfig(JsonObject& object) {
     }
   }
 
+  const char* name = object["name"];
+
+  if (strcmp_P(name, PSTR("")) == 0) {
+    Logger.logln(F("✖ name is empty"));
+    return false;
+  }
+
+  return true;
+}
+
+bool Helpers::_validateConfigWifi(JsonObject& object) {
   if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject&>()) {
     Logger.logln(F("✖ wifi is not an object"));
     return false;
@@ -56,11 +76,21 @@ bool Helpers::validateConfig(JsonObject& object) {
     return false;
   }
 
+  const char* wifiSsid = object["wifi"]["ssid"];
+  if (strcmp_P(wifiSsid, PSTR("")) == 0) {
+    Logger.logln(F("✖ wifi.ssid is empty"));
+    return false;
+  }
+
+  return true;
+}
+
+bool Helpers::_validateConfigMqtt(JsonObject& object) {
   if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject&>()) {
     Logger.logln(F("✖ mqtt is not an object"));
     return false;
   }
-  bool mqttMdns = false;
+  bool mdns = false;
   if (object["mqtt"].as<JsonObject&>().containsKey("mdns")) {
     if (!object["mqtt"]["mdns"].is<const char*>()) {
       Logger.logln(F("✖ mqtt.mdns is not a string"));
@@ -70,7 +100,7 @@ bool Helpers::validateConfig(JsonObject& object) {
       Logger.logln(F("✖ mqtt.mdns is too long"));
       return false;
     }
-    mqttMdns = true;
+    mdns = true;
   } else {
     if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
       Logger.logln(F("✖ mqtt.host is not a string"));
@@ -135,6 +165,24 @@ bool Helpers::validateConfig(JsonObject& object) {
     }
   }
 
+  if (mdns) {
+    const char* mdnsService = object["mqtt"]["mdns"];
+    if (strcmp_P(mdnsService, PSTR("")) == 0) {
+      Logger.logln(F("✖ mqtt.mdns is empty"));
+      return false;
+    }
+  } else {
+    const char* host = object["mqtt"]["host"];
+    if (strcmp_P(host, PSTR("")) == 0) {
+      Logger.logln(F("✖ mqtt.host is empty"));
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool Helpers::_validateConfigOta(JsonObject& object) {
   if (!object.containsKey("ota") || !object["ota"].is<JsonObject&>()) {
     Logger.logln(F("✖ ota is not an object"));
     return false;
@@ -143,7 +191,7 @@ bool Helpers::validateConfig(JsonObject& object) {
     Logger.logln(F("✖ ota.enabled is not a boolean"));
     return false;
   }
-  bool otaMdns = false;
+  bool mdns = false;
   if (object["ota"]["enabled"]) {
     if (object["ota"].as<JsonObject&>().containsKey("mdns")) {
       if (!object["ota"]["mdns"].is<const char*>()) {
@@ -154,7 +202,7 @@ bool Helpers::validateConfig(JsonObject& object) {
         Logger.logln(F("✖ ota.mdns is too long"));
         return false;
       }
-      otaMdns = true;
+      mdns = true;
     } else {
       if (object["ota"].as<JsonObject&>().containsKey("host")) {
         if (!object["ota"]["host"].is<const char*>()) {
@@ -193,31 +241,6 @@ bool Helpers::validateConfig(JsonObject& object) {
           return false;
         }
       }
-    }
-  }
-
-  const char* name = object["name"];
-  const char* wifiSsid = object["wifi"]["ssid"];
-
-  if (strcmp_P(name, PSTR("")) == 0) {
-    Logger.logln(F("✖ name is empty"));
-    return false;
-  }
-  if (strcmp_P(wifiSsid, PSTR("")) == 0) {
-    Logger.logln(F("✖ wifi.ssid is empty"));
-    return false;
-  }
-  if (mqttMdns) {
-    const char* mqttMdnsService = object["mqtt"]["mdns"];
-    if (strcmp_P(mqttMdnsService, PSTR("")) == 0) {
-      Logger.logln(F("✖ mqtt.mdns is empty"));
-      return false;
-    }
-  } else {
-    const char* mqttHost = object["mqtt"]["host"];
-    if (strcmp_P(mqttHost, PSTR("")) == 0) {
-      Logger.logln(F("✖ mqtt.host is empty"));
-      return false;
     }
   }
 

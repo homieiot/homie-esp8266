@@ -15,5 +15,10 @@ namespace HomieInternals {
 
     private:
       static char _deviceId[8 + 1];
+
+      static bool _validateConfigRoot(JsonObject& object);
+      static bool _validateConfigWifi(JsonObject& object);
+      static bool _validateConfigMqtt(JsonObject& object);
+      static bool _validateConfigOta(JsonObject& object);
   };
 }
