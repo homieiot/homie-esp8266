@@ -35,6 +35,7 @@ HomieClass::~HomieClass() {
 
 void HomieClass::_checkBeforeSetup(String functionName) {
   if (_setup) {
+    Logger.log(F("✖ "));
     Logger.log(functionName);
     Logger.logln(F(": has to be called before setup()"));
     abort();
@@ -93,7 +94,7 @@ void HomieClass::setLedPin(unsigned char pin, unsigned char on) {
 void HomieClass::setFirmware(const char* name, const char* version) {
   this->_checkBeforeSetup(F("setFirmware()"));
   if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
-    Logger.logln(F("setFirmware(): either the name or version string is too long"));
+    Logger.logln(F("✖ setFirmware(): either the name or version string is too long"));
     abort();
   }
 
@@ -104,7 +105,7 @@ void HomieClass::setFirmware(const char* name, const char* version) {
 void HomieClass::setBrand(const char* name) {
   this->_checkBeforeSetup(F("setBrand()"));
   if (strlen(name) + 1 > MAX_BRAND_LENGTH) {
-    Logger.logln(F("setBrand(): the brand string is too long"));
+    Logger.logln(F("✖ setBrand(): the brand string is too long"));
     abort();
   }
 
@@ -114,7 +115,7 @@ void HomieClass::setBrand(const char* name) {
 void HomieClass::registerNode(HomieNode& node) {
   this->_checkBeforeSetup(F("registerNode()"));
   if (this->_interface.registeredNodesCount > MAX_REGISTERED_NODES_COUNT) {
-    Serial.println(F("register(): the max registered nodes count has been reached"));
+    Serial.println(F("✖ register(): the max registered nodes count has been reached"));
     abort();
   }
 
@@ -176,7 +177,7 @@ void HomieClass::disableResetTrigger() {
 
 bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained) {
   if (!this->isReadyToOperate()) {
-    Logger.logln(F("setNodeProperty() impossible now"));
+    Logger.logln(F("✖ setNodeProperty() impossible now"));
     return false;
   }
 
@@ -188,7 +189,7 @@ bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const ch
   strcat(MqttClient.getTopicBuffer(), property);
 
   if (5 + 2 + strlen(MqttClient.getTopicBuffer()) + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
-    Logger.logln(F("setNodeProperty(): content to send is too big"));
+    Logger.logln(F("✖ setNodeProperty(): content to send is too long"));
     return false;
   }
 

@@ -37,6 +37,7 @@ void BootNormal::_mqttConnect() {
       Logger.logln("No services found");
       return;
     } else {
+      Logger.log(F("✔ "));
       Logger.log(String(n));
       Logger.logln(" service(s) found, using first");
       host = MDNS.IP(0);
@@ -56,7 +57,7 @@ void BootNormal::_mqttConnect() {
   strcat(clientId, Config.get().deviceId);
 
   if (MqttClient.connect(clientId, "false", 2, true, Config.get().mqtt.auth, Config.get().mqtt.username, Config.get().mqtt.password)) {
-    Logger.logln(F("Success"));
+    Logger.logln(F("✔ Success"));
     this->_mqttSetup();
   } else {
     Logger.logln(F("Failure"));
@@ -157,7 +158,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
         this->_flaggedForOta = true;
         Logger.logln(F("Flagged for OTA"));
       } else {
-        Logger.logln("Version string received is too big");
+        Logger.logln("Version string received is too loong");
       }
     }
     return;
