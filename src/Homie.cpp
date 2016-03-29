@@ -187,6 +187,11 @@ bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const ch
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/"));
   strcat(MqttClient.getTopicBuffer(), property);
 
+  if (5 + 2 + strlen(MqttClient.getTopicBuffer()) + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
+    Logger.logln(F("setNodeProperty(): content to send is too big"));
+    return false;
+  }
+
   return MqttClient.publish(value, retained);
 }
 

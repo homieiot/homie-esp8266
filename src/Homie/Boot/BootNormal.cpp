@@ -152,9 +152,13 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
       Logger.log(F("✴ OTA available (version "));
       Logger.log(message);
       Logger.logln(")");
-      strcpy(this->_otaVersion, payload);
-      this->_flaggedForOta = true;
-      Serial.println(F("Flagged for OTA"));
+      if (strlen(payload) + 1 <= MAX_FIRMWARE_VERSION_LENGTH) {
+        strcpy(this->_otaVersion, payload);
+        this->_flaggedForOta = true;
+        Logger.logln(F("Flagged for OTA"));
+      } else {
+        Logger.logln("Version string received is too big");
+      }
     }
     return;
   } else if (unified == "$reset" && message == "true") {
