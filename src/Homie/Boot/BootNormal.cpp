@@ -307,6 +307,8 @@ void BootNormal::loop() {
     this->_wifiConnectNotified = false;
     if (!this->_wifiDisconnectNotified) {
       this->_lastWifiReconnectAttempt = 0;
+      this->_lastUptimeSent = 0;
+      this->_lastSignalSent = 0;
       Logger.logln(F("✖ Wi-Fi disconnected"));
       this->_interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
       this->_wifiDisconnectNotified = true;
@@ -335,6 +337,8 @@ void BootNormal::loop() {
     this->_mqttConnectNotified = false;
     if (!this->_mqttDisconnectNotified) {
       this->_lastMqttReconnectAttempt = 0;
+      this->_lastUptimeSent = 0;
+      this->_lastSignalSent = 0;
       Logger.logln(F("✖ MQTT disconnected"));
       this->_interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
       this->_mqttDisconnectNotified = true;
