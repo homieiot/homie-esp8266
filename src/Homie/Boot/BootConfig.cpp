@@ -192,7 +192,7 @@ void BootConfig::loop() {
 
   if (this->_flaggedForReboot) {
     if (millis() - this->_flaggedForRebootAt >= 3000UL) {
-      Logger.logln(F("↻ Rebooting in normal mode"));
+      Logger.logln(F("↻ Rebooting into normal mode..."));
       ESP.restart();
     }
 
@@ -223,7 +223,7 @@ void BootConfig::loop() {
 
   unsigned long now = millis();
   if ((now - this->_lastWifiScan >= CONFIG_SCAN_INTERVAL || this->_lastWifiScan == 0) && this->_lastWifiScanEnded) {
-    Logger.logln(F("Triggering Wi-Fi scan"));
+    Logger.logln(F("Triggering Wi-Fi scan..."));
     WiFi.scanNetworks(true);
     this->_lastWifiScan = now;
     this->_lastWifiScanEnded = false;

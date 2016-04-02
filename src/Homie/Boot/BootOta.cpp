@@ -15,18 +15,16 @@ void BootOta::setup() {
 
   WiFi.mode(WIFI_STA);
 
-  WiFi.begin(Config.get().wifi.ssid, Config.get().wifi.password);
-
   int wifiAttempts = 1;
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    if (wifiAttempts <= 3) {
+    if (wifiAttempts++ <= 3) {
       WiFi.begin(Config.get().wifi.ssid, Config.get().wifi.password);
-      Logger.log(F("Retrying Wi-Fi connection"));
+      Logger.log(F("↕ Connecting to Wi-Fi (attempt "));
       Logger.log(String(wifiAttempts));
-      Logger.logln(F("/3"));
-      wifiAttempts++;
+      Logger.logln(F("/3)"));
     } else {
-      Logger.logln(F("✖ Connection failed, rebooting in normal mode..."));
+      Logger.logln(F("✖ Connection failed"));
+      Logger.logln(F("↻ Rebooting into normal mode..."));
       Config.setOtaMode(false);
       ESP.restart();
     }
@@ -64,8 +62,8 @@ void BootOta::setup() {
   strcat(dataToPass, this->_interface->firmware.version);
   strcat(dataToPass, "=");
   strcat(dataToPass, Config.getOtaVersion());
-  t_httpUpdate_return ret = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass, Config.get().ota.server.ssl.enabled, Config.get().ota.server.ssl.fingerprint, false);
-  switch(ret) {
+  t_httpUpdate_return result = ESPhttpUpdate.update(host, port, Config.get().ota.path, dataToPass, Config.get().ota.server.ssl.enabled, Config.get().ota.server.ssl.fingerprint, false);
+  switch (result) {
     case HTTP_UPDATE_FAILED:
       Logger.logln(F("✖ Update failed"));
       break;
@@ -73,10 +71,11 @@ void BootOta::setup() {
       Logger.logln(F("✖ No updates"));
       break;
     case HTTP_UPDATE_OK:
-      Logger.logln(F("✔ Success, rebooting"));
+      Logger.logln(F("✔ Success"));
       break;
   }
 
+  Logger.logln(F("↻ Rebooting into normal mode..."));
   Config.setOtaMode(false);
   ESP.restart();
 }

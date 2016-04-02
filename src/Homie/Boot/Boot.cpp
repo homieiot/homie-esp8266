@@ -29,7 +29,7 @@ void Boot::setup() {
   WiFi.hostname(hostname);
 
   Logger.logln();
-  Logger.log(F("** Booting in "));
+  Logger.log(F("** Booting into "));
   Logger.log(this->_name);
   Logger.logln(F(" mode **"));
 }

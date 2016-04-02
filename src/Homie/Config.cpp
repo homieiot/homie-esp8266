@@ -220,7 +220,7 @@ BootMode ConfigClass::getBootMode() {
 }
 
 void ConfigClass::log() {
-  Logger.logln(F("⚙ Stored configuration:"));
+  Logger.logln(F("{} Stored configuration:"));
   Logger.log(F("  • Hardware device ID: "));
   Logger.logln(Helpers::getDeviceId());
   Logger.log(F("  • Device ID: "));

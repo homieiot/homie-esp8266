@@ -58,15 +58,15 @@ void BootNormal::_mqttConnect() {
   strcat(clientId, Config.get().deviceId);
 
   if (MqttClient.connect(clientId, "false", 2, true, Config.get().mqtt.auth, Config.get().mqtt.username, Config.get().mqtt.password)) {
-    Logger.logln(F("✔ Success"));
+    Logger.logln(F("✔ Connected"));
     this->_mqttSetup();
   } else {
-    Logger.logln(F("Failure"));
+    Logger.logln(F("✖ Cannot connect"));
   }
 }
 
 void BootNormal::_mqttSetup() {
-  Logger.logln(F("Sending initial informations"));
+  Logger.logln(F("Sending initial informations..."));
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
@@ -125,20 +125,20 @@ void BootNormal::_mqttSetup() {
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/+/+/set"));
-  Logger.logln(F("Subscribing to /set topics"));
+  Logger.logln(F("Subscribing to /set topics..."));
   MqttClient.subscribe(1);
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$reset"));
-  Logger.logln(F("Subscribing to $reset topic"));
+  Logger.logln(F("Subscribing to $reset topic..."));
   MqttClient.subscribe(1);
 
   if (Config.get().ota.enabled) {
     strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
     strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$ota"));
-    Logger.logln(F("Subscribing to $ota topic"));
+    Logger.logln(F("Subscribing to $ota topic..."));
     MqttClient.subscribe(1);
   }
 }
@@ -272,7 +272,7 @@ void BootNormal::setup() {
 
   if (Config.get().mqtt.server.ssl.enabled) {
     system_update_cpu_freq(SYS_CPU_160MHZ);
-    Logger.logln("Using SSL, pushing CPU freq to 160MHz");
+    Logger.logln("SSL enabled: pushing CPU frequency to 160MHz...");
   }
 }
 
@@ -288,7 +288,7 @@ void BootNormal::loop() {
 
     this->_interface->eventHandler(HOMIE_ABOUT_TO_RESET);
 
-    Logger.logln(F("↻ Rebooting in config mode"));
+    Logger.logln(F("↻ Rebooting into config mode..."));
     ESP.restart();
   }
 
@@ -296,7 +296,7 @@ void BootNormal::loop() {
     Logger.logln(F("Device is in a resettable state"));
     Config.setOtaMode(true, this->_otaVersion);
 
-    Logger.logln(F("↻ Rebooting in OTA mode"));
+    Logger.logln(F("↻ Rebooting into OTA mode..."));
     ESP.restart();
   }
 
@@ -313,7 +313,7 @@ void BootNormal::loop() {
 
     unsigned long now = millis();
     if (now - this->_lastWifiReconnectAttempt >= WIFI_RECONNECT_INTERVAL || this->_lastWifiReconnectAttempt == 0) {
-      Logger.logln(F("⌔ Attempting to connect to Wi-Fi"));
+      Logger.logln(F("↕ Attempting to connect to Wi-Fi..."));
       this->_lastWifiReconnectAttempt = now;
       if (this->_interface->led.enable) {
         Blinker.start(LED_WIFI_DELAY);
@@ -341,7 +341,7 @@ void BootNormal::loop() {
 
     unsigned long now = millis();
     if (now - this->_lastMqttReconnectAttempt >= MQTT_RECONNECT_INTERVAL || this->_lastMqttReconnectAttempt == 0) {
-      Logger.logln(F("⌔ Attempting to connect to MQTT"));
+      Logger.logln(F("↕ Attempting to connect to MQTT..."));
       this->_lastMqttReconnectAttempt = now;
       if (this->_interface->led.enable) {
         Blinker.start(LED_MQTT_DELAY);
@@ -359,20 +359,20 @@ void BootNormal::loop() {
 
   this->_mqttDisconnectNotified = false;
   if (!this->_mqttConnectNotified) {
-    Logger.logln(F("✔ MQTT connected"));
+    Logger.logln(F("✔ MQTT ready"));
     this->_interface->eventHandler(HOMIE_MQTT_CONNECTED);
     this->_mqttConnectNotified = true;
   }
 
   if (!this->_setupFunctionCalled) {
-    Logger.logln(F("Calling setup function"));
+    Logger.logln(F("Calling setup function..."));
     this->_interface->setupFunction();
     this->_setupFunctionCalled = true;
   }
 
   unsigned long now = millis();
   if (now - this->_lastSignalSent >= SIGNAL_QUALITY_SEND_INTERVAL || this->_lastSignalSent == 0) {
-    Logger.logln(F("Sending Wi-Fi signal quality"));
+    Logger.logln(F("Sending Wi-Fi signal quality..."));
     int32_t rssi = WiFi.RSSI();
     unsigned char quality;
     if (rssi <= -100) {
