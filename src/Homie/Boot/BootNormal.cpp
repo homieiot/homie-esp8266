@@ -7,6 +7,7 @@ BootNormal::BootNormal()
 , _lastWifiReconnectAttempt(0)
 , _lastMqttReconnectAttempt(0)
 , _lastSignalSent(0)
+, _lastUptimeSent(0)
 , _setupFunctionCalled(false)
 , _wifiConnectNotified(false)
 , _wifiDisconnectNotified(true)
@@ -392,6 +393,24 @@ void BootNormal::loop() {
 
     if (MqttClient.publish(qualityStr, true)) {
       this->_lastSignalSent = now;
+    }
+  }
+
+  if (now - this->_lastUptimeSent >= UPTIME_SEND_INTERVAL || this->_lastUptimeSent == 0) {
+    Clock.tick();
+    Logger.log(F("Sending uptime, currently "));
+    Logger.log(String(Clock.getSeconds()));
+    Logger.logln(F(" seconds..."));
+
+    char uptimeStr[10 + 1];
+    itoa(Clock.getSeconds(), uptimeStr, 10);
+
+    strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
+    strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
+    strcat_P(MqttClient.getTopicBuffer(), PSTR("/$uptime"));
+
+    if (MqttClient.publish(uptimeStr, true)) {
+      this->_lastUptimeSent = now;
     }
   }
 

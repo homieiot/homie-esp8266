@@ -20,7 +20,8 @@ namespace HomieInternals {
   const unsigned int CONFIG_SCAN_INTERVAL = 20 * 1000;
   const unsigned int WIFI_RECONNECT_INTERVAL = 20 * 1000;
   const unsigned int MQTT_RECONNECT_INTERVAL = 5 * 1000;
-  const unsigned long SIGNAL_QUALITY_SEND_INTERVAL = 300 * 1000;
+  const unsigned long SIGNAL_QUALITY_SEND_INTERVAL = 5 * 60 * 1000;
+  const unsigned long UPTIME_SEND_INTERVAL = 2 * 60 * 1000;
 
   const float LED_WIFI_DELAY = 1;
   const float LED_MQTT_DELAY = 0.2;

@@ -12,6 +12,7 @@
 #include "../Helpers.hpp"
 #include "../Config.hpp"
 #include "../Blinker.hpp"
+#include "../Clock.hpp"
 #include "../Logger.hpp"
 #include "Boot.hpp"
 
@@ -31,6 +32,7 @@ namespace HomieInternals {
       unsigned long _lastWifiReconnectAttempt;
       unsigned long _lastMqttReconnectAttempt;
       unsigned long _lastSignalSent;
+      unsigned long _lastUptimeSent;
       bool _setupFunctionCalled;
       bool _wifiConnectNotified;
       bool _wifiDisconnectNotified;
