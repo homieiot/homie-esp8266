@@ -1,6 +1,6 @@
 #include <Homie.h>
 
-const int PIN_RELAY = 16;
+const int PIN_RELAY = 5;
 
 HomieNode lightNode("light", "switch");
 
