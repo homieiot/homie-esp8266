@@ -18,14 +18,14 @@ namespace HomieInternals {
     struct LED {
       bool enable;
       unsigned char pin;
-      byte on;
+      unsigned char on;
     } led;
 
     struct Reset {
       bool enable;
       bool able;
       unsigned char triggerPin;
-      byte triggerState;
+      unsigned char triggerState;
       unsigned int triggerTime;
       ResetFunction userFunction;
     } reset;
