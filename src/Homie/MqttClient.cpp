@@ -43,6 +43,9 @@ void MqttClientClass::setServer(const char* host, unsigned int port, const char*
 }
 
 bool MqttClientClass::connect(const char* clientId, const char* willMessage, unsigned char willQos, bool willRetain, bool auth, const char* username, const char* password) {
+  this->_wifiClient.stop(); // Ensure buffers are cleaned, otherwise exception
+  this->_wifiClientSecure.stop();
+
   if (this->_secure && !(strcmp_P(this->_fingerprint, PSTR("")) == 0)) {
     Logger.logln(F("Checking certificate"));
     if (!this->_wifiClientSecure.connect(this->_host, this->_port)) {
