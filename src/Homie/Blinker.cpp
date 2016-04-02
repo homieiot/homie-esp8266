@@ -13,14 +13,9 @@ void BlinkerClass::attachInterface(Interface* interface) {
 }
 
 void BlinkerClass::start(float blinkPace) {
-  Serial.println("here1");
   if (this->_lastBlinkPace != blinkPace) {
-    Serial.println("here2");
-    Serial.println(this->_interface->led.pin);
-    Serial.println("here3");
     this->_ticker.attach(blinkPace, this->_tick, this->_interface->led.pin);
     this->_lastBlinkPace = blinkPace;
-    Serial.println("here4");
   }
 }
 
