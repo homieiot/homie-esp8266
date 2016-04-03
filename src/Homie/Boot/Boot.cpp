@@ -13,7 +13,7 @@ void Boot::attachInterface(Interface* interface) {
 }
 
 void Boot::setup() {
-  if (this->_interface->led.enable) {
+  if (this->_interface->led.enabled) {
     pinMode(this->_interface->led.pin, OUTPUT);
     digitalWrite(this->_interface->led.pin, !this->_interface->led.on);
   }

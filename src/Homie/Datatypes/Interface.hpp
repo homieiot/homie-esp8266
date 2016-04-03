@@ -16,13 +16,13 @@ namespace HomieInternals {
     } firmware;
 
     struct LED {
-      bool enable;
+      bool enabled;
       unsigned char pin;
       unsigned char on;
     } led;
 
     struct Reset {
-      bool enable;
+      bool enabled;
       bool able;
       unsigned char triggerPin;
       unsigned char triggerState;

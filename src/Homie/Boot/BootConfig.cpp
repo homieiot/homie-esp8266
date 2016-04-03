@@ -21,7 +21,7 @@ BootConfig::~BootConfig() {
 void BootConfig::setup() {
   Boot::setup();
 
-  if (this->_interface->led.enable) {
+  if (this->_interface->led.enabled) {
     digitalWrite(this->_interface->led.pin, this->_interface->led.on);
   }
 

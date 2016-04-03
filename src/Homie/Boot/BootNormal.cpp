@@ -284,7 +284,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
 }
 
 void BootNormal::_handleReset() {
-  if (this->_interface->reset.enable) {
+  if (this->_interface->reset.enabled) {
     this->_resetDebouncer.update();
 
     if (this->_resetDebouncer.read() == this->_interface->reset.triggerState) {
@@ -304,7 +304,7 @@ void BootNormal::setup() {
 
   MqttClient.initMqtt(Config.get().mqtt.server.ssl.enabled);
 
-  if (this->_interface->reset.enable) {
+  if (this->_interface->reset.enabled) {
     pinMode(this->_interface->reset.triggerPin, INPUT_PULLUP);
 
     this->_resetDebouncer.attach(this->_interface->reset.triggerPin);
@@ -362,7 +362,7 @@ void BootNormal::loop() {
     if (now - this->_lastWifiReconnectAttempt >= WIFI_RECONNECT_INTERVAL || this->_lastWifiReconnectAttempt == 0) {
       Logger.logln(F("↕ Attempting to connect to Wi-Fi..."));
       this->_lastWifiReconnectAttempt = now;
-      if (this->_interface->led.enable) {
+      if (this->_interface->led.enabled) {
         Blinker.start(LED_WIFI_DELAY);
       }
       this->_wifiConnect();
@@ -394,14 +394,14 @@ void BootNormal::loop() {
     if (now - this->_lastMqttReconnectAttempt >= MQTT_RECONNECT_INTERVAL || this->_lastMqttReconnectAttempt == 0) {
       Logger.logln(F("↕ Attempting to connect to MQTT..."));
       this->_lastMqttReconnectAttempt = now;
-      if (this->_interface->led.enable) {
+      if (this->_interface->led.enabled) {
         Blinker.start(LED_MQTT_DELAY);
       }
       this->_mqttConnect();
     }
     return;
   } else {
-    if (this->_interface->led.enable) {
+    if (this->_interface->led.enabled) {
       Blinker.stop();
     }
   }

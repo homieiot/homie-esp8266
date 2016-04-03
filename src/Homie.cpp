@@ -6,11 +6,11 @@ HomieClass::HomieClass() : _setup(false) {
   strcpy(this->_interface.brand, DEFAULT_BRAND);
   strcpy(this->_interface.firmware.name, DEFAULT_FW_NAME);
   strcpy(this->_interface.firmware.version, DEFAULT_FW_VERSION);
-  this->_interface.led.enable = true;
+  this->_interface.led.enabled = true;
   this->_interface.led.pin = BUILTIN_LED;
   this->_interface.led.on = LOW;
   this->_interface.reset.able = true;
-  this->_interface.reset.enable = true;
+  this->_interface.reset.enabled = true;
   this->_interface.reset.triggerPin = DEFAULT_RESET_PIN;
   this->_interface.reset.triggerState = DEFAULT_RESET_STATE;
   this->_interface.reset.triggerTime = DEFAULT_RESET_TIME;
@@ -85,7 +85,7 @@ void HomieClass::enableLogging(bool enable) {
 void HomieClass::enableBuiltInLedIndicator(bool enable) {
   this->_checkBeforeSetup(F("enableBuiltInLedIndicator()"));
 
-  this->_interface.led.enable = enable;
+  this->_interface.led.enabled = enable;
 }
 
 void HomieClass::setLedPin(unsigned char pin, unsigned char on) {
@@ -167,7 +167,7 @@ void HomieClass::onEvent(EventHandler handler) {
 void HomieClass::setResetTrigger(unsigned char pin, unsigned char state, unsigned int time) {
   this->_checkBeforeSetup(F("setResetTrigger()"));
 
-  this->_interface.reset.enable = true;
+  this->_interface.reset.enabled = true;
   this->_interface.reset.triggerPin = pin;
   this->_interface.reset.triggerState = state;
   this->_interface.reset.triggerTime = time;
@@ -176,7 +176,7 @@ void HomieClass::setResetTrigger(unsigned char pin, unsigned char state, unsigne
 void HomieClass::disableResetTrigger() {
   this->_checkBeforeSetup(F("disableResetTrigger()"));
 
-  this->_interface.reset.enable = false;
+  this->_interface.reset.enabled = false;
 }
 
 bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained) {
