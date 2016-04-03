@@ -46,6 +46,7 @@ void HomieClass::setup() {
   if (Logger.isEnabled()) {
     Serial.begin(BAUD_RATE);
     Logger.logln();
+    Logger.logln();
   }
 
   _setup = true;

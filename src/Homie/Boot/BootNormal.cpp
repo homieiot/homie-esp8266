@@ -59,7 +59,7 @@ void BootNormal::_mqttConnect() {
   strcat(clientId, Config.get().deviceId);
 
   if (MqttClient.connect(clientId, "false", 2, true, Config.get().mqtt.auth, Config.get().mqtt.username, Config.get().mqtt.password)) {
-    Logger.logln(F("✔ Connected"));
+    Logger.logln(F("Connected"));
     this->_mqttSetup();
   } else {
     Logger.logln(F("✖ Cannot connect"));
@@ -148,7 +148,7 @@ void BootNormal::_mqttSetup() {
     return;
   }
 
-  Logger.logln(F(" Success"));
+  Logger.logln(F(" OK"));
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
@@ -180,7 +180,7 @@ void BootNormal::_mqttSetup() {
     }
   }
 
-  Logger.logln(F(" Success"));
+  Logger.logln(F(" OK"));
 }
 
 void BootNormal::_mqttCallback(char* topic, char* payload) {
@@ -314,8 +314,14 @@ void BootNormal::setup() {
   Config.log();
 
   if (Config.get().mqtt.server.ssl.enabled) {
-    system_update_cpu_freq(SYS_CPU_160MHZ);
-    Logger.logln(F("SSL enabled: pushing CPU frequency to 160MHz..."));
+    Logger.log(F("SSL enabled: pushing CPU frequency to 160MHz... "));
+    if (system_update_cpu_freq(SYS_CPU_160MHZ)) {
+      Logger.logln("OK");
+    } else {
+      Logger.logln("Failure");
+      Logger.logln("Rebooting...");
+      ESP.restart();
+    }
   }
 }
 
@@ -443,7 +449,7 @@ void BootNormal::loop() {
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$signal"));
 
     if (MqttClient.publish(qualityStr, true)) {
-      Logger.logln(F(" Success"));
+      Logger.logln(F(" OK"));
       this->_lastSignalSent = now;
     } else {
       Logger.logln(F(" Failure"));
@@ -454,7 +460,7 @@ void BootNormal::loop() {
     Clock.tick();
     Logger.log(F("Sending uptime, currently "));
     Logger.log(String(Clock.getSeconds()));
-    Logger.log(F(" seconds... "));
+    Logger.log(F("s... "));
 
     char uptimeStr[10 + 1];
     itoa(Clock.getSeconds(), uptimeStr, 10);
@@ -464,7 +470,7 @@ void BootNormal::loop() {
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$uptime"));
 
     if (MqttClient.publish(uptimeStr, true)) {
-      Logger.logln(F(" Success"));
+      Logger.logln(F(" OK"));
       this->_lastUptimeSent = now;
     } else {
       Logger.logln(F(" Failure"));
