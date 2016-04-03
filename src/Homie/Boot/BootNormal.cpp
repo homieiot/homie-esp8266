@@ -223,12 +223,15 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
 
   Subscription homieNodeSubscription = homieNode->getSubscriptions()[homieNodePropertyIndex];
 
+  Logger.logln(F("Triggering global input handler..."));
   bool handled = this->_interface->globalInputHandler(node, property, message);
   if (handled) return;
 
+  Logger.logln(F("Triggering node input handler..."));
   handled = homieNode->getInputHandler()(property, message);
   if (handled) return;
 
+  Logger.logln(F("Triggering property input handler..."));
   handled = homieNodeSubscription.inputHandler(message);
   if (!handled){
     Logger.logln(F("No handlers handled the following packet:"));
@@ -287,6 +290,7 @@ void BootNormal::loop() {
     Config.erase();
     Logger.logln(F("Configuration erased"));
 
+    Logger.logln(F("Triggering HOMIE_ABOUT_TO_RESET event..."));
     this->_interface->eventHandler(HOMIE_ABOUT_TO_RESET);
 
     Logger.logln(F("↻ Rebooting into config mode..."));
@@ -310,6 +314,7 @@ void BootNormal::loop() {
       this->_lastUptimeSent = 0;
       this->_lastSignalSent = 0;
       Logger.logln(F("✖ Wi-Fi disconnected"));
+      Logger.logln(F("Triggering HOMIE_WIFI_DISCONNECTED event..."));
       this->_interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
       this->_wifiDisconnectNotified = true;
     }
@@ -329,6 +334,7 @@ void BootNormal::loop() {
   this->_wifiDisconnectNotified = false;
   if (!this->_wifiConnectNotified) {
     Logger.logln(F("✔ Wi-Fi connected"));
+    Logger.logln(F("Triggering HOMIE_WIFI_CONNECTED event..."));
     this->_interface->eventHandler(HOMIE_WIFI_CONNECTED);
     this->_wifiConnectNotified = true;
   }
@@ -340,6 +346,7 @@ void BootNormal::loop() {
       this->_lastUptimeSent = 0;
       this->_lastSignalSent = 0;
       Logger.logln(F("✖ MQTT disconnected"));
+      Logger.logln(F("Triggering HOMIE_MQTT_DISCONNECTED event..."));
       this->_interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
       this->_mqttDisconnectNotified = true;
     }
@@ -365,6 +372,7 @@ void BootNormal::loop() {
   this->_mqttDisconnectNotified = false;
   if (!this->_mqttConnectNotified) {
     Logger.logln(F("✔ MQTT ready"));
+    Logger.logln(F("Triggering HOMIE_MQTT_CONNECTED event..."));
     this->_interface->eventHandler(HOMIE_MQTT_CONNECTED);
     this->_mqttConnectNotified = true;
   }

@@ -24,6 +24,7 @@ bool ConfigClass::load() {
   this->_bootMode = BOOT_CONFIG;
 
   if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
+    Logger.log(F("✖ "));
     Logger.log(CONFIG_FILE_PATH);
     Logger.logln(F(" doesn't exist"));
     return false;
@@ -37,6 +38,11 @@ bool ConfigClass::load() {
 
   size_t configSize = configFile.size();
 
+  if (configSize > MAX_JSON_CONFIG_FILE_BUFFER_SIZE) {
+    Logger.logln(F("✖ Config file too big"));
+    return false;
+  }
+
   char buf[MAX_JSON_CONFIG_FILE_BUFFER_SIZE];
   configFile.readBytes(buf, configSize);
   configFile.close();
@@ -44,11 +50,12 @@ bool ConfigClass::load() {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(buf);
   if (!parsedJson.success()) {
-    Logger.logln(F("✖ Invalid or too big config file"));
+    Logger.logln(F("✖ Invalid JSON in the config file"));
     return false;
   }
 
   if (!Helpers::validateConfig(parsedJson)) {
+    Logger.logln(F("✖ Config file is not valid"));
     return false;
   }
 

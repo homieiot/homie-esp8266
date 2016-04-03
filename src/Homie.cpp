@@ -45,21 +45,25 @@ void HomieClass::_checkBeforeSetup(String functionName) {
 void HomieClass::setup() {
   if (Logger.isEnabled()) {
     Serial.begin(BAUD_RATE);
+    Logger.logln();
   }
 
   _setup = true;
 
   if (!Config.load()) {
     this->_boot = &this->_bootConfig;
+    Logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
     this->_interface.eventHandler(HOMIE_CONFIGURATION_MODE);
   } else {
     switch (Config.getBootMode()) {
       case BOOT_NORMAL:
         this->_boot = &this->_bootNormal;
+        Logger.logln(F("Triggering HOMIE_NORMAL_MODE event..."));
         this->_interface.eventHandler(HOMIE_NORMAL_MODE);
         break;
       case BOOT_OTA:
         this->_boot = &this->_bootOta;
+        Logger.logln(F("Triggering HOMIE_OTA_MODE event..."));
         this->_interface.eventHandler(HOMIE_OTA_MODE);
         break;
     }
