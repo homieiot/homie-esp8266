@@ -430,7 +430,6 @@ void BootNormal::loop() {
 
   unsigned long now = millis();
   if (now - this->_lastSignalSent >= SIGNAL_QUALITY_SEND_INTERVAL || this->_lastSignalSent == 0) {
-    Logger.log(F("Sending Wi-Fi signal quality... "));
     int32_t rssi = WiFi.RSSI();
     unsigned char quality;
     if (rssi <= -100) {
@@ -443,6 +442,10 @@ void BootNormal::loop() {
 
     char qualityStr[3 + 1];
     itoa(quality, qualityStr, 10);
+
+    Logger.log(F("Sending Wi-Fi signal quality ("));
+    Logger.log(qualityStr);
+    Logger.log(F("%)... "));
 
     strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
     strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
@@ -458,12 +461,13 @@ void BootNormal::loop() {
 
   if (now - this->_lastUptimeSent >= UPTIME_SEND_INTERVAL || this->_lastUptimeSent == 0) {
     Clock.tick();
-    Logger.log(F("Sending uptime, currently "));
-    Logger.log(String(Clock.getSeconds()));
-    Logger.log(F("s... "));
 
     char uptimeStr[10 + 1];
     itoa(Clock.getSeconds(), uptimeStr, 10);
+
+    Logger.log(F("Sending uptime ("));
+    Logger.log(String(Clock.getSeconds()));
+    Logger.log(F("s)... "));
 
     strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
     strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
