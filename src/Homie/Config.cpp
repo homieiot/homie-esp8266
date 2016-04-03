@@ -268,23 +268,23 @@ void ConfigClass::log() {
   Logger.log(F("    • Base topic: "));
   Logger.logln(this->_configStruct.mqtt.baseTopic);
   Logger.log(F("    • Auth? "));
-  Logger.logln(this->_configStruct.mqtt.auth ? "yes" : "no");
+  Logger.logln(this->_configStruct.mqtt.auth ? F("yes") : F("no"));
   if (this->_configStruct.mqtt.auth) {
     Logger.log(F("    • Username: "));
     Logger.logln(this->_configStruct.mqtt.username);
     Logger.logln(F("    • Password not shown"));
   }
   Logger.log(F("    • SSL? "));
-  Logger.logln(this->_configStruct.mqtt.server.ssl.enabled ? "yes" : "no");
+  Logger.logln(this->_configStruct.mqtt.server.ssl.enabled ? F("yes") : F("no"));
   if (this->_configStruct.mqtt.server.ssl.enabled) {
     Logger.log(F("    • Fingerprint: "));
-    if (strcmp_P(this->_configStruct.mqtt.server.ssl.fingerprint, PSTR("")) == 0) Logger.logln("unset");
+    if (strcmp_P(this->_configStruct.mqtt.server.ssl.fingerprint, PSTR("")) == 0) Logger.logln(F("unset"));
     else Logger.logln(this->_configStruct.mqtt.server.ssl.fingerprint);
   }
 
   Logger.logln(F("  • OTA"));
   Logger.log(F("    • Enabled? "));
-  Logger.logln(this->_configStruct.ota.enabled ? "yes" : "no");
+  Logger.logln(this->_configStruct.ota.enabled ? F("yes") : F("no"));
   if (this->_configStruct.ota.enabled) {
     if (this->_configStruct.ota.server.mdns.enabled) {
       Logger.log(F("    • mDNS: "));
@@ -298,10 +298,10 @@ void ConfigClass::log() {
     Logger.log(F("    • Path: "));
     Logger.logln(String(this->_configStruct.ota.path));
     Logger.log(F("    • SSL? "));
-    Logger.logln(this->_configStruct.ota.server.ssl.enabled ? "yes" : "no");
+    Logger.logln(this->_configStruct.ota.server.ssl.enabled ? F("yes") : F("no"));
     if (this->_configStruct.ota.server.ssl.enabled) {
       Logger.log(F("    • Fingerprint: "));
-      if (strcmp_P(this->_configStruct.ota.server.ssl.fingerprint, PSTR("")) == 0) Logger.logln("unset");
+      if (strcmp_P(this->_configStruct.ota.server.ssl.fingerprint, PSTR("")) == 0) Logger.logln(F("unset"));
       else Logger.logln(this->_configStruct.ota.server.ssl.fingerprint);
     }
   }

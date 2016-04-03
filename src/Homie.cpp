@@ -181,7 +181,7 @@ void HomieClass::disableResetTrigger() {
 
 bool HomieClass::setNodeProperty(HomieNode& node, const char* property, const char* value, bool retained) {
   if (!this->isReadyToOperate()) {
-    Logger.logln(F("✖ setNodeProperty() impossible now"));
+    Logger.logln(F("✖ setNodeProperty(): impossible now"));
     return false;
   }
 

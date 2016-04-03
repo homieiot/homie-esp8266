@@ -31,17 +31,17 @@ void BootNormal::_mqttConnect() {
   const char* host = Config.get().mqtt.server.host;
   unsigned int port = Config.get().mqtt.server.port;
   /* if (Config.get().mqtt.mdns) {
-    Logger.log("Querying mDNS service ");
+    Logger.log(F("Querying mDNS service "));
     Logger.logln(Config.get().mqtt.mdnsService);
 
     int n = MDNS.queryService(Config.get().mqtt.mdnsService, "tcp");
     if (n == 0) {
-      Logger.logln("No services found");
+      Logger.logln(F("No services found"));
       return;
     } else {
       Logger.log(F("✔ "));
       Logger.log(String(n));
-      Logger.logln(" service(s) found, using first");
+      Logger.logln(F(" service(s) found, using first"));
       host = MDNS.IP(0);
       port = MDNS.port(0);
     }
@@ -67,7 +67,7 @@ void BootNormal::_mqttConnect() {
 }
 
 void BootNormal::_mqttSetup() {
-  Logger.logln(F("Sending initial informations..."));
+  Logger.log(F("Sending initial information... "));
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
@@ -82,17 +82,29 @@ void BootNormal::_mqttSetup() {
     strcat(nodes, node->getType());
     if (i != this->_interface->registeredNodesCount - 1) strcat_P(nodes, PSTR(","));
   }
-  MqttClient.publish(nodes, true);
+  if (!MqttClient.publish(nodes, true)) {
+    MqttClient.disconnect();
+    Logger.logln(F(" Failed"));
+    return;
+  }
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$online"));
-  MqttClient.publish("true", true);
+  if (!MqttClient.publish("true", true)) {
+    MqttClient.disconnect();
+    Logger.logln(F(" Failed"));
+    return;
+  }
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$name"));
-  MqttClient.publish(Config.get().name, true);
+  if (!MqttClient.publish(Config.get().name, true)) {
+    MqttClient.disconnect();
+    Logger.logln(F(" Failed"));
+    return;
+  }
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
@@ -111,37 +123,64 @@ void BootNormal::_mqttSetup() {
   strcat_P(localIpStr, PSTR("."));
   itoa(localIp[3], localIpPartStr, 10);
   strcat(localIpStr, localIpPartStr);
-  MqttClient.publish(localIpStr, true);
+  if (!MqttClient.publish(localIpStr, true)) {
+    MqttClient.disconnect();
+    Logger.logln(F(" Failed"));
+    return;
+  }
+
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$fwname"));
-  MqttClient.publish(this->_interface->firmware.name, true);
+  if (!MqttClient.publish(this->_interface->firmware.name, true)) {
+    MqttClient.disconnect();
+    Logger.logln(F(" Failed"));
+    return;
+  }
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$fwversion"));
-  MqttClient.publish(this->_interface->firmware.version, true);
+  if (!MqttClient.publish(this->_interface->firmware.version, true)) {
+    MqttClient.disconnect();
+    Logger.logln(F(" Failed"));
+    return;
+  }
+
+  Logger.logln(F(" Success"));
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/+/+/set"));
-  Logger.logln(F("Subscribing to /set topics..."));
-  MqttClient.subscribe(1);
+  Logger.log(F("Subscribing to topics... "));
+  if (!MqttClient.subscribe(1)) {
+    MqttClient.disconnect();
+    Logger.logln(F(" Failed"));
+    return;
+  }
 
   strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
   strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
   strcat_P(MqttClient.getTopicBuffer(), PSTR("/$reset"));
-  Logger.logln(F("Subscribing to $reset topic..."));
-  MqttClient.subscribe(1);
+  if (!MqttClient.subscribe(1)) {
+    MqttClient.disconnect();
+    Logger.logln(F(" Failed"));
+    return;
+  }
 
   if (Config.get().ota.enabled) {
     strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
     strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$ota"));
-    Logger.logln(F("Subscribing to $ota topic..."));
-    MqttClient.subscribe(1);
+    if (!MqttClient.subscribe(1)) {
+      MqttClient.disconnect();
+      Logger.logln(F(" Failed"));
+      return;
+    }
   }
+
+  Logger.logln(F(" Success"));
 }
 
 void BootNormal::_mqttCallback(char* topic, char* payload) {
@@ -154,13 +193,13 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     if (message != this->_interface->firmware.version) {
       Logger.log(F("✴ OTA available (version "));
       Logger.log(message);
-      Logger.logln(")");
+      Logger.logln(F(")"));
       if (strlen(payload) + 1 <= MAX_FIRMWARE_VERSION_LENGTH) {
         strcpy(this->_otaVersion, payload);
         this->_flaggedForOta = true;
         Logger.logln(F("Flagged for OTA"));
       } else {
-        Logger.logln("Version string received is too long");
+        Logger.logln(F("Version string received is too long"));
       }
     }
     return;
@@ -196,9 +235,9 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
   }
 
   if (homieNodeIndex == -1) {
-    Logger.log("Node ");
+    Logger.log(F("Node "));
     Logger.log(node);
-    Logger.logln(" not registered");
+    Logger.logln(F(" not registered"));
     return;
   }
 
@@ -214,24 +253,24 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
   }
 
   if (homieNodePropertyIndex == -1) {
-    Logger.log("Node ");
+    Logger.log(F("Node "));
     Logger.log(node);
-    Logger.log(" not subscribed to ");
+    Logger.log(F(" not subscribed to "));
     Logger.logln(property);
     return;
   }
 
   Subscription homieNodeSubscription = homieNode->getSubscriptions()[homieNodePropertyIndex];
 
-  Logger.logln(F("Triggering global input handler..."));
+  Logger.logln(F("Calling global input handler..."));
   bool handled = this->_interface->globalInputHandler(node, property, message);
   if (handled) return;
 
-  Logger.logln(F("Triggering node input handler..."));
+  Logger.logln(F("Calling node input handler..."));
   handled = homieNode->getInputHandler()(property, message);
   if (handled) return;
 
-  Logger.logln(F("Triggering property input handler..."));
+  Logger.logln(F("Calling property input handler..."));
   handled = homieNodeSubscription.inputHandler(message);
   if (!handled){
     Logger.logln(F("No handlers handled the following packet:"));
@@ -276,7 +315,7 @@ void BootNormal::setup() {
 
   if (Config.get().mqtt.server.ssl.enabled) {
     system_update_cpu_freq(SYS_CPU_160MHZ);
-    Logger.logln("SSL enabled: pushing CPU frequency to 160MHz...");
+    Logger.logln(F("SSL enabled: pushing CPU frequency to 160MHz..."));
   }
 }
 
@@ -385,7 +424,7 @@ void BootNormal::loop() {
 
   unsigned long now = millis();
   if (now - this->_lastSignalSent >= SIGNAL_QUALITY_SEND_INTERVAL || this->_lastSignalSent == 0) {
-    Logger.logln(F("Sending Wi-Fi signal quality..."));
+    Logger.log(F("Sending Wi-Fi signal quality... "));
     int32_t rssi = WiFi.RSSI();
     unsigned char quality;
     if (rssi <= -100) {
@@ -404,7 +443,10 @@ void BootNormal::loop() {
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$signal"));
 
     if (MqttClient.publish(qualityStr, true)) {
+      Logger.logln(F(" Success"));
       this->_lastSignalSent = now;
+    } else {
+      Logger.logln(F(" Failure"));
     }
   }
 
@@ -412,7 +454,7 @@ void BootNormal::loop() {
     Clock.tick();
     Logger.log(F("Sending uptime, currently "));
     Logger.log(String(Clock.getSeconds()));
-    Logger.logln(F(" seconds..."));
+    Logger.log(F(" seconds... "));
 
     char uptimeStr[10 + 1];
     itoa(Clock.getSeconds(), uptimeStr, 10);
@@ -422,7 +464,10 @@ void BootNormal::loop() {
     strcat_P(MqttClient.getTopicBuffer(), PSTR("/$uptime"));
 
     if (MqttClient.publish(uptimeStr, true)) {
+      Logger.logln(F(" Success"));
       this->_lastUptimeSent = now;
+    } else {
+      Logger.logln(F(" Failure"));
     }
   }
 

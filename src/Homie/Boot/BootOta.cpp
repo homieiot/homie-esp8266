@@ -35,17 +35,17 @@ void BootOta::setup() {
   unsigned int port = Config.get().ota.server.port;
   /*
   if (Config.get().ota.mdns) {
-    Logger.log("Querying mDNS service ");
+    Logger.log(F("Querying mDNS service "));
     Logger.logln(Config.get().ota.mdnsService);
 
     int n = MDNS.queryService(Config.get().ota.mdnsService, "tcp");
     if (n == 0) {
-      Logger.logln("No services found");
+      Logger.logln(F("No services found"));
       Config.setOtaMode(false);
       ESP.restart();
     } else {
       Logger.log(String(n));
-      Logger.logln(" service(s) found, using first");
+      Logger.logln(F(" service(s) found, using first"));
       host = MDNS.IP(0);
       port = MDNS.port(0);
     }
