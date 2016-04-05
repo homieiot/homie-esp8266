@@ -4,10 +4,6 @@ using namespace HomieInternals;
 
 BootNormal::BootNormal()
 : Boot("normal")
-, _lastWifiReconnectAttempt(0)
-, _lastMqttReconnectAttempt(0)
-, _lastSignalSent(0)
-, _lastUptimeSent(0)
 , _setupFunctionCalled(false)
 , _wifiConnectNotified(false)
 , _wifiDisconnectNotified(true)
@@ -17,6 +13,10 @@ BootNormal::BootNormal()
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 {
+  this->_wifiReconnectTimer.setInterval(WIFI_RECONNECT_INTERVAL);
+  this->_mqttReconnectTimer.setInterval(MQTT_RECONNECT_INTERVAL);
+  this->_signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
+  this->_uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);
 }
 
 BootNormal::~BootNormal() {
@@ -86,7 +86,41 @@ void BootNormal::_mqttConnect() {
     Logger.logln(F("Connected"));
     this->_mqttSetup();
   } else {
-    Logger.logln(F("✖ Cannot connect"));
+    Logger.log(F("✖ Cannot connect, reason: "));
+    switch (MqttClient.getState()) {
+      case MQTT_CONNECTION_TIMEOUT:
+        Logger.logln(F("MQTT_CONNECTION_TIMEOUT"));
+        break;
+      case MQTT_CONNECTION_LOST:
+        Logger.logln(F("MQTT_CONNECTION_LOST"));
+        break;
+      case MQTT_CONNECT_FAILED:
+        Logger.logln(F("MQTT_CONNECT_FAILED"));
+        break;
+      case MQTT_DISCONNECTED:
+        Logger.logln(F("MQTT_DISCONNECTED"));
+        break;
+      case MQTT_CONNECTED:
+        Logger.logln(F("MQTT_CONNECTED (???)"));
+        break;
+      case MQTT_CONNECT_BAD_PROTOCOL:
+        Logger.logln(F("MQTT_CONNECT_BAD_PROTOCOL"));
+        break;
+      case MQTT_CONNECT_BAD_CLIENT_ID:
+        Logger.logln(F("MQTT_CONNECT_BAD_CLIENT_ID"));
+        break;
+      case MQTT_CONNECT_UNAVAILABLE:
+        Logger.logln(F("MQTT_CONNECT_UNAVAILABLE"));
+        break;
+      case MQTT_CONNECT_BAD_CREDENTIALS:
+        Logger.logln(F("MQTT_CONNECT_BAD_CREDENTIALS"));
+        break;
+      case MQTT_CONNECT_UNAUTHORIZED:
+        Logger.logln(F("MQTT_CONNECT_UNAUTHORIZED"));
+        break;
+      default:
+        Logger.logln(F("UNKNOWN"));
+    }
   }
 }
 
@@ -321,19 +355,18 @@ void BootNormal::loop() {
   if (WiFi.status() != WL_CONNECTED) {
     this->_wifiConnectNotified = false;
     if (!this->_wifiDisconnectNotified) {
-      this->_lastWifiReconnectAttempt = 0;
-      this->_lastUptimeSent = 0;
-      this->_lastSignalSent = 0;
+      this->_wifiReconnectTimer.reset();
+      this->_uptimeTimer.reset();
+      this->_signalQualityTimer.reset();
       Logger.logln(F("✖ Wi-Fi disconnected"));
       Logger.logln(F("Triggering HOMIE_WIFI_DISCONNECTED event..."));
       this->_interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
       this->_wifiDisconnectNotified = true;
     }
 
-    unsigned long now = millis();
-    if (now - this->_lastWifiReconnectAttempt >= WIFI_RECONNECT_INTERVAL || this->_lastWifiReconnectAttempt == 0) {
+    if (this->_wifiReconnectTimer.check()) {
       Logger.logln(F("↕ Attempting to connect to Wi-Fi..."));
-      this->_lastWifiReconnectAttempt = now;
+      this->_wifiReconnectTimer.tick();
       if (this->_interface->led.enabled) {
         Blinker.start(LED_WIFI_DELAY);
       }
@@ -353,9 +386,9 @@ void BootNormal::loop() {
   if (!MqttClient.connected()) {
     this->_mqttConnectNotified = false;
     if (!this->_mqttDisconnectNotified) {
-      this->_lastMqttReconnectAttempt = 0;
-      this->_lastUptimeSent = 0;
-      this->_lastSignalSent = 0;
+      this->_mqttReconnectTimer.reset();
+      this->_uptimeTimer.reset();
+      this->_signalQualityTimer.reset();
       Logger.logln(F("✖ MQTT disconnected"));
       Logger.logln(F("Triggering HOMIE_MQTT_DISCONNECTED event..."));
       this->_interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
@@ -363,9 +396,9 @@ void BootNormal::loop() {
     }
 
     unsigned long now = millis();
-    if (now - this->_lastMqttReconnectAttempt >= MQTT_RECONNECT_INTERVAL || this->_lastMqttReconnectAttempt == 0) {
+    if (this->_mqttReconnectTimer.check()) {
       Logger.logln(F("↕ Attempting to connect to MQTT..."));
-      this->_lastMqttReconnectAttempt = now;
+      this->_mqttReconnectTimer.tick();
       if (this->_interface->led.enabled) {
         Blinker.start(LED_MQTT_DELAY);
       }
@@ -395,7 +428,7 @@ void BootNormal::loop() {
   }
 
   unsigned long now = millis();
-  if (now - this->_lastSignalSent >= SIGNAL_QUALITY_SEND_INTERVAL || this->_lastSignalSent == 0) {
+  if (this->_signalQualityTimer.check()) {
     int32_t rssi = WiFi.RSSI();
     unsigned char quality;
     if (rssi <= -100) {
@@ -416,26 +449,26 @@ void BootNormal::loop() {
     this->_fillMqttTopic(PSTR("/$signal"));
     if (MqttClient.publish(qualityStr, true)) {
       Logger.logln(F(" OK"));
-      this->_lastSignalSent = now;
+      this->_signalQualityTimer.tick();
     } else {
       Logger.logln(F(" Failure"));
     }
   }
 
-  if (now - this->_lastUptimeSent >= UPTIME_SEND_INTERVAL || this->_lastUptimeSent == 0) {
-    Clock.tick();
+  if (this->_uptimeTimer.check()) {
+    Uptime.update();
 
     char uptimeStr[10 + 1];
-    itoa(Clock.getSeconds(), uptimeStr, 10);
+    itoa(Uptime.getSeconds(), uptimeStr, 10);
 
     Logger.log(F("Sending uptime ("));
-    Logger.log(String(Clock.getSeconds()));
+    Logger.log(String(Uptime.getSeconds()));
     Logger.log(F("s)... "));
 
     this->_fillMqttTopic(PSTR("/$uptime"));
     if (MqttClient.publish(uptimeStr, true)) {
       Logger.logln(F(" OK"));
-      this->_lastUptimeSent = now;
+      this->_uptimeTimer.tick();
     } else {
       Logger.logln(F(" Failure"));
     }

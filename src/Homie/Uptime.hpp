@@ -3,10 +3,10 @@
 #include "Arduino.h"
 
 namespace HomieInternals {
-  class ClockClass {
+  class UptimeClass {
     public:
-      ClockClass();
-      void tick();
+      UptimeClass();
+      void update();
       unsigned long getSeconds();
 
     private:
@@ -14,5 +14,5 @@ namespace HomieInternals {
       unsigned long _lastTick;
   };
 
-  extern ClockClass Clock;
+  extern UptimeClass Uptime;
 }

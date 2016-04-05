@@ -9,6 +9,7 @@
 #include "../Config.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
+#include "../Timer.hpp"
 #include "../Helpers.hpp"
 #include "../Logger.hpp"
 #include "../Strings.hpp"
@@ -25,7 +26,7 @@ namespace HomieInternals {
       DNSServer _dns;
       unsigned char _ssidCount;
       bool _wifiScanAvailable;
-      unsigned long _lastWifiScan;
+      Timer _wifiScanTimer;
       bool _lastWifiScanEnded;
       char* _jsonWifiNetworks;
       bool _flaggedForReboot;

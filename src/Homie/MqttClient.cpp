@@ -72,6 +72,10 @@ bool MqttClientClass::connect(const char* clientId, const char* willMessage, uns
   return result;
 }
 
+char MqttClientClass::getState() {
+  return this->_pubSubClient.state();
+}
+
 void MqttClientClass::disconnect() {
   this->_pubSubClient.disconnect();
 }

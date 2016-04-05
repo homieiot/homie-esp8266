@@ -1,21 +1,21 @@
-#include "Clock.hpp"
+#include "Uptime.hpp"
 
 using namespace HomieInternals;
 
-ClockClass::ClockClass()
+UptimeClass::UptimeClass()
 : _seconds(0)
 , _lastTick(0)
 {
 }
 
-void ClockClass::tick() {
+void UptimeClass::update() {
   unsigned long now = millis();
   this->_seconds += (now - this->_lastTick) / 1000UL;
   this->_lastTick = now;
 }
 
-unsigned long ClockClass::getSeconds() {
+unsigned long UptimeClass::getSeconds() {
   return this->_seconds;
 }
 
-ClockClass HomieInternals::Clock;
+UptimeClass HomieInternals::Uptime;

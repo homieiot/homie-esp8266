@@ -12,7 +12,8 @@
 #include "../Helpers.hpp"
 #include "../Config.hpp"
 #include "../Blinker.hpp"
-#include "../Clock.hpp"
+#include "../Uptime.hpp"
+#include "../Timer.hpp"
 #include "../Logger.hpp"
 #include "Boot.hpp"
 
@@ -29,10 +30,10 @@ namespace HomieInternals {
       void loop();
 
     private:
-      unsigned long _lastWifiReconnectAttempt;
-      unsigned long _lastMqttReconnectAttempt;
-      unsigned long _lastSignalSent;
-      unsigned long _lastUptimeSent;
+      Timer _wifiReconnectTimer;
+      Timer _mqttReconnectTimer;
+      Timer _signalQualityTimer;
+      Timer _uptimeTimer;
       bool _setupFunctionCalled;
       bool _wifiConnectNotified;
       bool _wifiDisconnectNotified;

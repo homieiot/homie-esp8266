@@ -7,12 +7,12 @@ BootConfig::BootConfig()
 , _http(80)
 , _ssidCount(0)
 , _wifiScanAvailable(false)
-, _lastWifiScan(0)
 , _lastWifiScanEnded(true)
 , _jsonWifiNetworks(nullptr)
 , _flaggedForReboot(false)
 , _flaggedForRebootAt(0)
 {
+  this->_wifiScanTimer.setInterval(CONFIG_SCAN_INTERVAL);
 }
 
 BootConfig::~BootConfig() {
@@ -208,7 +208,7 @@ void BootConfig::loop() {
       case WIFI_SCAN_FAILED:
         Logger.logln(F("✖ Wi-Fi scan failed"));
         this->_ssidCount = 0;
-        this->_lastWifiScan = 0;
+        this->_wifiScanTimer.reset();
         break;
       default:
         Logger.logln(F("✔ Wi-Fi scan completed"));
@@ -222,10 +222,10 @@ void BootConfig::loop() {
   }
 
   unsigned long now = millis();
-  if ((now - this->_lastWifiScan >= CONFIG_SCAN_INTERVAL || this->_lastWifiScan == 0) && this->_lastWifiScanEnded) {
+  if (this->_lastWifiScanEnded && this->_wifiScanTimer.check()) {
     Logger.logln(F("Triggering Wi-Fi scan..."));
     WiFi.scanNetworks(true);
-    this->_lastWifiScan = now;
+    this->_wifiScanTimer.tick();
     this->_lastWifiScanEnded = false;
   }
 }
