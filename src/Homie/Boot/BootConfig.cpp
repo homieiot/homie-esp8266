@@ -127,7 +127,7 @@ void BootConfig::_onDeviceInfoRequest() {
   JsonArray& nodes = json.createNestedArray("nodes");
   for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
     jsonLength += 20; // {"id":"","type":""},
-    HomieNode* node = this->_interface->registeredNodes[i];
+    const HomieNode* node = this->_interface->registeredNodes[i];
     JsonObject& jsonNode = jsonBuffer.createObject();
     jsonLength += strlen(node->getId());
     jsonNode["id"] = node->getId();

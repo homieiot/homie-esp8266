@@ -22,11 +22,11 @@ class HomieNode {
     void subscribe(const char* property, HomieInternals::PropertyInputHandler inputHandler = [](String value) { return false; });
 
   private:
-    const char* getId();
-    const char* getType();
-    HomieInternals::Subscription* getSubscriptions();
-    unsigned char getSubscriptionsCount();
-    HomieInternals::NodeInputHandler getInputHandler();
+    const char* getId() const;
+    const char* getType() const;
+    const HomieInternals::Subscription* getSubscriptions() const;
+    unsigned char getSubscriptionsCount() const;
+    HomieInternals::NodeInputHandler getInputHandler() const;
 
     const char* _id;
     const char* _type;

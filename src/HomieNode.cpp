@@ -31,22 +31,22 @@ void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandle
   this->_subscriptions[this->_subscriptionsCount++] = subscription;
 }
 
-const char* HomieNode::getId() {
+const char* HomieNode::getId() const {
   return this->_id;
 }
 
-const char* HomieNode::getType() {
+const char* HomieNode::getType() const {
   return this->_type;
 }
 
-Subscription* HomieNode::getSubscriptions() {
+const Subscription* HomieNode::getSubscriptions() const {
   return this->_subscriptions;
 }
 
-unsigned char HomieNode::getSubscriptionsCount() {
+unsigned char HomieNode::getSubscriptionsCount() const {
   return this->_subscriptionsCount;
 }
 
-NodeInputHandler HomieNode::getInputHandler() {
+NodeInputHandler HomieNode::getInputHandler() const {
   return this->_inputHandler;
 }

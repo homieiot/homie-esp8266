@@ -133,7 +133,7 @@ void BootNormal::_mqttSetup() {
   char nodes[MAX_REGISTERED_NODES_COUNT * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
   strcpy_P(nodes, PSTR(""));
   for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
-    HomieNode* node = this->_interface->registeredNodes[i];
+    const HomieNode* node = this->_interface->registeredNodes[i];
     strcat(nodes, node->getId());
     strcat_P(nodes, PSTR(":"));
     strcat(nodes, node->getType());
@@ -227,7 +227,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
 
   int homieNodeIndex = -1;
   for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
-    HomieNode* homieNode = this->_interface->registeredNodes[i];
+    const HomieNode* homieNode = this->_interface->registeredNodes[i];
     if (node == homieNode->getId()) {
       homieNodeIndex = i;
       break;
@@ -241,7 +241,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     return;
   }
 
-  HomieNode* homieNode = this->_interface->registeredNodes[homieNodeIndex];
+  const HomieNode* homieNode = this->_interface->registeredNodes[homieNodeIndex];
 
   int homieNodePropertyIndex = -1;
   for (int i = 0; i < homieNode->getSubscriptionsCount(); i++) {
