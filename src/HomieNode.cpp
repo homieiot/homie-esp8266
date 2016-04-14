@@ -16,8 +16,6 @@ HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHan
 }
 
 void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandler) {
-  if (this->_subscribeToAll) return;
-
   if (strlen(property) + 1 > MAX_NODE_PROPERTY_LENGTH) {
     Serial.println(F("✖ subscribe(): the property string is too long"));
     abort();
