@@ -4,13 +4,13 @@
 #include <functional>
 
 namespace HomieInternals {
-  typedef void (*OperationFunction)();
+  typedef std::function<void()> OperationFunction;
 
-  typedef bool (*GlobalInputHandler)(String nodeId, String property, String value);
-  typedef bool (*NodeInputHandler)(String property, String value);
-  typedef std::function<bool(String)> PropertyInputHandler;
+  typedef std::function<bool(String nodeId, String property, String value)> GlobalInputHandler;
+  typedef std::function<bool(String property, String value)> NodeInputHandler;
+  typedef std::function<bool(String value)> PropertyInputHandler;
 
-  typedef void (*EventHandler)(HomieEvent event);
+  typedef std::function<void(HomieEvent event)> EventHandler;
 
-  typedef bool (*ResetFunction)();
+  typedef std::function<bool()> ResetFunction;
 }
