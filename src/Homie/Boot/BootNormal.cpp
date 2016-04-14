@@ -252,15 +252,13 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     }
   }
 
-  if (homieNodePropertyIndex == -1) {
+  if (!homieNode->getSubscribeToAll() && homieNodePropertyIndex == -1) {
     Logger.log(F("Node "));
     Logger.log(node);
     Logger.log(F(" not subscribed to "));
     Logger.logln(property);
     return;
   }
-
-  Subscription homieNodeSubscription = homieNode->getSubscriptions()[homieNodePropertyIndex];
 
   Logger.logln(F("Calling global input handler..."));
   bool handled = this->_interface->globalInputHandler(node, property, message);
@@ -270,8 +268,12 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
   handled = homieNode->getInputHandler()(property, message);
   if (handled) return;
 
-  Logger.logln(F("Calling property input handler..."));
-  handled = homieNodeSubscription.inputHandler(message);
+  if (homieNodePropertyIndex != -1) { // might not if subscribed to all only
+    Subscription homieNodeSubscription = homieNode->getSubscriptions()[homieNodePropertyIndex];
+    Logger.logln(F("Calling property input handler..."));
+    handled = homieNodeSubscription.inputHandler(message);
+  }
+
   if (!handled){
     Logger.logln(F("No handlers handled the following packet:"));
     Logger.log(F("  • Node ID: "));

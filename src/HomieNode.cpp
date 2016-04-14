@@ -2,9 +2,10 @@
 
 using namespace HomieInternals;
 
-HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
+HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler, bool subscribeToAll)
 : _inputHandler(inputHandler)
-, _subscriptionsCount(0) {
+, _subscriptionsCount(0)
+, _subscribeToAll(subscribeToAll) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
     Serial.println(F("✖ HomieNode(): either the id or type string is too long"));
     abort();
@@ -15,6 +16,8 @@ HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHan
 }
 
 void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandler) {
+  if (this->_subscribeToAll) return;
+
   if (strlen(property) + 1 > MAX_NODE_PROPERTY_LENGTH) {
     Serial.println(F("✖ subscribe(): the property string is too long"));
     abort();
@@ -45,6 +48,10 @@ const Subscription* HomieNode::getSubscriptions() const {
 
 unsigned char HomieNode::getSubscriptionsCount() const {
   return this->_subscriptionsCount;
+}
+
+bool HomieNode::getSubscribeToAll() const {
+  return this->_subscribeToAll;
 }
 
 NodeInputHandler HomieNode::getInputHandler() const {
