@@ -8,7 +8,7 @@ BootConfig::BootConfig()
 , _ssidCount(0)
 , _wifiScanAvailable(false)
 , _lastWifiScanEnded(true)
-, _jsonWifiNetworks(nullptr)
+, _jsonWifiNetworks()
 , _flaggedForReboot(false)
 , _flaggedForRebootAt(0)
 {
@@ -220,7 +220,6 @@ void BootConfig::loop() {
     this->_lastWifiScanEnded = true;
   }
 
-  unsigned long now = millis();
   if (this->_lastWifiScanEnded && this->_wifiScanTimer.check()) {
     Logger.logln(F("Triggering Wi-Fi scan..."));
     WiFi.scanNetworks(true);

@@ -5,9 +5,9 @@ using namespace HomieInternals;
 MqttClientClass::MqttClientClass()
 : _topicBuffer({'\0'})
 , _secure(false)
-, _host(nullptr)
+, _host()
 , _port(0)
-, _fingerprint(nullptr)
+, _fingerprint()
 , _subscribeWithoutLoop(0)
 {
 }

@@ -16,7 +16,7 @@ namespace HomieInternals {
       char* getTopicBuffer();
       void setCallback(std::function<void(char* topic, char* message)> callback);
       void setServer(const char* host, unsigned int port, const char* fingerprint);
-      bool connect(const char* clientId, const char* willMessage, unsigned char willQos, bool willRetain, bool auth = false, const char* username = nullptr, const char* password = nullptr);
+      bool connect(const char* clientId, const char* willMessage, unsigned char willQos, bool willRetain, bool auth = false, const char* username = "", const char* password = "");
       char getState();
       void disconnect();
       bool publish(const char* message, bool retained);

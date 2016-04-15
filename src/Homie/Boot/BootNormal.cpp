@@ -397,7 +397,6 @@ void BootNormal::loop() {
       this->_mqttDisconnectNotified = true;
     }
 
-    unsigned long now = millis();
     if (this->_mqttReconnectTimer.check()) {
       Logger.logln(F("↕ Attempting to connect to MQTT..."));
       this->_mqttReconnectTimer.tick();
@@ -429,7 +428,6 @@ void BootNormal::loop() {
     this->_setupFunctionCalled = true;
   }
 
-  unsigned long now = millis();
   if (this->_signalQualityTimer.check()) {
     int32_t rssi = WiFi.RSSI();
     unsigned char quality;
