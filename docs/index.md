@@ -1,4 +1,4 @@
-Welcome to the Homie for ESP8266 docs. This will help you to understand the framwework and to use it in an effective manner.
+Welcome to the Homie for ESP8266 docs. This will help you to understand the framework and to use it in an effective manner.
 
 **This documentation is valid for Homie v1.4.0**
 
