@@ -2,8 +2,8 @@
 
 #include "../Limits.hpp"
 #include "./Callbacks.hpp"
-#include "../../HomieNode.h"
-#include "../../HomieEvent.h"
+#include "../../HomieNode.hpp"
+#include "../../HomieEvent.hpp"
 
 namespace HomieInternals {
   struct Interface {

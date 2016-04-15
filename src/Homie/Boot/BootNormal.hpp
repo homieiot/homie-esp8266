@@ -4,7 +4,7 @@
 #include <ESP8266WiFi.h>
 // #include <ESP8266mDNS.h>
 #include <Bounce2.h>
-#include "../../HomieNode.h"
+#include "../../HomieNode.hpp"
 #include "../Constants.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"

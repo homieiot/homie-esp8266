@@ -1,5 +1,4 @@
-#ifndef HomieNode_h
-#define HomieNode_h
+#pragma once
 
 #include "Arduino.h"
 #include "Homie/Datatypes/Subscription.hpp"
@@ -36,5 +35,3 @@ class HomieNode {
     bool _subscribeToAll;
     HomieInternals::NodeInputHandler _inputHandler;
 };
-
-#endif

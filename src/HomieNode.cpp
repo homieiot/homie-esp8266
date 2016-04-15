@@ -1,4 +1,4 @@
-#include "HomieNode.h"
+#include "HomieNode.hpp"
 
 using namespace HomieInternals;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../HomieEvent.h"
+#include "../../HomieEvent.hpp"
 #include <functional>
 
 namespace HomieInternals {

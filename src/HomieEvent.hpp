@@ -1,5 +1,4 @@
-#ifndef HomieEvent_h
-#define HomieEvent_h
+#pragma once
 
 enum HomieEvent : unsigned char {
     HOMIE_CONFIGURATION_MODE = 1,
@@ -11,5 +10,3 @@ enum HomieEvent : unsigned char {
     HOMIE_MQTT_CONNECTED,
     HOMIE_MQTT_DISCONNECTED
 };
-
-#endif
