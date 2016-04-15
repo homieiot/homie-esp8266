@@ -1,8 +1,12 @@
 #pragma once
 
+#include <ESP8266WiFi.h>
+
 namespace HomieInternals {
   const char VERSION[] = "1.3.0";
   const unsigned long BAUD_RATE = 115200;
+
+  const IPAddress ACCESS_POINT_IP(192, 168, 1, 1);
 
   const unsigned int DEFAULT_MQTT_PORT = 1883;
   const unsigned char DEFAULT_OTA_PORT = 80;

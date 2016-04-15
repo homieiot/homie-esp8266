@@ -32,13 +32,12 @@ void BootConfig::setup() {
 
   WiFi.mode(WIFI_AP);
 
-  IPAddress apIp(192, 168, 1, 1);
   char apName[MAX_WIFI_SSID_LENGTH];
   strcpy(apName, this->_interface->brand);
   strcat_P(apName, PSTR("-"));
   strcat(apName, Helpers::getDeviceId());
 
-  WiFi.softAPConfig(apIp, apIp, IPAddress(255, 255, 255, 0));
+  WiFi.softAPConfig(ACCESS_POINT_IP, ACCESS_POINT_IP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apName, deviceId);
 
   Logger.log(F("AP started as "));
@@ -46,7 +45,7 @@ void BootConfig::setup() {
 
   this->_dns.setTTL(300);
   this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
-  this->_dns.start(53, F("homie.config"), apIp);
+  this->_dns.start(53, F("homie.config"), ACCESS_POINT_IP);
 
   this->_http.on("/", HTTP_GET, [this]() {
     Logger.logln(F("Received index request"));
