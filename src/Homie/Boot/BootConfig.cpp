@@ -49,7 +49,7 @@ void BootConfig::setup() {
 
   this->_http.on("/", HTTP_GET, [this]() {
     Logger.logln(F("Received index request"));
-    this->_http.send(200, F("text/plain"), F("See Configuration API usage: https://github.com/marvinroger/homie-esp8266/wiki/6.-Configuration-API"));
+    this->_http.send(200, F("text/plain"), F("See Configuration API usage: http://marvinroger.viewdocs.io/homie-esp8266/6.-Configuration-API"));
   });
   this->_http.on("/heart", HTTP_GET, [this]() {
     Logger.logln(F("Received heart request"));

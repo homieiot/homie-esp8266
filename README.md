@@ -8,9 +8,9 @@ An Arduino for ESP8266 implementation of [Homie](https://git.io/homieiot), an MQ
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
-* [Cute JSON configuration file](https://github.com/marvinroger/homie-esp8266/wiki/5.-JSON-configuration-file) to configure the credentials of the device
-* [Cute API / Web UI / App](https://github.com/marvinroger/homie-esp8266/wiki/6.-Configuration-API) to remotely send the configuration to the device and get information about it
-* [OTA support](https://github.com/marvinroger/homie-esp8266/wiki/4.-OTA)
+* [Cute JSON configuration file](docs/5.-JSON-configuration-file.md) to configure the credentials of the device
+* [Cute API / Web UI / App](docs/6.-Configuration-API.md) to remotely send the configuration to the device and get information about it
+* [OTA support](docs/4.-OTA.md)
 * Available in the [PlatformIO registry](http://platformio.org/#!/lib/show/555/Homie)
 * Pretty straightforward sketches, a simple light for example:
 
