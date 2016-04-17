@@ -3,9 +3,11 @@
 using namespace HomieInternals;
 
 HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler, bool subscribeToAll)
-: _inputHandler(inputHandler)
+: _id(id)
+, _type(type)
 , _subscriptionsCount(0)
-, _subscribeToAll(subscribeToAll) {
+, _subscribeToAll(subscribeToAll)
+, _inputHandler(inputHandler) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
     Serial.println(F("✖ HomieNode(): either the id or type string is too long"));
     abort();

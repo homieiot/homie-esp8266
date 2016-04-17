@@ -3,9 +3,9 @@
 using namespace HomieInternals;
 
 ConfigClass::ConfigClass()
-: _spiffsBegan(false)
-, _configStruct()
-, _otaVersion({'\0'})
+: _configStruct()
+, _otaVersion {'\0'}
+, _spiffsBegan(false)
 {
 }
 

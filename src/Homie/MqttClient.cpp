@@ -3,7 +3,7 @@
 using namespace HomieInternals;
 
 MqttClientClass::MqttClientClass()
-: _topicBuffer({'\0'})
+: _topicBuffer {'\0'}
 , _secure(false)
 , _host()
 , _port(0)
@@ -72,7 +72,7 @@ bool MqttClientClass::connect(const char* clientId, const char* willMessage, uns
   return result;
 }
 
-char MqttClientClass::getState() {
+int MqttClientClass::getState() {
   return this->_pubSubClient.state();
 }
 
@@ -103,7 +103,7 @@ bool MqttClientClass::connected() {
 
 void MqttClientClass::_callback(char* topic, unsigned char* payload, unsigned int length) {
   char buf[128];
-  for (int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     char tempString[2];
     tempString[0] = (char)payload[i];
     tempString[1] = '\0';

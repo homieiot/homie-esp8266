@@ -9,7 +9,7 @@ BootNormal::BootNormal()
 , _wifiDisconnectNotified(true)
 , _mqttConnectNotified(false)
 , _mqttDisconnectNotified(true)
-, _otaVersion({'\0'})
+, _otaVersion {'\0'}
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 {
@@ -101,7 +101,7 @@ void BootNormal::_mqttConnect() {
         Logger.logln(F("MQTT_DISCONNECTED"));
         break;
       case MQTT_CONNECTED:
-        Logger.logln(F("MQTT_CONNECTED (???)"));
+        Logger.logln(F("MQTT_CONNECTED (?)"));
         break;
       case MQTT_CONNECT_BAD_PROTOCOL:
         Logger.logln(F("MQTT_CONNECT_BAD_PROTOCOL"));
@@ -215,8 +215,8 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
 
   // Implicit node properties
   unified.remove(unified.length() - 4, 4); // Remove /set
-  int separator;
-  for (int i = 0; i < unified.length(); i++) {
+  unsigned int separator = 0;
+  for (unsigned int i = 0; i < unified.length(); i++) {
     if (unified.charAt(i) == '/') {
       separator = i;
       break;
