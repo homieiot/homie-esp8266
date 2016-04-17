@@ -14,7 +14,7 @@ void loopHandler() {
      Serial.print("Door is now: ");
      Serial.println(doorValue ? "open" : "close");
 
-     if (Homie.setNodeProperty(doorNode, "open", String(doorValue ? "true" : "false"), true)) {
+     if (Homie.setNodeProperty(doorNode, "open", doorValue ? "true" : "false", true)) {
        lastDoorValue = doorValue;
      } else {
        Serial.println("Sending failed");
