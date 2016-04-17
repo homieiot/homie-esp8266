@@ -20,7 +20,7 @@ void BootOta::setup() {
     if (wifiAttempts++ <= 3) {
       WiFi.begin(Config.get().wifi.ssid, Config.get().wifi.password);
       Logger.log(F("↕ Connecting to Wi-Fi (attempt "));
-      Logger.log(String(wifiAttempts));
+      Logger.log(wifiAttempts);
       Logger.logln(F("/3)"));
     } else {
       Logger.logln(F("✖ Connection failed"));
@@ -44,7 +44,7 @@ void BootOta::setup() {
       Config.setOtaMode(false);
       ESP.restart();
     } else {
-      Logger.log(String(n));
+      Logger.log(n);
       Logger.logln(F(" service(s) found, using first"));
       host = MDNS.IP(0);
       port = MDNS.port(0);

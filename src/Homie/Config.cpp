@@ -263,7 +263,7 @@ void ConfigClass::log() {
     Logger.log(F("    ◦ Host: "));
     Logger.logln(this->_configStruct.mqtt.server.host);
     Logger.log(F("    ◦ Port: "));
-    Logger.logln(String(this->_configStruct.mqtt.server.port));
+    Logger.logln(this->_configStruct.mqtt.server.port);
   }
   Logger.log(F("    ◦ Base topic: "));
   Logger.logln(this->_configStruct.mqtt.baseTopic);
@@ -293,10 +293,10 @@ void ConfigClass::log() {
       Logger.log(F("    ◦ Host: "));
       Logger.logln(this->_configStruct.ota.server.host);
       Logger.log(F("    ◦ Port: "));
-      Logger.logln(String(this->_configStruct.ota.server.port));
+      Logger.logln(this->_configStruct.ota.server.port);
     }
     Logger.log(F("    ◦ Path: "));
-    Logger.logln(String(this->_configStruct.ota.path));
+    Logger.logln(this->_configStruct.ota.path);
     Logger.log(F("    ◦ SSL? "));
     Logger.logln(this->_configStruct.ota.server.ssl.enabled ? F("yes") : F("no"));
     if (this->_configStruct.ota.server.ssl.enabled) {

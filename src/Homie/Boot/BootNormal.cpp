@@ -66,7 +66,7 @@ void BootNormal::_mqttConnect() {
       return;
     } else {
       Logger.log(F("✔ "));
-      Logger.log(String(n));
+      Logger.log(n);
       Logger.logln(F(" service(s) found, using first"));
       host = MDNS.IP(0);
       port = MDNS.port(0);
@@ -318,10 +318,10 @@ void BootNormal::setup() {
   if (Config.get().mqtt.server.ssl.enabled) {
     Logger.log(F("SSL enabled: pushing CPU frequency to 160MHz... "));
     if (system_update_cpu_freq(SYS_CPU_160MHZ)) {
-      Logger.logln("OK");
+      Logger.logln(F("OK"));
     } else {
-      Logger.logln("Failure");
-      Logger.logln("Rebooting...");
+      Logger.logln(F("Failure"));
+      Logger.logln(F("Rebooting..."));
       ESP.restart();
     }
   }
@@ -462,7 +462,7 @@ void BootNormal::loop() {
     itoa(Uptime.getSeconds(), uptimeStr, 10);
 
     Logger.log(F("Sending uptime ("));
-    Logger.log(String(Uptime.getSeconds()));
+    Logger.log(Uptime.getSeconds());
     Logger.log(F("s)... "));
 
     this->_fillMqttTopic(PSTR("/$uptime"));

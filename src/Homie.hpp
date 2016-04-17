@@ -47,7 +47,7 @@ namespace HomieInternals {
       BootOta _bootOta;
       Interface _interface;
 
-      void _checkBeforeSetup(String functionName);
+      void _checkBeforeSetup(const __FlashStringHelper* functionName);
   };
 }
 

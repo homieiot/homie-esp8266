@@ -33,7 +33,7 @@ HomieClass::HomieClass() : _setup(false) {
 HomieClass::~HomieClass() {
 }
 
-void HomieClass::_checkBeforeSetup(String functionName) {
+void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
   if (_setup) {
     Logger.log(F("✖ "));
     Logger.log(functionName);

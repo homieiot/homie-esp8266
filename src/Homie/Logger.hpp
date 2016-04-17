@@ -8,14 +8,17 @@ namespace HomieInternals {
       LoggerClass();
       void setLogging(bool enable);
       bool isEnabled();
-      void log(String text) {
-        this->log(text.c_str());
+      template <typename T> void log(T value) {
+        if (this->_loggingEnabled) {
+          Serial.print(value);
+        }
       }
-      void log(const char* text);
-      void logln(String text) {
-        this->logln(text.c_str());
+      template <typename T> void logln(T value) {
+        if (this->_loggingEnabled) {
+          Serial.println(value);
+        }
       }
-      void logln(const char* text = "");
+      void logln();
 
     private:
       bool _loggingEnabled;
