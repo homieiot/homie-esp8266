@@ -161,7 +161,7 @@ void BootConfig::_onConfigRequest() {
   }
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(this->_http.arg("plain"));
+  JsonObject& parsedJson = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str()); // do not use plain String, else fails
   if (!parsedJson.success()) {
     Logger.logln(F("✖ Invalid or too big JSON"));
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
