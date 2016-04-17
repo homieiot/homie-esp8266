@@ -23,8 +23,6 @@ HomieClass::HomieClass() : _setup(false) {
 
   Helpers::generateDeviceId();
 
-  Blinker.attachInterface(&this->_interface);
-
   this->_bootNormal.attachInterface(&this->_interface);
   this->_bootOta.attachInterface(&this->_interface);
   this->_bootConfig.attachInterface(&this->_interface);
@@ -43,6 +41,8 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
 }
 
 void HomieClass::setup() {
+  Blinker.attachInterface(&this->_interface); // here otherwise in constructor this crashes because Blinker might not be constructed
+
   if (Logger.isEnabled()) {
     Serial.begin(BAUD_RATE);
     Logger.logln();
@@ -66,6 +66,10 @@ void HomieClass::setup() {
         this->_boot = &this->_bootOta;
         Logger.logln(F("Triggering HOMIE_OTA_MODE event..."));
         this->_interface.eventHandler(HOMIE_OTA_MODE);
+        break;
+      default:
+        Logger.logln(F("✖ The boot mode is invalid"));
+        abort();
         break;
     }
   }

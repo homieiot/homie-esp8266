@@ -3,8 +3,8 @@
 using namespace HomieInternals;
 
 BlinkerClass::BlinkerClass()
-: _lastBlinkPace(0)
-// , _interface() <-- causes exception???
+:  _interface(nullptr)
+, _lastBlinkPace(0)
 {
 }
 

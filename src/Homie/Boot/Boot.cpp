@@ -3,8 +3,8 @@
 using namespace HomieInternals;
 
 Boot::Boot(const char* name)
-: _name(name)
-, _interface()
+: _interface(nullptr)
+, _name(name)
 {
 }
 

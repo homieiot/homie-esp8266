@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Homie/Blinker.hpp"
 #include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
 #include "Homie/Constants.hpp"
