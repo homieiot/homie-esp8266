@@ -6,6 +6,10 @@
 #include "../../HomieEvent.hpp"
 
 namespace HomieInternals {
+  class Logger;
+  class Blinker;
+  class Config;
+  class MqttClient;
   struct Interface {
     /***** User configurable data *****/
     char brand[MAX_BRAND_LENGTH];
@@ -40,5 +44,9 @@ namespace HomieInternals {
 
     /***** Runtime data *****/
     bool readyToOperate;
+    Logger* logger;
+    Blinker* blinker;
+    Config* config;
+    MqttClient* mqttClient;
   };
 }

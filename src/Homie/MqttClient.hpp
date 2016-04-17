@@ -2,16 +2,18 @@
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include "Datatypes/Interface.hpp"
 #include "Logger.hpp"
 #include "Constants.hpp"
 #include "Limits.hpp"
 
 namespace HomieInternals {
-  class MqttClientClass {
+  class MqttClient {
     public:
-      MqttClientClass();
-      ~MqttClientClass();
+      MqttClient();
+      ~MqttClient();
 
+      void attachInterface(Interface* interface);
       void initMqtt(bool secure);
       char* getTopicBuffer();
       void setCallback(std::function<void(char* topic, char* message)> callback);
@@ -25,6 +27,7 @@ namespace HomieInternals {
       bool connected();
 
     private:
+      Interface* _interface;
       WiFiClient _wifiClient;
       WiFiClientSecure _wifiClientSecure;
       PubSubClient _pubSubClient;
@@ -38,6 +41,4 @@ namespace HomieInternals {
       void _callback(char* topic, unsigned char* payload, unsigned int length);
       std::function<void(char* topic, char* message)> _userCallback;
   };
-
-  extern MqttClientClass MqttClient;
 }

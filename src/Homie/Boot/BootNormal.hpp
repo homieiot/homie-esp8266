@@ -30,6 +30,7 @@ namespace HomieInternals {
       void loop();
 
     private:
+      Uptime _uptime;
       Timer _wifiReconnectTimer;
       Timer _mqttReconnectTimer;
       Timer _signalQualityTimer;

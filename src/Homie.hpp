@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Homie/MqttClient.hpp"
 #include "Homie/Blinker.hpp"
 #include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
@@ -47,6 +48,10 @@ namespace HomieInternals {
       BootConfig _bootConfig;
       BootOta _bootOta;
       Interface _interface;
+      Logger _logger;
+      Blinker _blinker;
+      Config _config;
+      MqttClient _mqttClient;
 
       void _checkBeforeSetup(const __FlashStringHelper* functionName);
   };

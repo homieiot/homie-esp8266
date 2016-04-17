@@ -27,8 +27,8 @@ void BootConfig::setup() {
 
   const char* deviceId = Helpers::getDeviceId();
 
-  Logger.log(F("Device ID is "));
-  Logger.logln(deviceId);
+  this->_interface->logger->log(F("Device ID is "));
+  this->_interface->logger->logln(deviceId);
 
   WiFi.mode(WIFI_AP);
 
@@ -40,26 +40,26 @@ void BootConfig::setup() {
   WiFi.softAPConfig(ACCESS_POINT_IP, ACCESS_POINT_IP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apName, deviceId);
 
-  Logger.log(F("AP started as "));
-  Logger.logln(apName);
+  this->_interface->logger->log(F("AP started as "));
+  this->_interface->logger->logln(apName);
 
   this->_dns.setTTL(300);
   this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
   this->_dns.start(53, F("homie.config"), ACCESS_POINT_IP);
 
   this->_http.on("/", HTTP_GET, [this]() {
-    Logger.logln(F("Received index request"));
+    this->_interface->logger->logln(F("Received index request"));
     this->_http.send(200, F("text/plain"), F("See Configuration API usage: http://marvinroger.viewdocs.io/homie-esp8266/6.-Configuration-API"));
   });
   this->_http.on("/heart", HTTP_GET, [this]() {
-    Logger.logln(F("Received heart request"));
+    this->_interface->logger->logln(F("Received heart request"));
     this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"heart\":\"beat\"}"));
   });
   this->_http.on("/device-info", HTTP_GET, std::bind(&BootConfig::_onDeviceInfoRequest, this));
   this->_http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
   this->_http.on("/config", HTTP_PUT, std::bind(&BootConfig::_onConfigRequest, this));
   this->_http.on("/config", HTTP_OPTIONS, [this]() { // CORS
-    Logger.logln(F("Received CORS request for /config"));
+    this->_interface->logger->logln(F("Received CORS request for /config"));
     this->_http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
   this->_http.begin();
@@ -108,7 +108,7 @@ void BootConfig::_generateNetworksJson() {
 }
 
 void BootConfig::_onDeviceInfoRequest() {
-  Logger.logln(F("Received device info request"));
+  this->_interface->logger->logln(F("Received device info request"));
 
   DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(this->_interface->registeredNodesCount) + (this->_interface->registeredNodesCount * JSON_OBJECT_SIZE(2)));
   int jsonLength = 82; // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[]}
@@ -144,7 +144,7 @@ void BootConfig::_onDeviceInfoRequest() {
 }
 
 void BootConfig::_onNetworksRequest() {
-  Logger.logln(F("Received networks request"));
+  this->_interface->logger->logln(F("Received networks request"));
   if (this->_wifiScanAvailable) {
     this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), this->_jsonWifiNetworks);
   } else {
@@ -153,9 +153,9 @@ void BootConfig::_onNetworksRequest() {
 }
 
 void BootConfig::_onConfigRequest() {
-  Logger.logln(F("Received config request"));
+  this->_interface->logger->logln(F("Received config request"));
   if (this->_flaggedForReboot) {
-    Logger.logln(F("✖ Device already configured"));
+    this->_interface->logger->logln(F("✖ Device already configured"));
     this->_http.send(403, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
@@ -163,19 +163,22 @@ void BootConfig::_onConfigRequest() {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
   JsonObject& parsedJson = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str()); // do not use plain String, else fails
   if (!parsedJson.success()) {
-    Logger.logln(F("✖ Invalid or too big JSON"));
+    this->_interface->logger->logln(F("✖ Invalid or too big JSON"));
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
-  if (!Helpers::validateConfig(parsedJson)) {
+  ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
+  if (!configValidationResult.valid) {
+    this->_interface->logger->log(F("✖ Config file is not valid, reason: "));
+    this->_interface->logger->logln(configValidationResult.reason);
     this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
     return;
   }
 
-  Config.write(this->_http.arg("plain"));
+  this->_interface->config->write(this->_http.arg("plain"));
 
-  Logger.logln(F("✔ Configured"));
+  this->_interface->logger->logln(F("✔ Configured"));
 
   this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":true}");
 
@@ -191,7 +194,7 @@ void BootConfig::loop() {
 
   if (this->_flaggedForReboot) {
     if (millis() - this->_flaggedForRebootAt >= 3000UL) {
-      Logger.logln(F("↻ Rebooting into normal mode..."));
+      this->_interface->logger->logln(F("↻ Rebooting into normal mode..."));
       ESP.restart();
     }
 
@@ -205,12 +208,12 @@ void BootConfig::loop() {
       case WIFI_SCAN_RUNNING:
         return;
       case WIFI_SCAN_FAILED:
-        Logger.logln(F("✖ Wi-Fi scan failed"));
+        this->_interface->logger->logln(F("✖ Wi-Fi scan failed"));
         this->_ssidCount = 0;
         this->_wifiScanTimer.reset();
         break;
       default:
-        Logger.logln(F("✔ Wi-Fi scan completed"));
+        this->_interface->logger->logln(F("✔ Wi-Fi scan completed"));
         this->_ssidCount = scanResult;
         this->_generateNetworksJson();
         this->_wifiScanAvailable = true;
@@ -221,7 +224,7 @@ void BootConfig::loop() {
   }
 
   if (this->_lastWifiScanEnded && this->_wifiScanTimer.check()) {
-    Logger.logln(F("Triggering Wi-Fi scan..."));
+    this->_interface->logger->logln(F("Triggering Wi-Fi scan..."));
     WiFi.scanNetworks(true);
     this->_wifiScanTimer.tick();
     this->_lastWifiScanEnded = false;

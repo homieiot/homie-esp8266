@@ -28,9 +28,9 @@ void Boot::setup() {
 
   WiFi.hostname(hostname);
 
-  Logger.log(F("** Booting into "));
-  Logger.log(this->_name);
-  Logger.logln(F(" mode **"));
+  this->_interface->logger->log(F("** Booting into "));
+  this->_interface->logger->log(this->_name);
+  this->_interface->logger->logln(F(" mode **"));
 }
 
 void Boot::loop() {

@@ -3,9 +3,9 @@
 #include "Arduino.h"
 
 namespace HomieInternals {
-  class LoggerClass {
+  class Logger {
     public:
-      LoggerClass();
+      Logger();
       void setLogging(bool enable);
       bool isEnabled();
       template <typename T> void log(T value) {
@@ -23,6 +23,4 @@ namespace HomieInternals {
     private:
       bool _loggingEnabled;
   };
-
-  extern LoggerClass Logger;
 }

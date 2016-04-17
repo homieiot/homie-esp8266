@@ -4,9 +4,9 @@
 #include "Datatypes/Interface.hpp"
 
 namespace HomieInternals {
-  class BlinkerClass {
+  class Blinker {
     public:
-      BlinkerClass();
+      Blinker();
       void attachInterface(Interface* interface);
       void start(float blinkPace);
       void stop();
@@ -18,6 +18,4 @@ namespace HomieInternals {
 
       static void _tick(unsigned char pin);
   };
-
-  extern BlinkerClass Blinker;
 }

@@ -2,44 +2,49 @@
 
 using namespace HomieInternals;
 
-ConfigClass::ConfigClass()
-: _configStruct()
+Config::Config()
+: _interface(nullptr)
+, _configStruct()
 , _otaVersion {'\0'}
 , _spiffsBegan(false)
 {
 }
 
-bool ConfigClass::_spiffsBegin() {
+void Config::attachInterface(Interface* interface) {
+  this->_interface = interface;
+}
+
+bool Config::_spiffsBegin() {
   if (!this->_spiffsBegan) {
     this->_spiffsBegan = SPIFFS.begin();
-    if (!this->_spiffsBegan) Logger.logln(F("✖ Cannot mount filesystem"));
+    if (!this->_spiffsBegan) this->_interface->logger->logln(F("✖ Cannot mount filesystem"));
   }
 
   return this->_spiffsBegan;
 }
 
-bool ConfigClass::load() {
+bool Config::load() {
   if (!this->_spiffsBegin()) { return false; }
 
   this->_bootMode = BOOT_CONFIG;
 
   if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
-    Logger.log(F("✖ "));
-    Logger.log(CONFIG_FILE_PATH);
-    Logger.logln(F(" doesn't exist"));
+    this->_interface->logger->log(F("✖ "));
+    this->_interface->logger->log(CONFIG_FILE_PATH);
+    this->_interface->logger->logln(F(" doesn't exist"));
     return false;
   }
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
-    Logger.logln(F("✖ Cannot open config file"));
+    this->_interface->logger->logln(F("✖ Cannot open config file"));
     return false;
   }
 
   size_t configSize = configFile.size();
 
   if (configSize > MAX_JSON_CONFIG_FILE_BUFFER_SIZE) {
-    Logger.logln(F("✖ Config file too big"));
+    this->_interface->logger->logln(F("✖ Config file too big"));
     return false;
   }
 
@@ -50,12 +55,14 @@ bool ConfigClass::load() {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(buf);
   if (!parsedJson.success()) {
-    Logger.logln(F("✖ Invalid JSON in the config file"));
+    this->_interface->logger->logln(F("✖ Invalid JSON in the config file"));
     return false;
   }
 
-  if (!Helpers::validateConfig(parsedJson)) {
-    Logger.logln(F("✖ Config file is not valid"));
+  ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
+  if (!configValidationResult.valid) {
+    this->_interface->logger->log(F("✖ Config file is not valid, reason: "));
+    this->_interface->logger->logln(configValidationResult.reason);
     return false;
   }
 
@@ -68,7 +75,7 @@ bool ConfigClass::load() {
       otaFile.readBytes(this->_otaVersion, otaSize);
       otaFile.close();
     } else {
-      Logger.logln(F("✖ Cannot open OTA file"));
+      this->_interface->logger->logln(F("✖ Cannot open OTA file"));
     }
   } else {
     this->_bootMode = BOOT_NORMAL;
@@ -175,25 +182,25 @@ bool ConfigClass::load() {
   return true;
 }
 
-const ConfigStruct& ConfigClass::get() {
+const ConfigStruct& Config::get() {
   return this->_configStruct;
 }
 
-void ConfigClass::erase() {
+void Config::erase() {
   if (!this->_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
   SPIFFS.remove(CONFIG_OTA_PATH);
 }
 
-void ConfigClass::write(const String& config) {
+void Config::write(const String& config) {
   if (!this->_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
   if (!configFile) {
-    Logger.logln(F("✖ Cannot open config file"));
+    this->_interface->logger->logln(F("✖ Cannot open config file"));
     return;
   }
 
@@ -201,13 +208,13 @@ void ConfigClass::write(const String& config) {
   configFile.close();
 }
 
-void ConfigClass::setOtaMode(bool enabled, const char* version) {
+void Config::setOtaMode(bool enabled, const char* version) {
   if (!this->_spiffsBegin()) { return; }
 
   if (enabled) {
     File otaFile = SPIFFS.open(CONFIG_OTA_PATH, "w");
     if (!otaFile) {
-      Logger.logln(F("✖ Cannot open OTA file"));
+      this->_interface->logger->logln(F("✖ Cannot open OTA file"));
       return;
     }
 
@@ -218,93 +225,91 @@ void ConfigClass::setOtaMode(bool enabled, const char* version) {
   }
 }
 
-const char* ConfigClass::getOtaVersion() {
+const char* Config::getOtaVersion() {
   return this->_otaVersion;
 }
 
-BootMode ConfigClass::getBootMode() {
+BootMode Config::getBootMode() {
   return this->_bootMode;
 }
 
-void ConfigClass::log() {
-  Logger.logln(F("{} Stored configuration:"));
-  Logger.log(F("  • Hardware device ID: "));
-  Logger.logln(Helpers::getDeviceId());
-  Logger.log(F("  • Device ID: "));
-  Logger.logln(this->_configStruct.deviceId);
-  Logger.log(F("  • Boot mode: "));
+void Config::log() {
+  this->_interface->logger->logln(F("{} Stored configuration:"));
+  this->_interface->logger->log(F("  • Hardware device ID: "));
+  this->_interface->logger->logln(Helpers::getDeviceId());
+  this->_interface->logger->log(F("  • Device ID: "));
+  this->_interface->logger->logln(this->_configStruct.deviceId);
+  this->_interface->logger->log(F("  • Boot mode: "));
   switch (this->_bootMode) {
     case BOOT_CONFIG:
-      Logger.logln(F("configuration"));
+      this->_interface->logger->logln(F("configuration"));
       break;
     case BOOT_NORMAL:
-      Logger.logln(F("normal"));
+      this->_interface->logger->logln(F("normal"));
       break;
     case BOOT_OTA:
-      Logger.logln(F("OTA"));
+      this->_interface->logger->logln(F("OTA"));
       break;
     default:
-      Logger.logln(F("unknown"));
+      this->_interface->logger->logln(F("unknown"));
       break;
   }
-  Logger.log(F("  • Name: "));
-  Logger.logln(this->_configStruct.name);
+  this->_interface->logger->log(F("  • Name: "));
+  this->_interface->logger->logln(this->_configStruct.name);
 
-  Logger.logln(F("  • Wi-Fi"));
-  Logger.log(F("    ◦ SSID: "));
-  Logger.logln(this->_configStruct.wifi.ssid);
-  Logger.logln(F("    ◦ Password not shown"));
+  this->_interface->logger->logln(F("  • Wi-Fi"));
+  this->_interface->logger->log(F("    ◦ SSID: "));
+  this->_interface->logger->logln(this->_configStruct.wifi.ssid);
+  this->_interface->logger->logln(F("    ◦ Password not shown"));
 
-  Logger.logln(F("  • MQTT"));
+  this->_interface->logger->logln(F("  • MQTT"));
   if (this->_configStruct.mqtt.server.mdns.enabled) {
-    Logger.log(F("    ◦ mDNS: "));
-    Logger.log(this->_configStruct.mqtt.server.mdns.service);
+    this->_interface->logger->log(F("    ◦ mDNS: "));
+    this->_interface->logger->log(this->_configStruct.mqtt.server.mdns.service);
   } else {
-    Logger.log(F("    ◦ Host: "));
-    Logger.logln(this->_configStruct.mqtt.server.host);
-    Logger.log(F("    ◦ Port: "));
-    Logger.logln(this->_configStruct.mqtt.server.port);
+    this->_interface->logger->log(F("    ◦ Host: "));
+    this->_interface->logger->logln(this->_configStruct.mqtt.server.host);
+    this->_interface->logger->log(F("    ◦ Port: "));
+    this->_interface->logger->logln(this->_configStruct.mqtt.server.port);
   }
-  Logger.log(F("    ◦ Base topic: "));
-  Logger.logln(this->_configStruct.mqtt.baseTopic);
-  Logger.log(F("    ◦ Auth? "));
-  Logger.logln(this->_configStruct.mqtt.auth ? F("yes") : F("no"));
+  this->_interface->logger->log(F("    ◦ Base topic: "));
+  this->_interface->logger->logln(this->_configStruct.mqtt.baseTopic);
+  this->_interface->logger->log(F("    ◦ Auth? "));
+  this->_interface->logger->logln(this->_configStruct.mqtt.auth ? F("yes") : F("no"));
   if (this->_configStruct.mqtt.auth) {
-    Logger.log(F("    ◦ Username: "));
-    Logger.logln(this->_configStruct.mqtt.username);
-    Logger.logln(F("    ◦ Password not shown"));
+    this->_interface->logger->log(F("    ◦ Username: "));
+    this->_interface->logger->logln(this->_configStruct.mqtt.username);
+    this->_interface->logger->logln(F("    ◦ Password not shown"));
   }
-  Logger.log(F("    ◦ SSL? "));
-  Logger.logln(this->_configStruct.mqtt.server.ssl.enabled ? F("yes") : F("no"));
+  this->_interface->logger->log(F("    ◦ SSL? "));
+  this->_interface->logger->logln(this->_configStruct.mqtt.server.ssl.enabled ? F("yes") : F("no"));
   if (this->_configStruct.mqtt.server.ssl.enabled) {
-    Logger.log(F("    ◦ Fingerprint: "));
-    if (strcmp_P(this->_configStruct.mqtt.server.ssl.fingerprint, PSTR("")) == 0) Logger.logln(F("unset"));
-    else Logger.logln(this->_configStruct.mqtt.server.ssl.fingerprint);
+    this->_interface->logger->log(F("    ◦ Fingerprint: "));
+    if (strcmp_P(this->_configStruct.mqtt.server.ssl.fingerprint, PSTR("")) == 0) this->_interface->logger->logln(F("unset"));
+    else this->_interface->logger->logln(this->_configStruct.mqtt.server.ssl.fingerprint);
   }
 
-  Logger.logln(F("  • OTA"));
-  Logger.log(F("    ◦ Enabled? "));
-  Logger.logln(this->_configStruct.ota.enabled ? F("yes") : F("no"));
+  this->_interface->logger->logln(F("  • OTA"));
+  this->_interface->logger->log(F("    ◦ Enabled? "));
+  this->_interface->logger->logln(this->_configStruct.ota.enabled ? F("yes") : F("no"));
   if (this->_configStruct.ota.enabled) {
     if (this->_configStruct.ota.server.mdns.enabled) {
-      Logger.log(F("    ◦ mDNS: "));
-      Logger.log(this->_configStruct.ota.server.mdns.service);
+      this->_interface->logger->log(F("    ◦ mDNS: "));
+      this->_interface->logger->log(this->_configStruct.ota.server.mdns.service);
     } else {
-      Logger.log(F("    ◦ Host: "));
-      Logger.logln(this->_configStruct.ota.server.host);
-      Logger.log(F("    ◦ Port: "));
-      Logger.logln(this->_configStruct.ota.server.port);
+      this->_interface->logger->log(F("    ◦ Host: "));
+      this->_interface->logger->logln(this->_configStruct.ota.server.host);
+      this->_interface->logger->log(F("    ◦ Port: "));
+      this->_interface->logger->logln(this->_configStruct.ota.server.port);
     }
-    Logger.log(F("    ◦ Path: "));
-    Logger.logln(this->_configStruct.ota.path);
-    Logger.log(F("    ◦ SSL? "));
-    Logger.logln(this->_configStruct.ota.server.ssl.enabled ? F("yes") : F("no"));
+    this->_interface->logger->log(F("    ◦ Path: "));
+    this->_interface->logger->logln(this->_configStruct.ota.path);
+    this->_interface->logger->log(F("    ◦ SSL? "));
+    this->_interface->logger->logln(this->_configStruct.ota.server.ssl.enabled ? F("yes") : F("no"));
     if (this->_configStruct.ota.server.ssl.enabled) {
-      Logger.log(F("    ◦ Fingerprint: "));
-      if (strcmp_P(this->_configStruct.ota.server.ssl.fingerprint, PSTR("")) == 0) Logger.logln(F("unset"));
-      else Logger.logln(this->_configStruct.ota.server.ssl.fingerprint);
+      this->_interface->logger->log(F("    ◦ Fingerprint: "));
+      if (strcmp_P(this->_configStruct.ota.server.ssl.fingerprint, PSTR("")) == 0) this->_interface->logger->logln(F("unset"));
+      else this->_interface->logger->logln(this->_configStruct.ota.server.ssl.fingerprint);
     }
   }
 }
-
-ConfigClass HomieInternals::Config;

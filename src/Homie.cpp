@@ -20,8 +20,16 @@ HomieClass::HomieClass() : _setup(false) {
   this->_interface.loopFunction = []() {};
   this->_interface.eventHandler = [](HomieEvent event) {};
   this->_interface.readyToOperate = false;
+  this->_interface.logger = &this->_logger;
+  this->_interface.blinker = &this->_blinker;
+  this->_interface.config = &this->_config;
+  this->_interface.mqttClient = &this->_mqttClient;
 
   Helpers::generateDeviceId();
+
+  this->_config.attachInterface(&this->_interface);
+  this->_blinker.attachInterface(&this->_interface);
+  this->_mqttClient.attachInterface(&this->_interface);
 
   this->_bootNormal.attachInterface(&this->_interface);
   this->_bootOta.attachInterface(&this->_interface);
@@ -33,42 +41,42 @@ HomieClass::~HomieClass() {
 
 void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
   if (_setup) {
-    Logger.log(F("✖ "));
-    Logger.log(functionName);
-    Logger.logln(F("(): has to be called before setup()"));
+    this->_logger.log(F("✖ "));
+    this->_logger.log(functionName);
+    this->_logger.logln(F("(): has to be called before setup()"));
     abort();
   }
 }
 
 void HomieClass::setup() {
-  Blinker.attachInterface(&this->_interface); // here otherwise in constructor this crashes because Blinker might not be constructed
+   // here otherwise in constructor this crashes because Blinker might not be constructed
 
-  if (Logger.isEnabled()) {
+  if (this->_logger.isEnabled()) {
     Serial.begin(BAUD_RATE);
-    Logger.logln();
-    Logger.logln();
+    this->_logger.logln();
+    this->_logger.logln();
   }
 
   _setup = true;
 
-  if (!Config.load()) {
+  if (!this->_config.load()) {
     this->_boot = &this->_bootConfig;
-    Logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
+    this->_logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
     this->_interface.eventHandler(HOMIE_CONFIGURATION_MODE);
   } else {
-    switch (Config.getBootMode()) {
+    switch (this->_config.getBootMode()) {
       case BOOT_NORMAL:
         this->_boot = &this->_bootNormal;
-        Logger.logln(F("Triggering HOMIE_NORMAL_MODE event..."));
+        this->_logger.logln(F("Triggering HOMIE_NORMAL_MODE event..."));
         this->_interface.eventHandler(HOMIE_NORMAL_MODE);
         break;
       case BOOT_OTA:
         this->_boot = &this->_bootOta;
-        Logger.logln(F("Triggering HOMIE_OTA_MODE event..."));
+        this->_logger.logln(F("Triggering HOMIE_OTA_MODE event..."));
         this->_interface.eventHandler(HOMIE_OTA_MODE);
         break;
       default:
-        Logger.logln(F("✖ The boot mode is invalid"));
+        this->_logger.logln(F("✖ The boot mode is invalid"));
         abort();
         break;
     }
@@ -84,7 +92,7 @@ void HomieClass::loop() {
 void HomieClass::enableLogging(bool enable) {
   this->_checkBeforeSetup(F("enableLogging"));
 
-  Logger.setLogging(enable);
+  this->_logger.setLogging(enable);
 }
 
 void HomieClass::enableBuiltInLedIndicator(bool enable) {
@@ -103,7 +111,7 @@ void HomieClass::setLedPin(unsigned char pin, unsigned char on) {
 void HomieClass::setFirmware(const char* name, const char* version) {
   this->_checkBeforeSetup(F("setFirmware"));
   if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
-    Logger.logln(F("✖ setFirmware(): either the name or version string is too long"));
+    this->_logger.logln(F("✖ setFirmware(): either the name or version string is too long"));
     abort();
   }
 
@@ -114,7 +122,7 @@ void HomieClass::setFirmware(const char* name, const char* version) {
 void HomieClass::setBrand(const char* name) {
   this->_checkBeforeSetup(F("setBrand"));
   if (strlen(name) + 1 > MAX_BRAND_LENGTH) {
-    Logger.logln(F("✖ setBrand(): the brand string is too long"));
+    this->_logger.logln(F("✖ setBrand(): the brand string is too long"));
     abort();
   }
 
@@ -186,23 +194,23 @@ void HomieClass::disableResetTrigger() {
 
 bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained) {
   if (!this->isReadyToOperate()) {
-    Logger.logln(F("✖ setNodeProperty(): impossible now"));
+    this->_logger.logln(F("✖ setNodeProperty(): impossible now"));
     return false;
   }
 
-  strcpy(MqttClient.getTopicBuffer(), Config.get().mqtt.baseTopic);
-  strcat(MqttClient.getTopicBuffer(), Config.get().deviceId);
-  strcat_P(MqttClient.getTopicBuffer(), PSTR("/"));
-  strcat(MqttClient.getTopicBuffer(), node.getId());
-  strcat_P(MqttClient.getTopicBuffer(), PSTR("/"));
-  strcat(MqttClient.getTopicBuffer(), property);
+  strcpy(this->_mqttClient.getTopicBuffer(), this->_config.get().mqtt.baseTopic);
+  strcat(this->_mqttClient.getTopicBuffer(), this->_config.get().deviceId);
+  strcat_P(this->_mqttClient.getTopicBuffer(), PSTR("/"));
+  strcat(this->_mqttClient.getTopicBuffer(), node.getId());
+  strcat_P(this->_mqttClient.getTopicBuffer(), PSTR("/"));
+  strcat(this->_mqttClient.getTopicBuffer(), property);
 
-  if (5 + 2 + strlen(MqttClient.getTopicBuffer()) + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
-    Logger.logln(F("✖ setNodeProperty(): content to send is too long"));
+  if (5 + 2 + strlen(this->_mqttClient.getTopicBuffer()) + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
+    this->_logger.logln(F("✖ setNodeProperty(): content to send is too long"));
     return false;
   }
 
-  return MqttClient.publish(value, retained);
+  return this->_mqttClient.publish(value, retained);
 }
 
 HomieClass Homie;

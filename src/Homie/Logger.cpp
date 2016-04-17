@@ -2,23 +2,21 @@
 
 using namespace HomieInternals;
 
-LoggerClass::LoggerClass()
+Logger::Logger()
 : _loggingEnabled(true)
 {
 }
 
-bool LoggerClass::isEnabled() {
+bool Logger::isEnabled() {
   return this->_loggingEnabled;
 }
 
-void LoggerClass::setLogging(bool enable) {
+void Logger::setLogging(bool enable) {
   this->_loggingEnabled = enable;
 }
 
-void LoggerClass::logln() {
+void Logger::logln() {
   if (this->_loggingEnabled) {
     Serial.println();
   }
 }
-
-LoggerClass HomieInternals::Logger;

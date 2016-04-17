@@ -3,9 +3,9 @@
 #include "Arduino.h"
 
 namespace HomieInternals {
-  class UptimeClass {
+  class Uptime {
     public:
-      UptimeClass();
+      Uptime();
       void update();
       unsigned long getSeconds();
 
@@ -13,6 +13,4 @@ namespace HomieInternals {
       unsigned long _seconds;
       unsigned long _lastTick;
   };
-
-  extern UptimeClass Uptime;
 }

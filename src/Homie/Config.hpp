@@ -2,15 +2,17 @@
 
 #include <ArduinoJson.h>
 #include "FS.h"
+#include "Datatypes/Interface.hpp"
 #include "Datatypes/ConfigStruct.hpp"
 #include "Helpers.hpp"
 #include "Limits.hpp"
 #include "Logger.hpp"
 
 namespace HomieInternals {
-  class ConfigClass {
+  class Config {
     public:
-      ConfigClass();
+      Config();
+      void attachInterface(Interface* interface);
       bool load();
       const ConfigStruct& get();
       void erase();
@@ -21,6 +23,7 @@ namespace HomieInternals {
       void log(); // print the current config to log output
 
     private:
+      Interface* _interface;
       BootMode _bootMode;
       ConfigStruct _configStruct;
       char _otaVersion[MAX_FIRMWARE_VERSION_LENGTH];
@@ -28,6 +31,4 @@ namespace HomieInternals {
 
       bool _spiffsBegin();
   };
-
-  extern ConfigClass Config;
 }

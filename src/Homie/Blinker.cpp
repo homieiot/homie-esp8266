@@ -2,24 +2,24 @@
 
 using namespace HomieInternals;
 
-BlinkerClass::BlinkerClass()
-:  _interface(nullptr)
+Blinker::Blinker()
+: _interface(nullptr)
 , _lastBlinkPace(0)
 {
 }
 
-void BlinkerClass::attachInterface(Interface* interface) {
+void Blinker::attachInterface(Interface* interface) {
   this->_interface = interface;
 }
 
-void BlinkerClass::start(float blinkPace) {
+void Blinker::start(float blinkPace) {
   if (this->_lastBlinkPace != blinkPace) {
     this->_ticker.attach(blinkPace, this->_tick, this->_interface->led.pin);
     this->_lastBlinkPace = blinkPace;
   }
 }
 
-void BlinkerClass::stop() {
+void Blinker::stop() {
   if (this->_lastBlinkPace != 0) {
     this->_ticker.detach();
     this->_lastBlinkPace = 0;
@@ -27,8 +27,6 @@ void BlinkerClass::stop() {
   }
 }
 
-void BlinkerClass::_tick(unsigned char pin) {
+void Blinker::_tick(unsigned char pin) {
   digitalWrite(pin, !digitalRead(pin));
 }
-
-BlinkerClass HomieInternals::Blinker;
