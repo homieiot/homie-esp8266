@@ -156,7 +156,9 @@ void BootConfig::_onConfigRequest() {
   this->_interface->logger->logln(F("Received config request"));
   if (this->_flaggedForReboot) {
     this->_interface->logger->logln(F("✖ Device already configured"));
-    this->_http.send(403, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+    errorJson.concat(F("Device already configured\"}"));
+    this->_http.send(403, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
     return;
   }
 
@@ -164,7 +166,9 @@ void BootConfig::_onConfigRequest() {
   JsonObject& parsedJson = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str()); // do not use plain String, else fails
   if (!parsedJson.success()) {
     this->_interface->logger->logln(F("✖ Invalid or too big JSON"));
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+    errorJson.concat(F("Invalid or too big JSON\"}"));
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
     return;
   }
 
@@ -172,7 +176,11 @@ void BootConfig::_onConfigRequest() {
   if (!configValidationResult.valid) {
     this->_interface->logger->log(F("✖ Config file is not valid, reason: "));
     this->_interface->logger->logln(configValidationResult.reason);
-    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_FAILURE));
+    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+    errorJson.concat(F("Config file is not valid, reason: "));
+    errorJson.concat(configValidationResult.reason);
+    errorJson.concat(F("\"}"));
+    this->_http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
     return;
   }
 
@@ -180,7 +188,7 @@ void BootConfig::_onConfigRequest() {
 
   this->_interface->logger->logln(F("✔ Configured"));
 
-  this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":true}");
+  this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
 
   this->_flaggedForReboot = true; // We don't reboot immediately, otherwise the response above is not sent
   this->_flaggedForRebootAt = millis();
