@@ -15,6 +15,21 @@ const char* Helpers::getDeviceId() {
   return Helpers::_deviceId;
 }
 
+MdnsQueryResult Helpers::mdnsQuery(const char* service) {
+  MdnsQueryResult result;
+  result.success = false;
+  int n = MDNS.queryService(service, "tcp");
+  if (n == 0) {
+    return result;
+  } else {
+    result.success = true;
+    result.ip = MDNS.IP(0);
+    result.port = MDNS.port(0);
+  }
+
+  return result;
+}
+
 ConfigValidationResult Helpers::validateConfig(const JsonObject& object) {
   ConfigValidationResult result;
   result = _validateConfigRoot(object);

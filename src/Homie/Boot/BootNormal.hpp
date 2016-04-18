@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <ESP8266WiFi.h>
-// #include <ESP8266mDNS.h>
 #include <Bounce2.h>
 #include "../../HomieNode.hpp"
 #include "../Constants.hpp"

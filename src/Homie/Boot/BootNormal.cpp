@@ -56,22 +56,23 @@ void BootNormal::_wifiConnect() {
 void BootNormal::_mqttConnect() {
   const char* host = this->_interface->config->get().mqtt.server.host;
   unsigned int port = this->_interface->config->get().mqtt.server.port;
-  /* if (this->_interface->config->get().mqtt.mdns) {
+  if (this->_interface->config->get().mqtt.server.mdns.enabled) {
     this->_interface->logger->log(F("Querying mDNS service "));
-    this->_interface->logger->logln(this->_interface->config->get().mqtt.mdnsService);
-
-    int n = MDNS.queryService(this->_interface->config->get().mqtt.mdnsService, "tcp");
-    if (n == 0) {
-      this->_interface->logger->logln(F("No services found"));
-      return;
-    } else {
+    this->_interface->logger->logln(this->_interface->config->get().mqtt.server.mdns.service);
+    MdnsQueryResult result = Helpers::mdnsQuery(this->_interface->config->get().mqtt.server.mdns.service);
+    if (result.success) {
+      host = result.ip.toString().c_str();
+      port = result.port;
       this->_interface->logger->log(F("✔ "));
-      this->_interface->logger->log(n);
-      this->_interface->logger->logln(F(" service(s) found, using first"));
-      host = MDNS.IP(0);
-      port = MDNS.port(0);
+      this->_interface->logger->log(F(" service found at "));
+      this->_interface->logger->log(host);
+      this->_interface->logger->log(F(":"));
+      this->_interface->logger->logln(port);
+    } else {
+      this->_interface->logger->logln(F("✖ Service not found"));
+      return;
     }
-  } */
+  }
 
   this->_interface->mqttClient->setServer(host, port, this->_interface->config->get().mqtt.server.ssl.fingerprint);
   this->_interface->mqttClient->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2));
