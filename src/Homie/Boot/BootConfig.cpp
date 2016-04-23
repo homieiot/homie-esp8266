@@ -163,7 +163,8 @@ void BootConfig::_onConfigRequest() {
   }
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
-  JsonObject& parsedJson = parseJsonBuffer.parseObject((char*)this->_http.arg("plain").c_str()); // do not use plain String, else fails
+  char* bodyCharArray = strdup(this->_http.arg("plain").c_str());
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray); // do not use plain String, else fails
   if (!parsedJson.success()) {
     this->_interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -173,6 +174,7 @@ void BootConfig::_onConfigRequest() {
   }
 
   ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
+  free(bodyCharArray);
   if (!configValidationResult.valid) {
     this->_interface->logger->log(F("✖ Config file is not valid, reason: "));
     this->_interface->logger->logln(configValidationResult.reason);

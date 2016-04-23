@@ -42,7 +42,7 @@ namespace HomieInternals {
       }
       bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
     private:
-      bool _setup;
+      bool _setupCalled;
       Boot* _boot;
       BootNormal _bootNormal;
       BootConfig _bootConfig;

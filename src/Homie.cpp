@@ -2,7 +2,7 @@
 
 using namespace HomieInternals;
 
-HomieClass::HomieClass() : _setup(false) {
+HomieClass::HomieClass() : _setupCalled(false) {
   strcpy(this->_interface.brand, DEFAULT_BRAND);
   strcpy(this->_interface.firmware.name, DEFAULT_FW_NAME);
   strcpy(this->_interface.firmware.version, DEFAULT_FW_VERSION);
@@ -40,7 +40,7 @@ HomieClass::~HomieClass() {
 }
 
 void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
-  if (_setup) {
+  if (_setupCalled) {
     this->_logger.log(F("✖ "));
     this->_logger.log(functionName);
     this->_logger.logln(F("(): has to be called before setup()"));
@@ -49,15 +49,13 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
 }
 
 void HomieClass::setup() {
-   // here otherwise in constructor this crashes because Blinker might not be constructed
+  _setupCalled = true;
 
   if (this->_logger.isEnabled()) {
     Serial.begin(BAUD_RATE);
     this->_logger.logln();
     this->_logger.logln();
   }
-
-  _setup = true;
 
   if (!this->_config.load()) {
     this->_boot = &this->_bootConfig;
