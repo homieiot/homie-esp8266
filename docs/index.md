@@ -1,6 +1,6 @@
 Welcome to the Homie for ESP8266 docs. This will help you to understand the framework and to use it in an effective manner.
 
-**<p align="center">This documentation is valid for Homie <u>v1.4.1</u></p>**
+**<p align="center">This documentation is valid for Homie <u>v1.5.0</u></p>**
 
 -----
 

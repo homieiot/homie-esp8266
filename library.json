@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/marvinroger/homie-esp8266.git"
   },
-  "version": "1.4.1",
+  "version": "1.5.0",
   "frameworks": "arduino",
   "platforms": "espressif",
   "dependencies": [

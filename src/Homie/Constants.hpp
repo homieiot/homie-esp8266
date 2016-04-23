@@ -3,7 +3,7 @@
 #include <ESP8266WiFi.h>
 
 namespace HomieInternals {
-  const char VERSION[] = "1.4.1";
+  const char VERSION[] = "1.5.0";
   const unsigned long BAUD_RATE = 115200;
 
   const IPAddress ACCESS_POINT_IP(192, 168, 1, 1);
