@@ -54,18 +54,18 @@ void BootNormal::_wifiConnect() {
 }
 
 void BootNormal::_mqttConnect() {
-  const char* host = this->_interface->config->get().mqtt.server.host;
+  String host = this->_interface->config->get().mqtt.server.host;
   unsigned int port = this->_interface->config->get().mqtt.server.port;
   if (this->_interface->config->get().mqtt.server.mdns.enabled) {
     this->_interface->logger->log(F("Querying mDNS service "));
     this->_interface->logger->logln(this->_interface->config->get().mqtt.server.mdns.service);
     MdnsQueryResult result = Helpers::mdnsQuery(this->_interface->config->get().mqtt.server.mdns.service);
     if (result.success) {
-      host = result.ip.toString().c_str();
+      host = result.ip.toString();
       port = result.port;
       this->_interface->logger->log(F("✔ "));
       this->_interface->logger->log(F(" service found at "));
-      this->_interface->logger->log(host);
+      this->_interface->logger->log(host.c_str());
       this->_interface->logger->log(F(":"));
       this->_interface->logger->logln(port);
     } else {
@@ -74,7 +74,7 @@ void BootNormal::_mqttConnect() {
     }
   }
 
-  this->_interface->mqttClient->setServer(host, port, this->_interface->config->get().mqtt.server.ssl.fingerprint);
+  this->_interface->mqttClient->setServer(host.c_str(), port, this->_interface->config->get().mqtt.server.ssl.fingerprint);
   this->_interface->mqttClient->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2));
 
   char clientId[MAX_WIFI_SSID_LENGTH];
@@ -384,6 +384,7 @@ void BootNormal::loop() {
     this->_interface->logger->logln(F("Triggering HOMIE_WIFI_CONNECTED event..."));
     this->_interface->eventHandler(HOMIE_WIFI_CONNECTED);
     this->_wifiConnectNotified = true;
+    MDNS.begin(this->_interface->config->get().deviceId);
   }
 
   if (!this->_interface->mqttClient->connected()) {
