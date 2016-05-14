@@ -46,7 +46,6 @@ void BootConfig::setup() {
   this->_dns.setErrorReplyCode(DNSReplyCode::NoError);
   this->_dns.start(53, F("*"), ACCESS_POINT_IP);
 
-  this->_http.onNotFound([this](){this->_handleFileRead();});
   this->_http.on("/heart", HTTP_GET, [this]() {
     this->_interface->logger->logln(F("Received heart request"));
     this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"heart\":\"beat\"}"));
@@ -58,6 +57,7 @@ void BootConfig::setup() {
     this->_interface->logger->logln(F("Received CORS request for /config"));
     this->_http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
+  this->_http.onNotFound(std::bind(&BootConfig::_onCaptivePortal, this));
   this->_http.begin();
 }
 
@@ -103,20 +103,21 @@ void BootConfig::_generateNetworksJson() {
   json.printTo(this->_jsonWifiNetworks, jsonLength);
 }
 
-void BootConfig::_handleFileRead() {
+void BootConfig::_onCaptivePortal() {
   String host = this->_http.hostHeader();
   if (host && !host.equalsIgnoreCase(F("homie.config"))) {
+    this->_interface->logger->logln(F("Received captive portal request"));
     // Catch any captive portal probe.
     // Every browser brand uses a different URL for this purpose
     // We MUST redirect all them to local webserver to prevent cache poisoning
     this->_http.sendHeader(F("Location"), F("http://homie.config/"));
-    this->_http.send(302, F("text/plain"), "");
-  }
-  else if (this->_http.uri() != "/" || !SPIFFS.exists(F("/ui_bundle.gz"))) {
-    this->_http.send(404, F("text/plain"), F("See Configuration API usage: http://marvinroger.viewdocs.io/homie-esp8266/6.-Configuration-API"));
-  }
-  else {
-    File file = SPIFFS.open(F("/ui_bundle.gz"), "r");
+    this->_http.send(302, F("text/plain"), F(""));
+  } else if (this->_http.uri() != "/" || !SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
+    this->_interface->logger->logln(F("Received not found request"));
+    this->_http.send(404, F("text/plain"), F("UI bundle not loaded. See Configuration API usage: http://marvinroger.viewdocs.io/homie-esp8266/6.-Configuration-API"));
+  } else {
+    this->_interface->logger->logln(F("Received UI request"));
+    File file = SPIFFS.open(CONFIG_UI_BUNDLE_PATH, "r");
     size_t sent = this->_http.streamFile(file, F("text/html"));
     file.close();
   }

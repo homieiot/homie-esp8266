@@ -33,10 +33,10 @@ namespace HomieInternals {
       bool _flaggedForReboot;
       unsigned long _flaggedForRebootAt;
 
+      void _onCaptivePortal();
       void _onDeviceInfoRequest();
       void _onNetworksRequest();
       void _onConfigRequest();
       void _generateNetworksJson();
-      void _handleFileRead();
   };
 }

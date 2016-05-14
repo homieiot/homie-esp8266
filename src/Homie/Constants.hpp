@@ -30,6 +30,7 @@ namespace HomieInternals {
   const float LED_WIFI_DELAY = 1;
   const float LED_MQTT_DELAY = 0.2;
 
+  const char CONFIG_UI_BUNDLE_PATH[] = "/homie/ui_bundle.gz";
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
   const char CONFIG_OTA_PATH[] = "/homie/ota";
 
