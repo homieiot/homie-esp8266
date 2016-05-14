@@ -37,5 +37,6 @@ namespace HomieInternals {
       void _onNetworksRequest();
       void _onConfigRequest();
       void _generateNetworksJson();
+      void _handleFileRead();
   };
 }

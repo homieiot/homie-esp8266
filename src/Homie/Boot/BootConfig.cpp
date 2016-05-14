@@ -42,15 +42,11 @@ void BootConfig::setup() {
 
   this->_interface->logger->log(F("AP started as "));
   this->_interface->logger->logln(apName);
+  this->_dns.setTTL(30);
+  this->_dns.setErrorReplyCode(DNSReplyCode::NoError);
+  this->_dns.start(53, F("*"), ACCESS_POINT_IP);
 
-  this->_dns.setTTL(300);
-  this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
-  this->_dns.start(53, F("homie.config"), ACCESS_POINT_IP);
-
-  this->_http.on("/", HTTP_GET, [this]() {
-    this->_interface->logger->logln(F("Received index request"));
-    this->_http.send(200, F("text/plain"), F("See Configuration API usage: http://marvinroger.viewdocs.io/homie-esp8266/6.-Configuration-API"));
-  });
+  this->_http.onNotFound([this](){this->_handleFileRead();});
   this->_http.on("/heart", HTTP_GET, [this]() {
     this->_interface->logger->logln(F("Received heart request"));
     this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"heart\":\"beat\"}"));
@@ -105,6 +101,25 @@ void BootConfig::_generateNetworksJson() {
   delete[] this->_jsonWifiNetworks;
   this->_jsonWifiNetworks = new char[jsonLength];
   json.printTo(this->_jsonWifiNetworks, jsonLength);
+}
+
+void BootConfig::_handleFileRead() {
+  String host = this->_http.hostHeader();
+  if (host && !host.equalsIgnoreCase(F("homie.config"))) {
+    // Catch any captive portal probe.
+    // Every browser brand uses a different URL for this purpose
+    // We MUST redirect all them to local webserver to prevent cache poisoning
+    this->_http.sendHeader(F("Location"), F("http://homie.config/"));
+    this->_http.send(302, F("text/plain"), "");
+  }
+  else if (this->_http.uri() != "/" || !SPIFFS.exists(F("/ui_bundle.gz"))) {
+    this->_http.send(404, F("text/plain"), F("See Configuration API usage: http://marvinroger.viewdocs.io/homie-esp8266/6.-Configuration-API"));
+  }
+  else {
+    File file = SPIFFS.open(F("/ui_bundle.gz"), "r");
+    size_t sent = this->_http.streamFile(file, F("text/html"));
+    file.close();
+  }
 }
 
 void BootConfig::_onDeviceInfoRequest() {
