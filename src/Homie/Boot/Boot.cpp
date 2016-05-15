@@ -1,4 +1,5 @@
 #include "Boot.hpp"
+#include "../Config.hpp"
 
 using namespace HomieInternals;
 
@@ -21,12 +22,7 @@ void Boot::setup() {
   WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie
   WiFi.disconnect(); // Reset network state
 
-  char hostname[MAX_WIFI_SSID_LENGTH];
-  strcpy(hostname, this->_interface->brand);
-  strcat_P(hostname, PSTR("-"));
-  strcat(hostname, Helpers::getDeviceId());
-
-  WiFi.hostname(hostname);
+  WiFi.hostname(this->_interface->config->get().deviceId);
 
   this->_interface->logger->log(F("** Booting into "));
   this->_interface->logger->log(this->_name);
