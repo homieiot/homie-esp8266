@@ -242,7 +242,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     return;
   }
 
-  const HomieNode* homieNode = this->_interface->registeredNodes[homieNodeIndex];
+  HomieNode* homieNode = this->_interface->registeredNodes[homieNodeIndex];
 
   int homieNodePropertyIndex = -1;
   for (int i = 0; i < homieNode->getSubscriptionsCount(); i++) {
@@ -266,7 +266,8 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
   if (handled) return;
 
   this->_interface->logger->logln(F("Calling node input handler..."));
-  handled = homieNode->getInputHandler()(property, message);
+  //handled = homieNode->getInputHandler()(property, message);
+  handled = homieNode->InputHandler(property, message);
   if (handled) return;
 
   if (homieNodePropertyIndex != -1) { // might not if subscribed to all only
@@ -325,6 +326,10 @@ void BootNormal::setup() {
       this->_interface->logger->logln(F("Rebooting..."));
       ESP.restart();
     }
+  }
+  for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
+    HomieNode* const homieNode = this->_interface->registeredNodes[i];
+    homieNode->setup();
   }
 }
 
@@ -478,4 +483,9 @@ void BootNormal::loop() {
   this->_interface->loopFunction();
 
   this->_interface->mqttClient->loop();
+
+  for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
+    HomieNode* const homieNode = this->_interface->registeredNodes[i];
+    homieNode->loop();
+  }
 }
