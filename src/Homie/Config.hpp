@@ -14,7 +14,7 @@ namespace HomieInternals {
       Config();
       void attachInterface(Interface* interface);
       bool load();
-      const ConfigStruct& get();
+      inline const ConfigStruct& get() const;
       void erase();
       void write(const String& config);
       void setOtaMode(bool enabled, const char* version = "");
@@ -31,4 +31,9 @@ namespace HomieInternals {
 
       bool _spiffsBegin();
   };
+
+  const ConfigStruct& Config::get() const {
+    return this->_configStruct;
+  }
+
 }
