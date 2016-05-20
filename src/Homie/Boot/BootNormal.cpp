@@ -421,6 +421,8 @@ void BootNormal::loop() {
     this->_interface->logger->logln(F("✔ MQTT ready"));
     this->_interface->logger->logln(F("Triggering HOMIE_MQTT_CONNECTED event..."));
     this->_interface->eventHandler(HOMIE_MQTT_CONNECTED);
+    for (int i = 0; i < this->_interface->registeredNodesCount; ++i)
+      this->_interface->registeredNodes[i]->onReadyToOperate();
     this->_mqttConnectNotified = true;
   }
 
