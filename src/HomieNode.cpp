@@ -34,6 +34,10 @@ void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandle
   this->_subscriptions[this->_subscriptionsCount++] = subscription;
 }
 
+bool HomieNode::handleInput(String const &property, String const &value) {
+  return this->_inputHandler(property, value);
+}
+
 const char* HomieNode::getId() const {
   return this->_id;
 }
@@ -52,8 +56,4 @@ unsigned char HomieNode::getSubscriptionsCount() const {
 
 bool HomieNode::getSubscribeToAll() const {
   return this->_subscribeToAll;
-}
-
-NodeInputHandler HomieNode::getInputHandler() const {
-  return this->_inputHandler;
 }

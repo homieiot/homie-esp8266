@@ -20,13 +20,21 @@ class HomieNode {
 
     void subscribe(const char* property, HomieInternals::PropertyInputHandler inputHandler = [](String value) { return false; });
 
+  protected:
+    virtual void setup() {}
+
+    virtual void loop() {}
+
+    virtual void onReadyToOperate() {}
+
+    virtual bool handleInput(String const &property, String const &value);
+
   private:
     const char* getId() const;
     const char* getType() const;
     const HomieInternals::Subscription* getSubscriptions() const;
     unsigned char getSubscriptionsCount() const;
     bool getSubscribeToAll() const;
-    HomieInternals::NodeInputHandler getInputHandler() const;
 
     const char* _id;
     const char* _type;
