@@ -182,10 +182,6 @@ bool Config::load() {
   return true;
 }
 
-const ConfigStruct& Config::get() {
-  return this->_configStruct;
-}
-
 void Config::erase() {
   if (!this->_spiffsBegin()) { return; }
 
