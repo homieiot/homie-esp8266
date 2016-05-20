@@ -41,6 +41,7 @@ namespace HomieInternals {
         return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
       }
       bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
+      bool publishProperty(String const &path, const char *property, const char* value, bool retained = true);
     private:
       bool _setupCalled;
       Boot* _boot;

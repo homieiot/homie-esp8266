@@ -211,4 +211,21 @@ bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, co
   return this->_mqttClient.publish(value, retained);
 }
 
+bool HomieClass::publishProperty(const String &path, const char* property, const char* value, bool retained) {
+  if (!this->isReadyToOperate()) {
+    this->_logger.logln(F("✖ setNodeProperty(): impossible now"));
+    return false;
+  }
+  auto proplen = strlen(property);
+  if (5 + 2 + path.length() + proplen + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
+    this->_logger.logln(F("✖ setNodeProperty(): content to send is too long"));
+    return false;
+  }
+  auto &cli = this->_mqttClient;
+  auto buf = cli.getTopicBuffer();
+  memcpy(buf, path.c_str(), path.length());
+  memcpy(buf + path.length(), property, proplen + 1);
+  return cli.publish(value, retained);
+}
+
 HomieClass Homie;
