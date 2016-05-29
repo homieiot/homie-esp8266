@@ -27,7 +27,7 @@ namespace HomieInternals {
       void setLedPin(unsigned char pin, unsigned char on);
       void setBrand(const char* name);
       void setFirmware(const char* name, const char* version);
-      void registerNode(const HomieNode& node);
+      void registerNode(HomieNode& node);
       void setGlobalInputHandler(GlobalInputHandler globalInputHandler);
       void setResettable(bool resettable);
       void onEvent(EventHandler handler);

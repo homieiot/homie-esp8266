@@ -34,7 +34,7 @@ namespace HomieInternals {
       ResetFunction userFunction;
     } reset;
 
-    const HomieNode* registeredNodes[MAX_REGISTERED_NODES_COUNT];
+    HomieNode* registeredNodes[MAX_REGISTERED_NODES_COUNT];
     unsigned char registeredNodesCount;
 
     GlobalInputHandler globalInputHandler;
