@@ -17,7 +17,6 @@ enableBuiltInLedIndicator	KEYWORD2
 setLedPin	KEYWORD2
 setBrand	KEYWORD2
 setFirmware	KEYWORD2
-registerNode	KEYWORD2
 setGlobalInputHandler	KEYWORD2
 setSetupFunction	KEYWORD2
 setLoopFunction	KEYWORD2

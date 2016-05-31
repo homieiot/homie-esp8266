@@ -29,7 +29,6 @@ void setup() {
   debouncer.interval(50);
 
   Homie.setFirmware("awesome-door", "1.0.0");
-  Homie.registerNode(doorNode);
   Homie.setLoopFunction(loopHandler);
   Homie.setup();
 }

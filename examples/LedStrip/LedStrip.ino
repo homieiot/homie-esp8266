@@ -44,7 +44,6 @@ void setup() {
   }
 
   Homie.setFirmware("awesome-ledstrip", "1.0.0");
-  Homie.registerNode(stripNode);
   Homie.setup();
 }
 

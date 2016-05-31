@@ -32,7 +32,6 @@ void setup() {
   Homie.setLedPin(PIN_LED, LOW);
   Homie.setResetTrigger(PIN_BUTTON, LOW, 5000);
   switchNode.subscribe("on", switchOnHandler);
-  Homie.registerNode(switchNode);
   Homie.setup();
 }
 
