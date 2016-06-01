@@ -41,6 +41,10 @@ namespace HomieInternals {
         return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
       }
       bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
+      bool publishRaw(const char* topic, const char* value, bool retained = true);
+      String getNodeTopic(const char* nodeId, const char* deviceId = 0); 
+      inline const char *getId() const;
+
     private:
       bool _setupCalled;
       Boot* _boot;
@@ -55,6 +59,9 @@ namespace HomieInternals {
 
       void _checkBeforeSetup(const __FlashStringHelper* functionName);
   };
+  const char *HomieClass::getId() const {
+    return this->_config.get().deviceId;
+  }
 }
 
 extern HomieInternals::HomieClass Homie;
