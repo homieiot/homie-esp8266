@@ -72,10 +72,10 @@ void BootConfig::_onWifiConnectRequest() {
   if(ssid && pass && ssid!="" && pass!= "") {
     this->_interface->logger->logln(F("Connecting to WiFi"));
     WiFi.begin(ssid.c_str(), pass.c_str());
-    this->_http.send(202, "application/json", "{\"message\":\"wifi-connect-started\"}");
+    this->_http.send(202, "application/json", "{\"success\":true}");
   } else {
     this->_interface->logger->logln(F("ssid/password required"));
-    this->_http.send(400, "application/json", "{\"message\":\"ssid-password-required\"}");
+    this->_http.send(400, "application/json", "{\"success\":false, \"error\":\"ssid-password-required\"}");
   }
 }
 
