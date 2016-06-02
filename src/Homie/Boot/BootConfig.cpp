@@ -125,8 +125,8 @@ void BootConfig::_onCaptivePortal() {
 
 void BootConfig::_onDeviceInfoRequest() {
   this->_interface->logger->logln(F("Received device info request"));
-
-  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(this->_interface->registeredNodesCount) + (this->_interface->registeredNodesCount * JSON_OBJECT_SIZE(2)));
+  auto numNodes = HomieNode::getNodeCount();
+  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)));
   int jsonLength = 82; // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[]}
   JsonObject& json = jsonBuffer.createObject();
   jsonLength += strlen(Helpers::getDeviceId());
@@ -140,17 +140,15 @@ void BootConfig::_onDeviceInfoRequest() {
   firmware["version"] = this->_interface->firmware.version;
 
   JsonArray& nodes = json.createNestedArray("nodes");
-  for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
+  HomieNode::for_each([&nodes, &jsonLength, &jsonBuffer](HomieNode *node) {
     jsonLength += 20; // {"id":"","type":""},
-    const HomieNode* node = this->_interface->registeredNodes[i];
     JsonObject& jsonNode = jsonBuffer.createObject();
     jsonLength += strlen(node->getId());
     jsonNode["id"] = node->getId();
     jsonLength += strlen(node->getType());
     jsonNode["type"] = node->getType();
-
     nodes.add(jsonNode);
-  }
+  });
 
   jsonLength++; // \0
 

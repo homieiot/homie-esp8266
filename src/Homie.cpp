@@ -127,16 +127,6 @@ void HomieClass::setBrand(const char* name) {
   strcpy(this->_interface.brand, name);
 }
 
-void HomieClass::registerNode(HomieNode& node) {
-  this->_checkBeforeSetup(F("registerNode"));
-  if (this->_interface.registeredNodesCount > MAX_REGISTERED_NODES_COUNT) {
-    Serial.println(F("✖ register(): the max registered nodes count has been reached"));
-    abort();
-  }
-
-  this->_interface.registeredNodes[this->_interface.registeredNodesCount++] = &node;
-}
-
 bool HomieClass::isReadyToOperate() {
   return this->_interface.readyToOperate;
 }

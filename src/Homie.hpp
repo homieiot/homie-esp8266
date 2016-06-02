@@ -16,6 +16,7 @@
 
 namespace HomieInternals {
   class HomieClass {
+      friend class ::HomieNode;
     public:
       HomieClass();
       ~HomieClass();
@@ -27,7 +28,7 @@ namespace HomieInternals {
       void setLedPin(unsigned char pin, unsigned char on);
       void setBrand(const char* name);
       void setFirmware(const char* name, const char* version);
-      void registerNode(HomieNode& node);
+      void registerNode(HomieNode& node) __attribute__ ((deprecated)) {}
       void setGlobalInputHandler(GlobalInputHandler globalInputHandler);
       void setResettable(bool resettable);
       void onEvent(EventHandler handler);

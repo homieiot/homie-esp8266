@@ -26,7 +26,6 @@ void setup() {
 
   Homie.setFirmware("awesome-relay", "1.0.0");
   lightNode.subscribe("on", lightOnHandler);
-  Homie.registerNode(lightNode);
   Homie.setup();
 }
 
