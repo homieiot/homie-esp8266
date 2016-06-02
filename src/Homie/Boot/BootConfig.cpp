@@ -11,6 +11,7 @@ BootConfig::BootConfig()
 , _jsonWifiNetworks()
 , _flaggedForReboot(false)
 , _flaggedForRebootAt(0)
+, _proxyEnabled(false)
 {
   this->_wifiScanTimer.setInterval(CONFIG_SCAN_INTERVAL);
 }
@@ -30,7 +31,7 @@ void BootConfig::setup() {
   this->_interface->logger->log(F("Device ID is "));
   this->_interface->logger->logln(deviceId);
 
-  WiFi.mode(WIFI_AP);
+  WiFi.mode(WIFI_AP_STA);
 
   char apName[MAX_WIFI_SSID_LENGTH];
   strcpy(apName, this->_interface->brand);
@@ -57,8 +58,62 @@ void BootConfig::setup() {
     this->_interface->logger->logln(F("Received CORS request for /config"));
     this->_http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
+  this->_http.on("/wifi-connect", HTTP_POST, std::bind(&BootConfig::_onWifiConnectRequest, this));
+  this->_http.on("/wifi-status", HTTP_GET, std::bind(&BootConfig::_onWifiStatusRequest, this));
+  this->_http.on("/proxy-control", HTTP_POST, std::bind(&BootConfig::_onProxyControlRequest, this));
   this->_http.onNotFound(std::bind(&BootConfig::_onCaptivePortal, this));
   this->_http.begin();
+}
+
+void BootConfig::_onWifiConnectRequest() {
+  this->_interface->logger->logln(F("Received wifi connect request"));
+  String ssid = this->_http.arg("ssid");
+  String pass = this->_http.arg("password");
+  if(ssid && pass && ssid!="" && pass!= "") {
+    this->_interface->logger->logln(F("Connecting to WiFi"));
+    WiFi.begin(ssid.c_str(), pass.c_str());
+    this->_http.send(202, "application/json", "{\"success\":true}");
+  } else {
+    this->_interface->logger->logln(F("ssid/password required"));
+    this->_http.send(400, "application/json", "{\"success\":false, \"error\":\"ssid-password-required\"}");
+  }
+}
+
+void BootConfig::_onWifiStatusRequest() {
+  this->_interface->logger->logln(F("Received wifi status request"));
+  String json = "";
+  switch (WiFi.status()) {
+    case WL_IDLE_STATUS:
+      json = "{\"status\":\"idle\"}"; break;
+    case WL_CONNECT_FAILED:
+      json = "{\"status\":\"connect-failed\"}"; break;
+    case WL_CONNECTION_LOST:
+      json = "{\"status\":\"connection-lost\"}"; break;
+    case WL_NO_SSID_AVAIL:
+      json = "{\"status\":\"no-ssid-avail\"}"; break;
+    case WL_CONNECTED:
+      json = "{\"status\":\"connected\", \"ip\":\""+ WiFi.localIP().toString() +"\"}"; break;
+    case WL_DISCONNECTED:
+      json = "{\"status\":\"disconnected\"}"; break;
+    default:
+      json = "{\"status\":\"other\"}"; break;
+  }
+  this->_interface->logger->log(F("WiFi status "));
+  this->_interface->logger->logln(json);
+  this->_http.send(200, "application/json", json);
+}
+
+void BootConfig::_onProxyControlRequest() {
+  this->_interface->logger->logln(F("Received proxy control request"));
+  String enable = this->_http.arg("enable");
+  this->_proxyEnabled = (enable == "true");
+  if(this->_proxyEnabled) {
+    this->_http.send(200, "application/json", "{\"message\":\"proxy-enabled\"}");
+  } else {
+    this->_http.send(200, "application/json", "{\"message\":\"proxy-disabled\"}");
+  }
+  this->_interface->logger->log(F("Transparent proxy enabled="));
+  this->_interface->logger->logln(this->_proxyEnabled);
 }
 
 void BootConfig::_generateNetworksJson() {
@@ -106,12 +161,18 @@ void BootConfig::_generateNetworksJson() {
 void BootConfig::_onCaptivePortal() {
   String host = this->_http.hostHeader();
   if (host && !host.equalsIgnoreCase(F("homie.config"))) {
-    this->_interface->logger->logln(F("Received captive portal request"));
-    // Catch any captive portal probe.
-    // Every browser brand uses a different URL for this purpose
-    // We MUST redirect all them to local webserver to prevent cache poisoning
-    this->_http.sendHeader(F("Location"), F("http://homie.config/"));
-    this->_http.send(302, F("text/plain"), F(""));
+    //redirect unknown host requests to self if not connected to Internet yet
+    if(!this->_proxyEnabled) {
+      this->_interface->logger->logln(F("Received captive portal request"));
+      // Catch any captive portal probe.
+      // Every browser brand uses a different URL for this purpose
+      // We MUST redirect all them to local webserver to prevent cache poisoning
+      this->_http.sendHeader(F("Location"), F("http://homie.config/"));
+      this->_http.send(302, F("text/plain"), F(""));
+    //perform transparent proxy to Internet if connected
+    } else {
+      this->_proxyHttpRequest();
+    }
   } else if (this->_http.uri() != "/" || !SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
     this->_interface->logger->logln(F("Received not found request"));
     this->_http.send(404, F("text/plain"), F("UI bundle not loaded. See Configuration API usage: http://marvinroger.viewdocs.io/homie-esp8266/6.-Configuration-API"));
@@ -121,6 +182,41 @@ void BootConfig::_onCaptivePortal() {
     size_t sent = this->_http.streamFile(file, F("text/html"));
     file.close();
   }
+}
+
+void BootConfig::_proxyHttpRequest() {
+  this->_interface->logger->logln(F("Received transparent proxy request"));
+
+  //send request to destination (as in incoming host header)
+  this->_httpClient.setUserAgent("ESP8266-Homie");
+  this->_httpClient.begin("http://" + this->_http.hostHeader() + this->_http.uri());
+  //copy headers
+  for(int i=0; i<this->_http.headers(); i++) {
+    this->_httpClient.addHeader(this->_http.headerName(i), this->_http.header(i));
+  }
+
+  String method = "";
+  switch(this->_http.method()) {
+    case HTTP_GET: method = "GET"; break;
+    case HTTP_PUT: method = "PUT"; break;
+    case HTTP_POST: method = "POST"; break;
+    case HTTP_DELETE: method = "DELETE"; break;
+    case HTTP_OPTIONS: method = "OPTIONS"; break;
+  }
+
+  this->_interface->logger->logln(F("Proxy sent request to destination"));
+  int _httpCode = this->_httpClient.sendRequest(method.c_str(), this->_http.arg("plain"));
+  this->_interface->logger->log(F("Destination response code="));
+  this->_interface->logger->logln(_httpCode);
+
+  //bridge response to browser
+  //copy response headers
+  for(int i=0; i<this->_httpClient.headers(); i++) {
+    this->_http.sendHeader(this->_httpClient.headerName(i), this->_httpClient.header(i), false);
+  }
+  this->_interface->logger->logln(F("Bridging received destination contents to client"));
+  this->_http.send(_httpCode, this->_httpClient.header("Content-Type"), this->_httpClient.getString());
+  this->_httpClient.end();
 }
 
 void BootConfig::_onDeviceInfoRequest() {
