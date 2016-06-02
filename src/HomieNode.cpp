@@ -38,10 +38,6 @@ bool HomieNode::handleInput(String const &property, String const &value) {
   return this->_inputHandler(property, value);
 }
 
-const char* HomieNode::getId() const {
-  return this->_id;
-}
-
 const char* HomieNode::getType() const {
   return this->_type;
 }
