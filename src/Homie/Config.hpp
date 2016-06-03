@@ -18,8 +18,8 @@ namespace HomieInternals {
       void erase();
       void write(const String& config);
       void setOtaMode(bool enabled, const char* version = "");
-      const char* getOtaVersion();
-      BootMode getBootMode();
+      const char* getOtaVersion() const;
+      BootMode getBootMode() const;
       void log(); // print the current config to log output
 
     private:

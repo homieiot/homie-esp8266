@@ -7,18 +7,18 @@ namespace HomieInternals {
     public:
       Logger();
       void setLogging(bool enable);
-      bool isEnabled();
-      template <typename T> void log(T value) {
+      bool isEnabled() const;
+      template <typename T> void log(T value) const {
         if (this->_loggingEnabled) {
           Serial.print(value);
         }
       }
-      template <typename T> void logln(T value) {
+      template <typename T> void logln(T value) const {
         if (this->_loggingEnabled) {
           Serial.println(value);
         }
       }
-      void logln();
+      void logln() const;
 
     private:
       bool _loggingEnabled;

@@ -37,7 +37,7 @@ namespace HomieInternals {
       void setResetFunction(ResetFunction function);
       void setSetupFunction(OperationFunction function);
       void setLoopFunction(OperationFunction function);
-      bool isReadyToOperate();
+      bool isReadyToOperate() const;
       bool setNodeProperty(const HomieNode& node, const String& property, const String& value, bool retained = true) {
         return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
       }
@@ -58,7 +58,7 @@ namespace HomieInternals {
       Config _config;
       MqttClient _mqttClient;
 
-      void _checkBeforeSetup(const __FlashStringHelper* functionName);
+      void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
   };
   const char *HomieClass::getId() const {
     return this->_config.get().deviceId;

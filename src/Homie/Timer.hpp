@@ -7,7 +7,7 @@ namespace HomieInternals {
     public:
       Timer();
       void setInterval(unsigned long interval, bool tickAtBeginning = true);
-      bool check();
+      bool check() const;
       void tick();
       void reset();
 

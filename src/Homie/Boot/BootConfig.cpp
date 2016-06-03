@@ -179,7 +179,7 @@ void BootConfig::_onCaptivePortal() {
   } else {
     this->_interface->logger->logln(F("Received UI request"));
     File file = SPIFFS.open(CONFIG_UI_BUNDLE_PATH, "r");
-    size_t sent = this->_http.streamFile(file, F("text/html"));
+    this->_http.streamFile(file, F("text/html"));
     file.close();
   }
 }
