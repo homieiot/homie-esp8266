@@ -28,7 +28,7 @@ void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 
-  Homie.setFirmware("itead-sonoff", "1.0.0");
+  Homie_setFirmware("itead-sonoff", "1.0.0");
   Homie.setLedPin(PIN_LED, LOW);
   Homie.setResetTrigger(PIN_BUTTON, LOW, 5000);
   switchNode.subscribe("on", switchOnHandler);

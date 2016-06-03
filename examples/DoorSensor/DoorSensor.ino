@@ -28,7 +28,7 @@ void setup() {
   debouncer.attach(PIN_DOOR);
   debouncer.interval(50);
 
-  Homie.setFirmware("awesome-door", "1.0.0");
+  Homie_setFirmware("awesome-door", "1.0.0");
   Homie.setLoopFunction(loopHandler);
   Homie.setup();
 }

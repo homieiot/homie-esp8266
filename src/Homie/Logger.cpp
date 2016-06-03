@@ -7,7 +7,7 @@ Logger::Logger()
 {
 }
 
-bool Logger::isEnabled() {
+bool Logger::isEnabled() const {
   return this->_loggingEnabled;
 }
 
@@ -15,7 +15,7 @@ void Logger::setLogging(bool enable) {
   this->_loggingEnabled = enable;
 }
 
-void Logger::logln() {
+void Logger::logln() const {
   if (this->_loggingEnabled) {
     Serial.println();
   }

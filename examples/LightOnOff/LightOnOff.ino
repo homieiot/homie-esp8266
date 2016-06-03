@@ -24,7 +24,7 @@ void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 
-  Homie.setFirmware("awesome-relay", "1.0.0");
+  Homie_setFirmware("awesome-relay", "1.0.0");
   lightNode.subscribe("on", lightOnHandler);
   Homie.setup();
 }

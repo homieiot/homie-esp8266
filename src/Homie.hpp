@@ -14,6 +14,9 @@
 
 #include "HomieNode.hpp"
 
+#define Homie_setFirmware(name, version) const char* __FLAGGED_FW_NAME = "\xbf\x84\xe4\x13\x54" name "\x93\x44\x6b\xa7\x75"; const char* __FLAGGED_FW_VERSION = "\x6a\x3f\x3e\x0e\xe1" version "\xb0\x30\x48\xd4\x1a"; Homie.__setFirmware(__FLAGGED_FW_NAME, __FLAGGED_FW_VERSION);
+#define Homie_setBrand(brand) const char* __FLAGGED_BRAND = "\xfb\x2a\xf5\x68\xc0" brand "\x6e\x2f\x0f\xeb\x2d"; Homie.__setBrand(__FLAGGED_BRAND);
+
 namespace HomieInternals {
   class HomieClass {
       friend class ::HomieNode;
@@ -23,11 +26,12 @@ namespace HomieInternals {
       void setup();
       void loop();
 
+      void __setFirmware(const char* name, const char* version);
+      void __setBrand(const char* brand);
+
       void enableLogging(bool enable);
       void enableBuiltInLedIndicator(bool enable);
       void setLedPin(unsigned char pin, unsigned char on);
-      void setBrand(const char* name);
-      void setFirmware(const char* name, const char* version);
       void registerNode(HomieNode& node) __attribute__ ((deprecated)) {}
       void setGlobalInputHandler(GlobalInputHandler globalInputHandler);
       void setResettable(bool resettable);

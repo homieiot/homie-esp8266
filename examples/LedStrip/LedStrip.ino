@@ -43,7 +43,7 @@ void setup() {
     digitalWrite(LED_PINS[i], LOW);
   }
 
-  Homie.setFirmware("awesome-ledstrip", "1.0.0");
+  Homie_setFirmware("awesome-ledstrip", "1.0.0");
   Homie.setup();
 }
 

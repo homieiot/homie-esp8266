@@ -25,7 +25,7 @@ void loopHandler() {
 }
 
 void setup() {
-  Homie.setFirmware("awesome-temperature", "1.0.0");
+  Homie_setFirmware("awesome-temperature", "1.0.0");
   Homie.setSetupFunction(setupHandler);
   Homie.setLoopFunction(loopHandler);
   Homie.setup();
