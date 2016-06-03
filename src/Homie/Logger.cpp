@@ -15,8 +15,12 @@ void Logger::setLogging(bool enable) {
   this->_loggingEnabled = enable;
 }
 
+void Logger::setPrinter(Print* printer) {
+  this->_printer = printer;
+}
+
 void Logger::logln() const {
   if (this->_loggingEnabled) {
-    Serial.println();
+    _printer->println();
   }
 }

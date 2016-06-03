@@ -23,6 +23,9 @@ void loopHandler() {
 }
 
 void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println();
   pinMode(PIN_DOOR, INPUT);
   digitalWrite(PIN_DOOR, HIGH);
   debouncer.attach(PIN_DOOR);

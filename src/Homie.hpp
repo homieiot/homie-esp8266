@@ -30,6 +30,7 @@ namespace HomieInternals {
       void __setBrand(const char* brand);
 
       void enableLogging(bool enable);
+      void setLoggingPrinter(Print* printer);
       void enableBuiltInLedIndicator(bool enable);
       void setLedPin(unsigned char pin, unsigned char on);
       void registerNode(HomieNode& node) __attribute__ ((deprecated)) {}

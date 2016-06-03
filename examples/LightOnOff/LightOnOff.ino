@@ -21,6 +21,9 @@ bool lightOnHandler(String value) {
 }
 
 void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println();
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 

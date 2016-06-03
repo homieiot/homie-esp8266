@@ -13,6 +13,7 @@ HomieEvent	KEYWORD1
 setup	KEYWORD2
 loop	KEYWORD2
 enableLogging	KEYWORD2
+setLoggingPrinter	KEYWORD2
 enableBuiltInLedIndicator	KEYWORD2
 setLedPin	KEYWORD2
 Homie_setBrand	KEYWORD2

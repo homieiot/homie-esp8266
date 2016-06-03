@@ -38,6 +38,9 @@ bool stripHandler(String property, String value) {
 }
 
 void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println();
   for (int i = 0; i < NUMBER_OF_LED; i++) {
     pinMode(LED_PINS[i], INPUT);
     digitalWrite(LED_PINS[i], LOW);

@@ -27,6 +27,8 @@ HomieClass::HomieClass() : _setupCalled(false) {
 
   Helpers::generateDeviceId();
 
+  this->_logger.setPrinter(&Serial);
+
   this->_config.attachInterface(&this->_interface);
   this->_blinker.attachInterface(&this->_interface);
   this->_mqttClient.attachInterface(&this->_interface);
@@ -50,13 +52,7 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) cons
 
 void HomieClass::setup() {
   _setupCalled = true;
-
-  if (this->_logger.isEnabled()) {
-    Serial.begin(BAUD_RATE);
-    this->_logger.logln();
-    this->_logger.logln();
-  }
-
+  
   if (!this->_config.load()) {
     this->_boot = &this->_bootConfig;
     this->_logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
@@ -91,6 +87,12 @@ void HomieClass::enableLogging(bool enable) {
   this->_checkBeforeSetup(F("enableLogging"));
 
   this->_logger.setLogging(enable);
+}
+
+void HomieClass::setLoggingPrinter(Print* printer) {
+  this->_checkBeforeSetup(F("setLoggingPrinter"));
+
+  this->_logger.setPrinter(printer);
 }
 
 void HomieClass::enableBuiltInLedIndicator(bool enable) {
