@@ -137,9 +137,14 @@ void BootNormal::_mqttSetup() {
   HomieNode::for_each([begin, &ptr](HomieNode *n) {
     if (ptr != begin) *ptr++ = ',';
     auto len = strlen(n->getId());
-    memcpy(ptr, n->getId(), len); ptr += len;
+    memcpy(ptr, n->getId(), len);
+    ptr += len;
+    *ptr++ = ':';
+    len = strlen(n->getType());
+    memcpy(ptr, n->getType(), len);
+    ptr += len;
   });
-  *ptr = 0;
+  *ptr = '\0';
   this->_fillMqttTopic(PSTR("/$nodes"));
   if (!this->_publishRetainedOrFail(nodes)) return;
 

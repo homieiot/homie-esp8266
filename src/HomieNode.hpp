@@ -19,6 +19,7 @@ class HomieNode {
     HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](String property, String value) { return false; }, bool subscribeToAll = false);
 
     const char* getId() const { return this->_id; }
+    const char* getType() const { return this->_type; }
 
     void subscribe(const char* property, HomieInternals::PropertyInputHandler inputHandler = [](String value) { return false; });
 
@@ -48,7 +49,6 @@ class HomieNode {
     virtual bool handleInput(String const &property, String const &value);
 
   private:
-    const char* getType() const;
     const HomieInternals::Subscription* getSubscriptions() const;
     unsigned char getSubscriptionsCount() const;
     bool getSubscribeToAll() const;
