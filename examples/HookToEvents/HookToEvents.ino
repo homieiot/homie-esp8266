@@ -34,7 +34,7 @@ void setup() {
   Serial.println();
   Serial.println();
   Homie.enableLogging(false);
-  Homie.setFirmware("events-test", "1.0.0");
+  Homie_setFirmware("events-test", "1.0.0");
   Homie.onEvent(onHomieEvent);
   Homie.setup();
 }

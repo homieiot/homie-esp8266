@@ -14,6 +14,6 @@ void Uptime::update() {
   this->_lastTick = now;
 }
 
-unsigned long Uptime::getSeconds() {
+unsigned long Uptime::getSeconds() const {
   return this->_seconds;
 }

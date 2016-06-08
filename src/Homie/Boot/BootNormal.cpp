@@ -131,15 +131,20 @@ void BootNormal::_mqttSetup() {
   this->_fillMqttTopic(PSTR("/$online"));
   if (!this->_publishRetainedOrFail("true")) return;
 
-  char nodes[MAX_REGISTERED_NODES_COUNT * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
-  strcpy_P(nodes, PSTR(""));
-  for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
-    const HomieNode* node = this->_interface->registeredNodes[i];
-    strcat(nodes, node->getId());
-    strcat_P(nodes, PSTR(":"));
-    strcat(nodes, node->getType());
-    if (i != this->_interface->registeredNodesCount - 1) strcat_P(nodes, PSTR(","));
-  }
+  char nodes[HomieNode::getNodeCount() * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
+  char *begin = nodes;
+  char *ptr = nodes;
+  HomieNode::for_each([begin, &ptr](HomieNode *n) {
+    if (ptr != begin) *ptr++ = ',';
+    auto len = strlen(n->getId());
+    memcpy(ptr, n->getId(), len);
+    ptr += len;
+    *ptr++ = ':';
+    len = strlen(n->getType());
+    memcpy(ptr, n->getType(), len);
+    ptr += len;
+  });
+  *ptr = '\0';
   this->_fillMqttTopic(PSTR("/$nodes"));
   if (!this->_publishRetainedOrFail(nodes)) return;
 
@@ -225,24 +230,13 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
   }
   String node = unified.substring(0, separator);
   String property = unified.substring(separator + 1);
-
-  int homieNodeIndex = -1;
-  for (int i = 0; i < this->_interface->registeredNodesCount; i++) {
-    const HomieNode* homieNode = this->_interface->registeredNodes[i];
-    if (node == homieNode->getId()) {
-      homieNodeIndex = i;
-      break;
-    }
-  }
-
-  if (homieNodeIndex == -1) {
+  HomieNode *homieNode = HomieNode::find(node);
+  if (homieNode == 0) {
     this->_interface->logger->log(F("Node "));
     this->_interface->logger->log(node);
     this->_interface->logger->logln(F(" not registered"));
     return;
   }
-
-  const HomieNode* homieNode = this->_interface->registeredNodes[homieNodeIndex];
 
   int homieNodePropertyIndex = -1;
   for (int i = 0; i < homieNode->getSubscriptionsCount(); i++) {
@@ -266,7 +260,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
   if (handled) return;
 
   this->_interface->logger->logln(F("Calling node input handler..."));
-  handled = homieNode->getInputHandler()(property, message);
+  handled = homieNode->handleInput(property, message);
   if (handled) return;
 
   if (homieNodePropertyIndex != -1) { // might not if subscribed to all only
@@ -326,6 +320,8 @@ void BootNormal::setup() {
       ESP.restart();
     }
   }
+
+  HomieNode::for_each([] (HomieNode *n) { n->setup(); });
 }
 
 void BootNormal::loop() {
@@ -421,6 +417,7 @@ void BootNormal::loop() {
     this->_interface->logger->logln(F("✔ MQTT ready"));
     this->_interface->logger->logln(F("Triggering HOMIE_MQTT_CONNECTED event..."));
     this->_interface->eventHandler(HOMIE_MQTT_CONNECTED);
+    HomieNode::for_each([] (HomieNode *n) { n->onReadyToOperate(); });
     this->_mqttConnectNotified = true;
   }
 
@@ -479,4 +476,6 @@ void BootNormal::loop() {
   this->_interface->loopFunction();
 
   this->_interface->mqttClient->loop();
+
+  HomieNode::for_each([] (HomieNode *n) { n->loop(); });
 }

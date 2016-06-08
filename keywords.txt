@@ -13,11 +13,11 @@ HomieEvent	KEYWORD1
 setup	KEYWORD2
 loop	KEYWORD2
 enableLogging	KEYWORD2
+setLoggingPrinter	KEYWORD2
 enableBuiltInLedIndicator	KEYWORD2
 setLedPin	KEYWORD2
-setBrand	KEYWORD2
-setFirmware	KEYWORD2
-registerNode	KEYWORD2
+Homie_setBrand	KEYWORD2
+Homie_setFirmware	KEYWORD2
 setGlobalInputHandler	KEYWORD2
 setSetupFunction	KEYWORD2
 setLoopFunction	KEYWORD2

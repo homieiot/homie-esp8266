@@ -27,6 +27,8 @@ HomieClass::HomieClass() : _setupCalled(false) {
 
   Helpers::generateDeviceId();
 
+  this->_logger.setPrinter(&Serial);
+
   this->_config.attachInterface(&this->_interface);
   this->_blinker.attachInterface(&this->_interface);
   this->_mqttClient.attachInterface(&this->_interface);
@@ -39,7 +41,7 @@ HomieClass::HomieClass() : _setupCalled(false) {
 HomieClass::~HomieClass() {
 }
 
-void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
+void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) const {
   if (_setupCalled) {
     this->_logger.log(F("✖ "));
     this->_logger.log(functionName);
@@ -50,13 +52,7 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
 
 void HomieClass::setup() {
   _setupCalled = true;
-
-  if (this->_logger.isEnabled()) {
-    Serial.begin(BAUD_RATE);
-    this->_logger.logln();
-    this->_logger.logln();
-  }
-
+  
   if (!this->_config.load()) {
     this->_boot = &this->_bootConfig;
     this->_logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
@@ -93,6 +89,12 @@ void HomieClass::enableLogging(bool enable) {
   this->_logger.setLogging(enable);
 }
 
+void HomieClass::setLoggingPrinter(Print* printer) {
+  this->_checkBeforeSetup(F("setLoggingPrinter"));
+
+  this->_logger.setPrinter(printer);
+}
+
 void HomieClass::enableBuiltInLedIndicator(bool enable) {
   this->_checkBeforeSetup(F("enableBuiltInLedIndicator"));
 
@@ -106,38 +108,31 @@ void HomieClass::setLedPin(unsigned char pin, unsigned char on) {
   this->_interface.led.on = on;
 }
 
-void HomieClass::setFirmware(const char* name, const char* version) {
+void HomieClass::__setFirmware(const char* name, const char* version) {
   this->_checkBeforeSetup(F("setFirmware"));
-  if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
+  if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
     this->_logger.logln(F("✖ setFirmware(): either the name or version string is too long"));
     abort();
   }
 
-  strcpy(this->_interface.firmware.name, name);
-  strcpy(this->_interface.firmware.version, version);
+  strncpy(this->_interface.firmware.name, name + 5, strlen(name) - 10);
+  this->_interface.firmware.name[strlen(name) - 10] = '\0';
+  strncpy(this->_interface.firmware.version, version + 5, strlen(version) - 10);
+  this->_interface.firmware.version[strlen(version) - 10] = '\0';
 }
 
-void HomieClass::setBrand(const char* name) {
+void HomieClass::__setBrand(const char* brand) {
   this->_checkBeforeSetup(F("setBrand"));
-  if (strlen(name) + 1 > MAX_BRAND_LENGTH) {
+  if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
     this->_logger.logln(F("✖ setBrand(): the brand string is too long"));
     abort();
   }
 
-  strcpy(this->_interface.brand, name);
+  strncpy(this->_interface.brand, brand + 5, strlen(brand) - 10);
+  this->_interface.brand[strlen(brand) - 10] = '\0';
 }
 
-void HomieClass::registerNode(const HomieNode& node) {
-  this->_checkBeforeSetup(F("registerNode"));
-  if (this->_interface.registeredNodesCount > MAX_REGISTERED_NODES_COUNT) {
-    Serial.println(F("✖ register(): the max registered nodes count has been reached"));
-    abort();
-  }
-
-  this->_interface.registeredNodes[this->_interface.registeredNodesCount++] = &node;
-}
-
-bool HomieClass::isReadyToOperate() {
+bool HomieClass::isReadyToOperate() const {
   return this->_interface.readyToOperate;
 }
 
@@ -213,6 +208,22 @@ bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, co
   }
 
   return this->_mqttClient.publish(value, retained);
+}
+
+bool HomieClass::publishRaw(const char* topic, const char* value, bool retained) {
+  if (!this->isReadyToOperate()) {
+    this->_logger.logln(F("✖ publishRaw(): impossible now"));
+    return false;
+  }
+  auto topiclen = strlen(topic);
+  if (5 + 2 + topiclen + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
+    this->_logger.logln(F("✖ publishRaw(): content to send is too long"));
+    return false;
+  }
+  auto &cli = this->_mqttClient;
+  auto buf = cli.getTopicBuffer();
+  memcpy(buf, topic, topiclen + 1);
+  return cli.publish(value, retained);
 }
 
 HomieClass Homie;

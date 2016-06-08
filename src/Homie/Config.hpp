@@ -14,12 +14,12 @@ namespace HomieInternals {
       Config();
       void attachInterface(Interface* interface);
       bool load();
-      const ConfigStruct& get();
+      inline const ConfigStruct& get() const;
       void erase();
       void write(const String& config);
       void setOtaMode(bool enabled, const char* version = "");
-      const char* getOtaVersion();
-      BootMode getBootMode();
+      const char* getOtaVersion() const;
+      BootMode getBootMode() const;
       void log(); // print the current config to log output
 
     private:
@@ -31,4 +31,9 @@ namespace HomieInternals {
 
       bool _spiffsBegin();
   };
+
+  const ConfigStruct& Config::get() const {
+    return this->_configStruct;
+  }
+
 }

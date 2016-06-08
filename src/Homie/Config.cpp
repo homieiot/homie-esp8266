@@ -182,10 +182,6 @@ bool Config::load() {
   return true;
 }
 
-const ConfigStruct& Config::get() {
-  return this->_configStruct;
-}
-
 void Config::erase() {
   if (!this->_spiffsBegin()) { return; }
 
@@ -225,11 +221,11 @@ void Config::setOtaMode(bool enabled, const char* version) {
   }
 }
 
-const char* Config::getOtaVersion() {
+const char* Config::getOtaVersion() const {
   return this->_otaVersion;
 }
 
-BootMode Config::getBootMode() {
+BootMode Config::getBootMode() const {
   return this->_bootMode;
 }
 

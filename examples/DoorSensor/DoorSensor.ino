@@ -23,13 +23,15 @@ void loopHandler() {
 }
 
 void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println();
   pinMode(PIN_DOOR, INPUT);
   digitalWrite(PIN_DOOR, HIGH);
   debouncer.attach(PIN_DOOR);
   debouncer.interval(50);
 
-  Homie.setFirmware("awesome-door", "1.0.0");
-  Homie.registerNode(doorNode);
+  Homie_setFirmware("awesome-door", "1.0.0");
   Homie.setLoopFunction(loopHandler);
   Homie.setup();
 }

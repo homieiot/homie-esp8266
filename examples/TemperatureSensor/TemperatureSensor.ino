@@ -25,8 +25,10 @@ void loopHandler() {
 }
 
 void setup() {
-  Homie.setFirmware("awesome-temperature", "1.0.0");
-  Homie.registerNode(temperatureNode);
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println();
+  Homie_setFirmware("awesome-temperature", "1.0.0");
   Homie.setSetupFunction(setupHandler);
   Homie.setLoopFunction(loopHandler);
   Homie.setup();
