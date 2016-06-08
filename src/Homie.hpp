@@ -37,6 +37,7 @@ namespace HomieInternals {
       void setSetupFunction(OperationFunction function);
       void setLoopFunction(OperationFunction function);
       bool isReadyToOperate();
+      void eraseConfig();
       bool setNodeProperty(const HomieNode& node, const String& property, const String& value, bool retained = true) {
         return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
       }

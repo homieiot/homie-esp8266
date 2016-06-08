@@ -190,6 +190,10 @@ void HomieClass::disableResetTrigger() {
   this->_interface.reset.enabled = false;
 }
 
+void HomieClass::eraseConfig() {
+  this->_config.erase();
+}
+
 bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained) {
   if (!this->isReadyToOperate()) {
     this->_logger.logln(F("✖ setNodeProperty(): impossible now"));
