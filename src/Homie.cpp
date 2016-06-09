@@ -184,7 +184,7 @@ void HomieClass::disableResetTrigger() {
 }
 
 void HomieClass::eraseConfig() {
-  this->_config.erase();
+  _config.erase();
 }
 
 bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained) {

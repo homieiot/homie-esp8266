@@ -39,9 +39,9 @@ namespace HomieInternals {
       void setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
       void disableResetTrigger();
       void setResetFunction(ResetFunction function);
+      void eraseConfig();
       void setSetupFunction(OperationFunction function);
       void setLoopFunction(OperationFunction function);
-      void eraseConfig();
       bool isReadyToOperate() const;
       bool setNodeProperty(const HomieNode& node, const String& property, const String& value, bool retained = true) {
         return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
