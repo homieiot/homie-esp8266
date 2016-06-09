@@ -30,6 +30,7 @@ setResettable	KEYWORD2
 setNodeProperty	KEYWORD2
 
 subscribe	KEYWORD2
+subscribeToAll	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

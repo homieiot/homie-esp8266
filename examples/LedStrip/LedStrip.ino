@@ -1,10 +1,10 @@
 #include <Homie.h>
 
-const unsigned char NUMBER_OF_LED = 4;
-const unsigned char LED_PINS[NUMBER_OF_LED] = { 16, 5, 4, 0 };
+const uint8_t NUMBER_OF_LED = 4;
+const uint8_t LED_PINS[NUMBER_OF_LED] = { 16, 5, 4, 0 };
 
 bool stripHandler(String, String); // forward declaration (needed for Arduino <= 1.6.8)
-HomieNode stripNode("ledstrip", "ledstrip", stripHandler, true); // last true: subscribe to all properties
+HomieNode stripNode("ledstrip", "ledstrip", stripHandler);
 
 bool stripHandler(String property, String value) {
   for (int i = 0; i < property.length(); i++) {
@@ -47,6 +47,7 @@ void setup() {
   }
 
   Homie_setFirmware("awesome-ledstrip", "1.0.0");
+  stripNode.subscribeToAll();
   Homie.setup();
 }
 
