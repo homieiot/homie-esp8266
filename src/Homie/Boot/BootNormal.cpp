@@ -276,7 +276,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     }
   }
 
-  if (!homieNode->getSubscribeToAll() && homieNodePropertyIndex == -1) {
+  if (!homieNode->isSubscribedToAll() && homieNodePropertyIndex == -1) {
     _interface->logger->log(F("Node "));
     _interface->logger->log(node);
     _interface->logger->log(F(" not subscribed to "));

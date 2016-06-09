@@ -55,7 +55,7 @@ class HomieNode {
   private:
     const HomieInternals::Subscription* getSubscriptions() const;
     uint8_t getSubscriptionsCount() const;
-    bool getSubscribeToAll() const;
+    bool isSubscribedToAll() const;
 
     const char* _id;
     const char* _type;

@@ -60,6 +60,6 @@ uint8_t HomieNode::getSubscriptionsCount() const {
   return _subscriptionsCount;
 }
 
-bool HomieNode::getSubscribeToAll() const {
+bool HomieNode::isSubscribedToAll() const {
   return _subscribeToAll;
 }
