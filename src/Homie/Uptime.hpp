@@ -7,10 +7,10 @@ namespace HomieInternals {
     public:
       Uptime();
       void update();
-      unsigned long getSeconds() const;
+      uint32_t getSeconds() const;
 
     private:
-      unsigned long _seconds;
-      unsigned long _lastTick;
+      uint32_t _seconds;
+      uint32_t _lastTick;
   };
 }

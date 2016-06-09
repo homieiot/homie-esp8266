@@ -6,14 +6,14 @@ namespace HomieInternals {
   class Timer {
     public:
       Timer();
-      void setInterval(unsigned long interval, bool tickAtBeginning = true);
+      void setInterval(uint32_t interval, bool tickAtBeginning = true);
       bool check() const;
       void tick();
       void reset();
 
     private:
-      unsigned long _initialTime;
-      unsigned long _interval;
+      uint32_t _initialTime;
+      uint32_t _interval;
       bool _tickAtBeginning;
   };
 }

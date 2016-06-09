@@ -32,12 +32,11 @@ namespace HomieInternals {
       void enableLogging(bool enable);
       void setLoggingPrinter(Print* printer);
       void enableBuiltInLedIndicator(bool enable);
-      void setLedPin(unsigned char pin, unsigned char on);
-      void registerNode(HomieNode& node) __attribute__ ((deprecated)) {}
+      void setLedPin(uint8_t pin, uint8_t on);
       void setGlobalInputHandler(GlobalInputHandler globalInputHandler);
       void setResettable(bool resettable);
       void onEvent(EventHandler handler);
-      void setResetTrigger(unsigned char pin, unsigned char state, unsigned int time);
+      void setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
       void disableResetTrigger();
       void setResetFunction(ResetFunction function);
       void setSetupFunction(OperationFunction function);
@@ -67,10 +66,10 @@ namespace HomieInternals {
       void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
   };
   const char *HomieClass::getId() const {
-    return this->_config.get().deviceId;
+    return _config.get().deviceId;
   }
   const char *HomieClass::getBaseTopic() const {
-    return this->_config.get().mqtt.baseTopic;
+    return _config.get().mqtt.baseTopic;
   }
 }
 

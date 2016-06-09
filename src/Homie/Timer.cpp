@@ -9,24 +9,24 @@ Timer::Timer()
 {
 }
 
-void Timer::setInterval(unsigned long interval, bool tickAtBeginning) {
-  this->_interval = interval;
-  this->_tickAtBeginning = tickAtBeginning;
+void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
+  _interval = interval;
+  _tickAtBeginning = tickAtBeginning;
 
-  if (!tickAtBeginning) this->_initialTime = millis();
+  if (!tickAtBeginning) _initialTime = millis();
 }
 
 bool Timer::check() const {
-  if (this->_tickAtBeginning && this->_initialTime == 0) return true;
-  if (millis() - this->_initialTime >= this->_interval) return true;
+  if (_tickAtBeginning && _initialTime == 0) return true;
+  if (millis() - _initialTime >= _interval) return true;
 
   return false;
 }
 
 void Timer::reset() {
-  this->_initialTime = 0;
+  _initialTime = 0;
 }
 
 void Timer::tick() {
-  this->_initialTime = millis();
+  _initialTime = millis();
 }

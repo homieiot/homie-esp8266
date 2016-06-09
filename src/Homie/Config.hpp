@@ -33,7 +33,7 @@ namespace HomieInternals {
   };
 
   const ConfigStruct& Config::get() const {
-    return this->_configStruct;
+    return _configStruct;
   }
 
 }

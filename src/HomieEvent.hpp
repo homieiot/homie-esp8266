@@ -1,6 +1,6 @@
 #pragma once
 
-enum HomieEvent : unsigned char {
+enum HomieEvent : uint8_t {
     HOMIE_CONFIGURATION_MODE = 1,
     HOMIE_NORMAL_MODE,
     HOMIE_OTA_MODE,

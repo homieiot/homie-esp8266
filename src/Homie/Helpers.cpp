@@ -145,8 +145,8 @@ ConfigValidationResult Helpers::_validateConfigMqtt(const JsonObject& object) {
       result.reason = F("mqtt.host is too long");
       return result;
     }
-    if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<unsigned int>()) {
-      result.reason = F("mqtt.port is not an unsigned integer");
+    if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
+      result.reason = F("mqtt.port is not an integer");
       return result;
     }
   }
@@ -252,8 +252,8 @@ ConfigValidationResult Helpers::_validateConfigOta(const JsonObject& object) {
           return result;
         }
       }
-      if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<unsigned int>()) {
-        result.reason = F("ota.port is not an unsigned integer");
+      if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<uint16_t>()) {
+        result.reason = F("ota.port is not an uint16_teger");
         return result;
       }
     }

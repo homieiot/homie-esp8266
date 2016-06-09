@@ -17,12 +17,12 @@ namespace HomieInternals {
       void initMqtt(bool secure);
       char* getTopicBuffer();
       void setCallback(std::function<void(char* topic, char* message)> callback);
-      void setServer(const char* host, unsigned int port, const char* fingerprint);
-      bool connect(const char* clientId, const char* willMessage, unsigned char willQos, bool willRetain, bool auth = false, const char* username = "", const char* password = "");
+      void setServer(const char* host, uint16_t port, const char* fingerprint);
+      bool connect(const char* clientId, const char* willMessage, uint8_t willQos, bool willRetain, bool auth = false, const char* username = "", const char* password = "");
       int getState();
       void disconnect();
       bool publish(const char* message, bool retained);
-      bool subscribe(unsigned char qos);
+      bool subscribe(uint8_t qos);
       void loop();
       bool connected();
 
@@ -34,11 +34,11 @@ namespace HomieInternals {
       char _topicBuffer[TOPIC_BUFFER_LENGTH];
       bool _secure;
       const char* _host;
-      unsigned int _port;
+      uint16_t _port;
       const char* _fingerprint;
-      unsigned char _subscribeWithoutLoop;
+      uint8_t _subscribeWithoutLoop;
 
-      void _callback(char* topic, unsigned char* payload, unsigned int length);
+      void _callback(char* topic, uint8_t* payload, uint16_t length);
       std::function<void(char* topic, char* message)> _userCallback;
   };
 }

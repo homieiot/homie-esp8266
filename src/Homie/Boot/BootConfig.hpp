@@ -27,13 +27,13 @@ namespace HomieInternals {
       HTTPClient _httpClient;
       ESP8266WebServer _http;
       DNSServer _dns;
-      unsigned char _ssidCount;
+      uint8_t _ssidCount;
       bool _wifiScanAvailable;
       Timer _wifiScanTimer;
       bool _lastWifiScanEnded;
       char* _jsonWifiNetworks;
       bool _flaggedForReboot;
-      unsigned long _flaggedForRebootAt;
+      uint32_t _flaggedForRebootAt;
       bool _proxyEnabled;
 
       void _onCaptivePortal();

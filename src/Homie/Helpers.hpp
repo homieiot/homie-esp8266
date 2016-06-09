@@ -15,7 +15,7 @@ namespace HomieInternals {
   struct MdnsQueryResult {
     bool success;
     IPAddress ip;
-    unsigned int port;
+    uint16_t port;
   };
 
   class Helpers {

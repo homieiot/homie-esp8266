@@ -3,15 +3,15 @@
 
 using namespace HomieInternals;
 
-HomieNode* HomieNode::_first = 0;
-HomieNode* HomieNode::_last = 0;
-unsigned HomieNode::_nodeCount = 0;
+HomieNode* HomieNode::_first = nullptr;
+HomieNode* HomieNode::_last = nullptr;
+uint8_t HomieNode::_nodeCount = 0;
 
-HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler, bool subscribeToAll)
+HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
 : _id(id)
 , _type(type)
 , _subscriptionsCount(0)
-, _subscribeToAll(subscribeToAll)
+, _subscribeToAll(false)
 , _inputHandler(inputHandler)
 , _next() {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
@@ -33,7 +33,7 @@ void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandle
     abort();
   }
 
-  if (this->_subscriptionsCount > MAX_SUBSCRIPTIONS_COUNT_PER_NODE) {
+  if (_subscriptionsCount > MAX_SUBSCRIPTIONS_COUNT_PER_NODE) {
     Serial.println(F("✖ subscribe(): the max subscription count has been reached"));
     abort();
   }
@@ -41,21 +41,25 @@ void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandle
   Subscription subscription;
   strcpy(subscription.property, property);
   subscription.inputHandler = inputHandler;
-  this->_subscriptions[this->_subscriptionsCount++] = subscription;
+  _subscriptions[_subscriptionsCount++] = subscription;
+}
+
+void HomieNode::subscribeToAll() {
+  _subscribeToAll = true;
 }
 
 bool HomieNode::handleInput(String const &property, String const &value) {
-  return this->_inputHandler(property, value);
+  return _inputHandler(property, value);
 }
 
 const Subscription* HomieNode::getSubscriptions() const {
-  return this->_subscriptions;
+  return _subscriptions;
 }
 
-unsigned char HomieNode::getSubscriptionsCount() const {
-  return this->_subscriptionsCount;
+uint8_t HomieNode::getSubscriptionsCount() const {
+  return _subscriptionsCount;
 }
 
 bool HomieNode::getSubscribeToAll() const {
-  return this->_subscribeToAll;
+  return _subscribeToAll;
 }

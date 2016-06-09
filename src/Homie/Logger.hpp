@@ -10,12 +10,12 @@ namespace HomieInternals {
       void setLogging(bool enable);
       bool isEnabled() const;
       template <typename T> void log(T value) const {
-        if (this->_loggingEnabled) {
+        if (_loggingEnabled) {
           _printer->print(value);
         }
       }
       template <typename T> void logln(T value) const {
-        if (this->_loggingEnabled) {
+        if (_loggingEnabled) {
           _printer->println(value);
         }
       }

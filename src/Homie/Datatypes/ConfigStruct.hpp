@@ -15,7 +15,7 @@ namespace HomieInternals {
 
     struct Server {
       char host[MAX_HOSTNAME_LENGTH];
-      unsigned int port;
+      uint16_t port;
       struct mDNS {
         bool enabled;
         char service[MAX_HOSTNAME_LENGTH];

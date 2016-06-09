@@ -16,6 +16,6 @@ namespace HomieInternals {
       Ticker _ticker;
       float _lastBlinkPace;
 
-      static void _tick(unsigned char pin);
+      static void _tick(uint8_t pin);
   };
 }

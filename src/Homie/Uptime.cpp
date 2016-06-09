@@ -9,11 +9,11 @@ Uptime::Uptime()
 }
 
 void Uptime::update() {
-  unsigned long now = millis();
-  this->_seconds += (now - this->_lastTick) / 1000UL;
-  this->_lastTick = now;
+  uint32_t now = millis();
+  _seconds += (now - _lastTick) / 1000UL;
+  _lastTick = now;
 }
 
-unsigned long Uptime::getSeconds() const {
-  return this->_seconds;
+uint32_t Uptime::getSeconds() const {
+  return _seconds;
 }
