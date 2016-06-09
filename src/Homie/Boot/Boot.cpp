@@ -14,19 +14,16 @@ void Boot::attachInterface(Interface* interface) {
 }
 
 void Boot::setup() {
-  if (this->_interface->led.enabled) {
-    pinMode(this->_interface->led.pin, OUTPUT);
-    digitalWrite(this->_interface->led.pin, !this->_interface->led.on);
+  if (_interface->led.enabled) {
+    pinMode(_interface->led.pin, OUTPUT);
+    digitalWrite(_interface->led.pin, !_interface->led.on);
   }
 
-  WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie
-  WiFi.disconnect(); // Reset network state
+  WiFi.persistent(true); // Persist data on SDK as it seems Wi-Fi connection is faster
 
-  WiFi.hostname(this->_interface->config->get().deviceId);
-
-  this->_interface->logger->log(F("** Booting into "));
-  this->_interface->logger->log(this->_name);
-  this->_interface->logger->logln(F(" mode **"));
+  _interface->logger->log(F("** Booting into "));
+  _interface->logger->log(_name);
+  _interface->logger->logln(F(" mode **"));
 }
 
 void Boot::loop() {

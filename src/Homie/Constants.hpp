@@ -21,7 +21,6 @@ namespace HomieInternals {
   const char DEFAULT_FW_VERSION[] = "undefined";
 
   const uint16_t CONFIG_SCAN_INTERVAL = 20 * 1000;
-  const uint16_t WIFI_RECONNECT_INTERVAL = 20 * 1000;
   const uint16_t MQTT_RECONNECT_INTERVAL = 5 * 1000;
   const uint32_t SIGNAL_QUALITY_SEND_INTERVAL = 5 * 60 * 1000;
   const uint32_t UPTIME_SEND_INTERVAL = 2 * 60 * 1000;

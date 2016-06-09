@@ -30,13 +30,12 @@ namespace HomieInternals {
 
     private:
       Uptime _uptime;
-      Timer _wifiReconnectTimer;
       Timer _mqttReconnectTimer;
       Timer _signalQualityTimer;
       Timer _uptimeTimer;
       bool _setupFunctionCalled;
-      bool _wifiConnectNotified;
-      bool _wifiDisconnectNotified;
+      WiFiEventHandler _wifiGotIpHandler;
+      WiFiEventHandler _wifiDisconnectedHandler;
       bool _mqttConnectNotified;
       bool _mqttDisconnectNotified;
       char _otaVersion[MAX_FIRMWARE_VERSION_LENGTH];
@@ -46,6 +45,8 @@ namespace HomieInternals {
 
       void _handleReset();
       void _wifiConnect();
+      void _onWifiGotIp(const WiFiEventStationModeGotIP& event);
+      void _onWifiDisconnected(const WiFiEventStationModeDisconnected& event);
       void _mqttConnect();
       void _mqttSetup();
       void _mqttCallback(char* topic, char* message);
