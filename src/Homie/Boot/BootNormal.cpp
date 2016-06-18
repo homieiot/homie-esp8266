@@ -6,8 +6,13 @@ BootNormal::BootNormal()
 : Boot("normal")
 , _setupFunctionCalled(false)
 , _mqttDisconnectNotified(true)
-, _flaggedForReboot(false)
+, _flaggedForOta(false)
 , _flaggedForReset(false)
+, _flaggedForReboot(false)
+, _mqttTopic(nullptr)
+, _mqttClientId(nullptr)
+, _mqttWillTopic(nullptr)
+, _mqttPayloadBuffer(nullptr)
 {
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
   _uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);

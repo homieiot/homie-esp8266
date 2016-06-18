@@ -18,7 +18,7 @@ namespace HomieInternals {
       void erase();
       void write(const String& config);
       BootMode getBootMode() const;
-      void log(); // print the current config to log output
+      void log() const; // print the current config to log output
 
     private:
       Interface* _interface;

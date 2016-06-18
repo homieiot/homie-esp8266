@@ -142,7 +142,7 @@ BootMode Config::getBootMode() const {
   return _bootMode;
 }
 
-void Config::log() {
+void Config::log() const {
   _interface->logger->logln(F("{} Stored configuration:"));
   _interface->logger->log(F("  • Hardware device ID: "));
   _interface->logger->logln(Helpers::getDeviceId());
