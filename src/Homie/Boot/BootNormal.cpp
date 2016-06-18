@@ -19,18 +19,15 @@ BootNormal::BootNormal()
 }
 
 BootNormal::~BootNormal() {
-  delete[] _mqttTopic;
-  delete[] _mqttWillTopic;
-  delete[] _mqttPayloadBuffer;
-  free(_mqttClientId);
 }
 
 char* BootNormal::_prefixMqttTopic(PGM_P topic) {
-  delete[] _mqttTopic;
-  _mqttTopic = new char[strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + strlen_P(topic) + 1];
-  strcpy(_mqttTopic, _interface->config->get().mqtt.baseTopic);
-  strcat(_mqttTopic, _interface->config->get().deviceId);
-  strcat_P(_mqttTopic, topic);
+  _mqttTopic = std::unique_ptr<char[]>(new char[strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + strlen_P(topic) + 1]);
+  strcpy(_mqttTopic.get(), _interface->config->get().mqtt.baseTopic);
+  strcat(_mqttTopic.get(), _interface->config->get().deviceId);
+  strcat_P(_mqttTopic.get(), topic);
+
+  return _mqttTopic.get();
 }
 
 void BootNormal::_wifiConnect() {
@@ -158,6 +155,9 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total) {
   if (total == 0) return; // no empty message possible
 
+  Serial.println("Receiving message");
+  Serial.println(ESP.getFreeHeap());
+
   topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1; // Remove devices/${id}/ --- +1 for /
 
   if (strcmp_P(topic, "$ota/payload") == 0) { // If this is the $ota payload
@@ -198,17 +198,17 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     return;
   }
 
-  if (_mqttPayloadBuffer == nullptr) _mqttPayloadBuffer = new char[total + 1];
+  if (_mqttPayloadBuffer == nullptr) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
 
-  memcpy(_mqttPayloadBuffer + index, payload, len);
+  memcpy(_mqttPayloadBuffer.get() + index, payload, len);
 
   if (index + len != total) return;
-  _mqttPayloadBuffer[total] = '\0';
+  _mqttPayloadBuffer.get()[total] = '\0';
 
   if (strcmp_P(topic, "$ota") == 0) { // If this is the $ota announcement
-    if (strcmp(_mqttPayloadBuffer, _interface->firmware.version) != 0) {
+    if (strcmp(_mqttPayloadBuffer.get(), _interface->firmware.version) != 0) {
       _interface->logger->log(F("✴ OTA available (version "));
-      _interface->logger->log(_mqttPayloadBuffer);
+      _interface->logger->log(_mqttPayloadBuffer.get());
       _interface->logger->logln(F(")"));
 
       _interface->logger->logln(F("Requesting OTA payload..."));
@@ -219,7 +219,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     return;
   }
 
-  if (strcmp_P(topic, "$reset") == 0 && strcmp(_mqttPayloadBuffer, "true") == 0) {
+  if (strcmp_P(topic, "$reset") == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
     _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$reset")), 1, true, "false");
     _flaggedForReset = true;
     _interface->logger->logln(F("Flagged for reset by network"));
@@ -264,17 +264,17 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
   }
 
   _interface->logger->logln(F("Calling global input handler..."));
-  bool handled = _interface->globalInputHandler(String(node), String(property), String(_mqttPayloadBuffer));
+  bool handled = _interface->globalInputHandler(String(node), String(property), String(_mqttPayloadBuffer.get()));
   if (handled) return;
 
   _interface->logger->logln(F("Calling node input handler..."));
-  handled = homieNode->handleInput(String(property), String(_mqttPayloadBuffer));
+  handled = homieNode->handleInput(String(property), String(_mqttPayloadBuffer.get()));
   if (handled) return;
 
   if (homieNodePropertyIndex != -1) { // might not if subscribed to all only
     Subscription homieNodeSubscription = homieNode->getSubscriptions()[homieNodePropertyIndex];
     _interface->logger->logln(F("Calling property input handler..."));
-    handled = homieNodeSubscription.inputHandler(String(_mqttPayloadBuffer));
+    handled = homieNodeSubscription.inputHandler(String(_mqttPayloadBuffer.get()));
   }
 
   if (!handled){
@@ -284,7 +284,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     _interface->logger->log(F("  • Property: "));
     _interface->logger->logln(property);
     _interface->logger->log(F("  • Value: "));
-    _interface->logger->logln(_mqttPayloadBuffer);
+    _interface->logger->logln(_mqttPayloadBuffer.get());
   }
 }
 
@@ -320,13 +320,15 @@ void BootNormal::setup() {
 
   _interface->mqttClient->setServer(_interface->config->get().mqtt.server.host, _interface->config->get().mqtt.server.port);
   _interface->mqttClient->setKeepAlive(10);
-  _mqttClientId = new char[strlen(_interface->brand) + 1 + strlen(_interface->config->get().deviceId) + 1];
-  strcpy(_mqttClientId, _interface->brand);
-  strcat_P(_mqttClientId, PSTR("-"));
-  strcat(_mqttClientId, _interface->config->get().deviceId);
-  _interface->mqttClient->setClientId(_mqttClientId);
-  _mqttWillTopic = strdup(_prefixMqttTopic(PSTR("/$online")));
-  _interface->mqttClient->setWill(_mqttWillTopic, 1, true, "false");
+  _mqttClientId = std::unique_ptr<char[]>(new char[strlen(_interface->brand) + 1 + strlen(_interface->config->get().deviceId) + 1]);
+  strcpy(_mqttClientId.get(), _interface->brand);
+  strcat_P(_mqttClientId.get(), PSTR("-"));
+  strcat(_mqttClientId.get(), _interface->config->get().deviceId);
+  _interface->mqttClient->setClientId(_mqttClientId.get());
+  char* mqttWillTopic = _prefixMqttTopic(PSTR("/$online"));
+  _mqttWillTopic = std::unique_ptr<char[]>(new char[strlen(mqttWillTopic) + 1]);
+  memcpy(_mqttWillTopic.get(), mqttWillTopic, strlen(mqttWillTopic) + 1);
+  _interface->mqttClient->setWill(_mqttWillTopic.get(), 1, true, "false");
 
   if(_interface->config->get().mqtt.auth) _interface->mqttClient->setCredentials(_interface->config->get().mqtt.username, _interface->config->get().mqtt.password);
 

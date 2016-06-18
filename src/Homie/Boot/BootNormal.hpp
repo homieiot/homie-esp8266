@@ -37,11 +37,12 @@ namespace HomieInternals {
       bool _flaggedForReset;
       bool _flaggedForReboot;
       Bounce _resetDebouncer;
-      char* _mqttTopic;
 
-      char* _mqttClientId;
-      char* _mqttWillTopic;
-      char* _mqttPayloadBuffer;
+      std::unique_ptr<char[]> _mqttTopic;
+
+      std::unique_ptr<char[]> _mqttClientId;
+      std::unique_ptr<char[]> _mqttWillTopic;
+      std::unique_ptr<char[]> _mqttPayloadBuffer;
 
       void _handleReset();
       void _wifiConnect();
