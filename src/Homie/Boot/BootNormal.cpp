@@ -5,44 +5,27 @@ using namespace HomieInternals;
 BootNormal::BootNormal()
 : Boot("normal")
 , _setupFunctionCalled(false)
-, _mqttConnectNotified(false)
 , _mqttDisconnectNotified(true)
-, _otaVersion {'\0'}
-, _flaggedForOta(false)
+, _flaggedForReboot(false)
 , _flaggedForReset(false)
 {
-  _mqttReconnectTimer.setInterval(MQTT_RECONNECT_INTERVAL);
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
   _uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);
 }
 
 BootNormal::~BootNormal() {
+  delete[] _mqttTopic;
+  delete[] _mqttWillTopic;
+  delete[] _mqttPayloadBuffer;
+  free(_mqttClientId);
 }
 
-void BootNormal::_fillMqttTopic(PGM_P topic) {
-  strcpy(_interface->mqttClient->getTopicBuffer(), _interface->config->get().mqtt.baseTopic);
-  strcat(_interface->mqttClient->getTopicBuffer(), _interface->config->get().deviceId);
-  strcat_P(_interface->mqttClient->getTopicBuffer(), topic);
-}
-
-bool BootNormal::_publishRetainedOrFail(const char* message) {
-  if (!_interface->mqttClient->publish(message, true)) {
-    _interface->mqttClient->disconnect();
-    _interface->logger->logln(F(" Failed"));
-    return false;
-  }
-
-  return true;
-}
-
-bool BootNormal::_subscribe1OrFail() {
-  if (!_interface->mqttClient->subscribe(1)) {
-    _interface->mqttClient->disconnect();
-    _interface->logger->logln(F(" Failed"));
-    return false;
-  }
-
-  return true;
+char* BootNormal::_prefixMqttTopic(PGM_P topic) {
+  delete[] _mqttTopic;
+  _mqttTopic = new char[strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + strlen_P(topic) + 1];
+  strcpy(_mqttTopic, _interface->config->get().mqtt.baseTopic);
+  strcat(_mqttTopic, _interface->config->get().deviceId);
+  strcat_P(_mqttTopic, topic);
 }
 
 void BootNormal::_wifiConnect() {
@@ -67,11 +50,15 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event)
   _interface->logger->logln(F("Triggering HOMIE_WIFI_CONNECTED event..."));
   _interface->eventHandler(HOMIE_WIFI_CONNECTED);
   MDNS.begin(_interface->config->get().deviceId);
+
+  _mqttConnect();
   // Serial.println(event.ip);
 }
 
 void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event)
 {
+  _interface->readyToOperate = false;
+  if (_interface->led.enabled) _interface->blinker->start(LED_WIFI_DELAY);
   _uptimeTimer.reset();
   _signalQualityTimer.reset();
   _interface->logger->logln(F("✖ Wi-Fi disconnected"));
@@ -83,82 +70,16 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
 }
 
 void BootNormal::_mqttConnect() {
-  String host = _interface->config->get().mqtt.server.host;
-  uint16_t port = _interface->config->get().mqtt.server.port;
-  if (_interface->config->get().mqtt.server.mdns.enabled) {
-    _interface->logger->log(F("Querying mDNS service "));
-    _interface->logger->logln(_interface->config->get().mqtt.server.mdns.service);
-    MdnsQueryResult result = Helpers::mdnsQuery(_interface->config->get().mqtt.server.mdns.service);
-    if (result.success) {
-      host = result.ip.toString();
-      port = result.port;
-      _interface->logger->log(F("✔ "));
-      _interface->logger->log(F(" service found at "));
-      _interface->logger->log(host.c_str());
-      _interface->logger->log(F(":"));
-      _interface->logger->logln(port);
-    } else {
-      _interface->logger->logln(F("✖ Service not found"));
-      return;
-    }
-  }
-
-  _interface->mqttClient->setServer(host.c_str(), port, _interface->config->get().mqtt.server.ssl.fingerprint);
-  _interface->mqttClient->setCallback(std::bind(&BootNormal::_mqttCallback, this, std::placeholders::_1, std::placeholders::_2));
-
-  char clientId[MAX_WIFI_SSID_LENGTH];
-  strcpy(clientId, _interface->brand);
-  strcat_P(clientId, PSTR("-"));
-  strcat(clientId, _interface->config->get().deviceId);
-
-  _fillMqttTopic(PSTR("/$online"));
-  if (_interface->mqttClient->connect(clientId, "false", 2, true, _interface->config->get().mqtt.auth, _interface->config->get().mqtt.username, _interface->config->get().mqtt.password)) {
-    _interface->logger->logln(F("Connected"));
-    _mqttSetup();
-  } else {
-    _interface->logger->log(F("✖ Cannot connect, reason: "));
-    switch (_interface->mqttClient->getState()) {
-      case MQTT_CONNECTION_TIMEOUT:
-        _interface->logger->logln(F("MQTT_CONNECTION_TIMEOUT"));
-        break;
-      case MQTT_CONNECTION_LOST:
-        _interface->logger->logln(F("MQTT_CONNECTION_LOST"));
-        break;
-      case MQTT_CONNECT_FAILED:
-        _interface->logger->logln(F("MQTT_CONNECT_FAILED"));
-        break;
-      case MQTT_DISCONNECTED:
-        _interface->logger->logln(F("MQTT_DISCONNECTED"));
-        break;
-      case MQTT_CONNECTED:
-        _interface->logger->logln(F("MQTT_CONNECTED (?)"));
-        break;
-      case MQTT_CONNECT_BAD_PROTOCOL:
-        _interface->logger->logln(F("MQTT_CONNECT_BAD_PROTOCOL"));
-        break;
-      case MQTT_CONNECT_BAD_CLIENT_ID:
-        _interface->logger->logln(F("MQTT_CONNECT_BAD_CLIENT_ID"));
-        break;
-      case MQTT_CONNECT_UNAVAILABLE:
-        _interface->logger->logln(F("MQTT_CONNECT_UNAVAILABLE"));
-        break;
-      case MQTT_CONNECT_BAD_CREDENTIALS:
-        _interface->logger->logln(F("MQTT_CONNECT_BAD_CREDENTIALS"));
-        break;
-      case MQTT_CONNECT_UNAUTHORIZED:
-        _interface->logger->logln(F("MQTT_CONNECT_UNAUTHORIZED"));
-        break;
-      default:
-        _interface->logger->logln(F("UNKNOWN"));
-    }
-  }
+  if (_interface->led.enabled) _interface->blinker->start(LED_MQTT_DELAY);
+  _interface->logger->logln(F("↕ Attempting to connect to MQTT..."));
+  _interface->mqttClient->connect();
 }
 
-void BootNormal::_mqttSetup() {
-  _interface->logger->log(F("Sending initial information... "));
+void BootNormal::_onMqttConnected() {
+  _mqttDisconnectNotified = false;
+  _interface->logger->logln(F("Sending initial information..."));
 
-  _fillMqttTopic(PSTR("/$online"));
-  if (!_publishRetainedOrFail("true")) return;
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 2, true, "true");
 
   char nodes[HomieNode::getNodeCount() * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
   char *begin = nodes;
@@ -174,11 +95,8 @@ void BootNormal::_mqttSetup() {
     ptr += len;
   });
   *ptr = '\0';
-  _fillMqttTopic(PSTR("/$nodes"));
-  if (!_publishRetainedOrFail(nodes)) return;
-
-  _fillMqttTopic(PSTR("/$name"));
-  if (!_publishRetainedOrFail(_interface->config->get().name)) return;
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$nodes")), 2, true, nodes);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$name")), 2, true, _interface->config->get().name);
 
   IPAddress localIp = WiFi.localIP();
   char localIpStr[15 + 1];
@@ -194,73 +112,129 @@ void BootNormal::_mqttSetup() {
   strcat_P(localIpStr, PSTR("."));
   itoa(localIp[3], localIpPartStr, 10);
   strcat(localIpStr, localIpPartStr);
-  _fillMqttTopic(PSTR("/$localip"));
-  if (!_publishRetainedOrFail(localIpStr)) return;
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$localip")), 2, true, localIpStr);
 
-  _fillMqttTopic(PSTR("/$fwname"));
-  if (!_publishRetainedOrFail(_interface->firmware.name)) return;
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fwname")), 2, true, _interface->firmware.name);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fwversion")), 2, true, _interface->firmware.version);
 
-  _fillMqttTopic(PSTR("/$fwversion"));
-  if (!_publishRetainedOrFail(_interface->firmware.version)) return;
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/+/+/set")), 2);
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$reset")), 2);
 
-  _interface->logger->logln(F(" OK"));
+  if (_interface->config->get().ota.enabled) _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
 
-  _fillMqttTopic(PSTR("/+/+/set"));
-  _interface->logger->log(F("Subscribing to topics... "));
-  if (!_subscribe1OrFail()) return;
+  _interface->readyToOperate = true;
+  if (_interface->led.enabled) _interface->blinker->stop();
 
-  _fillMqttTopic(PSTR("/$reset"));
-  if (!_subscribe1OrFail()) return;
+  _interface->logger->logln(F("✔ MQTT ready"));
+  _interface->logger->logln(F("Triggering HOMIE_MQTT_CONNECTED event..."));
+  _interface->eventHandler(HOMIE_MQTT_CONNECTED);
+  HomieNode::forEach([] (HomieNode* n) { n->onReadyToOperate(); });
 
-  if (_interface->config->get().ota.enabled) {
-    _fillMqttTopic(PSTR("/$ota"));
-    if (!_subscribe1OrFail()) return;
+  if (!_setupFunctionCalled) {
+    _interface->logger->logln(F("Calling setup function..."));
+    _interface->setupFunction();
+    _setupFunctionCalled = true;
   }
-
-  _interface->logger->logln(F(" OK"));
 }
 
-void BootNormal::_mqttCallback(char* topic, char* payload) {
-  String message = String(payload);
-  String unified = String(topic);
-  unified.remove(0, strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1); // Remove devices/${id}/ --- +1 for /
+void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
+  _interface->readyToOperate = false;
+  if (!_mqttDisconnectNotified) {
+    _uptimeTimer.reset();
+    _signalQualityTimer.reset();
+    _interface->logger->logln(F("✖ MQTT disconnected"));
+    _interface->logger->logln(F("Triggering HOMIE_MQTT_DISCONNECTED event..."));
+    _interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
+    _mqttDisconnectNotified = true;
+  }
+  _mqttConnect();
+}
 
-  // Device properties
-  if (_interface->config->get().ota.enabled && unified == "$ota") {
-    if (message != _interface->firmware.version) {
-      _interface->logger->log(F("✴ OTA available (version "));
-      _interface->logger->log(message);
-      _interface->logger->logln(F(")"));
-      if (strlen(payload) + 1 <= MAX_FIRMWARE_VERSION_LENGTH) {
-        strcpy(_otaVersion, payload);
-        _flaggedForOta = true;
-        _interface->logger->logln(F("Flagged for OTA"));
-      } else {
-        _interface->logger->logln(F("Version string received is too long"));
+void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total) {
+  if (total == 0) return; // no empty message possible
+
+  topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1; // Remove devices/${id}/ --- +1 for /
+
+  if (strcmp_P(topic, "$ota/payload") == 0) { // If this is the $ota payload
+    if (_flaggedForOta) {
+      if (index == 0) {
+        Update.begin(total);
+        _interface->logger->logln(F("OTA started"));
+        _interface->logger->logln(F("Triggering HOMIE_OTA_STARTED event..."));
+        _interface->eventHandler(HOMIE_OTA_STARTED);
       }
+      _interface->logger->log(F("Receiving OTA payload ("));
+      _interface->logger->log(index + len);
+      _interface->logger->log(F("/"));
+      _interface->logger->log(total);
+      _interface->logger->logln(F(")..."));
+
+      Update.write((uint8_t*)payload, len);
+
+      if (index + len == total) {
+        bool success = Update.end();
+
+        if (success) {
+          _interface->logger->logln(F("✔ OTA success"));
+          _interface->logger->logln(F("Triggering HOMIE_OTA_SUCCESSFUL event..."));
+          _interface->eventHandler(HOMIE_OTA_SUCCESSFUL);
+          _flaggedForReboot = true;
+        } else {
+          _interface->logger->logln(F("✖ OTA failed"));
+          _interface->logger->logln(F("Triggering HOMIE_OTA_FAILED event..."));
+          _interface->eventHandler(HOMIE_OTA_FAILED);
+        }
+
+        _flaggedForOta = false;
+      }
+    } else {
+      _interface->logger->log(F("Receiving OTA payload but not requested, skipping..."));
     }
     return;
-  } else if (unified == "$reset" && message == "true") {
-    _fillMqttTopic(PSTR("/$reset"));
-    _interface->mqttClient->publish("false", true);
+  }
+
+  if (_mqttPayloadBuffer == nullptr) _mqttPayloadBuffer = new char[total + 1];
+
+  memcpy(_mqttPayloadBuffer + index, payload, len);
+
+  if (index + len != total) return;
+  _mqttPayloadBuffer[total] = '\0';
+
+  if (strcmp_P(topic, "$ota") == 0) { // If this is the $ota announcement
+    if (strcmp(_mqttPayloadBuffer, _interface->firmware.version) != 0) {
+      _interface->logger->log(F("✴ OTA available (version "));
+      _interface->logger->log(_mqttPayloadBuffer);
+      _interface->logger->logln(F(")"));
+
+      _interface->logger->logln(F("Requesting OTA payload..."));
+      _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$ota/request")), 0, false);
+      _flaggedForOta = true;
+    }
+
+    return;
+  }
+
+  if (strcmp_P(topic, "$reset") == 0 && strcmp(_mqttPayloadBuffer, "true") == 0) {
+    _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$reset")), 1, true, "false");
     _flaggedForReset = true;
     _interface->logger->logln(F("Flagged for reset by network"));
     return;
   }
 
   // Implicit node properties
-  unified.remove(unified.length() - 4, 4); // Remove /set
+  topic[strlen(topic) - 4] = '\0'; // Remove /set
   uint16_t separator = 0;
-  for (uint16_t i = 0; i < unified.length(); i++) {
-    if (unified.charAt(i) == '/') {
+  for (uint16_t i = 0; i < strlen(topic); i++) {
+    if (topic[i] == '/') {
       separator = i;
       break;
     }
   }
-  String node = unified.substring(0, separator);
-  String property = unified.substring(separator + 1);
-  HomieNode *homieNode = HomieNode::find(node);
-  if (homieNode == 0) {
+  char* node = topic;
+  node[separator] = '\0';
+  char* property = topic + separator + 1;
+  HomieNode* homieNode = HomieNode::find(node);
+  if (!homieNode) {
     _interface->logger->log(F("Node "));
     _interface->logger->log(node);
     _interface->logger->logln(F(" not registered"));
@@ -270,7 +244,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
   int homieNodePropertyIndex = -1;
   for (int i = 0; i < homieNode->getSubscriptionsCount(); i++) {
     Subscription subscription = homieNode->getSubscriptions()[i];
-    if (property == subscription.property) {
+    if (strcmp(property, subscription.property) == 0) {
       homieNodePropertyIndex = i;
       break;
     }
@@ -285,17 +259,17 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
   }
 
   _interface->logger->logln(F("Calling global input handler..."));
-  bool handled = _interface->globalInputHandler(node, property, message);
+  bool handled = _interface->globalInputHandler(String(node), String(property), String(_mqttPayloadBuffer));
   if (handled) return;
 
   _interface->logger->logln(F("Calling node input handler..."));
-  handled = homieNode->handleInput(property, message);
+  handled = homieNode->handleInput(String(property), String(_mqttPayloadBuffer));
   if (handled) return;
 
   if (homieNodePropertyIndex != -1) { // might not if subscribed to all only
     Subscription homieNodeSubscription = homieNode->getSubscriptions()[homieNodePropertyIndex];
     _interface->logger->logln(F("Calling property input handler..."));
-    handled = homieNodeSubscription.inputHandler(message);
+    handled = homieNodeSubscription.inputHandler(String(_mqttPayloadBuffer));
   }
 
   if (!handled){
@@ -305,7 +279,7 @@ void BootNormal::_mqttCallback(char* topic, char* payload) {
     _interface->logger->log(F("  • Property: "));
     _interface->logger->logln(property);
     _interface->logger->log(F("  • Value: "));
-    _interface->logger->logln(message);
+    _interface->logger->logln(_mqttPayloadBuffer);
   }
 }
 
@@ -328,10 +302,29 @@ void BootNormal::_handleReset() {
 void BootNormal::setup() {
   Boot::setup();
 
+  Update.runAsync(true);
+
+  if (_interface->led.enabled) _interface->blinker->start(LED_WIFI_DELAY);
+
   _wifiGotIpHandler = WiFi.onStationModeGotIP(std::bind(&BootNormal::_onWifiGotIp, this, std::placeholders::_1));
   _wifiDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&BootNormal::_onWifiDisconnected, this, std::placeholders::_1));
 
-  _interface->mqttClient->initMqtt(_interface->config->get().mqtt.server.ssl.enabled);
+  _interface->mqttClient->onConnect(std::bind(&BootNormal::_onMqttConnected, this));
+  _interface->mqttClient->onDisconnect(std::bind(&BootNormal::_onMqttDisconnected, this, std::placeholders::_1));
+  _interface->mqttClient->onMessage(std::bind(&BootNormal::_onMqttMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
+
+  _interface->mqttClient->setServer(_interface->config->get().mqtt.server.host, _interface->config->get().mqtt.server.port);
+  _interface->mqttClient->setKeepAlive(10);
+  _mqttClientId = new char[strlen(_interface->brand) + 1 + strlen(_interface->config->get().deviceId) + 1];
+  strcpy(_mqttClientId, _interface->brand);
+  strcat_P(_mqttClientId, PSTR("-"));
+  strcat(_mqttClientId, _interface->config->get().deviceId);
+  _interface->mqttClient->setClientId(_mqttClientId);
+  _mqttWillTopic = strdup(_prefixMqttTopic(PSTR("/$online")));
+  _interface->mqttClient->setWill(_mqttWillTopic, 1, true, "false");
+
+  if(_interface->config->get().mqtt.auth) _interface->mqttClient->setCredentials(_interface->config->get().mqtt.username, _interface->config->get().mqtt.password);
+
 
   if (_interface->reset.enabled) {
     pinMode(_interface->reset.triggerPin, INPUT_PULLUP);
@@ -341,17 +334,6 @@ void BootNormal::setup() {
   }
 
   _interface->config->log();
-
-  if (_interface->config->get().mqtt.server.ssl.enabled) {
-    _interface->logger->log(F("SSL enabled: pushing CPU frequency to 160MHz... "));
-    if (system_update_cpu_freq(SYS_CPU_160MHZ)) {
-      _interface->logger->logln(F("OK"));
-    } else {
-      _interface->logger->logln(F("Failure"));
-      _interface->logger->logln(F("Rebooting..."));
-      ESP.restart();
-    }
-  }
 
   HomieNode::forEach([] (HomieNode* n) { n->setup(); });
 
@@ -375,83 +357,27 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
-  if (_flaggedForOta && _interface->reset.able) {
+  if (_flaggedForReboot && _interface->reset.able) {
     _interface->logger->logln(F("Device is in a resettable state"));
-    _interface->config->setOtaMode(true, _otaVersion);
 
-    _interface->logger->logln(F("↻ Rebooting into OTA mode..."));
+    _interface->logger->logln(F("↻ Rebooting..."));
     ESP.restart();
   }
 
-  _interface->readyToOperate = false;
-
-  if (WiFi.status() != WL_CONNECTED) return;
-
-  if (!_interface->mqttClient->connected()) {
-    _mqttConnectNotified = false;
-    if (!_mqttDisconnectNotified) {
-      _mqttReconnectTimer.reset();
-      _uptimeTimer.reset();
-      _signalQualityTimer.reset();
-      _interface->logger->logln(F("✖ MQTT disconnected"));
-      _interface->logger->logln(F("Triggering HOMIE_MQTT_DISCONNECTED event..."));
-      _interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
-      _mqttDisconnectNotified = true;
-    }
-
-    if (_mqttReconnectTimer.check()) {
-      _interface->logger->logln(F("↕ Attempting to connect to MQTT..."));
-      _mqttReconnectTimer.tick();
-      if (_interface->led.enabled) _interface->blinker->start(LED_MQTT_DELAY);
-      _mqttConnect();
-    }
-    return;
-  } else {
-    if (_interface->led.enabled) _interface->blinker->stop();
-  }
-
-  _interface->readyToOperate = true;
-
-  _mqttDisconnectNotified = false;
-  if (!_mqttConnectNotified) {
-    _interface->logger->logln(F("✔ MQTT ready"));
-    _interface->logger->logln(F("Triggering HOMIE_MQTT_CONNECTED event..."));
-    _interface->eventHandler(HOMIE_MQTT_CONNECTED);
-    HomieNode::forEach([] (HomieNode* n) { n->onReadyToOperate(); });
-    _mqttConnectNotified = true;
-  }
-
-  if (!_setupFunctionCalled) {
-    _interface->logger->logln(F("Calling setup function..."));
-    _interface->setupFunction();
-    _setupFunctionCalled = true;
-  }
+  if (!_interface->readyToOperate) return;
 
   if (_signalQualityTimer.check()) {
-    int32_t rssi = WiFi.RSSI();
-    uint8_t quality;
-    if (rssi <= -100) {
-      quality = 0;
-    } else if (rssi >= -50) {
-      quality = 100;
-    } else {
-      quality = 2 * (rssi + 100);
-    }
+    uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
 
     char qualityStr[3 + 1];
     itoa(quality, qualityStr, 10);
 
     _interface->logger->log(F("Sending Wi-Fi signal quality ("));
     _interface->logger->log(qualityStr);
-    _interface->logger->log(F("%)... "));
+    _interface->logger->logln(F("%)..."));
 
-    _fillMqttTopic(PSTR("/$signal"));
-    if (_interface->mqttClient->publish(qualityStr, true)) {
-      _interface->logger->logln(F(" OK"));
-      _signalQualityTimer.tick();
-    } else {
-      _interface->logger->logln(F(" Failure"));
-    }
+    _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$signal")), 1, true, qualityStr);
+    _signalQualityTimer.tick();
   }
 
   if (_uptimeTimer.check()) {
@@ -462,20 +388,13 @@ void BootNormal::loop() {
 
     _interface->logger->log(F("Sending uptime ("));
     _interface->logger->log(_uptime.getSeconds());
-    _interface->logger->log(F("s)... "));
+    _interface->logger->logln(F("s)..."));
 
-    _fillMqttTopic(PSTR("/$uptime"));
-    if (_interface->mqttClient->publish(uptimeStr, true)) {
-      _interface->logger->logln(F(" OK"));
-      _uptimeTimer.tick();
-    } else {
-      _interface->logger->logln(F(" Failure"));
-    }
+    _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$uptime")), 1, true, uptimeStr);
+    _uptimeTimer.tick();
   }
 
   _interface->loopFunction();
-
-  _interface->mqttClient->loop();
 
   HomieNode::forEach([] (HomieNode* n) { n->loop(); });
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Homie/MqttClient.hpp"
+#include <AsyncMqttClient.h>
 #include "Homie/Blinker.hpp"
 #include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
@@ -10,7 +10,6 @@
 #include "Homie/Boot/Boot.hpp"
 #include "Homie/Boot/BootNormal.hpp"
 #include "Homie/Boot/BootConfig.hpp"
-#include "Homie/Boot/BootOta.hpp"
 
 #include "HomieNode.hpp"
 
@@ -43,11 +42,11 @@ namespace HomieInternals {
       void setSetupFunction(OperationFunction function);
       void setLoopFunction(OperationFunction function);
       bool isReadyToOperate() const;
-      bool setNodeProperty(const HomieNode& node, const String& property, const String& value, bool retained = true) {
-        return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
+      void setNodeProperty(const HomieNode& node, const String& property, const String& value, uint8_t qos = 1, bool retained = true) {
+        setNodeProperty(node, property.c_str(), value.c_str(), qos, retained);
       }
-      bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
-      bool publishRaw(const char* topic, const char* value, bool retained = true);
+      void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
+      void publishRaw(const char* topic, const char* value, uint8_t qos = 1, bool retained = true);
       inline const char *getBaseTopic() const;
       inline const char *getId() const;
 
@@ -56,12 +55,11 @@ namespace HomieInternals {
       Boot* _boot;
       BootNormal _bootNormal;
       BootConfig _bootConfig;
-      BootOta _bootOta;
       Interface _interface;
       Logger _logger;
       Blinker _blinker;
       Config _config;
-      MqttClient _mqttClient;
+      AsyncMqttClient _mqttClient;
 
       void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
   };

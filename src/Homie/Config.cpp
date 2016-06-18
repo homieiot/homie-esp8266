@@ -5,7 +5,6 @@ using namespace HomieInternals;
 Config::Config()
 : _interface(nullptr)
 , _configStruct()
-, _otaVersion {'\0'}
 , _spiffsBegan(false)
 {
 }
@@ -66,36 +65,13 @@ bool Config::load() {
     return false;
   }
 
-  if (SPIFFS.exists(CONFIG_OTA_PATH)) {
-    _bootMode = BOOT_OTA;
-
-    File otaFile = SPIFFS.open(CONFIG_OTA_PATH, "r");
-    if (otaFile) {
-      size_t otaSize = otaFile.size();
-      otaFile.readBytes(_otaVersion, otaSize);
-      otaFile.close();
-    } else {
-      _interface->logger->logln(F("✖ Cannot open OTA file"));
-    }
-  } else {
-    _bootMode = BOOT_NORMAL;
-  }
+  _bootMode = BOOT_NORMAL;
 
   const char* reqName = parsedJson["name"];
   const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
   const char* reqWifiPassword = parsedJson["wifi"]["password"];
-  bool reqMqttMdns = false;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("mdns")) reqMqttMdns = true;
-  bool reqOtaMdns = false;
-  if (parsedJson["ota"].as<JsonObject&>().containsKey("mdns")) reqOtaMdns = true;
 
-  const char* reqMqttHost = "";
-  const char* reqMqttMdnsService = "";
-  if (reqMqttMdns) {
-    reqMqttMdnsService = parsedJson["mqtt"]["mdns"];
-  } else {
-    reqMqttHost = parsedJson["mqtt"]["host"];
-  }
+  const char* reqMqttHost = parsedJson["mqtt"]["host"];
   const char* reqDeviceId = Helpers::getDeviceId();
   if (parsedJson.containsKey("device_id")) {
     reqDeviceId = parsedJson["device_id"];
@@ -120,40 +96,10 @@ bool Config::load() {
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("password")) {
     reqMqttPassword = parsedJson["mqtt"]["password"];
   }
-  bool reqMqttSsl = false;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("ssl")) {
-    reqMqttSsl = parsedJson["mqtt"]["ssl"];
-  }
-  const char* reqMqttFingerprint = "";
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("fingerprint")) {
-    reqMqttFingerprint = parsedJson["mqtt"]["fingerprint"];
-  }
+
   bool reqOtaEnabled = false;
   if (parsedJson["ota"].as<JsonObject&>().containsKey("enabled")) {
     reqOtaEnabled = parsedJson["ota"]["enabled"];
-  }
-  const char* reqOtaHost = reqMqttHost;
-  const char* reqOtaMdnsService = "";
-  if (reqOtaMdns) {
-    reqOtaMdnsService = parsedJson["ota"]["mdns"];
-  } else if (parsedJson["ota"].as<JsonObject&>().containsKey("host")) {
-    reqOtaHost = parsedJson["ota"]["host"];
-  }
-  uint16_t reqOtaPort = DEFAULT_OTA_PORT;
-  if (parsedJson["ota"].as<JsonObject&>().containsKey("port")) {
-    reqOtaPort = parsedJson["ota"]["port"];
-  }
-  const char* reqOtaPath = DEFAULT_OTA_PATH;
-  if (parsedJson["ota"].as<JsonObject&>().containsKey("path")) {
-    reqOtaPath = parsedJson["ota"]["path"];
-  }
-  bool reqOtaSsl = false;
-  if (parsedJson["ota"].as<JsonObject&>().containsKey("ssl")) {
-    reqOtaSsl = parsedJson["ota"]["ssl"];
-  }
-  const char* reqOtaFingerprint = "";
-  if (parsedJson["ota"].as<JsonObject&>().containsKey("fingerprint")) {
-    reqOtaFingerprint = parsedJson["ota"]["fingerprint"];
   }
 
   strcpy(_configStruct.name, reqName);
@@ -162,22 +108,11 @@ bool Config::load() {
   strcpy(_configStruct.deviceId, reqDeviceId);
   strcpy(_configStruct.mqtt.server.host, reqMqttHost);
   _configStruct.mqtt.server.port = reqMqttPort;
-  _configStruct.mqtt.server.mdns.enabled = reqMqttMdns;
-  strcpy(_configStruct.mqtt.server.mdns.service, reqMqttMdnsService);
   strcpy(_configStruct.mqtt.baseTopic, reqMqttBaseTopic);
   _configStruct.mqtt.auth = reqMqttAuth;
   strcpy(_configStruct.mqtt.username, reqMqttUsername);
   strcpy(_configStruct.mqtt.password, reqMqttPassword);
-  _configStruct.mqtt.server.ssl.enabled = reqMqttSsl;
-  strcpy(_configStruct.mqtt.server.ssl.fingerprint, reqMqttFingerprint);
   _configStruct.ota.enabled = reqOtaEnabled;
-  strcpy(_configStruct.ota.server.host, reqOtaHost);
-  _configStruct.ota.server.port = reqOtaPort;
-  _configStruct.ota.server.mdns.enabled = reqOtaMdns;
-  strcpy(_configStruct.ota.server.mdns.service, reqOtaMdnsService);
-  strcpy(_configStruct.ota.path, reqOtaPath);
-  _configStruct.ota.server.ssl.enabled = reqOtaSsl;
-  strcpy(_configStruct.ota.server.ssl.fingerprint, reqOtaFingerprint);
 
   return true;
 }
@@ -186,7 +121,6 @@ void Config::erase() {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
-  SPIFFS.remove(CONFIG_OTA_PATH);
 }
 
 void Config::write(const String& config) {
@@ -202,27 +136,6 @@ void Config::write(const String& config) {
 
   configFile.print(config);
   configFile.close();
-}
-
-void Config::setOtaMode(bool enabled, const char* version) {
-  if (!_spiffsBegin()) { return; }
-
-  if (enabled) {
-    File otaFile = SPIFFS.open(CONFIG_OTA_PATH, "w");
-    if (!otaFile) {
-      _interface->logger->logln(F("✖ Cannot open OTA file"));
-      return;
-    }
-
-    otaFile.print(version);
-    otaFile.close();
-  } else {
-    SPIFFS.remove(CONFIG_OTA_PATH);
-  }
-}
-
-const char* Config::getOtaVersion() const {
-  return _otaVersion;
 }
 
 BootMode Config::getBootMode() const {
@@ -243,9 +156,6 @@ void Config::log() {
     case BOOT_NORMAL:
       _interface->logger->logln(F("normal"));
       break;
-    case BOOT_OTA:
-      _interface->logger->logln(F("OTA"));
-      break;
     default:
       _interface->logger->logln(F("unknown"));
       break;
@@ -259,15 +169,10 @@ void Config::log() {
   _interface->logger->logln(F("    ◦ Password not shown"));
 
   _interface->logger->logln(F("  • MQTT"));
-  if (_configStruct.mqtt.server.mdns.enabled) {
-    _interface->logger->log(F("    ◦ mDNS: "));
-    _interface->logger->log(_configStruct.mqtt.server.mdns.service);
-  } else {
-    _interface->logger->log(F("    ◦ Host: "));
-    _interface->logger->logln(_configStruct.mqtt.server.host);
-    _interface->logger->log(F("    ◦ Port: "));
-    _interface->logger->logln(_configStruct.mqtt.server.port);
-  }
+  _interface->logger->log(F("    ◦ Host: "));
+  _interface->logger->logln(_configStruct.mqtt.server.host);
+  _interface->logger->log(F("    ◦ Port: "));
+  _interface->logger->logln(_configStruct.mqtt.server.port);
   _interface->logger->log(F("    ◦ Base topic: "));
   _interface->logger->logln(_configStruct.mqtt.baseTopic);
   _interface->logger->log(F("    ◦ Auth? "));
@@ -277,35 +182,8 @@ void Config::log() {
     _interface->logger->logln(_configStruct.mqtt.username);
     _interface->logger->logln(F("    ◦ Password not shown"));
   }
-  _interface->logger->log(F("    ◦ SSL? "));
-  _interface->logger->logln(_configStruct.mqtt.server.ssl.enabled ? F("yes") : F("no"));
-  if (_configStruct.mqtt.server.ssl.enabled) {
-    _interface->logger->log(F("    ◦ Fingerprint: "));
-    if (strcmp_P(_configStruct.mqtt.server.ssl.fingerprint, PSTR("")) == 0) _interface->logger->logln(F("unset"));
-    else _interface->logger->logln(_configStruct.mqtt.server.ssl.fingerprint);
-  }
 
   _interface->logger->logln(F("  • OTA"));
   _interface->logger->log(F("    ◦ Enabled? "));
   _interface->logger->logln(_configStruct.ota.enabled ? F("yes") : F("no"));
-  if (_configStruct.ota.enabled) {
-    if (_configStruct.ota.server.mdns.enabled) {
-      _interface->logger->log(F("    ◦ mDNS: "));
-      _interface->logger->log(_configStruct.ota.server.mdns.service);
-    } else {
-      _interface->logger->log(F("    ◦ Host: "));
-      _interface->logger->logln(_configStruct.ota.server.host);
-      _interface->logger->log(F("    ◦ Port: "));
-      _interface->logger->logln(_configStruct.ota.server.port);
-    }
-    _interface->logger->log(F("    ◦ Path: "));
-    _interface->logger->logln(_configStruct.ota.path);
-    _interface->logger->log(F("    ◦ SSL? "));
-    _interface->logger->logln(_configStruct.ota.server.ssl.enabled ? F("yes") : F("no"));
-    if (_configStruct.ota.server.ssl.enabled) {
-      _interface->logger->log(F("    ◦ Fingerprint: "));
-      if (strcmp_P(_configStruct.ota.server.ssl.fingerprint, PSTR("")) == 0) _interface->logger->logln(F("unset"));
-      else _interface->logger->logln(_configStruct.ota.server.ssl.fingerprint);
-    }
-  }
 }

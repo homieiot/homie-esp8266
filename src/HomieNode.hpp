@@ -31,9 +31,9 @@ class HomieNode {
       }
     }
 
-    static HomieNode* find(String const &id) {
+    static HomieNode* find(const char* id) {
       for (HomieNode* n = _first; n; n = n->_next) {
-        if (id == n->getId()) return n;
+        if (strcmp(id, n->getId()) == 0) return n;
       }
 
       return 0;

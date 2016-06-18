@@ -16,14 +16,6 @@ namespace HomieInternals {
     struct Server {
       char host[MAX_HOSTNAME_LENGTH];
       uint16_t port;
-      struct mDNS {
-        bool enabled;
-        char service[MAX_HOSTNAME_LENGTH];
-      } mdns;
-      struct SSL {
-        bool enabled;
-        char fingerprint[MAX_FINGERPRINT_LENGTH];
-      } ssl;
     };
 
     struct MQTT {
@@ -36,8 +28,6 @@ namespace HomieInternals {
 
     struct OTA {
       bool enabled;
-      Server server;
-      char path[MAX_OTA_PATH_LENGTH];
     } ota;
   };
 }

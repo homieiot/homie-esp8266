@@ -13,7 +13,6 @@ namespace HomieInternals {
 
   const uint8_t MAX_MQTT_CREDS_LENGTH = 32 + 1;
   const uint8_t MAX_MQTT_BASE_TOPIC_LENGTH = sizeof("shared-broker/username-lolipop/homie/sensors/");
-  const uint8_t MAX_OTA_PATH_LENGTH = sizeof("/virtual-host/long-path/ota");
 
   const uint8_t MAX_FRIENDLY_NAME_LENGTH = sizeof("My awesome friendly name of the living room");
   const uint8_t MAX_DEVICE_ID_LENGTH = sizeof("my-awesome-device-id-living-room");
@@ -27,6 +26,4 @@ namespace HomieInternals {
   const uint8_t MAX_NODE_PROPERTY_LENGTH = sizeof("my-super-awesome-property");
 
   const uint8_t MAX_SUBSCRIPTIONS_COUNT_PER_NODE = 5;
-
-  const uint8_t TOPIC_BUFFER_LENGTH = MAX_MQTT_BASE_TOPIC_LENGTH + MAX_DEVICE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1 + MAX_NODE_PROPERTY_LENGTH + 4 + 1;
 }

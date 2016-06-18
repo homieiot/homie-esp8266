@@ -8,8 +8,14 @@ void onHomieEvent(HomieEvent event) {
     case HOMIE_NORMAL_MODE:
       Serial.println("Normal mode started");
       break;
-    case HOMIE_OTA_MODE:
-      Serial.println("OTA mode started");
+    case HOMIE_OTA_STARTED:
+      Serial.println("OTA started");
+      break;
+    case HOMIE_OTA_FAILED:
+      Serial.println("OTA failed");
+      break;
+    case HOMIE_OTA_SUCCESSFUL:
+      Serial.println("OTA successful");
       break;
     case HOMIE_ABOUT_TO_RESET:
       Serial.println("About to reset");

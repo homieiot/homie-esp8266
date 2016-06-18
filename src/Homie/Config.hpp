@@ -17,8 +17,6 @@ namespace HomieInternals {
       inline const ConfigStruct& get() const;
       void erase();
       void write(const String& config);
-      void setOtaMode(bool enabled, const char* version = "");
-      const char* getOtaVersion() const;
       BootMode getBootMode() const;
       void log(); // print the current config to log output
 
@@ -26,7 +24,6 @@ namespace HomieInternals {
       Interface* _interface;
       BootMode _bootMode;
       ConfigStruct _configStruct;
-      char _otaVersion[MAX_FIRMWARE_VERSION_LENGTH];
       bool _spiffsBegan;
 
       bool _spiffsBegin();

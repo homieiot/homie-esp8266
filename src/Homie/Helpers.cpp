@@ -15,19 +15,17 @@ const char* Helpers::getDeviceId() {
   return Helpers::_deviceId;
 }
 
-MdnsQueryResult Helpers::mdnsQuery(const char* service) {
-  MdnsQueryResult result;
-  result.success = false;
-  int n = MDNS.queryService(service, "tcp");
-  if (n == 0) {
-    return result;
+uint8_t Helpers::rssiToPercentage(int32_t rssi) {
+  uint8_t quality;
+  if (rssi <= -100) {
+    quality = 0;
+  } else if (rssi >= -50) {
+    quality = 100;
   } else {
-    result.success = true;
-    result.ip = MDNS.IP(0);
-    result.port = MDNS.port(0);
+    quality = 2 * (rssi + 100);
   }
 
-  return result;
+  return quality;
 }
 
 ConfigValidationResult Helpers::validateConfig(const JsonObject& object) {
@@ -125,30 +123,17 @@ ConfigValidationResult Helpers::_validateConfigMqtt(const JsonObject& object) {
     result.reason = F("mqtt is not an object");
     return result;
   }
-  bool mdns = false;
-  if (object["mqtt"].as<JsonObject&>().containsKey("mdns")) {
-    if (!object["mqtt"]["mdns"].is<const char*>()) {
-      result.reason = F("mqtt.mdns is not a string");
-      return result;
-    }
-    if (strlen(object["mqtt"]["mdns"]) + 1 > MAX_HOSTNAME_LENGTH) {
-      result.reason = F("mqtt.mdns is too long");
-      return result;
-    }
-    mdns = true;
-  } else {
-    if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
-      result.reason = F("mqtt.host is not a string");
-      return result;
-    }
-    if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
-      result.reason = F("mqtt.host is too long");
-      return result;
-    }
-    if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
-      result.reason = F("mqtt.port is not an integer");
-      return result;
-    }
+  if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
+    result.reason = F("mqtt.host is not a string");
+    return result;
+  }
+  if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
+    result.reason = F("mqtt.host is too long");
+    return result;
+  }
+  if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
+    result.reason = F("mqtt.port is not an integer");
+    return result;
   }
   if (object["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
     if (!object["mqtt"]["base_topic"].is<const char*>()) {
@@ -186,32 +171,11 @@ ConfigValidationResult Helpers::_validateConfigMqtt(const JsonObject& object) {
       }
     }
   }
-  if (object["mqtt"].as<JsonObject&>().containsKey("ssl")) {
-    if (!object["mqtt"]["ssl"].is<bool>()) {
-      result.reason = F("mqtt.ssl is not a boolean");
-      return result;
-    }
 
-    if (object["mqtt"]["ssl"]) {
-      if (object["mqtt"].as<JsonObject&>().containsKey("fingerprint") && !object["mqtt"]["fingerprint"].is<const char*>()) {
-        result.reason = F("mqtt.fingerprint is not a string");
-        return result;
-      }
-    }
-  }
-
-  if (mdns) {
-    const char* mdnsService = object["mqtt"]["mdns"];
-    if (strcmp_P(mdnsService, PSTR("")) == 0) {
-      result.reason = F("mqtt.mdns is empty");
-      return result;
-    }
-  } else {
-    const char* host = object["mqtt"]["host"];
-    if (strcmp_P(host, PSTR("")) == 0) {
-      result.reason = F("mqtt.host is empty");
-      return result;
-    }
+  const char* host = object["mqtt"]["host"];
+  if (strcmp_P(host, PSTR("")) == 0) {
+    result.reason = F("mqtt.host is empty");
+    return result;
   }
 
   result.valid = true;
@@ -230,56 +194,6 @@ ConfigValidationResult Helpers::_validateConfigOta(const JsonObject& object) {
   if (!object["ota"].as<JsonObject&>().containsKey("enabled") || !object["ota"]["enabled"].is<bool>()) {
     result.reason = F("ota.enabled is not a boolean");
     return result;
-  }
-  if (object["ota"]["enabled"]) {
-    if (object["ota"].as<JsonObject&>().containsKey("mdns")) {
-      if (!object["ota"]["mdns"].is<const char*>()) {
-        result.reason = F("ota.mdns is not a string");
-        return result;
-      }
-      if (strlen(object["ota"]["mdns"]) + 1 > MAX_HOSTNAME_LENGTH) {
-        result.reason = F("ota.mdns is too long");
-        return result;
-      }
-    } else {
-      if (object["ota"].as<JsonObject&>().containsKey("host")) {
-        if (!object["ota"]["host"].is<const char*>()) {
-          result.reason = F("ota.host is not a string");
-          return result;
-        }
-        if (strlen(object["ota"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
-          result.reason = F("ota.host is too long");
-          return result;
-        }
-      }
-      if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<uint16_t>()) {
-        result.reason = F("ota.port is not an uint16_teger");
-        return result;
-      }
-    }
-    if (object["ota"].as<JsonObject&>().containsKey("path")) {
-      if (!object["ota"]["path"].is<const char*>()) {
-        result.reason = F("ota.path is not a string");
-        return result;
-      }
-      if (strlen(object["ota"]["path"]) + 1 > MAX_OTA_PATH_LENGTH) {
-        result.reason = F("ota.path is too long");
-        return result;
-      }
-    }
-    if (object["ota"].as<JsonObject&>().containsKey("ssl")) {
-      if (!object["ota"]["ssl"].is<bool>()) {
-        result.reason = F("ota.ssl is not a boolean");
-        return result;
-      }
-
-      if (object["ota"]["ssl"]) {
-        if (object["ota"].as<JsonObject&>().containsKey("fingerprint") && !object["ota"]["fingerprint"].is<const char*>()) {
-          result.reason = F("ota.fingerprint is not a string");
-          return result;
-        }
-      }
-    }
   }
 
   result.valid = true;

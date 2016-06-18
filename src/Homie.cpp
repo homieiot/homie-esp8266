@@ -29,10 +29,8 @@ HomieClass::HomieClass() : _setupCalled(false) {
 
   _config.attachInterface(&_interface);
   _blinker.attachInterface(&_interface);
-  _mqttClient.attachInterface(&_interface);
 
   _bootNormal.attachInterface(&_interface);
-  _bootOta.attachInterface(&_interface);
   _bootConfig.attachInterface(&_interface);
 }
 
@@ -61,11 +59,6 @@ void HomieClass::setup() {
         _boot = &_bootNormal;
         _logger.logln(F("Triggering HOMIE_NORMAL_MODE event..."));
         _interface.eventHandler(HOMIE_NORMAL_MODE);
-        break;
-      case BOOT_OTA:
-        _boot = &_bootOta;
-        _logger.logln(F("Triggering HOMIE_OTA_MODE event..."));
-        _interface.eventHandler(HOMIE_OTA_MODE);
         break;
       default:
         _logger.logln(F("✖ The boot mode is invalid"));
@@ -187,41 +180,31 @@ void HomieClass::eraseConfig() {
   _config.erase();
 }
 
-bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained) {
-  if (!this->isReadyToOperate()) {
+void HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos, bool retained) {
+  if (!isReadyToOperate()) {
     _logger.logln(F("✖ setNodeProperty(): impossible now"));
-    return false;
+    return;
   }
 
-  strcpy(_mqttClient.getTopicBuffer(), _config.get().mqtt.baseTopic);
-  strcat(_mqttClient.getTopicBuffer(), _config.get().deviceId);
-  strcat_P(_mqttClient.getTopicBuffer(), PSTR("/"));
-  strcat(_mqttClient.getTopicBuffer(), node.getId());
-  strcat_P(_mqttClient.getTopicBuffer(), PSTR("/"));
-  strcat(_mqttClient.getTopicBuffer(), property);
+  char* topic = new char[strlen(_interface.config->get().mqtt.baseTopic) + strlen(_interface.config->get().deviceId) + 1 + strlen(node.getId()) + 1 + strlen(property) + 1];
+  strcpy(topic, _interface.config->get().mqtt.baseTopic);
+  strcat(topic, _interface.config->get().deviceId);
+  strcat_P(topic, PSTR("/"));
+  strcat(topic, node.getId());
+  strcat_P(topic, PSTR("/"));
+  strcat(topic, property);
 
-  if (5 + 2 + strlen(_mqttClient.getTopicBuffer()) + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
-    _logger.logln(F("✖ setNodeProperty(): content to send is too long"));
-    return false;
-  }
-
-  return _mqttClient.publish(value, retained);
+  _mqttClient.publish(topic, qos, retained, value);
+  delete[] topic;
 }
 
-bool HomieClass::publishRaw(const char* topic, const char* value, bool retained) {
-  if (!this->isReadyToOperate()) {
+void HomieClass::publishRaw(const char* topic, const char* value, uint8_t qos, bool retained) {
+  if (!isReadyToOperate()) {
     _logger.logln(F("✖ publishRaw(): impossible now"));
-    return false;
+    return;
   }
-  auto topiclen = strlen(topic);
-  if (5 + 2 + topiclen + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
-    _logger.logln(F("✖ publishRaw(): content to send is too long"));
-    return false;
-  }
-  auto &cli = _mqttClient;
-  auto buf = cli.getTopicBuffer();
-  memcpy(buf, topic, topiclen + 1);
-  return cli.publish(value, retained);
+
+  _mqttClient.publish(topic, 2, retained, value);
 }
 
 HomieClass Homie;

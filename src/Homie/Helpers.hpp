@@ -2,7 +2,6 @@
 
 #include "Arduino.h"
 
-#include <ESP8266mDNS.h>
 #include <ArduinoJson.h>
 #include "Limits.hpp"
 
@@ -12,17 +11,11 @@ namespace HomieInternals {
     const __FlashStringHelper* reason;
   };
 
-  struct MdnsQueryResult {
-    bool success;
-    IPAddress ip;
-    uint16_t port;
-  };
-
   class Helpers {
     public:
       static void generateDeviceId();
       static const char* getDeviceId();
-      static MdnsQueryResult mdnsQuery(const char* service);
+      static uint8_t rssiToPercentage(int32_t rssi);
       static ConfigValidationResult validateConfig(const JsonObject& object);
 
     private:
