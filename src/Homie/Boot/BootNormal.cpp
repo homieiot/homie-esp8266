@@ -122,7 +122,10 @@ void BootNormal::_onMqttConnected() {
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/+/+/set")), 2);
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$reset")), 2);
 
-  if (_interface->config->get().ota.enabled) _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
+  if (_interface->config->get().ota.enabled) {
+    _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
+    _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota/payload")), 0);
+  }
 
   _interface->readyToOperate = true;
   if (_interface->led.enabled) _interface->blinker->stop();
@@ -160,7 +163,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
 
   topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1; // Remove devices/${id}/ --- +1 for /
 
-  if (strcmp_P(topic, "$ota/payload") == 0) { // If this is the $ota payload
+  if (strcmp_P(topic, PSTR("$ota/payload")) == 0) { // If this is the $ota payload
     if (_flaggedForOta) {
       if (index == 0) {
         Update.begin(total);
@@ -205,7 +208,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
   if (index + len != total) return;
   _mqttPayloadBuffer.get()[total] = '\0';
 
-  if (strcmp_P(topic, "$ota") == 0) { // If this is the $ota announcement
+  if (strcmp_P(topic, PSTR("$ota")) == 0) { // If this is the $ota announcement
     if (strcmp(_mqttPayloadBuffer.get(), _interface->firmware.version) != 0) {
       _interface->logger->log(F("✴ OTA available (version "));
       _interface->logger->log(_mqttPayloadBuffer.get());
@@ -219,7 +222,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     return;
   }
 
-  if (strcmp_P(topic, "$reset") == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
+  if (strcmp_P(topic, PSTR("$reset")) == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
     _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$reset")), 1, true, "false");
     _flaggedForReset = true;
     _interface->logger->logln(F("Flagged for reset by network"));
