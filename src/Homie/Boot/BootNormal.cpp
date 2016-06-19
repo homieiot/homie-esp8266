@@ -158,9 +158,6 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total) {
   if (total == 0) return; // no empty message possible
 
-  Serial.println("Receiving message");
-  Serial.println(ESP.getFreeHeap());
-
   topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1; // Remove devices/${id}/ --- +1 for /
 
   if (strcmp_P(topic, PSTR("$ota/payload")) == 0) { // If this is the $ota payload
@@ -364,6 +361,7 @@ void BootNormal::loop() {
     _interface->eventHandler(HOMIE_ABOUT_TO_RESET);
 
     _interface->logger->logln(F("↻ Rebooting into config mode..."));
+    _interface->logger->flush();
     ESP.restart();
   }
 
@@ -371,6 +369,7 @@ void BootNormal::loop() {
     _interface->logger->logln(F("Device is in a resettable state"));
 
     _interface->logger->logln(F("↻ Rebooting..."));
+    _interface->logger->flush();
     ESP.restart();
   }
 

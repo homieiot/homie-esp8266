@@ -42,6 +42,7 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) cons
     _logger.log(F("✖ "));
     _logger.log(functionName);
     _logger.logln(F("(): has to be called before setup()"));
+    _logger.flush();
     abort();
   }
 }
@@ -62,6 +63,7 @@ void HomieClass::setup() {
         break;
       default:
         _logger.logln(F("✖ The boot mode is invalid"));
+        _logger.flush();
         abort();
         break;
     }
@@ -103,6 +105,7 @@ void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
   if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
     _logger.logln(F("✖ setFirmware(): either the name or version string is too long"));
+    _logger.flush();
     abort();
   }
 
@@ -116,6 +119,7 @@ void HomieClass::__setBrand(const char* brand) {
   _checkBeforeSetup(F("setBrand"));
   if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
     _logger.logln(F("✖ setBrand(): the brand string is too long"));
+    _logger.flush();
     abort();
   }
 

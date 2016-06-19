@@ -3,13 +3,12 @@
 #include <ArduinoJson.h>
 
 namespace HomieInternals {
-  const uint16_t MAX_JSON_CONFIG_FILE_BUFFER_SIZE = 1000;
-  const uint16_t MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE = JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(8) + JSON_OBJECT_SIZE(6); // Max 5 elements at root, 2 elements in nested, etc...
+  const uint16_t MAX_JSON_CONFIG_FILE_SIZE = 1000;
+  const uint16_t MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE = JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(1); // Max 5 elements at root, 2 elements in nested, etc...
 
   const uint8_t MAX_WIFI_SSID_LENGTH = 32 + 1;
   const uint8_t MAX_WIFI_PASSWORD_LENGTH = 64 + 1;
-  const uint8_t MAX_HOSTNAME_LENGTH = sizeof("super.long.domain-name.superhost.com");
-  const uint8_t MAX_FINGERPRINT_LENGTH = 59 + 1;
+  const uint8_t MAX_HOSTNAME_LENGTH = 255 + 1;
 
   const uint8_t MAX_MQTT_CREDS_LENGTH = 32 + 1;
   const uint8_t MAX_MQTT_BASE_TOPIC_LENGTH = sizeof("shared-broker/username-lolipop/homie/sensors/");

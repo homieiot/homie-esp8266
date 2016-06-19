@@ -25,3 +25,9 @@ void Logger::logln() const {
     _printer->println();
   }
 }
+
+void Logger::flush() const {
+  if (_loggingEnabled && _printer == &Serial) {
+    static_cast<Stream*>(_printer)->flush();
+  }
+}

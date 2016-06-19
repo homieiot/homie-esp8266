@@ -315,6 +315,7 @@ void BootConfig::loop() {
   if (_flaggedForReboot) {
     if (millis() - _flaggedForRebootAt >= 3000UL) {
       _interface->logger->logln(F("↻ Rebooting into normal mode..."));
+      _interface->logger->flush();
       ESP.restart();
     }
 

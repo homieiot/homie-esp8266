@@ -20,6 +20,7 @@ namespace HomieInternals {
         }
       }
       void logln() const;
+      void flush() const;
 
     private:
       bool _loggingEnabled;

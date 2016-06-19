@@ -42,12 +42,12 @@ bool Config::load() {
 
   size_t configSize = configFile.size();
 
-  if (configSize > MAX_JSON_CONFIG_FILE_BUFFER_SIZE) {
+  if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
     _interface->logger->logln(F("✖ Config file too big"));
     return false;
   }
 
-  char buf[MAX_JSON_CONFIG_FILE_BUFFER_SIZE];
+  char buf[MAX_JSON_CONFIG_FILE_SIZE];
   configFile.readBytes(buf, configSize);
   configFile.close();
 
