@@ -119,12 +119,13 @@ void BootNormal::_onMqttConnected() {
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fwname")), 2, true, _interface->firmware.name);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fwversion")), 2, true, _interface->firmware.version);
 
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$ota/enabled")), 2, true, _interface->config->get().ota.enabled ? "true" : "false");
+
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/+/+/set")), 2);
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$reset")), 2);
 
   if (_interface->config->get().ota.enabled) {
     _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
-    _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota/payload")), 0);
   }
 
   _interface->readyToOperate = true;
@@ -191,6 +192,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
         }
 
         _flaggedForOta = false;
+        _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$ota/payload")));
       }
     } else {
       _interface->logger->log(F("Receiving OTA payload but not requested, skipping..."));
@@ -211,8 +213,8 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
       _interface->logger->log(_mqttPayloadBuffer.get());
       _interface->logger->logln(F(")"));
 
-      _interface->logger->logln(F("Requesting OTA payload..."));
-      _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$ota/request")), 0, false);
+      _interface->logger->logln(F("Subscribing to OTA payload..."));
+      _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota/payload")), 0);
       _flaggedForOta = true;
     }
 
