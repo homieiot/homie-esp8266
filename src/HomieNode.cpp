@@ -10,7 +10,6 @@ uint8_t HomieNode::_nodeCount = 0;
 HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
 : _id(id)
 , _type(type)
-, _subscriptionsCount(0)
 , _subscribeToAll(false)
 , _inputHandler(inputHandler)
 , _next() {
@@ -35,16 +34,10 @@ void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandle
     abort();
   }
 
-  if (_subscriptionsCount > MAX_SUBSCRIPTIONS_COUNT_PER_NODE) {
-    Serial.println(F("✖ subscribe(): the max subscription count has been reached"));
-    Serial.flush();
-    abort();
-  }
-
   Subscription subscription;
   strcpy(subscription.property, property);
   subscription.inputHandler = inputHandler;
-  _subscriptions[_subscriptionsCount++] = subscription;
+  _subscriptions.push_back(subscription);
 }
 
 void HomieNode::subscribeToAll() {
@@ -55,12 +48,12 @@ bool HomieNode::handleInput(String const &property, String const &value) {
   return _inputHandler(property, value);
 }
 
-const Subscription* HomieNode::getSubscriptions() const {
+const std::vector<HomieInternals::Subscription>& HomieNode::getSubscriptions() const {
   return _subscriptions;
 }
 
 uint8_t HomieNode::getSubscriptionsCount() const {
-  return _subscriptionsCount;
+  return _subscriptions.size();
 }
 
 bool HomieNode::isSubscribedToAll() const {

@@ -23,6 +23,4 @@ namespace HomieInternals {
   const uint8_t MAX_NODE_ID_LENGTH = sizeof("my-super-awesome-node-id");
   const uint8_t MAX_NODE_TYPE_LENGTH = sizeof("my-super-awesome-type");
   const uint8_t MAX_NODE_PROPERTY_LENGTH = sizeof("my-super-awesome-property");
-
-  const uint8_t MAX_SUBSCRIPTIONS_COUNT_PER_NODE = 5;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "Arduino.h"
 #include "Homie/Datatypes/Subscription.hpp"
 #include "Homie/Datatypes/Callbacks.hpp"
@@ -53,14 +54,13 @@ class HomieNode {
     virtual bool handleInput(String const &property, String const &value);
 
   private:
-    const HomieInternals::Subscription* getSubscriptions() const;
+    const std::vector<HomieInternals::Subscription>& getSubscriptions() const;
     uint8_t getSubscriptionsCount() const;
     bool isSubscribedToAll() const;
 
     const char* _id;
     const char* _type;
-    HomieInternals::Subscription _subscriptions[HomieInternals::MAX_SUBSCRIPTIONS_COUNT_PER_NODE];
-    uint8_t _subscriptionsCount;
+    std::vector<HomieInternals::Subscription> _subscriptions;
     bool _subscribeToAll;
     HomieInternals::NodeInputHandler _inputHandler;
     HomieNode* _next;

@@ -248,16 +248,17 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     return;
   }
 
-  int homieNodePropertyIndex = -1;
-  for (int i = 0; i < homieNode->getSubscriptionsCount(); i++) {
-    Subscription subscription = homieNode->getSubscriptions()[i];
-    if (strcmp(property, subscription.property) == 0) {
-      homieNodePropertyIndex = i;
+  Subscription subscription;
+  bool subscriptionFound = false;
+  for (Subscription iSubscription : homieNode->getSubscriptions()) {
+    if (strcmp(property, iSubscription.property) == 0) {
+      subscription = iSubscription;
+      subscriptionFound = true;
       break;
     }
   }
 
-  if (!homieNode->isSubscribedToAll() && homieNodePropertyIndex == -1) {
+  if (!homieNode->isSubscribedToAll() && !subscriptionFound) {
     _interface->logger->log(F("Node "));
     _interface->logger->log(node);
     _interface->logger->log(F(" not subscribed to "));
@@ -273,10 +274,9 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
   handled = homieNode->handleInput(String(property), String(_mqttPayloadBuffer.get()));
   if (handled) return;
 
-  if (homieNodePropertyIndex != -1) { // might not if subscribed to all only
-    Subscription homieNodeSubscription = homieNode->getSubscriptions()[homieNodePropertyIndex];
+  if (subscriptionFound) { // might not if subscribed to all only
     _interface->logger->logln(F("Calling property input handler..."));
-    handled = homieNodeSubscription.inputHandler(String(_mqttPayloadBuffer.get()));
+    handled = subscription.inputHandler(String(_mqttPayloadBuffer.get()));
   }
 
   if (!handled){
