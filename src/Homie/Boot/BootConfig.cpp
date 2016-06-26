@@ -72,10 +72,10 @@ void BootConfig::_onWifiConnectRequest() {
   if(ssid && pass && ssid!="" && pass!= "") {
     _interface->logger->logln(F("Connecting to WiFi"));
     WiFi.begin(ssid.c_str(), pass.c_str());
-    _http.send(202, "application/json", "{\"success\":true}");
+    _http.send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":true}");
   } else {
     _interface->logger->logln(F("ssid/password required"));
-    _http.send(400, "application/json", "{\"success\":false, \"error\":\"ssid-password-required\"}");
+    _http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":false, \"error\":\"ssid-password-required\"}");
   }
 }
 
@@ -100,7 +100,7 @@ void BootConfig::_onWifiStatusRequest() {
   }
   _interface->logger->log(F("WiFi status "));
   _interface->logger->logln(json);
-  _http.send(200, "application/json", json);
+  _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), json);
 }
 
 void BootConfig::_onProxyControlRequest() {
@@ -108,9 +108,9 @@ void BootConfig::_onProxyControlRequest() {
   String enable = _http.arg("enable");
   _proxyEnabled = (enable == "true");
   if(_proxyEnabled) {
-    _http.send(200, "application/json", "{\"message\":\"proxy-enabled\"}");
+    _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"message\":\"proxy-enabled\"}");
   } else {
-    _http.send(200, "application/json", "{\"message\":\"proxy-disabled\"}");
+    _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"message\":\"proxy-disabled\"}");
   }
   _interface->logger->log(F("Transparent proxy enabled="));
   _interface->logger->logln(_proxyEnabled);
@@ -202,6 +202,7 @@ void BootConfig::_proxyHttpRequest() {
     case HTTP_POST: method = "POST"; break;
     case HTTP_DELETE: method = "DELETE"; break;
     case HTTP_OPTIONS: method = "OPTIONS"; break;
+    default: break;
   }
 
   _interface->logger->logln(F("Proxy sent request to destination"));
