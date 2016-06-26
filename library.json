@@ -22,8 +22,8 @@
       "frameworks": "arduino"
     },
     {
-      "name": "PubSubClient",
-      "authors": "Nick O'Leary",
+      "name": "AsyncMqttClient",
+      "authors": "Marvin Roger",
       "frameworks": "arduino"
     },
     {
