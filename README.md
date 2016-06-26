@@ -1,7 +1,7 @@
 Homie for ESP8266
 =================
 
-![homie-esp8266](homie-esp8266.jpg)
+![homie-esp8266](homie-esp8266.png)
 
 An Arduino for ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT convention for the IoT.
 
