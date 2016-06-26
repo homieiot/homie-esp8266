@@ -211,4 +211,13 @@ void HomieClass::publishRaw(const char* topic, const char* value, uint8_t qos, b
   _mqttClient.publish(topic, 2, retained, value);
 }
 
+void HomieClass::disconnectMqtt() {
+  if (!isReadyToOperate()) {
+    _logger.logln(F("✖ disconnectMqtt(): impossible now"));
+    return;
+  }
+
+  _mqttClient.disconnect();
+}
+
 HomieClass Homie;

@@ -47,6 +47,7 @@ namespace HomieInternals {
       }
       void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
       void publishRaw(const char* topic, const char* value, uint8_t qos = 1, bool retained = true);
+      void disconnectMqtt();
       inline const char *getBaseTopic() const;
       inline const char *getId() const;
 
