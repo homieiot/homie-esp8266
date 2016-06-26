@@ -41,7 +41,7 @@ void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 
-  Homie.setFirmware("awesome-relay", "1.0.0");
+  Homie_setFirmware("awesome-relay", "1.0.0");
   lightNode.subscribe("on", lightOnHandler);
   Homie.setup();
 }
@@ -53,4 +53,4 @@ void loop() {
 
 ## Requirements, installation and usage
 
-The project is documented on the [/docs folder](docs), with a *Getting started* guide and every piece of informations you will need.
+The project is documented on the [/docs folder](docs), with a *Getting started* guide and every piece of information you will need.
