@@ -5,6 +5,10 @@ Homie for ESP8266
 
 An Arduino for ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT convention for the IoT.
 
+## Download
+
+The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/marvinroger/homie-esp8266/releases)
+
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
