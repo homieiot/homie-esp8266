@@ -1,20 +1,20 @@
+![homie-esp8266 banner](banner.png)
+
 Homie for ESP8266
 =================
 
 [![Build Status](https://travis-ci.org/marvinroger/homie-esp8266.svg?branch=master)](https://travis-ci.org/marvinroger/homie-esp8266)
 
-![homie-esp8266](homie-esp8266.png)
-
 An Arduino for ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT convention for the IoT.
 
 ## Download
 
-The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/marvinroger/homie-esp8266/releases)
+The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/marvinroger/homie-esp8266/releases).
 
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
-* [Cute JSON configuration file](docs/5.-JSON-configuration-file.md) to configure the credentials of the device
+* [JSON configuration file](docs/5.-JSON-configuration-file.md) to configure the credentials of the device
 * [Cute API / Web UI / App](docs/6.-Configuration-API.md) to remotely send the configuration to the device and get information about it
 * [OTA support](docs/4.-OTA.md)
 * Available in the [PlatformIO registry](http://platformio.org/#!/lib/show/555/Homie)
