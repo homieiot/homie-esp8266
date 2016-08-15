@@ -12,8 +12,7 @@ BootNormal::BootNormal()
 , _mqttTopic(nullptr)
 , _mqttClientId(nullptr)
 , _mqttWillTopic(nullptr)
-, _mqttPayloadBuffer(nullptr)
-{
+, _mqttPayloadBuffer(nullptr) {
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
   _uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);
 }
@@ -45,8 +44,7 @@ void BootNormal::_wifiConnect() {
   }
 }
 
-void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event)
-{
+void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   if (_interface->led.enabled) _interface->blinker->stop();
   _interface->logger->logln(F("✔ Wi-Fi connected"));
   _interface->logger->logln(F("Triggering HOMIE_WIFI_CONNECTED event..."));
@@ -57,8 +55,7 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event)
   // Serial.println(event.ip);
 }
 
-void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event)
-{
+void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event) {
   _interface->readyToOperate = false;
   if (_interface->led.enabled) _interface->blinker->start(LED_WIFI_DELAY);
   _uptimeTimer.reset();
@@ -157,11 +154,11 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 }
 
 void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total) {
-  if (total == 0) return; // no empty message possible
+  if (total == 0) return;  // no empty message possible
 
-  topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1; // Remove devices/${id}/ --- +1 for /
+  topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1;  // Remove devices/${id}/ --- +1 for /
 
-  if (strcmp_P(topic, PSTR("$ota/payload")) == 0) { // If this is the $ota payload
+  if (strcmp_P(topic, PSTR("$ota/payload")) == 0) {  // If this is the $ota payload
     if (_flaggedForOta) {
       if (index == 0) {
         Update.begin(total);
@@ -175,7 +172,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
       _interface->logger->log(total);
       _interface->logger->logln(F(")..."));
 
-      Update.write((uint8_t*)payload, len);
+      Update.write(reinterpret_cast<uint8_t*>(payload), len);
 
       if (index + len == total) {
         bool success = Update.end();
@@ -207,7 +204,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
   if (index + len != total) return;
   _mqttPayloadBuffer.get()[total] = '\0';
 
-  if (strcmp_P(topic, PSTR("$ota")) == 0) { // If this is the $ota announcement
+  if (strcmp_P(topic, PSTR("$ota")) == 0) {  // If this is the $ota announcement
     if (strcmp(_mqttPayloadBuffer.get(), _interface->firmware.version) != 0) {
       _interface->logger->log(F("✴ OTA available (version "));
       _interface->logger->log(_mqttPayloadBuffer.get());
@@ -229,7 +226,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
   }
 
   // Implicit node properties
-  topic[strlen(topic) - 4] = '\0'; // Remove /set
+  topic[strlen(topic) - 4] = '\0';  // Remove /set
   uint16_t separator = 0;
   for (uint16_t i = 0; i < strlen(topic); i++) {
     if (topic[i] == '/') {
@@ -274,12 +271,12 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
   handled = homieNode->handleInput(String(property), String(_mqttPayloadBuffer.get()));
   if (handled) return;
 
-  if (subscriptionFound) { // might not if subscribed to all only
+  if (subscriptionFound) {  // might not if subscribed to all only
     _interface->logger->logln(F("Calling property input handler..."));
     handled = subscription.inputHandler(String(_mqttPayloadBuffer.get()));
   }
 
-  if (!handled){
+  if (!handled) {
     _interface->logger->logln(F("No handlers handled the following packet:"));
     _interface->logger->log(F("  • Node ID: "));
     _interface->logger->logln(node);
@@ -332,7 +329,7 @@ void BootNormal::setup() {
   memcpy(_mqttWillTopic.get(), mqttWillTopic, strlen(mqttWillTopic) + 1);
   _interface->mqttClient->setWill(_mqttWillTopic.get(), 1, true, "false");
 
-  if(_interface->config->get().mqtt.auth) _interface->mqttClient->setCredentials(_interface->config->get().mqtt.username, _interface->config->get().mqtt.password);
+  if (_interface->config->get().mqtt.auth) _interface->mqttClient->setCredentials(_interface->config->get().mqtt.username, _interface->config->get().mqtt.password);
 
 
   if (_interface->reset.enabled) {

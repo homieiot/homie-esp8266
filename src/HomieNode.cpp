@@ -24,7 +24,7 @@ HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHan
   else
     _first = this;
   _last = this;
-  ++_nodeCount;
+  _nodeCount++;
 }
 
 void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandler) {

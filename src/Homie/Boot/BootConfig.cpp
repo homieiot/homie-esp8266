@@ -11,8 +11,7 @@ BootConfig::BootConfig()
 , _jsonWifiNetworks()
 , _flaggedForReboot(false)
 , _flaggedForRebootAt(0)
-, _proxyEnabled(false)
-{
+, _proxyEnabled(false) {
   _wifiScanTimer.setInterval(CONFIG_SCAN_INTERVAL);
 }
 
@@ -54,7 +53,7 @@ void BootConfig::setup() {
   _http.on("/device-info", HTTP_GET, std::bind(&BootConfig::_onDeviceInfoRequest, this));
   _http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
   _http.on("/config", HTTP_PUT, std::bind(&BootConfig::_onConfigRequest, this));
-  _http.on("/config", HTTP_OPTIONS, [this]() { // CORS
+  _http.on("/config", HTTP_OPTIONS, [this]() {  // CORS
     _interface->logger->logln(F("Received CORS request for /config"));
     _http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
@@ -69,7 +68,7 @@ void BootConfig::_onWifiConnectRequest() {
   _interface->logger->logln(F("Received wifi connect request"));
   String ssid = _http.arg("ssid");
   String pass = _http.arg("password");
-  if(ssid && pass && ssid!="" && pass!= "") {
+  if (ssid && pass && ssid != "" && pass != "") {
     _interface->logger->logln(F("Connecting to WiFi"));
     WiFi.begin(ssid.c_str(), pass.c_str());
     _http.send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":true}");
@@ -107,7 +106,7 @@ void BootConfig::_onProxyControlRequest() {
   _interface->logger->logln(F("Received proxy control request"));
   String enable = _http.arg("enable");
   _proxyEnabled = (enable == "true");
-  if(_proxyEnabled) {
+  if (_proxyEnabled) {
     _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"message\":\"proxy-enabled\"}");
   } else {
     _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"message\":\"proxy-disabled\"}");
@@ -117,13 +116,13 @@ void BootConfig::_onProxyControlRequest() {
 }
 
 void BootConfig::_generateNetworksJson() {
-  DynamicJsonBuffer generatedJsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3))); // 1 at root, 3 in childrend
+  DynamicJsonBuffer generatedJsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3)));  // 1 at root, 3 in childrend
   JsonObject& json = generatedJsonBuffer.createObject();
 
-  int jsonLength = 15; // {"networks":[]}
+  int jsonLength = 15;  // {"networks":[]}
   JsonArray& networks = json.createNestedArray("networks");
   for (int network = 0; network < _ssidCount; network++) {
-    jsonLength += 36; // {"ssid":"","rssi":,"encryption":""},
+    jsonLength += 36;  // {"ssid":"","rssi":,"encryption":""},
     JsonObject& jsonNetwork = generatedJsonBuffer.createObject();
     jsonLength += WiFi.SSID(network).length();
     jsonNetwork["ssid"] = WiFi.SSID(network);
@@ -151,7 +150,7 @@ void BootConfig::_generateNetworksJson() {
     networks.add(jsonNetwork);
   }
 
-  jsonLength++; // \0
+  jsonLength++;  // \0
 
   delete[] _jsonWifiNetworks;
   _jsonWifiNetworks = new char[jsonLength];
@@ -161,15 +160,15 @@ void BootConfig::_generateNetworksJson() {
 void BootConfig::_onCaptivePortal() {
   String host = _http.hostHeader();
   if (host && !host.equalsIgnoreCase(F("homie.config"))) {
-    //redirect unknown host requests to self if not connected to Internet yet
-    if(!_proxyEnabled) {
+    // redirect unknown host requests to self if not connected to Internet yet
+    if (!_proxyEnabled) {
       _interface->logger->logln(F("Received captive portal request"));
       // Catch any captive portal probe.
       // Every browser brand uses a different URL for this purpose
       // We MUST redirect all them to local webserver to prevent cache poisoning
       _http.sendHeader(F("Location"), F("http://homie.config/"));
       _http.send(302, F("text/plain"), F(""));
-    //perform transparent proxy to Internet if connected
+    // perform transparent proxy to Internet if connected
     } else {
       _proxyHttpRequest();
     }
@@ -187,16 +186,16 @@ void BootConfig::_onCaptivePortal() {
 void BootConfig::_proxyHttpRequest() {
   _interface->logger->logln(F("Received transparent proxy request"));
 
-  //send request to destination (as in incoming host header)
+  // send request to destination (as in incoming host header)
   _httpClient.setUserAgent("ESP8266-Homie");
   _httpClient.begin("http://" + _http.hostHeader() + _http.uri());
-  //copy headers
-  for(int i=0; i<_http.headers(); i++) {
+  // copy headers
+  for (int i = 0; i < _http.headers(); i++) {
     _httpClient.addHeader(_http.headerName(i), _http.header(i));
   }
 
   String method = "";
-  switch(_http.method()) {
+  switch (_http.method()) {
     case HTTP_GET: method = "GET"; break;
     case HTTP_PUT: method = "PUT"; break;
     case HTTP_POST: method = "POST"; break;
@@ -210,9 +209,9 @@ void BootConfig::_proxyHttpRequest() {
   _interface->logger->log(F("Destination response code="));
   _interface->logger->logln(_httpCode);
 
-  //bridge response to browser
-  //copy response headers
-  for(int i=0; i<_httpClient.headers(); i++) {
+  // bridge response to browser
+  // copy response headers
+  for (int i = 0; i < _httpClient.headers(); i++) {
     _http.sendHeader(_httpClient.headerName(i), _httpClient.header(i), false);
   }
   _interface->logger->logln(F("Bridging received destination contents to client"));
@@ -224,7 +223,7 @@ void BootConfig::_onDeviceInfoRequest() {
   _interface->logger->logln(F("Received device info request"));
   auto numNodes = HomieNode::getNodeCount();
   DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)));
-  int jsonLength = 82; // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[]}
+  int jsonLength = 82;  // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[]}
   JsonObject& json = jsonBuffer.createObject();
   jsonLength += strlen(Helpers::getDeviceId());
   json["device_id"] = Helpers::getDeviceId();
@@ -238,7 +237,7 @@ void BootConfig::_onDeviceInfoRequest() {
 
   JsonArray& nodes = json.createNestedArray("nodes");
   HomieNode::forEach([&nodes, &jsonLength, &jsonBuffer](HomieNode* node) {
-    jsonLength += 20; // {"id":"","type":""},
+    jsonLength += 20;  // {"id":"","type":""},
     JsonObject& jsonNode = jsonBuffer.createObject();
     jsonLength += strlen(node->getId());
     jsonNode["id"] = node->getId();
@@ -247,7 +246,7 @@ void BootConfig::_onDeviceInfoRequest() {
     nodes.add(jsonNode);
   });
 
-  jsonLength++; // \0
+  jsonLength++;  // \0
 
   std::unique_ptr<char[]> jsonString(new char[jsonLength]);
   json.printTo(jsonString.get(), jsonLength);
@@ -275,7 +274,7 @@ void BootConfig::_onConfigRequest() {
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
   char* bodyCharArray = strdup(_http.arg("plain").c_str());
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray); // do not use plain String, else fails
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray);  // do not use plain String, else fails
   if (!parsedJson.success()) {
     _interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -303,7 +302,7 @@ void BootConfig::_onConfigRequest() {
 
   _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
 
-  _flaggedForReboot = true; // We don't reboot immediately, otherwise the response above is not sent
+  _flaggedForReboot = true;  // We don't reboot immediately, otherwise the response above is not sent
   _flaggedForRebootAt = millis();
 }
 

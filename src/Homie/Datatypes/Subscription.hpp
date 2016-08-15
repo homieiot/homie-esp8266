@@ -4,8 +4,8 @@
 #include "./Callbacks.hpp"
 
 namespace HomieInternals {
-  struct Subscription {
-    char property[MAX_NODE_PROPERTY_LENGTH];
-    PropertyInputHandler inputHandler;
-  };
+struct Subscription {
+  char property[MAX_NODE_PROPERTY_LENGTH];
+  PropertyInputHandler inputHandler;
+};
 }

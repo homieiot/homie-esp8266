@@ -4,8 +4,7 @@ using namespace HomieInternals;
 
 Uptime::Uptime()
 : _seconds(0)
-, _lastTick(0)
-{
+, _lastTick(0) {
 }
 
 void Uptime::update() {

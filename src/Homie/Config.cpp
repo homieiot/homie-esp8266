@@ -5,8 +5,7 @@ using namespace HomieInternals;
 Config::Config()
 : _interface(nullptr)
 , _configStruct()
-, _spiffsBegan(false)
-{
+, _spiffsBegan(false) {
 }
 
 void Config::attachInterface(Interface* interface) {

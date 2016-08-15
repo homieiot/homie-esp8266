@@ -2,7 +2,9 @@
 
 using namespace HomieInternals;
 
-HomieClass::HomieClass() : _setupCalled(false) {
+HomieClass::HomieClass()
+: _setupCalled(false)
+, __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(_interface.brand, DEFAULT_BRAND);
   strcpy(_interface.firmware.name, DEFAULT_FW_NAME);
   strcpy(_interface.firmware.version, DEFAULT_FW_VERSION);

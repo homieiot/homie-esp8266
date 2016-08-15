@@ -4,6 +4,7 @@
 
 Homie	KEYWORD1
 HomieNode	KEYWORD1
+HomieSetting	KEYWORD1
 HomieEvent	KEYWORD1
 
 #######################################
@@ -34,6 +35,11 @@ disconnectMqtt	KEYWORD2
 
 subscribe	KEYWORD2
 subscribeToAll	KEYWORD2
+
+get	KEYWORD2
+wasProvided	KEYWORD2
+setDefaultValue	KEYWORD2
+setValidator	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

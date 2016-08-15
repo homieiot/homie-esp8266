@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../HomieEvent.hpp"
 #include <functional>
+#include "../../HomieEvent.hpp"
 
 namespace HomieInternals {
   typedef std::function<void()> OperationFunction;
@@ -13,4 +13,4 @@ namespace HomieInternals {
   typedef std::function<void(HomieEvent event)> EventHandler;
 
   typedef std::function<bool()> ResetFunction;
-}
+}  // namespace HomieInternals

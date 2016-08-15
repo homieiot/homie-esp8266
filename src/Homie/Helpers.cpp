@@ -2,7 +2,7 @@
 
 using namespace HomieInternals;
 
-char Helpers::_deviceId[] = ""; // need to define the static variable
+char Helpers::_deviceId[] = "";  // need to define the static variable
 
 void Helpers::generateDeviceId() {
   char flashChipId[6 + 1];
