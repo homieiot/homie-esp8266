@@ -1,6 +1,8 @@
 Homie for ESP8266
 =================
 
+[![Build Status](https://travis-ci.org/marvinroger/homie-esp8266.svg?branch=master)](https://travis-ci.org/marvinroger/homie-esp8266)
+
 ![homie-esp8266](homie-esp8266.png)
 
 An Arduino for ESP8266 implementation of [Homie](https://git.io/homieiot), an MQTT convention for the IoT.
