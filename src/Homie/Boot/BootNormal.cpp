@@ -115,6 +115,10 @@ void BootNormal::_onMqttConnected() {
   strcat(localIpStr, localIpPartStr);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
 
+  char uptimeIntervalStr[3 + 1];
+  itoa(UPTIME_SEND_INTERVAL / 1000, uptimeIntervalStr, 10);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$uptime/interval")), 1, true, uptimeIntervalStr);
+
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fw/name")), 1, true, _interface->firmware.name);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fw/version")), 1, true, _interface->firmware.version);
 
@@ -403,7 +407,7 @@ void BootNormal::loop() {
     _interface->logger->log(_uptime.getSeconds());
     _interface->logger->logln(F("s)..."));
 
-    _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$uptime")), 1, true, uptimeStr);
+    _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$uptime/value")), 1, true, uptimeStr);
     _uptimeTimer.tick();
   }
 
