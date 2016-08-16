@@ -4,11 +4,12 @@
 
 #include <ArduinoJson.h>
 #include "Limits.hpp"
+#include "../HomieSetting.hpp"
 
 namespace HomieInternals {
 struct ConfigValidationResult {
   bool valid;
-  const __FlashStringHelper* reason;
+  String reason;
 };
 
 class Helpers {
@@ -25,5 +26,6 @@ class Helpers {
   static ConfigValidationResult _validateConfigWifi(const JsonObject& object);
   static ConfigValidationResult _validateConfigMqtt(const JsonObject& object);
   static ConfigValidationResult _validateConfigOta(const JsonObject& object);
+  static ConfigValidationResult _validateConfigSettings(const JsonObject& object);
 };
 }  // namespace HomieInternals

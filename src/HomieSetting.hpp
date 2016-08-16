@@ -5,6 +5,7 @@
 #include "Arduino.h"
 
 namespace HomieInternals {
+class Helpers;
 class BootNormal;
 class BootConfig;
 
@@ -24,6 +25,7 @@ class IHomieSetting {
 
 template <class T>
 class HomieSetting : public HomieInternals::IHomieSetting {
+  friend HomieInternals::Helpers;
   friend HomieInternals::BootNormal;
   friend HomieInternals::BootConfig;
 
@@ -44,6 +46,9 @@ class HomieSetting : public HomieInternals::IHomieSetting {
 
   bool validate(T candidate) const;
   void set(T value);
+  bool isRequired();
+  const char* getName();
+  const char* getDescription();
 
   bool isBool() const;
   bool isUnsignedLong() const;

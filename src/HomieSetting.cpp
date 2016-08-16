@@ -49,6 +49,20 @@ void HomieSetting<T>::set(T value) {
   _provided = true;
 }
 
+template <class T>
+bool HomieSetting<T>::isRequired() {
+  return _required;
+}
+
+template <class T>
+const char* HomieSetting<T>::getName() {
+  return _name;
+}
+
+template <class T>
+const char* HomieSetting<T>::getDescription() {
+  return _description;
+}
 
 template <class T>
 bool HomieSetting<T>::isBool() const { return false; }
