@@ -119,16 +119,11 @@ void BootConfig::_generateNetworksJson() {
   DynamicJsonBuffer generatedJsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3)));  // 1 at root, 3 in childrend
   JsonObject& json = generatedJsonBuffer.createObject();
 
-  int jsonLength = 15;  // {"networks":[]}
   JsonArray& networks = json.createNestedArray("networks");
   for (int network = 0; network < _ssidCount; network++) {
-    jsonLength += 36;  // {"ssid":"","rssi":,"encryption":""},
     JsonObject& jsonNetwork = generatedJsonBuffer.createObject();
-    jsonLength += WiFi.SSID(network).length();
     jsonNetwork["ssid"] = WiFi.SSID(network);
-    jsonLength += 4;
     jsonNetwork["rssi"] = WiFi.RSSI(network);
-    jsonLength += 4;
     switch (WiFi.encryptionType(network)) {
       case ENC_TYPE_WEP:
         jsonNetwork["encryption"] = "wep";
@@ -150,11 +145,10 @@ void BootConfig::_generateNetworksJson() {
     networks.add(jsonNetwork);
   }
 
-  jsonLength++;  // \0
-
   delete[] _jsonWifiNetworks;
-  _jsonWifiNetworks = new char[jsonLength];
-  json.printTo(_jsonWifiNetworks, jsonLength);
+  size_t jsonBufferLength = json.measureLength() + 1;
+  _jsonWifiNetworks = new char[jsonBufferLength];
+  json.printTo(_jsonWifiNetworks, jsonBufferLength);
 }
 
 void BootConfig::_onCaptivePortal() {
@@ -224,25 +218,17 @@ void BootConfig::_onDeviceInfoRequest() {
   auto numSettings = IHomieSetting::settings.size();
   auto numNodes = HomieNode::getNodeCount();
   DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
-  int jsonLength = 96;  // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[],"settings":[]}
   JsonObject& json = jsonBuffer.createObject();
-  jsonLength += strlen(Helpers::getDeviceId());
   json["device_id"] = Helpers::getDeviceId();
-  jsonLength += strlen(VERSION);
   json["homie_version"] = VERSION;
   JsonObject& firmware = json.createNestedObject("firmware");
-  jsonLength += strlen(_interface->firmware.name);
   firmware["name"] = _interface->firmware.name;
-  jsonLength += strlen(_interface->firmware.version);
   firmware["version"] = _interface->firmware.version;
 
   JsonArray& nodes = json.createNestedArray("nodes");
-  HomieNode::forEach([&nodes, &jsonLength, &jsonBuffer](HomieNode* node) {
-    jsonLength += 20;  // {"id":"","type":""},
+  HomieNode::forEach([&nodes, &jsonBuffer](HomieNode* node) {
     JsonObject& jsonNode = jsonBuffer.createObject();
-    jsonLength += strlen(node->getId());
     jsonNode["id"] = node->getId();
-    jsonLength += strlen(node->getType());
     jsonNode["type"] = node->getType();
     nodes.add(jsonNode);
   });
@@ -250,76 +236,59 @@ void BootConfig::_onDeviceInfoRequest() {
   JsonArray& settings = json.createNestedArray("settings");
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
     JsonObject& jsonSetting = jsonBuffer.createObject();
-    jsonLength += 75; // {"name":"","description":"","type":"boolean","required":false,"default":} // let's say default is 50 long
     if (iSetting->isBool()) {
       HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
       jsonSetting["name"] = setting->getName();
-      jsonLength += strlen(setting->getName());
       jsonSetting["description"] = setting->getDescription();
-      jsonLength += strlen(setting->getDescription());
       jsonSetting["type"] = "bool";
       jsonSetting["required"] = setting->isRequired();
       if (!setting->isRequired()) {
         jsonSetting["default"] = setting->get();
-        jsonLength += 5; // max is false
       }
     } else if (iSetting->isUnsignedLong()) {
       HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
       jsonSetting["name"] = setting->getName();
-      jsonLength += strlen(setting->getName());
       jsonSetting["description"] = setting->getDescription();
-      jsonLength += strlen(setting->getDescription());
       jsonSetting["type"] = "ulong";
       jsonSetting["required"] = setting->isRequired();
       if (!setting->isRequired()) {
         jsonSetting["default"] = setting->get();
-        jsonLength += 10; // max is 4294967296
       }
     } else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
       jsonSetting["name"] = setting->getName();
-      jsonLength += strlen(setting->getName());
       jsonSetting["description"] = setting->getDescription();
-      jsonLength += strlen(setting->getDescription());
       jsonSetting["type"] = "long";
       jsonSetting["required"] = setting->isRequired();
       if (!setting->isRequired()) {
         jsonSetting["default"] = setting->get();
-        jsonLength += 11; // max is -2147483647
       }
     } else if (iSetting->isDouble()) {
       HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
       jsonSetting["name"] = setting->getName();
-      jsonLength += strlen(setting->getName());
       jsonSetting["description"] = setting->getDescription();
-      jsonLength += strlen(setting->getDescription());
       jsonSetting["type"] = "double";
       jsonSetting["required"] = setting->isRequired();
       if (!setting->isRequired()) {
         jsonSetting["default"] = setting->get();
-        jsonLength += 24; // max is ??
       }
     } else if (iSetting->isConstChar()) {
       HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
       jsonSetting["name"] = setting->getName();
-      jsonLength += strlen(setting->getName());
       jsonSetting["description"] = setting->getDescription();
-      jsonLength += strlen(setting->getDescription());
       jsonSetting["type"] = "string";
       jsonSetting["required"] = setting->isRequired();
       if (!setting->isRequired()) {
         jsonSetting["default"] = setting->get();
-        jsonLength += strlen(setting->get());
       }
     }
 
     settings.add(jsonSetting);
   }
 
-  jsonLength++;  // \0
-
-  std::unique_ptr<char[]> jsonString(new char[jsonLength]);
-  json.printTo(jsonString.get(), jsonLength);
+  size_t jsonBufferLength = json.measureLength() + 1;
+  std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
+  json.printTo(jsonString.get(), jsonBufferLength);
   _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), jsonString.get());
 }
 
