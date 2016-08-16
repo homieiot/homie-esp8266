@@ -49,10 +49,7 @@ class HomieClass {
   }
   void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
   const ConfigStruct& getConfiguration() const;
-  void publishRaw(const char* topic, const char* value, uint8_t qos = 1, bool retained = true);
-  void disconnectMqtt();
-  inline const char *getBaseTopic() const;
-  inline const char *getId() const;
+  AsyncMqttClient& getMqttClient();
 
  private:
   bool _setupCalled;
@@ -69,12 +66,6 @@ class HomieClass {
 
   const char* __HOMIE_SIGNATURE;
 };
-const char *HomieClass::getId() const {
-  return _config.get().deviceId;
-}
-const char *HomieClass::getBaseTopic() const {
-  return _config.get().mqtt.baseTopic;
-}
 }  // namespace HomieInternals
 
 extern HomieInternals::HomieClass Homie;

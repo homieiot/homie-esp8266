@@ -208,22 +208,8 @@ const ConfigStruct& HomieClass::getConfiguration() const {
   return _config.get();
 }
 
-void HomieClass::publishRaw(const char* topic, const char* value, uint8_t qos, bool retained) {
-  if (!isReadyToOperate()) {
-    _logger.logln(F("✖ publishRaw(): impossible now"));
-    return;
-  }
-
-  _mqttClient.publish(topic, 2, retained, value);
-}
-
-void HomieClass::disconnectMqtt() {
-  if (!isReadyToOperate()) {
-    _logger.logln(F("✖ disconnectMqtt(): impossible now"));
-    return;
-  }
-
-  _mqttClient.disconnect();
+AsyncMqttClient& HomieClass::getMqttClient() {
+  return _mqttClient;
 }
 
 HomieClass Homie;
