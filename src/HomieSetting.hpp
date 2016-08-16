@@ -7,7 +7,6 @@
 namespace HomieInternals {
 class Config;
 class Helpers;
-class BootNormal;
 class BootConfig;
 
 class IHomieSetting {
@@ -28,7 +27,6 @@ template <class T>
 class HomieSetting : public HomieInternals::IHomieSetting {
   friend HomieInternals::Config;
   friend HomieInternals::Helpers;
-  friend HomieInternals::BootNormal;
   friend HomieInternals::BootConfig;
 
  public:

@@ -17,6 +17,7 @@
 #include "../Helpers.hpp"
 #include "../Logger.hpp"
 #include "../Strings.hpp"
+#include "../../HomieSetting.hpp"
 
 namespace HomieInternals {
 class BootConfig : public Boot {

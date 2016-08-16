@@ -221,9 +221,10 @@ void BootConfig::_proxyHttpRequest() {
 
 void BootConfig::_onDeviceInfoRequest() {
   _interface->logger->logln(F("Received device info request"));
+  auto numSettings = IHomieSetting::settings.size();
   auto numNodes = HomieNode::getNodeCount();
-  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)));
-  int jsonLength = 82;  // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[]}
+  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
+  int jsonLength = 96;  // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[],"settings":[]}
   JsonObject& json = jsonBuffer.createObject();
   jsonLength += strlen(Helpers::getDeviceId());
   json["device_id"] = Helpers::getDeviceId();
@@ -245,6 +246,75 @@ void BootConfig::_onDeviceInfoRequest() {
     jsonNode["type"] = node->getType();
     nodes.add(jsonNode);
   });
+
+  JsonArray& settings = json.createNestedArray("settings");
+  for (IHomieSetting* iSetting : IHomieSetting::settings) {
+    JsonObject& jsonSetting = jsonBuffer.createObject();
+    jsonLength += 75; // {"name":"","description":"","type":"boolean","required":false,"default":} // let's say default is 50 long
+    if (iSetting->isBool()) {
+      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+      jsonSetting["name"] = setting->getName();
+      jsonLength += strlen(setting->getName());
+      jsonSetting["description"] = setting->getDescription();
+      jsonLength += strlen(setting->getDescription());
+      jsonSetting["type"] = "bool";
+      jsonSetting["required"] = setting->isRequired();
+      if (!setting->isRequired()) {
+        jsonSetting["default"] = setting->get();
+        jsonLength += 5; // max is false
+      }
+    } else if (iSetting->isUnsignedLong()) {
+      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
+      jsonSetting["name"] = setting->getName();
+      jsonLength += strlen(setting->getName());
+      jsonSetting["description"] = setting->getDescription();
+      jsonLength += strlen(setting->getDescription());
+      jsonSetting["type"] = "ulong";
+      jsonSetting["required"] = setting->isRequired();
+      if (!setting->isRequired()) {
+        jsonSetting["default"] = setting->get();
+        jsonLength += 10; // max is 4294967296
+      }
+    } else if (iSetting->isLong()) {
+      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+      jsonSetting["name"] = setting->getName();
+      jsonLength += strlen(setting->getName());
+      jsonSetting["description"] = setting->getDescription();
+      jsonLength += strlen(setting->getDescription());
+      jsonSetting["type"] = "long";
+      jsonSetting["required"] = setting->isRequired();
+      if (!setting->isRequired()) {
+        jsonSetting["default"] = setting->get();
+        jsonLength += 11; // max is -2147483647
+      }
+    } else if (iSetting->isDouble()) {
+      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+      jsonSetting["name"] = setting->getName();
+      jsonLength += strlen(setting->getName());
+      jsonSetting["description"] = setting->getDescription();
+      jsonLength += strlen(setting->getDescription());
+      jsonSetting["type"] = "double";
+      jsonSetting["required"] = setting->isRequired();
+      if (!setting->isRequired()) {
+        jsonSetting["default"] = setting->get();
+        jsonLength += 24; // max is ??
+      }
+    } else if (iSetting->isConstChar()) {
+      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+      jsonSetting["name"] = setting->getName();
+      jsonLength += strlen(setting->getName());
+      jsonSetting["description"] = setting->getDescription();
+      jsonLength += strlen(setting->getDescription());
+      jsonSetting["type"] = "string";
+      jsonSetting["required"] = setting->isRequired();
+      if (!setting->isRequired()) {
+        jsonSetting["default"] = setting->get();
+        jsonLength += strlen(setting->get());
+      }
+    }
+
+    settings.add(jsonSetting);
+  }
 
   jsonLength++;  // \0
 
