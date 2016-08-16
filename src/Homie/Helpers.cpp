@@ -201,7 +201,7 @@ ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object
   ConfigValidationResult result;
   result.valid = false;
 
-  if (object.containsKey("settings") && !object["settings"].is<JsonObject&>()) {
+  if (!object.containsKey("settings") || !object["settings"].is<JsonObject&>()) {
     result.reason = F("settings is not an object");
     return result;
   }
@@ -300,11 +300,6 @@ ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object
         return result;
       }
     }
-  }
-
-  if (!object["ota"].as<JsonObject&>().containsKey("enabled") || !object["ota"]["enabled"].is<bool>()) {
-    result.reason = F("ota.enabled is not a boolean");
-    return result;
   }
 
   result.valid = true;

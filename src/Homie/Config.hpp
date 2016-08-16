@@ -9,6 +9,7 @@
 #include "Helpers.hpp"
 #include "Limits.hpp"
 #include "Logger.hpp"
+#include "../HomieSetting.hpp"
 
 namespace HomieInternals {
 class Config {

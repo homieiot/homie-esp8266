@@ -113,6 +113,48 @@ bool Config::load() {
   strcpy(_configStruct.mqtt.password, reqMqttPassword);
   _configStruct.ota.enabled = reqOtaEnabled;
 
+  /* Parse the settings */
+
+  if (!parsedJson.containsKey("settings")) {
+    return true;
+  }
+
+  JsonObject& settingsObject = parsedJson["settings"].as<JsonObject&>();
+
+  for (IHomieSetting* iSetting : IHomieSetting::settings) {
+    if (iSetting->isBool()) {
+      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(settingsObject[setting->getName()].as<bool>());
+      }
+    } else if (iSetting->isUnsignedLong()) {
+      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(settingsObject[setting->getName()].as<unsigned long>());
+      }
+    } else if (iSetting->isLong()) {
+      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(settingsObject[setting->getName()].as<long>());
+      }
+    } else if (iSetting->isDouble()) {
+      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(settingsObject[setting->getName()].as<double>());
+      }
+    } else if (iSetting->isConstChar()) {
+      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(strdup(settingsObject[setting->getName()].as<const char*>()));
+      }
+    }
+  }
+
   return true;
 }
 
