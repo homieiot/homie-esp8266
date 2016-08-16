@@ -204,6 +204,10 @@ void HomieClass::setNodeProperty(const HomieNode& node, const char* property, co
   delete[] topic;
 }
 
+const ConfigStruct& HomieClass::getConfiguration() const {
+  return _config.get();
+}
+
 void HomieClass::publishRaw(const char* topic, const char* value, uint8_t qos, bool retained) {
   if (!isReadyToOperate()) {
     _logger.logln(F("✖ publishRaw(): impossible now"));

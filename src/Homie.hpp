@@ -48,6 +48,7 @@ class HomieClass {
     setNodeProperty(node, property.c_str(), value.c_str(), qos, retained);
   }
   void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
+  const ConfigStruct& getConfiguration() const;
   void publishRaw(const char* topic, const char* value, uint8_t qos = 1, bool retained = true);
   void disconnectMqtt();
   inline const char *getBaseTopic() const;
