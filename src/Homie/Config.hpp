@@ -19,7 +19,7 @@ class Config {
   bool load();
   inline const ConfigStruct& get() const;
   void erase();
-  void write(const String& config);
+  void write(const char* config);
   BootMode getBootMode() const;
   void log() const;  // print the current config to log output
 

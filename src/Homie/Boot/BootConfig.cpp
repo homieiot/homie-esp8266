@@ -323,7 +323,6 @@ void BootConfig::_onConfigRequest() {
   }
 
   ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
-  free(bodyCharArray);
   if (!configValidationResult.valid) {
     _interface->logger->log(F("✖ Config file is not valid, reason: "));
     _interface->logger->logln(configValidationResult.reason);
@@ -335,7 +334,8 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  _interface->config->write(_http.arg("plain"));
+  _interface->config->write(bodyCharArray);
+  free(bodyCharArray);
 
   _interface->logger->logln(F("✔ Configured"));
 

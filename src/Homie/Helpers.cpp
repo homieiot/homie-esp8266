@@ -215,16 +215,16 @@ ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object
       if (settingsObject.containsKey(setting->getName())) {
         if (!settingsObject[setting->getName()].is<bool>()) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting is not a boolean");
+          result.reason.concat(F(" setting is not a boolean"));
           return result;
         } else if (!setting->validate(settingsObject[setting->getName()].as<bool>())) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting does not pass the validator function");
+          result.reason.concat(F(" setting does not pass the validator function"));
           return result;
         }
       } else if (setting->isRequired()) {
         result.reason = String(setting->getName());
-        result.reason += F(" setting is missing");
+        result.reason.concat(F(" setting is missing"));
         return result;
       }
     } else if (iSetting->isUnsignedLong()) {
@@ -233,16 +233,16 @@ ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object
       if (settingsObject.containsKey(setting->getName())) {
         if (!settingsObject[setting->getName()].is<unsigned long>()) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting is not an unsigned long");
+          result.reason.concat(F(" setting is not an unsigned long"));
           return result;
         } else if (!setting->validate(settingsObject[setting->getName()].as<unsigned long>())) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting does not pass the validator function");
+          result.reason.concat((" setting does not pass the validator function"));
           return result;
         }
       } else if (setting->isRequired()) {
         result.reason = String(setting->getName());
-        result.reason += F(" setting is missing");
+        result.reason.concat(F(" setting is missing"));
         return result;
       }
     } else if (iSetting->isLong()) {
@@ -251,16 +251,16 @@ ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object
       if (settingsObject.containsKey(setting->getName())) {
         if (!settingsObject[setting->getName()].is<long>()) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting is not a long");
+          result.reason.concat(F(" setting is not a long"));
           return result;
         } else if (!setting->validate(settingsObject[setting->getName()].as<long>())) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting does not pass the validator function");
+          result.reason.concat(F(" setting does not pass the validator function"));
           return result;
         }
       } else if (setting->isRequired()) {
         result.reason = String(setting->getName());
-        result.reason += F(" setting is missing");
+        result.reason.concat(F(" setting is missing"));
         return result;
       }
     } else if (iSetting->isDouble()) {
@@ -269,16 +269,16 @@ ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object
       if (settingsObject.containsKey(setting->getName())) {
         if (!settingsObject[setting->getName()].is<double>()) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting is not a double");
+          result.reason.concat(F(" setting is not a double"));
           return result;
         } else if (!setting->validate(settingsObject[setting->getName()].as<double>())) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting does not pass the validator function");
+          result.reason.concat((" setting does not pass the validator function"));
           return result;
         }
       } else if (setting->isRequired()) {
         result.reason = String(setting->getName());
-        result.reason += F(" setting is missing");
+        result.reason.concat(F(" setting is missing"));
         return result;
       }
     } else if (iSetting->isConstChar()) {
@@ -287,16 +287,16 @@ ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object
       if (settingsObject.containsKey(setting->getName())) {
         if (!settingsObject[setting->getName()].is<const char*>()) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting is not a const char*");
+          result.reason.concat(F(" setting is not a const char*"));
           return result;
         } else if (!setting->validate(settingsObject[setting->getName()].as<const char*>())) {
           result.reason = String(setting->getName());
-          result.reason += F(" setting does not pass the validator function");
+          result.reason.concat(F(" setting does not pass the validator function"));
           return result;
         }
       } else if (setting->isRequired()) {
         result.reason = String(setting->getName());
-        result.reason += F(" setting is missing");
+        result.reason.concat(F(" setting is missing"));
         return result;
       }
     }

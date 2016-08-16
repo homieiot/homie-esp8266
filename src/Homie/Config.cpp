@@ -160,7 +160,7 @@ void Config::erase() {
   SPIFFS.remove(CONFIG_FILE_PATH);
 }
 
-void Config::write(const String& config) {
+void Config::write(const char* config) {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
