@@ -220,7 +220,7 @@ void BootConfig::_onDeviceInfoRequest() {
   DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
   JsonObject& json = jsonBuffer.createObject();
   json["device_id"] = Helpers::getDeviceId();
-  json["homie_version"] = VERSION;
+  json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
   JsonObject& firmware = json.createNestedObject("firmware");
   firmware["name"] = _interface->firmware.name;
   firmware["version"] = _interface->firmware.version;

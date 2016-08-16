@@ -11,5 +11,6 @@ Welcome to the Homie for ESP8266 docs. This will help you to understand the fram
 #### 5. [JSON configuration file](5.-JSON-configuration-file.md)
 #### 6. [Configuration API](6.-Configuration-API.md)
 #### 7. [API reference](7.-API-reference.md)
-#### 8. [Limitations and known issues](8.-Limitations-and-known-issues.md)
-#### 9. [Troubleshooting](9.-Troubleshooting.md)
+#### 8. [Homie implementation specifics](8.-Homie-implementation-specifics.md)
+#### 9. [Limitations and known issues](9.-Limitations-and-known-issues.md)
+#### 10. [Troubleshooting](10.-Troubleshooting.md)

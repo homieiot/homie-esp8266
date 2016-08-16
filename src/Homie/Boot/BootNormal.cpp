@@ -78,7 +78,9 @@ void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
   _interface->logger->logln(F("Sending initial information..."));
 
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 2, true, "true");
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
 
   char nodes[HomieNode::getNodeCount() * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
   char *begin = nodes;
@@ -94,8 +96,8 @@ void BootNormal::_onMqttConnected() {
     ptr += len;
   });
   *ptr = '\0';
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$nodes")), 2, true, nodes);
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$name")), 2, true, _interface->config->get().name);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$nodes")), 1, true, nodes);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$name")), 1, true, _interface->config->get().name);
 
   IPAddress localIp = WiFi.localIP();
   char localIpStr[15 + 1];
@@ -111,15 +113,18 @@ void BootNormal::_onMqttConnected() {
   strcat_P(localIpStr, PSTR("."));
   itoa(localIp[3], localIpPartStr, 10);
   strcat(localIpStr, localIpPartStr);
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$localip")), 2, true, localIpStr);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
 
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fwname")), 2, true, _interface->firmware.name);
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fwversion")), 2, true, _interface->firmware.version);
-
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$ota/enabled")), 2, true, _interface->config->get().ota.enabled ? "true" : "false");
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fw/name")), 1, true, _interface->firmware.name);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$fw/version")), 1, true, _interface->firmware.version);
 
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/+/+/set")), 2);
-  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$reset")), 2);
+
+  /* Implementation specific */
+
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/version")), 1, true, HOMIE_ESP8266_VERSION);
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/ota/enabled")), 1, true, _interface->config->get().ota.enabled ? "true" : "false");
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/reset")), 2);
 
   if (_interface->config->get().ota.enabled) {
     _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
@@ -158,7 +163,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
 
   topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1;  // Remove devices/${id}/ --- +1 for /
 
-  if (strcmp_P(topic, PSTR("$ota/payload")) == 0) {  // If this is the $ota payload
+  if (strcmp_P(topic, PSTR("$implementation/ota/payload")) == 0) {  // If this is the $ota payload
     if (_flaggedForOta) {
       if (index == 0) {
         Update.begin(total);
@@ -189,7 +194,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
         }
 
         _flaggedForOta = false;
-        _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$ota/payload")));
+        _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$implementation/ota/payload")));
       }
     } else {
       _interface->logger->log(F("Receiving OTA payload but not requested, skipping..."));
@@ -211,15 +216,15 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
       _interface->logger->logln(F(")"));
 
       _interface->logger->logln(F("Subscribing to OTA payload..."));
-      _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota/payload")), 0);
+      _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/payload")), 0);
       _flaggedForOta = true;
     }
 
     return;
   }
 
-  if (strcmp_P(topic, PSTR("$reset")) == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
-    _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$reset")), 1, true, "false");
+  if (strcmp_P(topic, PSTR("$implementation/reset")) == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
+    _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
     _flaggedForReset = true;
     _interface->logger->logln(F("Flagged for reset by network"));
     return;
