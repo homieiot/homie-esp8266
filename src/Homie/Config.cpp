@@ -154,6 +154,27 @@ bool Config::load() {
   return true;
 }
 
+char* Config::getSafeConfigFile() const {
+  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  size_t configSize = configFile.size();
+
+  char buf[MAX_JSON_CONFIG_FILE_SIZE];
+  configFile.readBytes(buf, configSize);
+  configFile.close();
+
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
+  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
+  parsedJson["wifi"].as<JsonObject&>().remove("password");
+  parsedJson["mqtt"].as<JsonObject&>().remove("username");
+  parsedJson["mqtt"].as<JsonObject&>().remove("password");
+
+  size_t jsonBufferLength = parsedJson.measureLength() + 1;
+  std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
+  parsedJson.printTo(jsonString.get(), jsonBufferLength);
+
+  return strdup(jsonString.get());
+}
+
 void Config::erase() {
   if (!_spiffsBegin()) { return; }
 

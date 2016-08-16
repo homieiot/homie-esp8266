@@ -18,6 +18,7 @@ class Config {
   void attachInterface(Interface* interface);
   bool load();
   inline const ConfigStruct& get() const;
+  char* getSafeConfigFile() const;
   void erase();
   void write(const char* config);
   BootMode getBootMode() const;
