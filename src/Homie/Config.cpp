@@ -115,10 +115,6 @@ bool Config::load() {
 
   /* Parse the settings */
 
-  if (!parsedJson.containsKey("settings")) {
-    return true;
-  }
-
   JsonObject& settingsObject = parsedJson["settings"].as<JsonObject&>();
 
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
