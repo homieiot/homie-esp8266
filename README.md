@@ -59,4 +59,4 @@ void loop() {
 
 ## Requirements, installation and usage
 
-The project is documented on the [/docs folder](docs), with a *Getting started* guide and every piece of information you will need.
+The project is documented on https://homie-esp8266.readme.io with a *Getting started* guide and every piece of information you will need.
