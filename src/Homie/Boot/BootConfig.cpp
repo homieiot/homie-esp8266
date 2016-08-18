@@ -216,7 +216,7 @@ void BootConfig::_proxyHttpRequest() {
 void BootConfig::_onDeviceInfoRequest() {
   _interface->logger->logln(F("Received device info request"));
   auto numSettings = IHomieSetting::settings.size();
-  auto numNodes = HomieNode::getNodeCount();
+  auto numNodes = HomieNode::nodes.size();
   DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
   JsonObject& json = jsonBuffer.createObject();
   json["device_id"] = Helpers::getDeviceId();
@@ -226,12 +226,12 @@ void BootConfig::_onDeviceInfoRequest() {
   firmware["version"] = _interface->firmware.version;
 
   JsonArray& nodes = json.createNestedArray("nodes");
-  HomieNode::forEach([&nodes, &jsonBuffer](HomieNode* node) {
+  for (HomieNode* iNode : HomieNode::nodes) {
     JsonObject& jsonNode = jsonBuffer.createObject();
-    jsonNode["id"] = node->getId();
-    jsonNode["type"] = node->getType();
+    jsonNode["id"] = iNode->getId();
+    jsonNode["type"] = iNode->getType();
     nodes.add(jsonNode);
-  });
+  }
 
   JsonArray& settings = json.createNestedArray("settings");
   for (IHomieSetting* iSetting : IHomieSetting::settings) {

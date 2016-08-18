@@ -52,7 +52,6 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   MDNS.begin(_interface->config->get().deviceId);
 
   _mqttConnect();
-  // Serial.println(event.ip);
 }
 
 void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event) {
@@ -65,7 +64,6 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
   _interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
 
   _wifiConnect();
-  // Serial.println(event.reason);
 }
 
 void BootNormal::_mqttConnect() {
@@ -82,19 +80,21 @@ void BootNormal::_onMqttConnected() {
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
 
-  char nodes[HomieNode::getNodeCount() * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
+  char nodes[HomieNode::nodes.size() * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
   char *begin = nodes;
   char *ptr = nodes;
-  HomieNode::forEach([begin, &ptr](HomieNode* n) {
+
+  for (HomieNode* iNode : HomieNode::nodes) {
     if (ptr != begin) *ptr++ = ',';
-    auto len = strlen(n->getId());
-    memcpy(ptr, n->getId(), len);
+    auto len = strlen(iNode->getId());
+    memcpy(ptr, iNode->getId(), len);
     ptr += len;
     *ptr++ = ':';
-    len = strlen(n->getType());
-    memcpy(ptr, n->getType(), len);
+    len = strlen(iNode->getType());
+    memcpy(ptr, iNode->getType(), len);
     ptr += len;
-  });
+  }
+
   *ptr = '\0';
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$nodes")), 1, true, nodes);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$name")), 1, true, _interface->config->get().name);
@@ -132,6 +132,7 @@ void BootNormal::_onMqttConnected() {
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/version")), 1, true, HOMIE_ESP8266_VERSION);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/ota/enabled")), 1, true, _interface->config->get().ota.enabled ? "true" : "false");
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/reset")), 2);
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/config/set")), 2);
 
   if (_interface->config->get().ota.enabled) {
     _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
@@ -143,7 +144,10 @@ void BootNormal::_onMqttConnected() {
   _interface->logger->logln(F("✔ MQTT ready"));
   _interface->logger->logln(F("Triggering HOMIE_MQTT_CONNECTED event..."));
   _interface->eventHandler(HOMIE_MQTT_CONNECTED);
-  HomieNode::forEach([] (HomieNode* n) { n->onReadyToOperate(); });
+
+  for (HomieNode* iNode : HomieNode::nodes) {
+    iNode->onReadyToOperate();
+  }
 
   if (!_setupFunctionCalled) {
     _interface->logger->logln(F("Calling setup function..."));
@@ -235,6 +239,10 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     _flaggedForReset = true;
     _interface->logger->logln(F("Flagged for reset by network"));
     return;
+  }
+
+  if (strcmp_P(topic, PSTR("$implementation/config/set")) == 0) {
+
   }
 
   // Implicit node properties
@@ -353,7 +361,9 @@ void BootNormal::setup() {
 
   _interface->config->log();
 
-  HomieNode::forEach([] (HomieNode* n) { n->setup(); });
+  for (HomieNode* iNode : HomieNode::nodes) {
+    iNode->setup();
+  }
 
   _wifiConnect();
 }
@@ -416,5 +426,7 @@ void BootNormal::loop() {
 
   _interface->loopFunction();
 
-  HomieNode::forEach([] (HomieNode* n) { n->loop(); });
+  for (HomieNode* iNode : HomieNode::nodes) {
+    iNode->loop();
+  }
 }

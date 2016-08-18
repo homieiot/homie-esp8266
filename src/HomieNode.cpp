@@ -3,28 +3,21 @@
 
 using namespace HomieInternals;
 
-HomieNode* HomieNode::_first = nullptr;
-HomieNode* HomieNode::_last = nullptr;
-uint8_t HomieNode::_nodeCount = 0;
+std::vector<HomieNode*> HomieNode::nodes;
 
 HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
 : _id(id)
 , _type(type)
 , _subscribeToAll(false)
-, _inputHandler(inputHandler)
-, _next() {
+, _inputHandler(inputHandler) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
     Serial.println(F("✖ HomieNode(): either the id or type string is too long"));
     Serial.flush();
     abort();
   }
   Homie._checkBeforeSetup(F("HomieNode::HomieNode"));
-  if (_last)
-    _last->_next = this;
-  else
-    _first = this;
-  _last = this;
-  _nodeCount++;
+
+  HomieNode::nodes.push_back(this);
 }
 
 void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandler) {

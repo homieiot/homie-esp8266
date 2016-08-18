@@ -38,22 +38,12 @@ class HomieNode {
   uint8_t getSubscriptionsCount() const;
   bool isSubscribedToAll() const;
 
-  static void forEach(std::function<void(HomieNode *)> f) {
-    for (HomieNode* n = _first; n; n = n->_next) {
-      f(n);
-    }
-  }
-
   static HomieNode* find(const char* id) {
-    for (HomieNode* n = _first; n; n = n->_next) {
-      if (strcmp(id, n->getId()) == 0) return n;
+    for (HomieNode* iNode : HomieNode::nodes) {
+      if (strcmp(id, iNode->getId()) == 0) return iNode;
     }
 
     return 0;
-  }
-
-  static uint8_t getNodeCount() {
-    return _nodeCount;
   }
 
   const char* _id;
@@ -61,8 +51,6 @@ class HomieNode {
   std::vector<HomieInternals::Subscription> _subscriptions;
   bool _subscribeToAll;
   HomieInternals::NodeInputHandler _inputHandler;
-  HomieNode* _next;
-  static HomieNode* _first;
-  static HomieNode* _last;
-  static uint8_t _nodeCount;
+
+  static std::vector<HomieNode*> nodes;
 };
