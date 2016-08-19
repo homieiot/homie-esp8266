@@ -241,9 +241,9 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     return;
   }
 
-  if (strcmp_P(topic, PSTR("$implementation/config/set")) == 0) {
+  /*if (strcmp_P(topic, PSTR("$implementation/config/set")) == 0) {
 
-  }
+  }*/
 
   // Implicit node properties
   topic[strlen(topic) - 4] = '\0';  // Remove /set

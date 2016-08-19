@@ -15,7 +15,7 @@ class Property {
   friend BootNormal;
 
  public:
-  Property(const char* id) { _id = id; };
+  explicit Property(const char* id) { _id = id; }
   void settable(PropertyInputHandler inputHandler = [](String value) { return false; }) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
@@ -26,7 +26,7 @@ class Property {
   bool _settable;
   PropertyInputHandler _inputHandler;
 };
-}
+}  // namespace HomieInternals
 
 class HomieNode {
   friend HomieInternals::HomieClass;
