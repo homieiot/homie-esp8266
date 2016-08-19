@@ -54,6 +54,7 @@ class BootNormal : public Boot {
   void _onMqttConnected();
   void _onMqttDisconnected(AsyncMqttClientDisconnectReason reason);
   void _onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total);
+  void _prefixMqttTopic();
   char* _prefixMqttTopic(PGM_P topic);
 };
 }  // namespace HomieInternals

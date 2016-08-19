@@ -44,11 +44,16 @@ bool lightOnHandler(String value) {
 }
 
 void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println();
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 
   Homie_setFirmware("awesome-relay", "1.0.0");
-  lightNode.subscribe("on", lightOnHandler);
+
+  lightNode.advertise("on")->settable(lightOnHandler);
+
   Homie.setup();
 }
 

@@ -20,10 +20,13 @@ BootNormal::BootNormal()
 BootNormal::~BootNormal() {
 }
 
-char* BootNormal::_prefixMqttTopic(PGM_P topic) {
-  _mqttTopic = std::unique_ptr<char[]>(new char[strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + strlen_P(topic) + 1]);
+void BootNormal::_prefixMqttTopic() {
   strcpy(_mqttTopic.get(), _interface->config->get().mqtt.baseTopic);
   strcat(_mqttTopic.get(), _interface->config->get().deviceId);
+}
+
+char* BootNormal::_prefixMqttTopic(PGM_P topic) {
+  _prefixMqttTopic();
   strcat_P(_mqttTopic.get(), topic);
 
   return _mqttTopic.get();
@@ -78,25 +81,27 @@ void BootNormal::_onMqttConnected() {
 
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
-
-  char nodes[HomieNode::nodes.size() * (MAX_NODE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1) - 1];
-  char *begin = nodes;
-  char *ptr = nodes;
 
   for (HomieNode* iNode : HomieNode::nodes) {
-    if (ptr != begin) *ptr++ = ',';
-    auto len = strlen(iNode->getId());
-    memcpy(ptr, iNode->getId(), len);
-    ptr += len;
-    *ptr++ = ':';
-    len = strlen(iNode->getType());
-    memcpy(ptr, iNode->getType(), len);
-    ptr += len;
+    std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(iNode->getId()) + 12 + 1]);  // /id/$properties
+    strcpy_P(subtopic.get(), PSTR("/"));
+    strcat(subtopic.get(), iNode->getId());
+    strcat_P(subtopic.get(), PSTR("/$type"));
+    _interface->mqttClient->publish(_prefixMqttTopic(subtopic.get()), 1, true, iNode->getType());
+
+    strcpy_P(subtopic.get(), PSTR("/"));
+    strcat(subtopic.get(), iNode->getId());
+    strcat_P(subtopic.get(), PSTR("/$properties"));
+    String properties;
+    for (Property* iProperty : iNode->getProperties()) {
+      properties.concat(iProperty->getProperty());
+      if (iProperty->isSettable()) properties.concat(":settable");
+      properties.concat(",");
+    }
+    if (iNode->getProperties().size() >= 1) properties.remove(properties.length() - 1);
+    _interface->mqttClient->publish(_prefixMqttTopic(subtopic.get()), 1, true, properties.c_str());
   }
 
-  *ptr = '\0';
-  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$nodes")), 1, true, nodes);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$name")), 1, true, _interface->config->get().name);
 
   IPAddress localIp = WiFi.localIP();
@@ -137,6 +142,8 @@ void BootNormal::_onMqttConnected() {
   if (_interface->config->get().ota.enabled) {
     _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
   }
+
+  _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
 
   _interface->readyToOperate = true;
   if (_interface->led.enabled) _interface->blinker->stop();
@@ -325,6 +332,22 @@ void BootNormal::setup() {
   Update.runAsync(true);
 
   if (_interface->led.enabled) _interface->blinker->start(LED_WIFI_DELAY);
+
+  // Generate topic buffer
+  size_t baseTopicLength = strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId);
+  size_t longestSubtopicLength = 28 + 1;  // /$implementation/ota/enabled
+  for (HomieNode* iNode : HomieNode::nodes) {
+    size_t nodeMaxTopicLength = 1 + strlen(iNode->getId()) + 12 + 1;  // /id/$properties
+    if (nodeMaxTopicLength > longestSubtopicLength) longestSubtopicLength = nodeMaxTopicLength;
+
+    for (Property* iProperty : iNode->getProperties()) {
+      size_t propertyMaxTopicLength = 1 + strlen(iNode->getId()) + 1 + strlen(iProperty->getProperty()) + 1;
+      if (iProperty->isSettable()) propertyMaxTopicLength += 4;  // /set
+
+      if (propertyMaxTopicLength > longestSubtopicLength) longestSubtopicLength = propertyMaxTopicLength;
+    }
+  }
+  _mqttTopic = std::unique_ptr<char[]>(new char[baseTopicLength + longestSubtopicLength]);
 
   _wifiGotIpHandler = WiFi.onStationModeGotIP(std::bind(&BootNormal::_onWifiGotIp, this, std::placeholders::_1));
   _wifiDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&BootNormal::_onWifiDisconnected, this, std::placeholders::_1));
