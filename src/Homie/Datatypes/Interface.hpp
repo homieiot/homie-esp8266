@@ -14,6 +14,8 @@ struct Interface {
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
 
+  bool standalone;
+
   struct Firmware {
     char name[MAX_FIRMWARE_NAME_LENGTH];
     char version[MAX_FIRMWARE_VERSION_LENGTH];
@@ -40,7 +42,7 @@ struct Interface {
   EventHandler eventHandler;
 
   /***** Runtime data *****/
-  bool readyToOperate;
+  bool connected;
   Logger* logger;
   Blinker* blinker;
   Config* config;

@@ -27,10 +27,12 @@ namespace HomieInternals {
   const float LED_MQTT_DELAY = 0.2;
 
   const char CONFIG_UI_BUNDLE_PATH[] = "/homie/ui_bundle.gz";
+  const char CONFIG_BYPASS_STANDALONE_FILE_PATH[] = "/homie/BYPASS_STANDALONE";
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
 
   enum BootMode : uint8_t {
-    BOOT_NORMAL = 1,
+    BOOT_STANDALONE = 1,
+    BOOT_NORMAL,
     BOOT_CONFIG
   };
 }  // namespace HomieInternals

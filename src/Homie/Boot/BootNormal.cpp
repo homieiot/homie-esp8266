@@ -58,7 +58,7 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
 }
 
 void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event) {
-  _interface->readyToOperate = false;
+  _interface->connected = false;
   if (_interface->led.enabled) _interface->blinker->start(LED_WIFI_DELAY);
   _uptimeTimer.reset();
   _signalQualityTimer.reset();
@@ -145,7 +145,7 @@ void BootNormal::_onMqttConnected() {
 
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
 
-  _interface->readyToOperate = true;
+  _interface->connected = true;
   if (_interface->led.enabled) _interface->blinker->stop();
 
   _interface->logger->logln(F("✔ MQTT ready"));
@@ -164,7 +164,7 @@ void BootNormal::_onMqttConnected() {
 }
 
 void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
-  _interface->readyToOperate = false;
+  _interface->connected = false;
   if (!_mqttDisconnectNotified) {
     _uptimeTimer.reset();
     _signalQualityTimer.reset();
@@ -420,7 +420,7 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
-  if (!_interface->readyToOperate) return;
+  if (!_interface->connected) return;
 
   if (_signalQualityTimer.check()) {
     uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());

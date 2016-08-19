@@ -20,6 +20,8 @@ class Config {
   inline const ConfigStruct& get() const;
   char* getSafeConfigFile() const;
   void erase();
+  void bypassStandalone();
+  bool canBypassStandalone();
   void write(const char* config);
   bool patch(const char* patch);
   BootMode getBootMode() const;

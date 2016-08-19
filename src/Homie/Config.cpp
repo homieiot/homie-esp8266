@@ -179,6 +179,26 @@ void Config::erase() {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
+  SPIFFS.remove(CONFIG_BYPASS_STANDALONE_FILE_PATH);
+}
+
+void Config::bypassStandalone() {
+  if (!_spiffsBegin()) { return; }
+
+  File bypassStandaloneFile = SPIFFS.open(CONFIG_BYPASS_STANDALONE_FILE_PATH, "w");
+  if (!bypassStandaloneFile) {
+    _interface->logger->logln(F("✖ Cannot open bypass standalone file"));
+    return;
+  }
+
+  bypassStandaloneFile.print("1");
+  bypassStandaloneFile.close();
+}
+
+bool Config::canBypassStandalone() {
+  if (!_spiffsBegin()) { return false; }
+
+  return SPIFFS.exists(CONFIG_BYPASS_STANDALONE_FILE_PATH);
 }
 
 void Config::write(const char* config) {

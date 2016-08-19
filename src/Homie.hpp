@@ -8,6 +8,7 @@
 #include "Homie/Limits.hpp"
 #include "Homie/Helpers.hpp"
 #include "Homie/Boot/Boot.hpp"
+#include "Homie/Boot/BootStandalone.hpp"
 #include "Homie/Boot/BootNormal.hpp"
 #include "Homie/Boot/BootConfig.hpp"
 
@@ -43,7 +44,9 @@ class HomieClass {
   void eraseConfig();
   void setSetupFunction(OperationFunction function);
   void setLoopFunction(OperationFunction function);
-  bool isReadyToOperate() const;
+  void setStandalone();
+  bool isConfigured() const;
+  bool isConnected() const;
   void setNodeProperty(const HomieNode& node, const String& property, const String& value, uint8_t qos = 1, bool retained = true) {
     setNodeProperty(node, property.c_str(), value.c_str(), qos, retained);
   }
@@ -54,6 +57,7 @@ class HomieClass {
  private:
   bool _setupCalled;
   Boot* _boot;
+  BootStandalone _bootStandalone;
   BootNormal _bootNormal;
   BootConfig _bootConfig;
   Interface _interface;

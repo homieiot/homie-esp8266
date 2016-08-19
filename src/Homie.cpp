@@ -6,6 +6,7 @@ HomieClass::HomieClass()
 : _setupCalled(false)
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(_interface.brand, DEFAULT_BRAND);
+  _interface.standalone = false;
   strcpy(_interface.firmware.name, DEFAULT_FW_NAME);
   strcpy(_interface.firmware.version, DEFAULT_FW_VERSION);
   _interface.led.enabled = true;
@@ -21,7 +22,7 @@ HomieClass::HomieClass()
   _interface.setupFunction = []() {};
   _interface.loopFunction = []() {};
   _interface.eventHandler = [](HomieEvent event) {};
-  _interface.readyToOperate = false;
+  _interface.connected = false;
   _interface.logger = &_logger;
   _interface.blinker = &_blinker;
   _interface.config = &_config;
@@ -32,6 +33,7 @@ HomieClass::HomieClass()
   _config.attachInterface(&_interface);
   _blinker.attachInterface(&_interface);
 
+  _bootStandalone.attachInterface(&_interface);
   _bootNormal.attachInterface(&_interface);
   _bootConfig.attachInterface(&_interface);
 }
@@ -53,9 +55,15 @@ void HomieClass::setup() {
   _setupCalled = true;
 
   if (!_config.load()) {
-    _boot = &_bootConfig;
-    _logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
-    _interface.eventHandler(HOMIE_CONFIGURATION_MODE);
+    if (_interface.standalone && !_config.canBypassStandalone()) {
+      _boot = &_bootStandalone;
+      _logger.logln(F("Triggering HOMIE_STANDALONE_MODE event..."));
+      _interface.eventHandler(HOMIE_STANDALONE_MODE);
+    } else {
+      _boot = &_bootConfig;
+      _logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
+      _interface.eventHandler(HOMIE_CONFIGURATION_MODE);
+    }
   } else {
     switch (_config.getBootMode()) {
       case BOOT_NORMAL:
@@ -129,10 +137,6 @@ void HomieClass::__setBrand(const char* brand) {
   _interface.brand[strlen(brand) - 10] = '\0';
 }
 
-bool HomieClass::isReadyToOperate() const {
-  return _interface.readyToOperate;
-}
-
 void HomieClass::setResettable(bool resettable) {
   _interface.reset.able = resettable;
 }
@@ -161,6 +165,20 @@ void HomieClass::setLoopFunction(OperationFunction function) {
   _interface.loopFunction = function;
 }
 
+void HomieClass::setStandalone() {
+  _checkBeforeSetup(F("setStandalone"));
+
+  _interface.standalone = true;
+}
+
+bool HomieClass::isConfigured() const {
+  return _config.getBootMode() == BOOT_NORMAL;
+}
+
+bool HomieClass::isConnected() const {
+  return _interface.connected;
+}
+
 void HomieClass::onEvent(EventHandler handler) {
   _checkBeforeSetup(F("onEvent"));
 
@@ -187,7 +205,7 @@ void HomieClass::eraseConfig() {
 }
 
 void HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos, bool retained) {
-  if (!isReadyToOperate()) {
+  if (!isConnected()) {
     _logger.logln(F("✖ setNodeProperty(): impossible now"));
     return;
   }
