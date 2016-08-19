@@ -24,5 +24,4 @@ install:
   - platformio lib install 1106  # Bounce2
 
 script:
-  - if [[ -z "$CPPLINT" ]]; then make test; else platformio ci --lib="." --board=esp01 --board=nodemcuv2; fi
-  
+  - if [[ -z "$CPPLINT" ]]; then platformio ci --lib="." --board=esp01 --board=nodemcuv2; else make test; fi
