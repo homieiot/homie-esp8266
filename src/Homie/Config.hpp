@@ -21,6 +21,7 @@ class Config {
   char* getSafeConfigFile() const;
   void erase();
   void write(const char* config);
+  bool patch(const char* patch);
   BootMode getBootMode() const;
   void log() const;  // print the current config to log output
 

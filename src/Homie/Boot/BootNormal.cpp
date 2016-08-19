@@ -248,9 +248,16 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     return;
   }
 
-  /*if (strcmp_P(topic, PSTR("$implementation/config/set")) == 0) {
-
-  }*/
+  if (strcmp_P(topic, PSTR("$implementation/config/set")) == 0) {
+    if (_interface->config->patch(_mqttPayloadBuffer.get())) {
+      _interface->logger->logln(F("✔ Configuration updated"));
+      _flaggedForReboot = true;
+      _interface->logger->logln(F("Flagged for reboot"));
+    } else {
+      _interface->logger->logln(F("✖ Configuration not updated"));
+    }
+    return;
+  }
 
   // Implicit node properties
   topic[strlen(topic) - 4] = '\0';  // Remove /set
