@@ -41,7 +41,7 @@ class HomieClass {
   void setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
   void disableResetTrigger();
   void setResetFunction(ResetFunction function);
-  void eraseConfig();
+  void eraseConfiguration();
   void setSetupFunction(OperationFunction function);
   void setLoopFunction(OperationFunction function);
   void setStandalone();

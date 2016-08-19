@@ -200,7 +200,7 @@ void HomieClass::disableResetTrigger() {
   _interface.reset.enabled = false;
 }
 
-void HomieClass::eraseConfig() {
+void HomieClass::eraseConfiguration() {
   _config.erase();
 }
 

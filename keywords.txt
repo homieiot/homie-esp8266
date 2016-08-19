@@ -11,14 +11,15 @@ HomieEvent	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
+Homie_setBrand	KEYWORD2
+Homie_setFirmware	KEYWORD2
+
 setup	KEYWORD2
 loop	KEYWORD2
 enableLogging	KEYWORD2
 setLoggingPrinter	KEYWORD2
 enableBuiltInLedIndicator	KEYWORD2
 setLedPin	KEYWORD2
-Homie_setBrand	KEYWORD2
-Homie_setFirmware	KEYWORD2
 setGlobalInputHandler	KEYWORD2
 setSetupFunction	KEYWORD2
 setLoopFunction	KEYWORD2
@@ -26,12 +27,14 @@ onEvent	KEYWORD2
 setResetTrigger	KEYWORD2
 disableResetTrigger	KEYWORD2
 setResetFunction	KEYWORD2
-eraseConfig	KEYWORD2
-isReadyToOperate	KEYWORD2
+eraseConfiguration	KEYWORD2
 setResettable	KEYWORD2
 setNodeProperty	KEYWORD2
-publishRaw	KEYWORD2
-disconnectMqtt	KEYWORD2
+setStandalone	KEYWORD2
+isConfigured	KEYWORD2
+isConnected	KEYWORD2
+getConfiguration	KEYWORD2
+getMqttClient	KEYWORD2
 
 advertise	KEYWORD2
 settable	KEYWORD2
