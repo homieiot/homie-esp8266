@@ -36,21 +36,22 @@ class HomieClass {
   HomieClass& enableBuiltInLedIndicator(bool enable);
   HomieClass& setLedPin(uint8_t pin, uint8_t on);
   HomieClass& setGlobalInputHandler(GlobalInputHandler globalInputHandler);
-  void setResettable(bool resettable);
   HomieClass& onEvent(EventHandler handler);
   HomieClass& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
   HomieClass& disableResetTrigger();
   HomieClass& setResetFunction(ResetFunction function);
-  void eraseConfiguration();
   HomieClass& setSetupFunction(OperationFunction function);
   HomieClass& setLoopFunction(OperationFunction function);
   HomieClass& setStandalone();
-  bool isConfigured() const;
-  bool isConnected() const;
+
   void setNodeProperty(const HomieNode& node, const String& property, const String& value, uint8_t qos = 1, bool retained = true) {
     setNodeProperty(node, property.c_str(), value.c_str(), qos, retained);
   }
   void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
+  void setResettable(bool resettable);
+  void eraseConfiguration();
+  bool isConfigured() const;
+  bool isConnected() const;
   const ConfigStruct& getConfiguration() const;
   AsyncMqttClient& getMqttClient();
 

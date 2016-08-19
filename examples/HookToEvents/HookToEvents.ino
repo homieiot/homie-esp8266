@@ -2,34 +2,34 @@
 
 void onHomieEvent(HomieEvent event) {
   switch(event) {
-    case HOMIE_CONFIGURATION_MODE:
+    case HomieEvent::CONFIGURATION_MODE:
       Serial.println("Configuration mode started");
       break;
-    case HOMIE_NORMAL_MODE:
+    case HomieEvent::NORMAL_MODE:
       Serial.println("Normal mode started");
       break;
-    case HOMIE_OTA_STARTED:
+    case HomieEvent::OTA_STARTED:
       Serial.println("OTA started");
       break;
-    case HOMIE_OTA_FAILED:
+    case HomieEvent::OTA_FAILED:
       Serial.println("OTA failed");
       break;
-    case HOMIE_OTA_SUCCESSFUL:
+    case HomieEvent::OTA_SUCCESSFUL:
       Serial.println("OTA successful");
       break;
-    case HOMIE_ABOUT_TO_RESET:
+    case HomieEvent::ABOUT_TO_RESET:
       Serial.println("About to reset");
       break;
-    case HOMIE_WIFI_CONNECTED:
+    case HomieEvent::WIFI_CONNECTED:
       Serial.println("Wi-Fi connected");
       break;
-    case HOMIE_WIFI_DISCONNECTED:
+    case HomieEvent::WIFI_DISCONNECTED:
       Serial.println("Wi-Fi disconnected");
       break;
-    case HOMIE_MQTT_CONNECTED:
+    case HomieEvent::MQTT_CONNECTED:
       Serial.println("MQTT connected");
       break;
-    case HOMIE_MQTT_DISCONNECTED:
+    case HomieEvent::MQTT_DISCONNECTED:
       Serial.println("MQTT disconnected");
       break;
   }

@@ -57,19 +57,19 @@ void HomieClass::setup() {
   if (!_config.load()) {
     if (_interface.standalone && !_config.canBypassStandalone()) {
       _boot = &_bootStandalone;
-      _logger.logln(F("Triggering HOMIE_STANDALONE_MODE event..."));
-      _interface.eventHandler(HOMIE_STANDALONE_MODE);
+      _logger.logln(F("Triggering STANDALONE_MODE event..."));
+      _interface.eventHandler(HomieEvent::STANDALONE_MODE);
     } else {
       _boot = &_bootConfig;
-      _logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
-      _interface.eventHandler(HOMIE_CONFIGURATION_MODE);
+      _logger.logln(F("Triggering CONFIGURATION_MODE event..."));
+      _interface.eventHandler(HomieEvent::CONFIGURATION_MODE);
     }
   } else {
     switch (_config.getBootMode()) {
       case BOOT_NORMAL:
         _boot = &_bootNormal;
-        _logger.logln(F("Triggering HOMIE_NORMAL_MODE event..."));
-        _interface.eventHandler(HOMIE_NORMAL_MODE);
+        _logger.logln(F("Triggering NORMAL_MODE event..."));
+        _interface.eventHandler(HomieEvent::NORMAL_MODE);
         break;
       default:
         _logger.logln(F("✖ The boot mode is invalid"));

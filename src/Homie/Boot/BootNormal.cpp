@@ -50,8 +50,8 @@ void BootNormal::_wifiConnect() {
 void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   if (_interface->led.enabled) _interface->blinker->stop();
   _interface->logger->logln(F("✔ Wi-Fi connected"));
-  _interface->logger->logln(F("Triggering HOMIE_WIFI_CONNECTED event..."));
-  _interface->eventHandler(HOMIE_WIFI_CONNECTED);
+  _interface->logger->logln(F("Triggering WIFI_CONNECTED event..."));
+  _interface->eventHandler(HomieEvent::WIFI_CONNECTED);
   MDNS.begin(_interface->config->get().deviceId);
 
   _mqttConnect();
@@ -63,8 +63,8 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
   _uptimeTimer.reset();
   _signalQualityTimer.reset();
   _interface->logger->logln(F("✖ Wi-Fi disconnected"));
-  _interface->logger->logln(F("Triggering HOMIE_WIFI_DISCONNECTED event..."));
-  _interface->eventHandler(HOMIE_WIFI_DISCONNECTED);
+  _interface->logger->logln(F("Triggering WIFI_DISCONNECTED event..."));
+  _interface->eventHandler(HomieEvent::WIFI_DISCONNECTED);
 
   _wifiConnect();
 }
@@ -149,8 +149,8 @@ void BootNormal::_onMqttConnected() {
   if (_interface->led.enabled) _interface->blinker->stop();
 
   _interface->logger->logln(F("✔ MQTT ready"));
-  _interface->logger->logln(F("Triggering HOMIE_MQTT_CONNECTED event..."));
-  _interface->eventHandler(HOMIE_MQTT_CONNECTED);
+  _interface->logger->logln(F("Triggering MQTT_CONNECTED event..."));
+  _interface->eventHandler(HomieEvent::MQTT_CONNECTED);
 
   for (HomieNode* iNode : HomieNode::nodes) {
     iNode->onReadyToOperate();
@@ -169,8 +169,8 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     _uptimeTimer.reset();
     _signalQualityTimer.reset();
     _interface->logger->logln(F("✖ MQTT disconnected"));
-    _interface->logger->logln(F("Triggering HOMIE_MQTT_DISCONNECTED event..."));
-    _interface->eventHandler(HOMIE_MQTT_DISCONNECTED);
+    _interface->logger->logln(F("Triggering MQTT_DISCONNECTED event..."));
+    _interface->eventHandler(HomieEvent::MQTT_DISCONNECTED);
     _mqttDisconnectNotified = true;
   }
   _mqttConnect();
@@ -186,8 +186,8 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
       if (index == 0) {
         Update.begin(total);
         _interface->logger->logln(F("OTA started"));
-        _interface->logger->logln(F("Triggering HOMIE_OTA_STARTED event..."));
-        _interface->eventHandler(HOMIE_OTA_STARTED);
+        _interface->logger->logln(F("Triggering OTA_STARTED event..."));
+        _interface->eventHandler(HomieEvent::OTA_STARTED);
       }
       _interface->logger->log(F("Receiving OTA payload ("));
       _interface->logger->log(index + len);
@@ -202,13 +202,13 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
 
         if (success) {
           _interface->logger->logln(F("✔ OTA success"));
-          _interface->logger->logln(F("Triggering HOMIE_OTA_SUCCESSFUL event..."));
-          _interface->eventHandler(HOMIE_OTA_SUCCESSFUL);
+          _interface->logger->logln(F("Triggering OTA_SUCCESSFUL event..."));
+          _interface->eventHandler(HomieEvent::OTA_SUCCESSFUL);
           _flaggedForReboot = true;
         } else {
           _interface->logger->logln(F("✖ OTA failed"));
-          _interface->logger->logln(F("Triggering HOMIE_OTA_FAILED event..."));
-          _interface->eventHandler(HOMIE_OTA_FAILED);
+          _interface->logger->logln(F("Triggering OTA_FAILED event..."));
+          _interface->eventHandler(HomieEvent::OTA_FAILED);
         }
 
         _flaggedForOta = false;
@@ -404,8 +404,8 @@ void BootNormal::loop() {
     _interface->config->erase();
     _interface->logger->logln(F("Configuration erased"));
 
-    _interface->logger->logln(F("Triggering HOMIE_ABOUT_TO_RESET event..."));
-    _interface->eventHandler(HOMIE_ABOUT_TO_RESET);
+    _interface->logger->logln(F("Triggering ABOUT_TO_RESET event..."));
+    _interface->eventHandler(HomieEvent::ABOUT_TO_RESET);
 
     _interface->logger->logln(F("↻ Rebooting into config mode..."));
     _interface->logger->flush();
