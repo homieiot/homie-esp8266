@@ -26,8 +26,7 @@ void setup() {
   Serial.println();
   Serial.println();
   Homie_setFirmware("awesome-temperature", "1.0.0");
-  Homie.setSetupFunction(setupHandler);
-  Homie.setLoopFunction(loopHandler);
+  Homie.setSetupFunction(setupHandler).setLoopFunction(loopHandler);
 
   temperatureNode.advertise("unit");
   temperatureNode.advertise("degrees");

@@ -86,29 +86,37 @@ void HomieClass::loop() {
   _boot->loop();
 }
 
-void HomieClass::enableLogging(bool enable) {
+HomieClass& HomieClass::enableLogging(bool enable) {
   _checkBeforeSetup(F("enableLogging"));
 
   _logger.setLogging(enable);
+
+  return *this;
 }
 
-void HomieClass::setLoggingPrinter(Print* printer) {
+HomieClass& HomieClass::setLoggingPrinter(Print* printer) {
   _checkBeforeSetup(F("setLoggingPrinter"));
 
   _logger.setPrinter(printer);
+
+  return *this;
 }
 
-void HomieClass::enableBuiltInLedIndicator(bool enable) {
+HomieClass& HomieClass::enableBuiltInLedIndicator(bool enable) {
   _checkBeforeSetup(F("enableBuiltInLedIndicator"));
 
   _interface.led.enabled = enable;
+
+  return *this;
 }
 
-void HomieClass::setLedPin(uint8_t pin, uint8_t on) {
+HomieClass& HomieClass::setLedPin(uint8_t pin, uint8_t on) {
   _checkBeforeSetup(F("setLedPin"));
 
   _interface.led.pin = pin;
   _interface.led.on = on;
+
+  return *this;
 }
 
 void HomieClass::__setFirmware(const char* name, const char* version) {
@@ -141,34 +149,44 @@ void HomieClass::setResettable(bool resettable) {
   _interface.reset.able = resettable;
 }
 
-void HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
+HomieClass& HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
   _checkBeforeSetup(F("setGlobalInputHandler"));
 
   _interface.globalInputHandler = inputHandler;
+
+  return *this;
 }
 
-void HomieClass::setResetFunction(ResetFunction function) {
+HomieClass& HomieClass::setResetFunction(ResetFunction function) {
   _checkBeforeSetup(F("setResetFunction"));
 
   _interface.reset.userFunction = function;
+
+  return *this;
 }
 
-void HomieClass::setSetupFunction(OperationFunction function) {
+HomieClass& HomieClass::setSetupFunction(OperationFunction function) {
   _checkBeforeSetup(F("setSetupFunction"));
 
   _interface.setupFunction = function;
+
+  return *this;
 }
 
-void HomieClass::setLoopFunction(OperationFunction function) {
+HomieClass& HomieClass::setLoopFunction(OperationFunction function) {
   _checkBeforeSetup(F("setLoopFunction"));
 
   _interface.loopFunction = function;
+
+  return *this;
 }
 
-void HomieClass::setStandalone() {
+HomieClass& HomieClass::setStandalone() {
   _checkBeforeSetup(F("setStandalone"));
 
   _interface.standalone = true;
+
+  return *this;
 }
 
 bool HomieClass::isConfigured() const {
@@ -179,25 +197,31 @@ bool HomieClass::isConnected() const {
   return _interface.connected;
 }
 
-void HomieClass::onEvent(EventHandler handler) {
+HomieClass& HomieClass::onEvent(EventHandler handler) {
   _checkBeforeSetup(F("onEvent"));
 
   _interface.eventHandler = handler;
+
+  return *this;
 }
 
-void HomieClass::setResetTrigger(uint8_t pin, uint8_t state, uint16_t time) {
+HomieClass& HomieClass::setResetTrigger(uint8_t pin, uint8_t state, uint16_t time) {
   _checkBeforeSetup(F("setResetTrigger"));
 
   _interface.reset.enabled = true;
   _interface.reset.triggerPin = pin;
   _interface.reset.triggerState = state;
   _interface.reset.triggerTime = time;
+
+  return *this;
 }
 
-void HomieClass::disableResetTrigger() {
+HomieClass& HomieClass::disableResetTrigger() {
   _checkBeforeSetup(F("disableResetTrigger"));
 
   _interface.reset.enabled = false;
+
+  return *this;
 }
 
 void HomieClass::eraseConfiguration() {

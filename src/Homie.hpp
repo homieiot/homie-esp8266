@@ -31,20 +31,20 @@ class HomieClass {
   void __setFirmware(const char* name, const char* version);
   void __setBrand(const char* brand);
 
-  void enableLogging(bool enable);
-  void setLoggingPrinter(Print* printer);
-  void enableBuiltInLedIndicator(bool enable);
-  void setLedPin(uint8_t pin, uint8_t on);
-  void setGlobalInputHandler(GlobalInputHandler globalInputHandler);
+  HomieClass& enableLogging(bool enable);
+  HomieClass& setLoggingPrinter(Print* printer);
+  HomieClass& enableBuiltInLedIndicator(bool enable);
+  HomieClass& setLedPin(uint8_t pin, uint8_t on);
+  HomieClass& setGlobalInputHandler(GlobalInputHandler globalInputHandler);
   void setResettable(bool resettable);
-  void onEvent(EventHandler handler);
-  void setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
-  void disableResetTrigger();
-  void setResetFunction(ResetFunction function);
+  HomieClass& onEvent(EventHandler handler);
+  HomieClass& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
+  HomieClass& disableResetTrigger();
+  HomieClass& setResetFunction(ResetFunction function);
   void eraseConfiguration();
-  void setSetupFunction(OperationFunction function);
-  void setLoopFunction(OperationFunction function);
-  void setStandalone();
+  HomieClass& setSetupFunction(OperationFunction function);
+  HomieClass& setLoopFunction(OperationFunction function);
+  HomieClass& setStandalone();
   bool isConfigured() const;
   bool isConnected() const;
   void setNodeProperty(const HomieNode& node, const String& property, const String& value, uint8_t qos = 1, bool retained = true) {
