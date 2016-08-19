@@ -3,7 +3,6 @@
 #include <functional>
 #include <vector>
 #include "Arduino.h"
-#include "Homie/Datatypes/Subscription.hpp"
 #include "Homie/Datatypes/Callbacks.hpp"
 #include "Homie/Limits.hpp"
 
@@ -11,6 +10,22 @@ namespace HomieInternals {
 class HomieClass;
 class BootNormal;
 class BootConfig;
+
+class Property {
+  friend BootNormal;
+
+ public:
+  Property(const char* id) { _id = id; };
+  void settable(PropertyInputHandler inputHandler = [](String value) { return false; }) { _settable = true;  _inputHandler = inputHandler; }
+
+ private:
+  const char* getProperty() { return _id; }
+  bool isSettable() { return _settable; }
+  PropertyInputHandler getInputHandler() { return _inputHandler; }
+  const char* _id;
+  bool _settable;
+  PropertyInputHandler _inputHandler;
+};
 }
 
 class HomieNode {
@@ -24,8 +39,7 @@ class HomieNode {
   const char* getId() const { return _id; }
   const char* getType() const { return _type; }
 
-  void subscribe(const char* property, HomieInternals::PropertyInputHandler inputHandler = [](String value) { return false; });
-  void subscribeToAll();
+  HomieInternals::Property* advertise(const char* property);
 
  protected:
   virtual void setup() {}
@@ -34,9 +48,7 @@ class HomieNode {
   virtual bool handleInput(String const &property, String const &value);
 
  private:
-  const std::vector<HomieInternals::Subscription>& getSubscriptions() const;
-  uint8_t getSubscriptionsCount() const;
-  bool isSubscribedToAll() const;
+  const std::vector<HomieInternals::Property*>& getProperties() const;
 
   static HomieNode* find(const char* id) {
     for (HomieNode* iNode : HomieNode::nodes) {
@@ -48,8 +60,7 @@ class HomieNode {
 
   const char* _id;
   const char* _type;
-  std::vector<HomieInternals::Subscription> _subscriptions;
-  bool _subscribeToAll;
+  std::vector<HomieInternals::Property*> _properties;
   HomieInternals::NodeInputHandler _inputHandler;
 
   static std::vector<HomieNode*> nodes;

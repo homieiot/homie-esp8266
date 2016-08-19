@@ -33,8 +33,8 @@ setNodeProperty	KEYWORD2
 publishRaw	KEYWORD2
 disconnectMqtt	KEYWORD2
 
-subscribe	KEYWORD2
-subscribeToAll	KEYWORD2
+advertise	KEYWORD2
+settable	KEYWORD2
 
 get	KEYWORD2
 wasProvided	KEYWORD2

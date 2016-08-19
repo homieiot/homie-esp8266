@@ -31,6 +31,9 @@ void setup() {
   Homie.setSetupFunction(setupHandler);
   Homie.setLoopFunction(loopHandler);
 
+  temperatureNode.advertise("unit");
+  temperatureNode.advertise("degrees");
+
   temperatureIntervalSetting.setDefaultValue(DEFAULT_TEMPERATURE_INTERVAL);
 
   Homie.setup();

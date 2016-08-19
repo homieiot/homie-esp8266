@@ -1,7 +1,7 @@
 language: python
 python:
   - "2.7"
-  
+
 cache:
   directories:
     - "~/.platformio"
@@ -11,7 +11,6 @@ env:
   - PLATFORMIO_CI_SRC=examples/DoorSensor
   - PLATFORMIO_CI_SRC=examples/HookToEvents
   - PLATFORMIO_CI_SRC=examples/IteadSonoff
-  - PLATFORMIO_CI_SRC=examples/LedStrip
   - PLATFORMIO_CI_SRC=examples/LightOnOff
   - PLATFORMIO_CI_SRC=examples/TemperatureSensor
   - CPPLINT=true
@@ -20,7 +19,7 @@ install:
   - pip install -U platformio
   - pip install cpplint
   - platformio lib install 64  # ArduinoJson
-  - platformio lib install 346  # AsyncMqttClient 
+  - platformio lib install 346  # AsyncMqttClient
   - platformio lib install 1106  # Bounce2
 
 script:

@@ -28,6 +28,10 @@ void setup() {
   Homie_setFirmware("awesome-temperature", "1.0.0");
   Homie.setSetupFunction(setupHandler);
   Homie.setLoopFunction(loopHandler);
+
+  temperatureNode.advertise("unit");
+  temperatureNode.advertise("degrees");
+
   Homie.setup();
 }
 

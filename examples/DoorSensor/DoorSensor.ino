@@ -33,6 +33,9 @@ void setup() {
 
   Homie_setFirmware("awesome-door", "1.0.0");
   Homie.setLoopFunction(loopHandler);
+
+  doorNode.advertise("open");
+
   Homie.setup();
 }
 
