@@ -6,14 +6,14 @@ unsigned long lastTemperatureSent = 0;
 
 HomieNode temperatureNode("temperature", "temperature");
 
-HomieSetting<unsigned long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in milliseconds");
+HomieSetting<unsigned long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in seconds");
 
 void setupHandler() {
   Homie.setNodeProperty(temperatureNode, "unit", "c", true);
 }
 
 void loopHandler() {
-  if (millis() - lastTemperatureSent >= temperatureIntervalSetting.get() || lastTemperatureSent == 0) {
+  if (millis() - lastTemperatureSent >= temperatureIntervalSetting.get() * 1000UL || lastTemperatureSent == 0) {
     float temperature = 22; // Fake temperature here, for the example
     Serial.print("Temperature: ");
     Serial.print(temperature);
