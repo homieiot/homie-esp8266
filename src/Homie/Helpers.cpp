@@ -201,7 +201,7 @@ ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object
   ConfigValidationResult result;
   result.valid = false;
 
-  StaticJsonBuffer<200> emptySettingsBuffer;
+  StaticJsonBuffer<0> emptySettingsBuffer;
 
   JsonObject* settingsObject = &(emptySettingsBuffer.createObject());
 
