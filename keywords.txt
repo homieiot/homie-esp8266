@@ -16,9 +16,9 @@ Homie_setFirmware	KEYWORD2
 
 setup	KEYWORD2
 loop	KEYWORD2
-enableLogging	KEYWORD2
+disableLogging	KEYWORD2
 setLoggingPrinter	KEYWORD2
-enableBuiltInLedIndicator	KEYWORD2
+disableLedFeedback	KEYWORD2
 setLedPin	KEYWORD2
 setGlobalInputHandler	KEYWORD2
 onEvent	KEYWORD2
@@ -29,7 +29,7 @@ setSetupFunction	KEYWORD2
 setLoopFunction	KEYWORD2
 setStandalone	KEYWORD2
 setNodeProperty	KEYWORD2
-setResettable	KEYWORD2
+setIdle	KEYWORD2
 eraseConfiguration	KEYWORD2
 isConfigured	KEYWORD2
 isConnected	KEYWORD2

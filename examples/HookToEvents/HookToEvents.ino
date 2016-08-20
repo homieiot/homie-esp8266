@@ -2,6 +2,9 @@
 
 void onHomieEvent(HomieEvent event) {
   switch(event) {
+    case HomieEvent::STANDALONE_MODE:
+      Serial.println("Standalone mode started");
+      break;
     case HomieEvent::CONFIGURATION_MODE:
       Serial.println("Configuration mode started");
       break;
@@ -39,7 +42,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
   Serial.println();
-  Homie.enableLogging(false);
+  Homie.disableLogging();
   Homie_setFirmware("events-test", "1.0.0");
   Homie.onEvent(onHomieEvent);
   Homie.setup();

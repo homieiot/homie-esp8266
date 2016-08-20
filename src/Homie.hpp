@@ -31,9 +31,9 @@ class HomieClass {
   void __setFirmware(const char* name, const char* version);
   void __setBrand(const char* brand);
 
-  HomieClass& enableLogging(bool enable);
+  HomieClass& disableLogging();
   HomieClass& setLoggingPrinter(Print* printer);
-  HomieClass& enableBuiltInLedIndicator(bool enable);
+  HomieClass& disableLedFeedback();
   HomieClass& setLedPin(uint8_t pin, uint8_t on);
   HomieClass& setGlobalInputHandler(GlobalInputHandler globalInputHandler);
   HomieClass& onEvent(EventHandler handler);
@@ -48,7 +48,7 @@ class HomieClass {
     setNodeProperty(node, property.c_str(), value.c_str(), qos, retained);
   }
   void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
-  void setResettable(bool resettable);
+  void setIdle(bool idle);
   void eraseConfiguration();
   bool isConfigured() const;
   bool isConnected() const;

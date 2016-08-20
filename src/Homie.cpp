@@ -86,10 +86,10 @@ void HomieClass::loop() {
   _boot->loop();
 }
 
-HomieClass& HomieClass::enableLogging(bool enable) {
-  _checkBeforeSetup(F("enableLogging"));
+HomieClass& HomieClass::disableLogging() {
+  _checkBeforeSetup(F("disableLogging"));
 
-  _logger.setLogging(enable);
+  _logger.setLogging(false);
 
   return *this;
 }
@@ -102,10 +102,10 @@ HomieClass& HomieClass::setLoggingPrinter(Print* printer) {
   return *this;
 }
 
-HomieClass& HomieClass::enableBuiltInLedIndicator(bool enable) {
-  _checkBeforeSetup(F("enableBuiltInLedIndicator"));
+HomieClass& HomieClass::disableLedFeedback() {
+  _checkBeforeSetup(F("disableLedFeedback"));
 
-  _interface.led.enabled = enable;
+  _interface.led.enabled = false;
 
   return *this;
 }
@@ -145,8 +145,8 @@ void HomieClass::__setBrand(const char* brand) {
   _interface.brand[strlen(brand) - 10] = '\0';
 }
 
-void HomieClass::setResettable(bool resettable) {
-  _interface.reset.able = resettable;
+void HomieClass::setIdle(bool idle) {
+  _interface.reset.able = idle;
 }
 
 HomieClass& HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {

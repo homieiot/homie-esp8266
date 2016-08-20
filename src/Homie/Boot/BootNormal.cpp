@@ -287,11 +287,12 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     }
   }
 
-  if (!propertyObject) {
+  if (!propertyObject || !propertyObject->isSettable()) {
     _interface->logger->log(F("Node "));
     _interface->logger->log(node);
-    _interface->logger->log(F(" not subscribed to "));
+    _interface->logger->log(F(":"));
     _interface->logger->logln(property);
+    _interface->logger->log(F(" property not settable"));
     return;
   }
 
