@@ -15,7 +15,7 @@ class Property {
   friend BootNormal;
 
  public:
-  explicit Property(const char* id) { _id = id; }
+  explicit Property(const char* id) { _id = strdup(id); }
   void settable(PropertyInputHandler inputHandler = [](String value) { return false; }) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
