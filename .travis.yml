@@ -29,4 +29,4 @@ install:
   - platformio lib install 1106  # Bounce2
 
 script:
-  - if [[ "$CPPLINT" ]]; then make cpplint; elif [[ "$CPPCHECK" ]]; then cppcheck --enable=all --inconclusive --suppress=unusedFunction:src/Homie.cpp --suppress=unusedFunction:src/HomieNode.cpp --suppress=passedByValue:src/HomieNode.cpp  src/; else then platformio ci --lib="." --board=esp01 --board=nodemcuv2; fi
+  - if [[ "$CPPLINT" ]]; then make cpplint; elif [[ "$CPPCHECK" ]]; then cppcheck --enable=all --inconclusive --suppress=unusedFunction:src/Homie.cpp --suppress=unusedFunction:src/HomieNode.cpp --suppress=passedByValue:src/HomieNode.cpp  src/; else platformio ci --lib="." --board=esp01 --board=nodemcuv2; fi
