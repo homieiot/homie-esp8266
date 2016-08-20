@@ -46,9 +46,9 @@ class HomieSetting : public HomieInternals::IHomieSetting {
 
   bool validate(T candidate) const;
   void set(T value);
-  bool isRequired();
-  const char* getName();
-  const char* getDescription();
+  bool isRequired() const;
+  const char* getName() const;
+  const char* getDescription() const;
 
   bool isBool() const;
   bool isUnsignedLong() const;

@@ -4,6 +4,7 @@ using namespace HomieInternals;
 
 Config::Config()
 : _interface(nullptr)
+, _bootMode()
 , _configStruct()
 , _spiffsBegan(false) {
 }

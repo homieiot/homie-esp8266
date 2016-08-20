@@ -50,17 +50,17 @@ void HomieSetting<T>::set(T value) {
 }
 
 template <class T>
-bool HomieSetting<T>::isRequired() {
+bool HomieSetting<T>::isRequired() const {
   return _required;
 }
 
 template <class T>
-const char* HomieSetting<T>::getName() {
+const char* HomieSetting<T>::getName() const {
   return _name;
 }
 
 template <class T>
-const char* HomieSetting<T>::getDescription() {
+const char* HomieSetting<T>::getDescription() const {
   return _description;
 }
 

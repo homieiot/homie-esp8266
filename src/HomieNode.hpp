@@ -19,9 +19,9 @@ class Property {
   void settable(PropertyInputHandler inputHandler = [](String value) { return false; }) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
-  const char* getProperty() { return _id; }
-  bool isSettable() { return _settable; }
-  PropertyInputHandler getInputHandler() { return _inputHandler; }
+  const char* getProperty() const { return _id; }
+  bool isSettable() const { return _settable; }
+  PropertyInputHandler getInputHandler() const { return _inputHandler; }
   const char* _id;
   bool _settable;
   PropertyInputHandler _inputHandler;

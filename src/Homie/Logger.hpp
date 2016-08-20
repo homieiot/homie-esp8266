@@ -8,7 +8,6 @@ class Logger {
   Logger();
   void setPrinter(Print* printer);
   void setLogging(bool enable);
-  bool isEnabled() const;
   template <typename T> void log(T value) const {
     if (_loggingEnabled) {
       _printer->print(value);

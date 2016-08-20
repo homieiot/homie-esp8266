@@ -7,10 +7,6 @@ Logger::Logger()
 , _printer(&Serial) {
 }
 
-bool Logger::isEnabled() const {
-  return _loggingEnabled;
-}
-
 void Logger::setLogging(bool enable) {
   _loggingEnabled = enable;
 }
