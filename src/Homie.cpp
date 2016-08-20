@@ -18,7 +18,7 @@ HomieClass::HomieClass()
   _interface.reset.triggerState = DEFAULT_RESET_STATE;
   _interface.reset.triggerTime = DEFAULT_RESET_TIME;
   _interface.reset.userFunction = []() { return false; };
-  _interface.globalInputHandler = [](String node, String property, String value) { return false; };
+  _interface.globalInputHandler = [](String node, String property, HomieRange range, String value) { return false; };
   _interface.setupFunction = []() {};
   _interface.loopFunction = []() {};
   _interface.eventHandler = [](HomieEvent event) {};

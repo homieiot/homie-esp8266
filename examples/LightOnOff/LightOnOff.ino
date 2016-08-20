@@ -4,7 +4,7 @@ const int PIN_RELAY = 5;
 
 HomieNode lightNode("light", "switch");
 
-bool lightOnHandler(String value) {
+bool lightOnHandler(HomieRange range, String value) {
   if (value == "true") {
     digitalWrite(PIN_RELAY, HIGH);
     Homie.setNodeProperty(lightNode, "on", "true"); // Update the state of the light

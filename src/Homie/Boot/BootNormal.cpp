@@ -95,6 +95,13 @@ void BootNormal::_onMqttConnected() {
     String properties;
     for (Property* iProperty : iNode->getProperties()) {
       properties.concat(iProperty->getProperty());
+      if (iProperty->isRange()) {
+        properties.concat("[");
+        properties.concat(iProperty->getLower());
+        properties.concat("-");
+        properties.concat(iProperty->getUpper());
+        properties.concat("]");
+      }
       if (iProperty->isSettable()) properties.concat(":settable");
       properties.concat(",");
     }
@@ -279,9 +286,47 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     return;
   }
 
+  int16_t rangeSeparator = -1;
+  for (uint16_t i = 0; i < strlen(property); i++) {
+    if (property[i] == '_') {
+      rangeSeparator = i;
+      break;
+    }
+  }
+  bool isRange = false;
+  uint16_t rangeIndex = 0;
+  if (rangeSeparator != -1) {
+    isRange = true;
+    property[rangeSeparator] = '\0';
+    char* rangeIndexStr = property + rangeSeparator + 1;
+    String rangeIndexTest = String(rangeIndexStr);
+    for (uint8_t i = 0; i < rangeIndexTest.length(); i++) {
+      if (!isDigit(rangeIndexTest.charAt(i))) {
+        _interface->logger->log(F("Range index "));
+        _interface->logger->log(rangeIndexStr);
+        _interface->logger->logln(F(" is not valid"));
+        return;
+      }
+    }
+    rangeIndex = rangeIndexTest.toInt();
+  }
+
   Property* propertyObject = nullptr;
   for (Property* iProperty : homieNode->getProperties()) {
-    if (strcmp(property, iProperty->getProperty()) == 0) {
+    if (isRange) {
+      if (iProperty->isRange() && strcmp(property, iProperty->getProperty()) == 0) {
+        if (rangeIndex >= iProperty->getLower() && rangeIndex <= iProperty->getUpper()) {
+          propertyObject = iProperty;
+          break;
+        } else {
+          _interface->logger->log(F("Range index "));
+          _interface->logger->log(rangeIndex);
+          _interface->logger->log(F(" is not within the bounds of "));
+          _interface->logger->logln(property);
+          return;
+        }
+      }
+    } else if (strcmp(property, iProperty->getProperty()) == 0) {
       propertyObject = iProperty;
       break;
     }
@@ -296,16 +341,20 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     return;
   }
 
+  HomieRange range;
+  range.isRange = isRange;
+  range.index = rangeIndex;
+
   _interface->logger->logln(F("Calling global input handler..."));
-  bool handled = _interface->globalInputHandler(String(node), String(property), String(_mqttPayloadBuffer.get()));
+  bool handled = _interface->globalInputHandler(String(node), String(property), range, String(_mqttPayloadBuffer.get()));
   if (handled) return;
 
   _interface->logger->logln(F("Calling node input handler..."));
-  handled = homieNode->handleInput(String(property), String(_mqttPayloadBuffer.get()));
+  handled = homieNode->handleInput(String(property), range, String(_mqttPayloadBuffer.get()));
   if (handled) return;
 
   _interface->logger->logln(F("Calling property input handler..."));
-  handled = propertyObject->getInputHandler()(String(_mqttPayloadBuffer.get()));
+  handled = propertyObject->getInputHandler()(range, String(_mqttPayloadBuffer.get()));
 
   if (!handled) {
     _interface->logger->logln(F("No handlers handled the following packet:"));
@@ -313,6 +362,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
     _interface->logger->logln(node);
     _interface->logger->log(F("  • Property: "));
     _interface->logger->logln(property);
+    _interface->logger->log(F("  • Is range? "));
+    if (isRange) {
+      _interface->logger->log(F("yes ("));
+      _interface->logger->log(rangeIndex);
+      _interface->logger->logln(F(")"));
+    } else {
+      _interface->logger->logln(F("no"));
+    }
     _interface->logger->log(F("  • Value: "));
     _interface->logger->logln(_mqttPayloadBuffer.get());
   }

@@ -8,7 +8,7 @@ const int PIN_BUTTON = 0;
 
 HomieNode switchNode("switch", "switch");
 
-bool switchOnHandler(String value) {
+bool switchOnHandler(HomieRange range, String value) {
   if (value == "true") {
     digitalWrite(PIN_RELAY, HIGH);
     Homie.setNodeProperty(switchNode, "on", "true");

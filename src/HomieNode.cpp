@@ -28,8 +28,16 @@ Property* HomieNode::advertise(const char* property) {
   return propertyObject;
 }
 
-bool HomieNode::handleInput(String const &property, String const &value) {
-  return _inputHandler(property, value);
+Property* HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
+  Property* propertyObject = new Property(property, true, lower, upper);
+
+  _properties.push_back(propertyObject);
+
+  return propertyObject;
+}
+
+bool HomieNode::handleInput(String const &property, HomieRange range, String const &value) {
+  return _inputHandler(property, range, value);
 }
 
 const std::vector<HomieInternals::Property*>& HomieNode::getProperties() const {

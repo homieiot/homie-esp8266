@@ -6,6 +6,7 @@ Homie	KEYWORD1
 HomieNode	KEYWORD1
 HomieSetting	KEYWORD1
 HomieEvent	KEYWORD1
+HomieRange	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -37,12 +38,16 @@ getConfiguration	KEYWORD2
 getMqttClient	KEYWORD2
 
 advertise	KEYWORD2
+advertiseRange	KEYWORD2
 settable	KEYWORD2
 
 get	KEYWORD2
 wasProvided	KEYWORD2
 setDefaultValue	KEYWORD2
 setValidator	KEYWORD2
+
+isRange	KEYWORD2
+index	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
