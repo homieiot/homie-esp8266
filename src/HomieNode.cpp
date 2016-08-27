@@ -3,59 +3,43 @@
 
 using namespace HomieInternals;
 
-HomieNode* HomieNode::_first = nullptr;
-HomieNode* HomieNode::_last = nullptr;
-uint8_t HomieNode::_nodeCount = 0;
+std::vector<HomieNode*> HomieNode::nodes;
 
 HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
 : _id(id)
 , _type(type)
-, _subscribeToAll(false)
-, _inputHandler(inputHandler)
-, _next() {
+, _properties()
+, _inputHandler(inputHandler) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
     Serial.println(F("✖ HomieNode(): either the id or type string is too long"));
     Serial.flush();
     abort();
   }
   Homie._checkBeforeSetup(F("HomieNode::HomieNode"));
-  if (_last)
-    _last->_next = this;
-  else
-    _first = this;
-  _last = this;
-  ++_nodeCount;
+
+  HomieNode::nodes.push_back(this);
 }
 
-void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandler) {
-  if (strlen(property) + 1 > MAX_NODE_PROPERTY_LENGTH) {
-    Serial.println(F("✖ subscribe(): the property string is too long"));
-    Serial.flush();
-    abort();
-  }
+Property* HomieNode::advertise(const char* property) {
+  Property* propertyObject = new Property(property);
 
-  Subscription subscription;
-  strcpy(subscription.property, property);
-  subscription.inputHandler = inputHandler;
-  _subscriptions.push_back(subscription);
+  _properties.push_back(propertyObject);
+
+  return propertyObject;
 }
 
-void HomieNode::subscribeToAll() {
-  _subscribeToAll = true;
+Property* HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
+  Property* propertyObject = new Property(property, true, lower, upper);
+
+  _properties.push_back(propertyObject);
+
+  return propertyObject;
 }
 
-bool HomieNode::handleInput(String const &property, String const &value) {
-  return _inputHandler(property, value);
+bool HomieNode::handleInput(String const &property, HomieRange range, String const &value) {
+  return _inputHandler(property, range, value);
 }
 
-const std::vector<HomieInternals::Subscription>& HomieNode::getSubscriptions() const {
-  return _subscriptions;
-}
-
-uint8_t HomieNode::getSubscriptionsCount() const {
-  return _subscriptions.size();
-}
-
-bool HomieNode::isSubscribedToAll() const {
-  return _subscribeToAll;
+const std::vector<HomieInternals::Property*>& HomieNode::getProperties() const {
+  return _properties;
 }

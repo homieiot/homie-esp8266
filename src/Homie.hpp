@@ -8,68 +8,69 @@
 #include "Homie/Limits.hpp"
 #include "Homie/Helpers.hpp"
 #include "Homie/Boot/Boot.hpp"
+#include "Homie/Boot/BootStandalone.hpp"
 #include "Homie/Boot/BootNormal.hpp"
 #include "Homie/Boot/BootConfig.hpp"
 
 #include "HomieNode.hpp"
+#include "HomieSetting.hpp"
 
 #define Homie_setFirmware(name, version) const char* __FLAGGED_FW_NAME = "\xbf\x84\xe4\x13\x54" name "\x93\x44\x6b\xa7\x75"; const char* __FLAGGED_FW_VERSION = "\x6a\x3f\x3e\x0e\xe1" version "\xb0\x30\x48\xd4\x1a"; Homie.__setFirmware(__FLAGGED_FW_NAME, __FLAGGED_FW_VERSION);
 #define Homie_setBrand(brand) const char* __FLAGGED_BRAND = "\xfb\x2a\xf5\x68\xc0" brand "\x6e\x2f\x0f\xeb\x2d"; Homie.__setBrand(__FLAGGED_BRAND);
 
 namespace HomieInternals {
-  class HomieClass {
-      friend class ::HomieNode;
-    public:
-      HomieClass();
-      ~HomieClass();
-      void setup();
-      void loop();
+class HomieClass {
+  friend class ::HomieNode;
 
-      void __setFirmware(const char* name, const char* version);
-      void __setBrand(const char* brand);
+ public:
+  HomieClass();
+  ~HomieClass();
+  void setup();
+  void loop();
 
-      void enableLogging(bool enable);
-      void setLoggingPrinter(Print* printer);
-      void enableBuiltInLedIndicator(bool enable);
-      void setLedPin(uint8_t pin, uint8_t on);
-      void setGlobalInputHandler(GlobalInputHandler globalInputHandler);
-      void setResettable(bool resettable);
-      void onEvent(EventHandler handler);
-      void setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
-      void disableResetTrigger();
-      void setResetFunction(ResetFunction function);
-      void eraseConfig();
-      void setSetupFunction(OperationFunction function);
-      void setLoopFunction(OperationFunction function);
-      bool isReadyToOperate() const;
-      void setNodeProperty(const HomieNode& node, const String& property, const String& value, uint8_t qos = 1, bool retained = true) {
-        setNodeProperty(node, property.c_str(), value.c_str(), qos, retained);
-      }
-      void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
-      void publishRaw(const char* topic, const char* value, uint8_t qos = 1, bool retained = true);
-      void disconnectMqtt();
-      inline const char *getBaseTopic() const;
-      inline const char *getId() const;
+  void __setFirmware(const char* name, const char* version);
+  void __setBrand(const char* brand);
 
-    private:
-      bool _setupCalled;
-      Boot* _boot;
-      BootNormal _bootNormal;
-      BootConfig _bootConfig;
-      Interface _interface;
-      Logger _logger;
-      Blinker _blinker;
-      Config _config;
-      AsyncMqttClient _mqttClient;
+  HomieClass& disableLogging();
+  HomieClass& setLoggingPrinter(Print* printer);
+  HomieClass& disableLedFeedback();
+  HomieClass& setLedPin(uint8_t pin, uint8_t on);
+  HomieClass& setGlobalInputHandler(GlobalInputHandler globalInputHandler);
+  HomieClass& onEvent(EventHandler handler);
+  HomieClass& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
+  HomieClass& disableResetTrigger();
+  HomieClass& setResetFunction(ResetFunction function);
+  HomieClass& setSetupFunction(OperationFunction function);
+  HomieClass& setLoopFunction(OperationFunction function);
+  HomieClass& setStandalone();
 
-      void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
-  };
-  const char *HomieClass::getId() const {
-    return _config.get().deviceId;
+  void setNodeProperty(const HomieNode& node, const String& property, const String& value, uint8_t qos = 1, bool retained = true) {
+    setNodeProperty(node, property.c_str(), value.c_str(), qos, retained);
   }
-  const char *HomieClass::getBaseTopic() const {
-    return _config.get().mqtt.baseTopic;
-  }
-}
+  void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
+  void setIdle(bool idle);
+  void eraseConfiguration();
+  bool isConfigured() const;
+  bool isConnected() const;
+  const ConfigStruct& getConfiguration() const;
+  AsyncMqttClient& getMqttClient();
+
+ private:
+  bool _setupCalled;
+  Boot* _boot;
+  BootStandalone _bootStandalone;
+  BootNormal _bootNormal;
+  BootConfig _bootConfig;
+  Interface _interface;
+  Logger _logger;
+  Blinker _blinker;
+  Config _config;
+  AsyncMqttClient _mqttClient;
+
+  void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
+
+  const char* __HOMIE_SIGNATURE;
+};
+}  // namespace HomieInternals
 
 extern HomieInternals::HomieClass Homie;

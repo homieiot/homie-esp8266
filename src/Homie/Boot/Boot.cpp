@@ -5,8 +5,7 @@ using namespace HomieInternals;
 
 Boot::Boot(const char* name)
 : _interface(nullptr)
-, _name(name)
-{
+, _name(name) {
 }
 
 void Boot::attachInterface(Interface* interface) {
@@ -19,7 +18,7 @@ void Boot::setup() {
     digitalWrite(_interface->led.pin, !_interface->led.on);
   }
 
-  WiFi.persistent(true); // Persist data on SDK as it seems Wi-Fi connection is faster
+  WiFi.persistent(true);  // Persist data on SDK as it seems Wi-Fi connection is faster
 
   _interface->logger->log(F("** Booting into "));
   _interface->logger->log(_name);

@@ -1,70 +1,75 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 #include "Arduino.h"
-#include "Homie/Datatypes/Subscription.hpp"
 #include "Homie/Datatypes/Callbacks.hpp"
 #include "Homie/Limits.hpp"
+#include "HomieRange.hpp"
 
 namespace HomieInternals {
-  class HomieClass;
-  class BootNormal;
-  class BootConfig;
-}
+class HomieClass;
+class BootNormal;
+class BootConfig;
+
+class Property {
+  friend BootNormal;
+
+ public:
+  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; }
+  void settable(PropertyInputHandler inputHandler = [](HomieRange range, String value) { return false; }) { _settable = true;  _inputHandler = inputHandler; }
+
+ private:
+  const char* getProperty() const { return _id; }
+  bool isSettable() const { return _settable; }
+  bool isRange() const { return _range; }
+  uint16_t getLower() const { return _lower; }
+  uint16_t getUpper() const { return _upper; }
+  PropertyInputHandler getInputHandler() const { return _inputHandler; }
+  const char* _id;
+  bool _range;
+  uint16_t _lower;
+  uint16_t _upper;
+  bool _settable;
+  PropertyInputHandler _inputHandler;
+};
+}  // namespace HomieInternals
 
 class HomieNode {
   friend HomieInternals::HomieClass;
   friend HomieInternals::BootNormal;
   friend HomieInternals::BootConfig;
-  public:
-    HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](String property, String value) { return false; });
 
-    const char* getId() const { return _id; }
-    const char* getType() const { return _type; }
+ public:
+  HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](String property, HomieRange range, String value) { return false; });
 
-    void subscribe(const char* property, HomieInternals::PropertyInputHandler inputHandler = [](String value) { return false; });
+  const char* getId() const { return _id; }
+  const char* getType() const { return _type; }
 
-    void subscribeToAll();
+  HomieInternals::Property* advertise(const char* property);
+  HomieInternals::Property* advertiseRange(const char* property, uint16_t lower, uint16_t upper);
 
-    static void forEach(std::function<void(HomieNode *)> f) {
-      for (HomieNode* n = _first; n; n = n->_next) {
-        f(n);
-      }
+ protected:
+  virtual void setup() {}
+  virtual void loop() {}
+  virtual void onReadyToOperate() {}
+  virtual bool handleInput(String const &property, HomieRange range, String const &value);
+
+ private:
+  const std::vector<HomieInternals::Property*>& getProperties() const;
+
+  static HomieNode* find(const char* id) {
+    for (HomieNode* iNode : HomieNode::nodes) {
+      if (strcmp(id, iNode->getId()) == 0) return iNode;
     }
 
-    static HomieNode* find(const char* id) {
-      for (HomieNode* n = _first; n; n = n->_next) {
-        if (strcmp(id, n->getId()) == 0) return n;
-      }
+    return 0;
+  }
 
-      return 0;
-    }
+  const char* _id;
+  const char* _type;
+  std::vector<HomieInternals::Property*> _properties;
+  HomieInternals::NodeInputHandler _inputHandler;
 
-    static uint8_t getNodeCount() {
-      return _nodeCount;
-    }
-
-  protected:
-    virtual void setup() {}
-
-    virtual void loop() {}
-
-    virtual void onReadyToOperate() {}
-
-    virtual bool handleInput(String const &property, String const &value);
-
-  private:
-    const std::vector<HomieInternals::Subscription>& getSubscriptions() const;
-    uint8_t getSubscriptionsCount() const;
-    bool isSubscribedToAll() const;
-
-    const char* _id;
-    const char* _type;
-    std::vector<HomieInternals::Subscription> _subscriptions;
-    bool _subscribeToAll;
-    HomieInternals::NodeInputHandler _inputHandler;
-    HomieNode* _next;
-    static HomieNode* _first;
-    static HomieNode* _last;
-    static uint8_t _nodeCount;
+  static std::vector<HomieNode*> nodes;
 };

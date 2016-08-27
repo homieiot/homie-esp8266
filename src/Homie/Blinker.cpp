@@ -4,8 +4,7 @@ using namespace HomieInternals;
 
 Blinker::Blinker()
 : _interface(nullptr)
-, _lastBlinkPace(0)
-{
+, _lastBlinkPace(0) {
 }
 
 void Blinker::attachInterface(Interface* interface) {

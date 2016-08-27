@@ -14,11 +14,8 @@ void loopHandler() {
      Serial.print("Door is now: ");
      Serial.println(doorValue ? "open" : "close");
 
-     if (Homie.setNodeProperty(doorNode, "open", doorValue ? "true" : "false", true)) {
-       lastDoorValue = doorValue;
-     } else {
-       Serial.println("Sending failed");
-     }
+     Homie.setNodeProperty(doorNode, "open", doorValue ? "true" : "false");
+     lastDoorValue = doorValue;
   }
 }
 
@@ -33,6 +30,9 @@ void setup() {
 
   Homie_setFirmware("awesome-door", "1.0.0");
   Homie.setLoopFunction(loopHandler);
+
+  doorNode.advertise("open");
+
   Homie.setup();
 }
 

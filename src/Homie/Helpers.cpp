@@ -2,7 +2,7 @@
 
 using namespace HomieInternals;
 
-char Helpers::_deviceId[] = ""; // need to define the static variable
+char Helpers::_deviceId[] = "";  // need to define the static variable
 
 void Helpers::generateDeviceId() {
   char flashChipId[6 + 1];
@@ -38,16 +38,16 @@ ConfigValidationResult Helpers::validateConfig(const JsonObject& object) {
   if (!result.valid) return result;
   result = _validateConfigOta(object);
   if (!result.valid) return result;
+  result = _validateConfigSettings(object);
+  if (!result.valid) return result;
 
   result.valid = true;
-  result.reason = nullptr;
   return result;
 }
 
 ConfigValidationResult Helpers::_validateConfigRoot(const JsonObject& object) {
   ConfigValidationResult result;
   result.valid = false;
-  result.reason = nullptr;
   if (!object.containsKey("name") || !object["name"].is<const char*>()) {
     result.reason = F("name is not a string");
     return result;
@@ -81,7 +81,6 @@ ConfigValidationResult Helpers::_validateConfigRoot(const JsonObject& object) {
 ConfigValidationResult Helpers::_validateConfigWifi(const JsonObject& object) {
   ConfigValidationResult result;
   result.valid = false;
-  result.reason = nullptr;
 
   if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject&>()) {
     result.reason = F("wifi is not an object");
@@ -117,7 +116,6 @@ ConfigValidationResult Helpers::_validateConfigWifi(const JsonObject& object) {
 ConfigValidationResult Helpers::_validateConfigMqtt(const JsonObject& object) {
   ConfigValidationResult result;
   result.valid = false;
-  result.reason = nullptr;
 
   if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject&>()) {
     result.reason = F("mqtt is not an object");
@@ -185,7 +183,6 @@ ConfigValidationResult Helpers::_validateConfigMqtt(const JsonObject& object) {
 ConfigValidationResult Helpers::_validateConfigOta(const JsonObject& object) {
   ConfigValidationResult result;
   result.valid = false;
-  result.reason = nullptr;
 
   if (!object.containsKey("ota") || !object["ota"].is<JsonObject&>()) {
     result.reason = F("ota is not an object");
@@ -194,6 +191,116 @@ ConfigValidationResult Helpers::_validateConfigOta(const JsonObject& object) {
   if (!object["ota"].as<JsonObject&>().containsKey("enabled") || !object["ota"]["enabled"].is<bool>()) {
     result.reason = F("ota.enabled is not a boolean");
     return result;
+  }
+
+  result.valid = true;
+  return result;
+}
+
+ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object) {
+  ConfigValidationResult result;
+  result.valid = false;
+
+  StaticJsonBuffer<0> emptySettingsBuffer;
+
+  JsonObject* settingsObject = &(emptySettingsBuffer.createObject());
+
+  if (object.containsKey("settings") && object["settings"].is<JsonObject&>()) {
+    settingsObject = &(object["settings"].as<JsonObject&>());
+  }
+
+  for (IHomieSetting* iSetting : IHomieSetting::settings) {
+    if (iSetting->isBool()) {
+      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+
+      if (settingsObject->containsKey(setting->getName())) {
+        if (!(*settingsObject)[setting->getName()].is<bool>()) {
+          result.reason = String(setting->getName());
+          result.reason.concat(F(" setting is not a boolean"));
+          return result;
+        } else if (!setting->validate((*settingsObject)[setting->getName()].as<bool>())) {
+          result.reason = String(setting->getName());
+          result.reason.concat(F(" setting does not pass the validator function"));
+          return result;
+        }
+      } else if (setting->isRequired()) {
+        result.reason = String(setting->getName());
+        result.reason.concat(F(" setting is missing"));
+        return result;
+      }
+    } else if (iSetting->isUnsignedLong()) {
+      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
+
+      if (settingsObject->containsKey(setting->getName())) {
+        if (!(*settingsObject)[setting->getName()].is<unsigned long>()) {
+          result.reason = String(setting->getName());
+          result.reason.concat(F(" setting is not an unsigned long"));
+          return result;
+        } else if (!setting->validate((*settingsObject)[setting->getName()].as<unsigned long>())) {
+          result.reason = String(setting->getName());
+          result.reason.concat((" setting does not pass the validator function"));
+          return result;
+        }
+      } else if (setting->isRequired()) {
+        result.reason = String(setting->getName());
+        result.reason.concat(F(" setting is missing"));
+        return result;
+      }
+    } else if (iSetting->isLong()) {
+      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+
+      if (settingsObject->containsKey(setting->getName())) {
+        if (!(*settingsObject)[setting->getName()].is<long>()) {
+          result.reason = String(setting->getName());
+          result.reason.concat(F(" setting is not a long"));
+          return result;
+        } else if (!setting->validate((*settingsObject)[setting->getName()].as<long>())) {
+          result.reason = String(setting->getName());
+          result.reason.concat(F(" setting does not pass the validator function"));
+          return result;
+        }
+      } else if (setting->isRequired()) {
+        result.reason = String(setting->getName());
+        result.reason.concat(F(" setting is missing"));
+        return result;
+      }
+    } else if (iSetting->isDouble()) {
+      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+
+      if (settingsObject->containsKey(setting->getName())) {
+        if (!(*settingsObject)[setting->getName()].is<double>()) {
+          result.reason = String(setting->getName());
+          result.reason.concat(F(" setting is not a double"));
+          return result;
+        } else if (!setting->validate((*settingsObject)[setting->getName()].as<double>())) {
+          result.reason = String(setting->getName());
+          result.reason.concat((" setting does not pass the validator function"));
+          return result;
+        }
+      } else if (setting->isRequired()) {
+        result.reason = String(setting->getName());
+        result.reason.concat(F(" setting is missing"));
+        return result;
+      }
+    } else if (iSetting->isConstChar()) {
+      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+
+      if (settingsObject->containsKey(setting->getName())) {
+        if (!(*settingsObject)[setting->getName()].is<const char*>()) {
+          result.reason = String(setting->getName());
+          result.reason.concat(F(" setting is not a const char*"));
+          return result;
+        } else if (!setting->validate((*settingsObject)[setting->getName()].as<const char*>())) {
+          result.reason = String(setting->getName());
+          result.reason.concat(F(" setting does not pass the validator function"));
+          return result;
+        }
+      } else if (setting->isRequired()) {
+        result.reason = String(setting->getName());
+        result.reason.concat(F(" setting is missing"));
+        return result;
+      }
+    }
   }
 
   result.valid = true;

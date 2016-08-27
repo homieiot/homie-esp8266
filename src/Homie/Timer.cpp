@@ -5,8 +5,7 @@ using namespace HomieInternals;
 Timer::Timer()
 : _initialTime(0)
 , _interval(0)
-, _tickAtBeginning(false)
-{
+, _tickAtBeginning(false) {
 }
 
 void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {

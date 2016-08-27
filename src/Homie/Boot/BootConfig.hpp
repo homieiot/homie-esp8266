@@ -17,36 +17,37 @@
 #include "../Helpers.hpp"
 #include "../Logger.hpp"
 #include "../Strings.hpp"
+#include "../../HomieSetting.hpp"
 
 namespace HomieInternals {
-  class BootConfig : public Boot {
-    public:
-      BootConfig();
-      ~BootConfig();
-      void setup();
-      void loop();
-    private:
-      HTTPClient _httpClient;
-      ESP8266WebServer _http;
-      DNSServer _dns;
-      uint8_t _ssidCount;
-      bool _wifiScanAvailable;
-      Timer _wifiScanTimer;
-      bool _lastWifiScanEnded;
-      char* _jsonWifiNetworks;
-      bool _flaggedForReboot;
-      uint32_t _flaggedForRebootAt;
-      bool _proxyEnabled;
+class BootConfig : public Boot {
+ public:
+  BootConfig();
+  ~BootConfig();
+  void setup();
+  void loop();
 
-      void _onCaptivePortal();
-      void _onDeviceInfoRequest();
-      void _onNetworksRequest();
-      void _onConfigRequest();
-      void _generateNetworksJson();
-      void _onWifiConnectRequest();
-      void _onProxyControlRequest();
-      void _proxyHttpRequest();
-      void _onWifiStatusRequest();
+ private:
+  HTTPClient _httpClient;
+  ESP8266WebServer _http;
+  DNSServer _dns;
+  uint8_t _ssidCount;
+  bool _wifiScanAvailable;
+  Timer _wifiScanTimer;
+  bool _lastWifiScanEnded;
+  char* _jsonWifiNetworks;
+  bool _flaggedForReboot;
+  uint32_t _flaggedForRebootAt;
+  bool _proxyEnabled;
 
-  };
-}
+  void _onCaptivePortal();
+  void _onDeviceInfoRequest();
+  void _onNetworksRequest();
+  void _onConfigRequest();
+  void _generateNetworksJson();
+  void _onWifiConnectRequest();
+  void _onProxyControlRequest();
+  void _proxyHttpRequest();
+  void _onWifiStatusRequest();
+};
+}  // namespace HomieInternals

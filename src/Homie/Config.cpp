@@ -4,9 +4,9 @@ using namespace HomieInternals;
 
 Config::Config()
 : _interface(nullptr)
+, _bootMode()
 , _configStruct()
-, _spiffsBegan(false)
-{
+, _spiffsBegan(false) {
 }
 
 void Config::attachInterface(Interface* interface) {
@@ -114,16 +114,95 @@ bool Config::load() {
   strcpy(_configStruct.mqtt.password, reqMqttPassword);
   _configStruct.ota.enabled = reqOtaEnabled;
 
+  /* Parse the settings */
+
+  JsonObject& settingsObject = parsedJson["settings"].as<JsonObject&>();
+
+  for (IHomieSetting* iSetting : IHomieSetting::settings) {
+    if (iSetting->isBool()) {
+      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(settingsObject[setting->getName()].as<bool>());
+      }
+    } else if (iSetting->isUnsignedLong()) {
+      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(settingsObject[setting->getName()].as<unsigned long>());
+      }
+    } else if (iSetting->isLong()) {
+      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(settingsObject[setting->getName()].as<long>());
+      }
+    } else if (iSetting->isDouble()) {
+      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(settingsObject[setting->getName()].as<double>());
+      }
+    } else if (iSetting->isConstChar()) {
+      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+
+      if (settingsObject.containsKey(setting->getName())) {
+        setting->set(strdup(settingsObject[setting->getName()].as<const char*>()));
+      }
+    }
+  }
+
   return true;
+}
+
+char* Config::getSafeConfigFile() const {
+  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  size_t configSize = configFile.size();
+
+  char buf[MAX_JSON_CONFIG_FILE_SIZE];
+  configFile.readBytes(buf, configSize);
+  configFile.close();
+
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
+  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
+  parsedJson["wifi"].as<JsonObject&>().remove("password");
+  parsedJson["mqtt"].as<JsonObject&>().remove("username");
+  parsedJson["mqtt"].as<JsonObject&>().remove("password");
+
+  size_t jsonBufferLength = parsedJson.measureLength() + 1;
+  std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
+  parsedJson.printTo(jsonString.get(), jsonBufferLength);
+
+  return strdup(jsonString.get());
 }
 
 void Config::erase() {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
+  SPIFFS.remove(CONFIG_BYPASS_STANDALONE_FILE_PATH);
 }
 
-void Config::write(const String& config) {
+void Config::bypassStandalone() {
+  if (!_spiffsBegin()) { return; }
+
+  File bypassStandaloneFile = SPIFFS.open(CONFIG_BYPASS_STANDALONE_FILE_PATH, "w");
+  if (!bypassStandaloneFile) {
+    _interface->logger->logln(F("✖ Cannot open bypass standalone file"));
+    return;
+  }
+
+  bypassStandaloneFile.print("1");
+  bypassStandaloneFile.close();
+}
+
+bool Config::canBypassStandalone() {
+  if (!_spiffsBegin()) { return false; }
+
+  return SPIFFS.exists(CONFIG_BYPASS_STANDALONE_FILE_PATH);
+}
+
+void Config::write(const char* config) {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
@@ -136,6 +215,67 @@ void Config::write(const String& config) {
 
   configFile.print(config);
   configFile.close();
+}
+
+bool Config::patch(const char* patch) {
+    if (!_spiffsBegin()) { return false; }
+
+    StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonBuffer;
+    JsonObject& patchObject = patchJsonBuffer.parseObject(patch);
+
+    if (!patchObject.success()) {
+      _interface->logger->logln(F("✖ Invalid or too big JSON"));
+      return false;
+    }
+
+    File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+    if (!configFile) {
+      _interface->logger->logln(F("✖ Cannot open config file"));
+      return false;
+    }
+
+    size_t configSize = configFile.size();
+
+    char configJson[MAX_JSON_CONFIG_FILE_SIZE];
+    configFile.readBytes(configJson, configSize);
+    configFile.close();
+
+    StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
+    JsonObject& configObject = configJsonBuffer.parseObject(configJson);
+
+    for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
+      if (patchObject[it->key].is<JsonObject&>()) {
+        JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
+        for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
+          if (!configObject.containsKey(it->key) || !configObject[it->key].is<JsonObject&>()) {
+            String error = "✖ Config does not contain a ";
+            error.concat(it->key);
+            error.concat(" object");
+            _interface->logger->logln(error);
+            return false;
+          }
+          JsonObject& subConfigObject = configObject[it->key].as<JsonObject&>();
+          subConfigObject[it2->key] = it2->value;
+        }
+      } else {
+        configObject[it->key] = it->value;
+      }
+    }
+
+    ConfigValidationResult configValidationResult = Helpers::validateConfig(configObject);
+    if (!configValidationResult.valid) {
+      _interface->logger->log(F("✖ Config file is not valid, reason: "));
+      _interface->logger->logln(configValidationResult.reason);
+      return false;
+    }
+
+    size_t finalBufferLength = configObject.measureLength() + 1;
+    std::unique_ptr<char[]> finalConfigString(new char[finalBufferLength]);
+    configObject.printTo(finalConfigString.get(), finalBufferLength);
+
+    write(finalConfigString.get());
+
+    return true;
 }
 
 BootMode Config::getBootMode() const {
