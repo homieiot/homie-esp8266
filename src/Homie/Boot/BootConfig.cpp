@@ -315,6 +315,7 @@ void BootConfig::_onConfigRequest() {
   char* bodyCharArray = strdup(_http.arg("plain").c_str());
   JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray);  // do not use plain String, else fails
   if (!parsedJson.success()) {
+    free(bodyCharArray);
     _interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
     errorJson.concat(F("Invalid or too big JSON\"}"));
@@ -324,6 +325,7 @@ void BootConfig::_onConfigRequest() {
 
   ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
+    free(bodyCharArray);
     _interface->logger->log(F("✖ Config file is not valid, reason: "));
     _interface->logger->logln(configValidationResult.reason);
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -334,8 +336,8 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  _interface->config->write(bodyCharArray);
   free(bodyCharArray);
+  _interface->config->write(_http.arg("plain"));
 
   _interface->logger->logln(F("✔ Configured"));
 
