@@ -13,6 +13,7 @@ env:
   - PLATFORMIO_CI_SRC=examples/IteadSonoff
   - PLATFORMIO_CI_SRC=examples/LightOnOff
   - PLATFORMIO_CI_SRC=examples/TemperatureSensor
+  - PLATFORMIO_CI_SRC=examples/LedStrip
   - CPPLINT=true
 
 install:

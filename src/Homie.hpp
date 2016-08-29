@@ -29,7 +29,7 @@ class SendingPromise {
   SendingPromise& setQos(uint8_t qos);
   SendingPromise& setRetained(bool retained);
   SendingPromise& setRange(HomieRange range);
-  SendingPromise& setRangeIndex(uint16_t rangeIndex);
+  SendingPromise& setRange(uint16_t rangeIndex);
   void send(const String& value);
 
  private:

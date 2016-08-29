@@ -52,13 +52,13 @@ index	KEYWORD2
 setQos	KEYWORD2
 setRetained	KEYWORD2
 setRange	KEYWORD2
-setRangeIndex	KEYWORD2
 send	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
 
+STANDALONE_MODE	LITERAL1
 CONFIGURATION_MODE	LITERAL1
 NORMAL_MODE	LITERAL1
 OTA_STARTED	LITERAL1

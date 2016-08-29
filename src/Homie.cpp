@@ -22,8 +22,11 @@ SendingPromise& SendingPromise::setRange(HomieRange range) {
   _range = range;
 }
 
-SendingPromise& SendingPromise::setRangeIndex(uint16_t rangeIndex) {
-  HomieRange range; range.isRange = true; range.index = rangeIndex; _range = range;
+SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
+  HomieRange range;
+  range.isRange = true;
+  range.index = rangeIndex;
+  _range = range;
 }
 
 void SendingPromise::send(const String& value) {
