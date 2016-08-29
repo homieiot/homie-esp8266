@@ -34,7 +34,7 @@ void setup() {
   Homie_setFirmware("itead-sonoff", "1.0.0");
   Homie.setLedPin(PIN_LED, LOW).setResetTrigger(PIN_BUTTON, LOW, 5000);
 
-  switchNode.advertise("on")->settable(switchOnHandler);
+  switchNode.advertise("on").settable(switchOnHandler);
 
   Homie.setup();
 }

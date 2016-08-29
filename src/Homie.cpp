@@ -8,10 +8,9 @@ SendingPromise::SendingPromise(HomieClass* homie)
 , _property(nullptr)
 , _qos(0)
 , _retained(false) {
-
 }
 
-SendingPromise& SendingPromise::setQos(uint8_t qos){
+SendingPromise& SendingPromise::setQos(uint8_t qos) {
   _qos = qos;
 }
 
@@ -52,7 +51,7 @@ void SendingPromise::send(const String& value) {
   delete[] topic;
 }
 
-SendingPromise& SendingPromise::setNode(const HomieNode& node){
+SendingPromise& SendingPromise::setNode(const HomieNode& node) {
   _node = &node;
 }
 

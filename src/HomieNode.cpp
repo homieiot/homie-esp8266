@@ -5,6 +5,19 @@ using namespace HomieInternals;
 
 std::vector<HomieNode*> HomieNode::nodes;
 
+PropertyInterface::PropertyInterface()
+: _property(nullptr) {
+}
+
+void PropertyInterface::settable(PropertyInputHandler inputHandler) {
+  _property->settable(inputHandler);
+}
+
+PropertyInterface& PropertyInterface::setProperty(Property* property) {
+  _property = property;
+  return *this;
+}
+
 HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
 : _id(id)
 , _type(type)
@@ -20,20 +33,20 @@ HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHan
   HomieNode::nodes.push_back(this);
 }
 
-Property* HomieNode::advertise(const char* property) {
+PropertyInterface& HomieNode::advertise(const char* property) {
   Property* propertyObject = new Property(property);
 
   _properties.push_back(propertyObject);
 
-  return propertyObject;
+  return _propertyInterface.setProperty(propertyObject);
 }
 
-Property* HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
+PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
   Property* propertyObject = new Property(property, true, lower, upper);
 
   _properties.push_back(propertyObject);
 
-  return propertyObject;
+  return _propertyInterface.setProperty(propertyObject);
 }
 
 bool HomieNode::handleInput(String const &property, HomieRange range, String const &value) {
