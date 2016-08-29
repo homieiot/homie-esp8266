@@ -337,7 +337,7 @@ void BootConfig::_onConfigRequest() {
   }
 
   free(bodyCharArray);
-  _interface->config->write(_http.arg("plain"));
+  _interface->config->write(_http.arg("plain").c_str());
 
   _interface->logger->logln(F("✔ Configured"));
 
