@@ -49,6 +49,12 @@ setValidator	KEYWORD2
 isRange	KEYWORD2
 index	KEYWORD2
 
+setQos	KEYWORD2
+setRetained	KEYWORD2
+setRange	KEYWORD2
+setRangeIndex	KEYWORD2
+send	KEYWORD2
+
 #######################################
 # Constants (LITERAL1)
 #######################################

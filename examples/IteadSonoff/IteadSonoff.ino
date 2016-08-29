@@ -11,11 +11,11 @@ HomieNode switchNode("switch", "switch");
 bool switchOnHandler(HomieRange range, String value) {
   if (value == "true") {
     digitalWrite(PIN_RELAY, HIGH);
-    Homie.setNodeProperty(switchNode, "on", "true");
+    Homie.setNodeProperty(switchNode, "on").send("true");
     Serial.println("Switch is on");
   } else if (value == "false") {
     digitalWrite(PIN_RELAY, LOW);
-    Homie.setNodeProperty(switchNode, "on", "false");
+    Homie.setNodeProperty(switchNode, "on").send("false");
     Serial.println("Switch is off");
   } else {
     return false;

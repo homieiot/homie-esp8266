@@ -2,8 +2,87 @@
 
 using namespace HomieInternals;
 
+SendingPromise::SendingPromise(HomieClass* homie)
+: _homie(homie)
+, _node(nullptr)
+, _property(nullptr)
+, _qos(0)
+, _retained(false) {
+
+}
+
+SendingPromise& SendingPromise::setQos(uint8_t qos){
+  _qos = qos;
+}
+
+SendingPromise& SendingPromise::setRetained(bool retained) {
+  _retained = retained;
+}
+
+SendingPromise& SendingPromise::setRange(HomieRange range) {
+  _range = range;
+}
+
+SendingPromise& SendingPromise::setRangeIndex(uint16_t rangeIndex) {
+  HomieRange range; range.isRange = true; range.index = rangeIndex; _range = range;
+}
+
+void SendingPromise::send(const String& value) {
+  if (!_homie->isConnected()) {
+    _homie->_logger.logln(F("✖ setNodeProperty(): impossible now"));
+    return;
+  }
+
+  char* topic = new char[strlen(_homie->getConfiguration().mqtt.baseTopic) + strlen(_homie->getConfiguration().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 1];  // last + 6 for range _65536
+  strcpy(topic, _homie->getConfiguration().mqtt.baseTopic);
+  strcat(topic, _homie->getConfiguration().deviceId);
+  strcat_P(topic, PSTR("/"));
+  strcat(topic, _node->getId());
+  strcat_P(topic, PSTR("/"));
+  strcat(topic, _property->c_str());
+
+  if (_range.isRange) {
+    char rangeStr[5 + 1];  // max 65536
+    itoa(_range.index, rangeStr, 10);
+    strcat_P(topic, PSTR("_"));
+    strcat(topic, rangeStr);
+  }
+
+  _homie->getMqttClient().publish(topic, _qos, _retained, value.c_str());
+  delete[] topic;
+}
+
+SendingPromise& SendingPromise::setNode(const HomieNode& node){
+  _node = &node;
+}
+
+SendingPromise& SendingPromise::setProperty(const String& property) {
+  _property = &property;
+}
+
+const HomieNode* SendingPromise::getNode() const {
+  return _node;
+}
+
+const String* SendingPromise::getProperty() const {
+  return _property;
+}
+
+uint8_t SendingPromise::getQos() const {
+  return _qos;
+}
+
+HomieRange SendingPromise::getRange() const {
+  return _range;
+}
+
+bool SendingPromise::isRetained() const {
+  return _retained;
+}
+
 HomieClass::HomieClass()
 : _setupCalled(false)
+, _sendingPromise(this)
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(_interface.brand, DEFAULT_BRAND);
   _interface.standalone = false;
@@ -226,24 +305,6 @@ HomieClass& HomieClass::disableResetTrigger() {
 
 void HomieClass::eraseConfiguration() {
   _config.erase();
-}
-
-void HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos, bool retained) {
-  if (!isConnected()) {
-    _logger.logln(F("✖ setNodeProperty(): impossible now"));
-    return;
-  }
-
-  char* topic = new char[strlen(_interface.config->get().mqtt.baseTopic) + strlen(_interface.config->get().deviceId) + 1 + strlen(node.getId()) + 1 + strlen(property) + 1];
-  strcpy(topic, _interface.config->get().mqtt.baseTopic);
-  strcat(topic, _interface.config->get().deviceId);
-  strcat_P(topic, PSTR("/"));
-  strcat(topic, node.getId());
-  strcat_P(topic, PSTR("/"));
-  strcat(topic, property);
-
-  _mqttClient.publish(topic, qos, retained, value);
-  delete[] topic;
 }
 
 const ConfigStruct& HomieClass::getConfiguration() const {
