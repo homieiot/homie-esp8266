@@ -7,11 +7,11 @@ HomieNode lightNode("light", "switch");
 bool lightOnHandler(HomieRange range, String value) {
   if (value == "true") {
     digitalWrite(PIN_RELAY, HIGH);
-    Homie.setNodeProperty(lightNode, "on", "true"); // Update the state of the light
+    Homie.setNodeProperty(lightNode, "on").send("true");
     Serial.println("Light is on");
   } else if (value == "false") {
     digitalWrite(PIN_RELAY, LOW);
-    Homie.setNodeProperty(lightNode, "on", "false");
+    Homie.setNodeProperty(lightNode, "on").send("false");
     Serial.println("Light is off");
   } else {
     return false;
@@ -29,7 +29,7 @@ void setup() {
 
   Homie_setFirmware("awesome-relay", "1.0.0");
 
-  lightNode.advertise("on")->settable(lightOnHandler);
+  lightNode.advertise("on").settable(lightOnHandler);
 
   Homie.setup();
 }

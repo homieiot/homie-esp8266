@@ -19,8 +19,39 @@
 #define Homie_setBrand(brand) const char* __FLAGGED_BRAND = "\xfb\x2a\xf5\x68\xc0" brand "\x6e\x2f\x0f\xeb\x2d"; Homie.__setBrand(__FLAGGED_BRAND);
 
 namespace HomieInternals {
+class HomieClass;
+
+class SendingPromise {
+  friend HomieClass;
+
+ public:
+  explicit SendingPromise(HomieClass* homie);
+  SendingPromise& setQos(uint8_t qos);
+  SendingPromise& setRetained(bool retained);
+  SendingPromise& setRange(HomieRange range);
+  SendingPromise& setRange(uint16_t rangeIndex);
+  void send(const String& value);
+
+ private:
+  SendingPromise& setNode(const HomieNode& node);
+  SendingPromise& setProperty(const String& property);
+  const HomieNode* getNode() const;
+  const String* getProperty() const;
+  uint8_t getQos() const;
+  HomieRange getRange() const;
+  bool isRetained() const;
+
+  HomieClass* _homie;
+  const HomieNode* _node;
+  const String* _property;
+  uint8_t _qos;
+  bool _retained;
+  HomieRange _range;
+};
+
 class HomieClass {
   friend class ::HomieNode;
+  friend SendingPromise;
 
  public:
   HomieClass();
@@ -44,10 +75,10 @@ class HomieClass {
   HomieClass& setLoopFunction(OperationFunction function);
   HomieClass& setStandalone();
 
-  void setNodeProperty(const HomieNode& node, const String& property, const String& value, uint8_t qos = 1, bool retained = true) {
-    setNodeProperty(node, property.c_str(), value.c_str(), qos, retained);
+  SendingPromise& setNodeProperty(const HomieNode& node, const String& property) {
+    return _sendingPromise.setNode(node).setProperty(property).setQos(1).setRetained(true);
   }
-  void setNodeProperty(const HomieNode& node, const char* property, const char* value, uint8_t qos = 1, bool retained = true);
+
   void setIdle(bool idle);
   void eraseConfiguration();
   bool isConfigured() const;
@@ -61,6 +92,7 @@ class HomieClass {
   BootStandalone _bootStandalone;
   BootNormal _bootNormal;
   BootConfig _bootConfig;
+  SendingPromise _sendingPromise;
   Interface _interface;
   Logger _logger;
   Blinker _blinker;
