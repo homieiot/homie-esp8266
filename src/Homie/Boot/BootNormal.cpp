@@ -68,7 +68,7 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
   _interface->logger->logln(F("Triggering WIFI_DISCONNECTED event..."));
   _interface->eventHandler(HomieEvent::WIFI_DISCONNECTED);
 
-  if( !_mqttDisconnectRequested ) {
+  if (!_mqttDisconnectRequested) {
     _wifiConnect();
   }
 }
@@ -182,13 +182,13 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     _interface->logger->logln(F("✖ MQTT disconnected"));
     _interface->logger->logln(F("Triggering MQTT_DISCONNECTED event..."));
     _interface->eventHandler(HomieEvent::MQTT_DISCONNECTED);
-    if( _mqttDisconnectRequested ) {
+    if (_mqttDisconnectRequested) {
       _interface->logger->logln(F("Triggering DISCONNECTED event..."));
       _interface->eventHandler(HomieEvent::DISCONNECTED);
     }
     _mqttDisconnectNotified = true;
   }
-  if( !_mqttDisconnectRequested ) {
+  if (!_mqttDisconnectRequested) {
     _mqttConnect();
   }
 }
@@ -386,7 +386,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 }
 
 void BootNormal::_onMqttPublish(uint16_t id) {
-  if( _mqttDisconnectRequested && id == _mqttOfflineMessageId ) {
+  if (_mqttDisconnectRequested && id == _mqttOfflineMessageId) {
     _interface->logger->logln(F("Offline message acknowledged.  Disconnecting MQTT..."));
     _interface->mqttClient->disconnect();
   }
