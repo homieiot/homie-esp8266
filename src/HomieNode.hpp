@@ -7,17 +7,34 @@
 #include "Homie/Limits.hpp"
 #include "HomieRange.hpp"
 
+class HomieNode;
+
 namespace HomieInternals {
 class HomieClass;
+class Property;
 class BootNormal;
 class BootConfig;
+
+class PropertyInterface {
+  friend ::HomieNode;
+
+ public:
+  PropertyInterface();
+
+  void settable(PropertyInputHandler inputHandler = [](HomieRange range, String value) { return false; });
+
+ private:
+  PropertyInterface& setProperty(Property* property);
+
+  Property* _property;
+};
 
 class Property {
   friend BootNormal;
 
  public:
   explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; }
-  void settable(PropertyInputHandler inputHandler = [](HomieRange range, String value) { return false; }) { _settable = true;  _inputHandler = inputHandler; }
+  void settable(PropertyInputHandler inputHandler) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
   const char* getProperty() const { return _id; }
@@ -46,8 +63,8 @@ class HomieNode {
   const char* getId() const { return _id; }
   const char* getType() const { return _type; }
 
-  HomieInternals::Property* advertise(const char* property);
-  HomieInternals::Property* advertiseRange(const char* property, uint16_t lower, uint16_t upper);
+  HomieInternals::PropertyInterface& advertise(const char* property);
+  HomieInternals::PropertyInterface& advertiseRange(const char* property, uint16_t lower, uint16_t upper);
 
  protected:
   virtual void setup() {}
@@ -70,6 +87,8 @@ class HomieNode {
   const char* _type;
   std::vector<HomieInternals::Property*> _properties;
   HomieInternals::NodeInputHandler _inputHandler;
+
+  HomieInternals::PropertyInterface _propertyInterface;
 
   static std::vector<HomieNode*> nodes;
 };

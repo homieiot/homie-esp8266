@@ -9,7 +9,7 @@ HomieNode temperatureNode("temperature", "temperature");
 HomieSetting<unsigned long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in seconds");
 
 void setupHandler() {
-  Homie.setNodeProperty(temperatureNode, "unit", "c", true);
+  Homie.setNodeProperty(temperatureNode, "unit").setRetained(true).send("c");
 }
 
 void loopHandler() {
@@ -18,7 +18,7 @@ void loopHandler() {
     Serial.print("Temperature: ");
     Serial.print(temperature);
     Serial.println(" °C");
-    Homie.setNodeProperty(temperatureNode, "degrees", String(temperature));
+    Homie.setNodeProperty(temperatureNode, "degrees").send(String(temperature));
     lastTemperatureSent = millis();
   }
 }

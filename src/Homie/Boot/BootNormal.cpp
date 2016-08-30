@@ -193,7 +193,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
   }
 }
 
-void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total) {
+void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
   if (total == 0) return;  // no empty message possible
 
   topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1;  // Remove devices/${id}/ --- +1 for /

@@ -57,7 +57,7 @@ class BootNormal : public Boot {
   void _mqttConnect();
   void _onMqttConnected();
   void _onMqttDisconnected(AsyncMqttClientDisconnectReason reason);
-  void _onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total);
+  void _onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
   void _onMqttPublish(uint16_t id);
   void _prefixMqttTopic();
   char* _prefixMqttTopic(PGM_P topic);
