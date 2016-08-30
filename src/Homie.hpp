@@ -54,6 +54,7 @@ class HomieClass {
   bool isConnected() const;
   const ConfigStruct& getConfiguration() const;
   AsyncMqttClient& getMqttClient();
+  void disconnect();
 
  private:
   bool _setupCalled;

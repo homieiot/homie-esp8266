@@ -27,3 +27,6 @@ void Boot::setup() {
 
 void Boot::loop() {
 }
+
+void Boot::disconnect() {
+}

@@ -12,7 +12,9 @@ BootNormal::BootNormal()
 , _mqttTopic(nullptr)
 , _mqttClientId(nullptr)
 , _mqttWillTopic(nullptr)
-, _mqttPayloadBuffer(nullptr) {
+, _mqttPayloadBuffer(nullptr)
+, _mqttDisconnectRequested(false)
+, _mqttOfflineMessageId(0) {
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
   _uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);
 }
@@ -66,7 +68,9 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
   _interface->logger->logln(F("Triggering WIFI_DISCONNECTED event..."));
   _interface->eventHandler(HomieEvent::WIFI_DISCONNECTED);
 
-  _wifiConnect();
+  if( !_mqttDisconnectRequested ) {
+    _wifiConnect();
+  }
 }
 
 void BootNormal::_mqttConnect() {
@@ -178,9 +182,15 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     _interface->logger->logln(F("✖ MQTT disconnected"));
     _interface->logger->logln(F("Triggering MQTT_DISCONNECTED event..."));
     _interface->eventHandler(HomieEvent::MQTT_DISCONNECTED);
+    if( _mqttDisconnectRequested ) {
+      _interface->logger->logln(F("Triggering DISCONNECTED event..."));
+      _interface->eventHandler(HomieEvent::DISCONNECTED);
+    }
     _mqttDisconnectNotified = true;
   }
-  _mqttConnect();
+  if( !_mqttDisconnectRequested ) {
+    _mqttConnect();
+  }
 }
 
 void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total) {
@@ -375,6 +385,13 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t 
   }
 }
 
+void BootNormal::_onMqttPublish(uint16_t id) {
+  if( _mqttDisconnectRequested && id == _mqttOfflineMessageId ) {
+    _interface->logger->logln(F("Offline message acknowledged.  Disconnecting MQTT..."));
+    _interface->mqttClient->disconnect();
+  }
+}
+
 void BootNormal::_handleReset() {
   if (_interface->reset.enabled) {
     _resetDebouncer.update();
@@ -420,6 +437,7 @@ void BootNormal::setup() {
   _interface->mqttClient->onConnect(std::bind(&BootNormal::_onMqttConnected, this));
   _interface->mqttClient->onDisconnect(std::bind(&BootNormal::_onMqttDisconnected, this, std::placeholders::_1));
   _interface->mqttClient->onMessage(std::bind(&BootNormal::_onMqttMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
+  _interface->mqttClient->onPublish(std::bind(&BootNormal::_onMqttPublish, this, std::placeholders::_1));
 
   _interface->mqttClient->setServer(_interface->config->get().mqtt.server.host, _interface->config->get().mqtt.server.port);
   _interface->mqttClient->setKeepAlive(10);
@@ -513,4 +531,10 @@ void BootNormal::loop() {
   for (HomieNode* iNode : HomieNode::nodes) {
     iNode->loop();
   }
+}
+
+void BootNormal::disconnect() {
+  _interface->logger->logln(F("Sending offline message..."));
+  _mqttDisconnectRequested = true;
+  _mqttOfflineMessageId = _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
 }

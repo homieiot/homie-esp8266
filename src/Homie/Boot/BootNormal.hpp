@@ -27,6 +27,7 @@ class BootNormal : public Boot {
   ~BootNormal();
   void setup();
   void loop();
+  void disconnect();
 
  private:
   Uptime _uptime;
@@ -40,6 +41,8 @@ class BootNormal : public Boot {
   bool _flaggedForReset;
   bool _flaggedForReboot;
   Bounce _resetDebouncer;
+  bool _mqttDisconnectRequested;
+  uint16_t _mqttOfflineMessageId;
 
   std::unique_ptr<char[]> _mqttTopic;
 
@@ -55,6 +58,7 @@ class BootNormal : public Boot {
   void _onMqttConnected();
   void _onMqttDisconnected(AsyncMqttClientDisconnectReason reason);
   void _onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total);
+  void _onMqttPublish(uint16_t id);
   void _prefixMqttTopic();
   char* _prefixMqttTopic(PGM_P topic);
 };
