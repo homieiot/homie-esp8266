@@ -27,7 +27,7 @@ class BootNormal : public Boot {
   ~BootNormal();
   void setup();
   void loop();
-  void disconnect();
+  void prepareForSleep();
 
  private:
   Uptime _uptime;
@@ -41,7 +41,7 @@ class BootNormal : public Boot {
   bool _flaggedForReset;
   bool _flaggedForReboot;
   Bounce _resetDebouncer;
-  bool _mqttDisconnectRequested;
+  bool _flaggedForSleep;
   uint16_t _mqttOfflineMessageId;
 
   std::unique_ptr<char[]> _mqttTopic;

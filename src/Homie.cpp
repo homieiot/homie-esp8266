@@ -317,8 +317,8 @@ AsyncMqttClient& HomieClass::getMqttClient() {
   return _mqttClient;
 }
 
-void HomieClass::disconnect() {
-  _boot->disconnect();
+void HomieClass::prepareForSleep() {
+  _boot->prepareForSleep();
 }
 
 HomieClass Homie;

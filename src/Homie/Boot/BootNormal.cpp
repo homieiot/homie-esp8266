@@ -13,7 +13,7 @@ BootNormal::BootNormal()
 , _mqttClientId(nullptr)
 , _mqttWillTopic(nullptr)
 , _mqttPayloadBuffer(nullptr)
-, _mqttDisconnectRequested(false)
+, _flaggedForSleep(false)
 , _mqttOfflineMessageId(0) {
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
   _uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);
@@ -68,7 +68,7 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
   _interface->logger->logln(F("Triggering WIFI_DISCONNECTED event..."));
   _interface->eventHandler(HomieEvent::WIFI_DISCONNECTED);
 
-  if (!_mqttDisconnectRequested) {
+  if (!_flaggedForSleep) {
     _wifiConnect();
   }
 }
@@ -182,13 +182,13 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     _interface->logger->logln(F("✖ MQTT disconnected"));
     _interface->logger->logln(F("Triggering MQTT_DISCONNECTED event..."));
     _interface->eventHandler(HomieEvent::MQTT_DISCONNECTED);
-    if (_mqttDisconnectRequested) {
-      _interface->logger->logln(F("Triggering DISCONNECTED event..."));
-      _interface->eventHandler(HomieEvent::DISCONNECTED);
+    if (_flaggedForSleep) {
+      _interface->logger->logln(F("Triggering READY_FOR_SLEEP event..."));
+      _interface->eventHandler(HomieEvent::READY_FOR_SLEEP);
     }
     _mqttDisconnectNotified = true;
   }
-  if (!_mqttDisconnectRequested) {
+  if (!_flaggedForSleep) {
     _mqttConnect();
   }
 }
@@ -386,7 +386,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 }
 
 void BootNormal::_onMqttPublish(uint16_t id) {
-  if (_mqttDisconnectRequested && id == _mqttOfflineMessageId) {
+  if (_flaggedForSleep && id == _mqttOfflineMessageId) {
     _interface->logger->logln(F("Offline message acknowledged.  Disconnecting MQTT..."));
     _interface->mqttClient->disconnect();
   }
@@ -533,8 +533,8 @@ void BootNormal::loop() {
   }
 }
 
-void BootNormal::disconnect() {
+void BootNormal::prepareForSleep() {
   _interface->logger->logln(F("Sending offline message..."));
-  _mqttDisconnectRequested = true;
+  _flaggedForSleep = true;
   _mqttOfflineMessageId = _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
 }
