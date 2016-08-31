@@ -15,6 +15,7 @@ class Boot {
   explicit Boot(const char* name);
   virtual void setup();
   virtual void loop();
+  virtual void prepareForSleep();
 
   void attachInterface(Interface* interface);
 
