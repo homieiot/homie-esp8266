@@ -54,7 +54,7 @@ void setup() {
 
   Homie_setFirmware("awesome-relay", "1.0.0");
 
-  lightNode.advertise("on")->settable(lightOnHandler);
+  lightNode.advertise("on").settable(lightOnHandler);
 
   Homie.setup();
 }
