@@ -30,6 +30,7 @@ class SendingPromise {
   SendingPromise& setRetained(bool retained);
   SendingPromise& setRange(HomieRange range);
   SendingPromise& setRange(uint16_t rangeIndex);
+  SendingPromise& clearRange();
   void send(const String& value);
 
  private:
@@ -76,7 +77,7 @@ class HomieClass {
   HomieClass& setStandalone();
 
   SendingPromise& setNodeProperty(const HomieNode& node, const String& property) {
-    return _sendingPromise.setNode(node).setProperty(property).setQos(1).setRetained(true);
+    return _sendingPromise.setNode(node).setProperty(property).setQos(1).setRetained(true).clearRange();
   }
 
   void setIdle(bool idle);
