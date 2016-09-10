@@ -22,10 +22,6 @@ SendingPromise& SendingPromise::setRange(HomieRange range) {
   _range = range;
 }
 
-SendingPromise& SendingPromise::clearRange() {
-  _range.isRange = false;
-}
-
 SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
   HomieRange range;
   range.isRange = true;
