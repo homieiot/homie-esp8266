@@ -18,7 +18,7 @@
     "branch": "master"
   },
   "frameworks": "arduino",
-  "platforms": "espressif",
+  "platforms": "espressif8266",
   "dependencies": [
     {
       "name": "ArduinoJson",
