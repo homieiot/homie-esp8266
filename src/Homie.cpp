@@ -2,132 +2,48 @@
 
 using namespace HomieInternals;
 
-SendingPromise::SendingPromise(HomieClass* homie)
-: _homie(homie)
-, _node(nullptr)
-, _property(nullptr)
-, _qos(0)
-, _retained(false) {
-}
-
-SendingPromise& SendingPromise::setQos(uint8_t qos) {
-  _qos = qos;
-}
-
-SendingPromise& SendingPromise::setRetained(bool retained) {
-  _retained = retained;
-}
-
-SendingPromise& SendingPromise::setRange(HomieRange range) {
-  _range = range;
-}
-
-SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
-  HomieRange range;
-  range.isRange = true;
-  range.index = rangeIndex;
-  _range = range;
-}
-
-void SendingPromise::send(const String& value) {
-  if (!_homie->isConnected()) {
-    _homie->_logger.logln(F("✖ setNodeProperty(): impossible now"));
-    return;
-  }
-
-  char* topic = new char[strlen(_homie->getConfiguration().mqtt.baseTopic) + strlen(_homie->getConfiguration().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 1];  // last + 6 for range _65536
-  strcpy(topic, _homie->getConfiguration().mqtt.baseTopic);
-  strcat(topic, _homie->getConfiguration().deviceId);
-  strcat_P(topic, PSTR("/"));
-  strcat(topic, _node->getId());
-  strcat_P(topic, PSTR("/"));
-  strcat(topic, _property->c_str());
-
-  if (_range.isRange) {
-    char rangeStr[5 + 1];  // max 65536
-    itoa(_range.index, rangeStr, 10);
-    strcat_P(topic, PSTR("_"));
-    strcat(topic, rangeStr);
-  }
-
-  _homie->getMqttClient().publish(topic, _qos, _retained, value.c_str());
-  delete[] topic;
-}
-
-SendingPromise& SendingPromise::setNode(const HomieNode& node) {
-  _node = &node;
-}
-
-SendingPromise& SendingPromise::setProperty(const String& property) {
-  _property = &property;
-}
-
-const HomieNode* SendingPromise::getNode() const {
-  return _node;
-}
-
-const String* SendingPromise::getProperty() const {
-  return _property;
-}
-
-uint8_t SendingPromise::getQos() const {
-  return _qos;
-}
-
-HomieRange SendingPromise::getRange() const {
-  return _range;
-}
-
-bool SendingPromise::isRetained() const {
-  return _retained;
-}
-
-HomieClass::HomieClass()
-: _setupCalled(false)
-, _sendingPromise(this)
-, __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
-  strcpy(_interface.brand, DEFAULT_BRAND);
-  _interface.standalone = false;
-  strcpy(_interface.firmware.name, DEFAULT_FW_NAME);
-  strcpy(_interface.firmware.version, DEFAULT_FW_VERSION);
-  _interface.led.enabled = true;
-  _interface.led.pin = BUILTIN_LED;
-  _interface.led.on = LOW;
-  _interface.reset.able = true;
-  _interface.reset.enabled = true;
-  _interface.reset.triggerPin = DEFAULT_RESET_PIN;
-  _interface.reset.triggerState = DEFAULT_RESET_STATE;
-  _interface.reset.triggerTime = DEFAULT_RESET_TIME;
-  _interface.reset.userFunction = []() { return false; };
-  _interface.globalInputHandler = [](String node, String property, HomieRange range, String value) { return false; };
-  _interface.setupFunction = []() {};
-  _interface.loopFunction = []() {};
-  _interface.eventHandler = [](HomieEvent event) {};
-  _interface.connected = false;
-  _interface.logger = &_logger;
-  _interface.blinker = &_blinker;
-  _interface.config = &_config;
-  _interface.mqttClient = &_mqttClient;
+HomieClass::HomieClass() : _setupCalled(false) {
+  strcpy(this->_interface.brand, DEFAULT_BRAND);
+  strcpy(this->_interface.firmware.name, DEFAULT_FW_NAME);
+  strcpy(this->_interface.firmware.version, DEFAULT_FW_VERSION);
+  this->_interface.led.enabled = true;
+  this->_interface.led.pin = BUILTIN_LED;
+  this->_interface.led.on = LOW;
+  this->_interface.reset.able = true;
+  this->_interface.reset.enabled = true;
+  this->_interface.reset.triggerPin = DEFAULT_RESET_PIN;
+  this->_interface.reset.triggerState = DEFAULT_RESET_STATE;
+  this->_interface.reset.triggerTime = DEFAULT_RESET_TIME;
+  this->_interface.reset.userFunction = []() { return false; };
+  this->_interface.globalInputHandler = [](String node, String property, String value) { return false; };
+  this->_interface.setupFunction = []() {};
+  this->_interface.loopFunction = []() {};
+  this->_interface.eventHandler = [](HomieEvent event) {};
+  this->_interface.readyToOperate = false;
+  this->_interface.logger = &this->_logger;
+  this->_interface.blinker = &this->_blinker;
+  this->_interface.config = &this->_config;
+  this->_interface.mqttClient = &this->_mqttClient;
 
   Helpers::generateDeviceId();
 
-  _config.attachInterface(&_interface);
-  _blinker.attachInterface(&_interface);
+  this->_config.attachInterface(&this->_interface);
+  this->_blinker.attachInterface(&this->_interface);
+  this->_mqttClient.attachInterface(&this->_interface);
 
-  _bootStandalone.attachInterface(&_interface);
-  _bootNormal.attachInterface(&_interface);
-  _bootConfig.attachInterface(&_interface);
+  this->_bootNormal.attachInterface(&this->_interface);
+  this->_bootOta.attachInterface(&this->_interface);
+  this->_bootConfig.attachInterface(&this->_interface);
 }
 
 HomieClass::~HomieClass() {
 }
 
-void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) const {
+void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
   if (_setupCalled) {
-    _logger.log(F("✖ "));
-    _logger.log(functionName);
-    _logger.logln(F("(): has to be called before setup()"));
-    _logger.flush();
+    this->_logger.log(F("✖ "));
+    this->_logger.log(functionName);
+    this->_logger.logln(F("(): has to be called before setup()"));
     abort();
   }
 }
@@ -135,190 +51,164 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) cons
 void HomieClass::setup() {
   _setupCalled = true;
 
-  if (!_config.load()) {
-    if (_interface.standalone && !_config.canBypassStandalone()) {
-      _boot = &_bootStandalone;
-      _logger.logln(F("Triggering STANDALONE_MODE event..."));
-      _interface.eventHandler(HomieEvent::STANDALONE_MODE);
-    } else {
-      _boot = &_bootConfig;
-      _logger.logln(F("Triggering CONFIGURATION_MODE event..."));
-      _interface.eventHandler(HomieEvent::CONFIGURATION_MODE);
-    }
+  if (this->_logger.isEnabled()) {
+    Serial.begin(BAUD_RATE);
+    this->_logger.logln();
+    this->_logger.logln();
+  }
+
+  if (!this->_config.load()) {
+    this->_boot = &this->_bootConfig;
+    this->_logger.logln(F("Triggering HOMIE_CONFIGURATION_MODE event..."));
+    this->_interface.eventHandler(HOMIE_CONFIGURATION_MODE);
   } else {
-    switch (_config.getBootMode()) {
+    switch (this->_config.getBootMode()) {
       case BOOT_NORMAL:
-        _boot = &_bootNormal;
-        _logger.logln(F("Triggering NORMAL_MODE event..."));
-        _interface.eventHandler(HomieEvent::NORMAL_MODE);
+        this->_boot = &this->_bootNormal;
+        this->_logger.logln(F("Triggering HOMIE_NORMAL_MODE event..."));
+        this->_interface.eventHandler(HOMIE_NORMAL_MODE);
+        break;
+      case BOOT_OTA:
+        this->_boot = &this->_bootOta;
+        this->_logger.logln(F("Triggering HOMIE_OTA_MODE event..."));
+        this->_interface.eventHandler(HOMIE_OTA_MODE);
         break;
       default:
-        _logger.logln(F("✖ The boot mode is invalid"));
-        _logger.flush();
+        this->_logger.logln(F("✖ The boot mode is invalid"));
         abort();
         break;
     }
   }
 
-  _boot->setup();
+  this->_boot->setup();
 }
 
 void HomieClass::loop() {
-  _boot->loop();
+  this->_boot->loop();
 }
 
-HomieClass& HomieClass::disableLogging() {
-  _checkBeforeSetup(F("disableLogging"));
+void HomieClass::enableLogging(bool enable) {
+  this->_checkBeforeSetup(F("enableLogging"));
 
-  _logger.setLogging(false);
-
-  return *this;
+  this->_logger.setLogging(enable);
 }
 
-HomieClass& HomieClass::setLoggingPrinter(Print* printer) {
-  _checkBeforeSetup(F("setLoggingPrinter"));
+void HomieClass::enableBuiltInLedIndicator(bool enable) {
+  this->_checkBeforeSetup(F("enableBuiltInLedIndicator"));
 
-  _logger.setPrinter(printer);
-
-  return *this;
+  this->_interface.led.enabled = enable;
 }
 
-HomieClass& HomieClass::disableLedFeedback() {
-  _checkBeforeSetup(F("disableLedFeedback"));
+void HomieClass::setLedPin(unsigned char pin, unsigned char on) {
+  this->_checkBeforeSetup(F("setLedPin"));
 
-  _interface.led.enabled = false;
-
-  return *this;
+  this->_interface.led.pin = pin;
+  this->_interface.led.on = on;
 }
 
-HomieClass& HomieClass::setLedPin(uint8_t pin, uint8_t on) {
-  _checkBeforeSetup(F("setLedPin"));
-
-  _interface.led.pin = pin;
-  _interface.led.on = on;
-
-  return *this;
-}
-
-void HomieClass::__setFirmware(const char* name, const char* version) {
-  _checkBeforeSetup(F("setFirmware"));
-  if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
-    _logger.logln(F("✖ setFirmware(): either the name or version string is too long"));
-    _logger.flush();
+void HomieClass::setFirmware(const char* name, const char* version) {
+  this->_checkBeforeSetup(F("setFirmware"));
+  if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
+    this->_logger.logln(F("✖ setFirmware(): either the name or version string is too long"));
     abort();
   }
 
-  strncpy(_interface.firmware.name, name + 5, strlen(name) - 10);
-  _interface.firmware.name[strlen(name) - 10] = '\0';
-  strncpy(_interface.firmware.version, version + 5, strlen(version) - 10);
-  _interface.firmware.version[strlen(version) - 10] = '\0';
+  strcpy(this->_interface.firmware.name, name);
+  strcpy(this->_interface.firmware.version, version);
 }
 
-void HomieClass::__setBrand(const char* brand) {
-  _checkBeforeSetup(F("setBrand"));
-  if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
-    _logger.logln(F("✖ setBrand(): the brand string is too long"));
-    _logger.flush();
+void HomieClass::setBrand(const char* name) {
+  this->_checkBeforeSetup(F("setBrand"));
+  if (strlen(name) + 1 > MAX_BRAND_LENGTH) {
+    this->_logger.logln(F("✖ setBrand(): the brand string is too long"));
     abort();
   }
 
-  strncpy(_interface.brand, brand + 5, strlen(brand) - 10);
-  _interface.brand[strlen(brand) - 10] = '\0';
+  strcpy(this->_interface.brand, name);
 }
 
-void HomieClass::setIdle(bool idle) {
-  _interface.reset.able = idle;
+void HomieClass::registerNode(const HomieNode& node) {
+  this->_checkBeforeSetup(F("registerNode"));
+  if (this->_interface.registeredNodesCount > MAX_REGISTERED_NODES_COUNT) {
+    Serial.println(F("✖ register(): the max registered nodes count has been reached"));
+    abort();
+  }
+
+  this->_interface.registeredNodes[this->_interface.registeredNodesCount++] = &node;
 }
 
-HomieClass& HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
-  _checkBeforeSetup(F("setGlobalInputHandler"));
-
-  _interface.globalInputHandler = inputHandler;
-
-  return *this;
+bool HomieClass::isReadyToOperate() {
+  return this->_interface.readyToOperate;
 }
 
-HomieClass& HomieClass::setResetFunction(ResetFunction function) {
-  _checkBeforeSetup(F("setResetFunction"));
-
-  _interface.reset.userFunction = function;
-
-  return *this;
+void HomieClass::setResettable(bool resettable) {
+  this->_interface.reset.able = resettable;
 }
 
-HomieClass& HomieClass::setSetupFunction(OperationFunction function) {
-  _checkBeforeSetup(F("setSetupFunction"));
+void HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
+  this->_checkBeforeSetup(F("setGlobalInputHandler"));
 
-  _interface.setupFunction = function;
-
-  return *this;
+  this->_interface.globalInputHandler = inputHandler;
 }
 
-HomieClass& HomieClass::setLoopFunction(OperationFunction function) {
-  _checkBeforeSetup(F("setLoopFunction"));
+void HomieClass::setResetFunction(ResetFunction function) {
+  this->_checkBeforeSetup(F("setResetFunction"));
 
-  _interface.loopFunction = function;
-
-  return *this;
+  this->_interface.reset.userFunction = function;
 }
 
-HomieClass& HomieClass::setStandalone() {
-  _checkBeforeSetup(F("setStandalone"));
+void HomieClass::setSetupFunction(OperationFunction function) {
+  this->_checkBeforeSetup(F("setSetupFunction"));
 
-  _interface.standalone = true;
-
-  return *this;
+  this->_interface.setupFunction = function;
 }
 
-bool HomieClass::isConfigured() const {
-  return _config.getBootMode() == BOOT_NORMAL;
+void HomieClass::setLoopFunction(OperationFunction function) {
+  this->_checkBeforeSetup(F("setLoopFunction"));
+
+  this->_interface.loopFunction = function;
 }
 
-bool HomieClass::isConnected() const {
-  return _interface.connected;
+void HomieClass::onEvent(EventHandler handler) {
+  this->_checkBeforeSetup(F("onEvent"));
+
+  this->_interface.eventHandler = handler;
 }
 
-HomieClass& HomieClass::onEvent(EventHandler handler) {
-  _checkBeforeSetup(F("onEvent"));
+void HomieClass::setResetTrigger(unsigned char pin, unsigned char state, unsigned int time) {
+  this->_checkBeforeSetup(F("setResetTrigger"));
 
-  _interface.eventHandler = handler;
-
-  return *this;
+  this->_interface.reset.enabled = true;
+  this->_interface.reset.triggerPin = pin;
+  this->_interface.reset.triggerState = state;
+  this->_interface.reset.triggerTime = time;
 }
 
-HomieClass& HomieClass::setResetTrigger(uint8_t pin, uint8_t state, uint16_t time) {
-  _checkBeforeSetup(F("setResetTrigger"));
+void HomieClass::disableResetTrigger() {
+  this->_checkBeforeSetup(F("disableResetTrigger"));
 
-  _interface.reset.enabled = true;
-  _interface.reset.triggerPin = pin;
-  _interface.reset.triggerState = state;
-  _interface.reset.triggerTime = time;
-
-  return *this;
+  this->_interface.reset.enabled = false;
 }
 
-HomieClass& HomieClass::disableResetTrigger() {
-  _checkBeforeSetup(F("disableResetTrigger"));
+bool HomieClass::setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained) {
+  if (!this->isReadyToOperate()) {
+    this->_logger.logln(F("✖ setNodeProperty(): impossible now"));
+    return false;
+  }
 
-  _interface.reset.enabled = false;
+  strcpy(this->_mqttClient.getTopicBuffer(), this->_config.get().mqtt.baseTopic);
+  strcat(this->_mqttClient.getTopicBuffer(), this->_config.get().deviceId);
+  strcat_P(this->_mqttClient.getTopicBuffer(), PSTR("/"));
+  strcat(this->_mqttClient.getTopicBuffer(), node.getId());
+  strcat_P(this->_mqttClient.getTopicBuffer(), PSTR("/"));
+  strcat(this->_mqttClient.getTopicBuffer(), property);
 
-  return *this;
-}
+  if (5 + 2 + strlen(this->_mqttClient.getTopicBuffer()) + strlen(value) + 1 > MQTT_MAX_PACKET_SIZE) {
+    this->_logger.logln(F("✖ setNodeProperty(): content to send is too long"));
+    return false;
+  }
 
-void HomieClass::eraseConfiguration() {
-  _config.erase();
-}
-
-const ConfigStruct& HomieClass::getConfiguration() const {
-  return _config.get();
-}
-
-AsyncMqttClient& HomieClass::getMqttClient() {
-  return _mqttClient;
-}
-
-void HomieClass::prepareForSleep() {
-  _boot->prepareForSleep();
+  return this->_mqttClient.publish(value, retained);
 }
 
 HomieClass Homie;

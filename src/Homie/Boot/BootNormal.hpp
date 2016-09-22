@@ -1,17 +1,13 @@
 #pragma once
 
-#include "Arduino.h"
-
 #include <functional>
 #include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <AsyncMqttClient.h>
 #include <Bounce2.h>
 #include "../../HomieNode.hpp"
-#include "../../HomieRange.hpp"
 #include "../Constants.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
+#include "../MqttClient.hpp"
 #include "../Helpers.hpp"
 #include "../Config.hpp"
 #include "../Blinker.hpp"
@@ -20,46 +16,41 @@
 #include "../Logger.hpp"
 #include "Boot.hpp"
 
+extern "C" {
+  #include "user_interface.h"
+}
+
 namespace HomieInternals {
-class BootNormal : public Boot {
- public:
-  BootNormal();
-  ~BootNormal();
-  void setup();
-  void loop();
-  void prepareForSleep();
+  class BootNormal : public Boot {
+    public:
+      BootNormal();
+      ~BootNormal();
+      void setup();
+      void loop();
 
- private:
-  Uptime _uptime;
-  Timer _signalQualityTimer;
-  Timer _uptimeTimer;
-  bool _setupFunctionCalled;
-  WiFiEventHandler _wifiGotIpHandler;
-  WiFiEventHandler _wifiDisconnectedHandler;
-  bool _mqttDisconnectNotified;
-  bool _flaggedForOta;
-  bool _flaggedForReset;
-  bool _flaggedForReboot;
-  Bounce _resetDebouncer;
-  bool _flaggedForSleep;
-  uint16_t _mqttOfflineMessageId;
+    private:
+      Uptime _uptime;
+      Timer _wifiReconnectTimer;
+      Timer _mqttReconnectTimer;
+      Timer _signalQualityTimer;
+      Timer _uptimeTimer;
+      bool _setupFunctionCalled;
+      bool _wifiConnectNotified;
+      bool _wifiDisconnectNotified;
+      bool _mqttConnectNotified;
+      bool _mqttDisconnectNotified;
+      char _otaVersion[MAX_FIRMWARE_VERSION_LENGTH];
+      bool _flaggedForOta;
+      bool _flaggedForReset;
+      Bounce _resetDebouncer;
 
-  std::unique_ptr<char[]> _mqttTopic;
-
-  std::unique_ptr<char[]> _mqttClientId;
-  std::unique_ptr<char[]> _mqttWillTopic;
-  std::unique_ptr<char[]> _mqttPayloadBuffer;
-
-  void _handleReset();
-  void _wifiConnect();
-  void _onWifiGotIp(const WiFiEventStationModeGotIP& event);
-  void _onWifiDisconnected(const WiFiEventStationModeDisconnected& event);
-  void _mqttConnect();
-  void _onMqttConnected();
-  void _onMqttDisconnected(AsyncMqttClientDisconnectReason reason);
-  void _onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
-  void _onMqttPublish(uint16_t id);
-  void _prefixMqttTopic();
-  char* _prefixMqttTopic(PGM_P topic);
-};
-}  // namespace HomieInternals
+      void _handleReset();
+      void _wifiConnect();
+      void _mqttConnect();
+      void _mqttSetup();
+      void _mqttCallback(char* topic, char* message);
+      void _fillMqttTopic(PGM_P topic);
+      bool _publishRetainedOrFail(const char* message);
+      bool _subscribe1OrFail();
+  };
+}

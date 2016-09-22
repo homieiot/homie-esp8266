@@ -4,18 +4,18 @@
 #include "Datatypes/Interface.hpp"
 
 namespace HomieInternals {
-class Blinker {
- public:
-  Blinker();
-  void attachInterface(Interface* interface);
-  void start(float blinkPace);
-  void stop();
+  class Blinker {
+    public:
+      Blinker();
+      void attachInterface(Interface* interface);
+      void start(float blinkPace);
+      void stop();
 
- private:
-  Interface* _interface;
-  Ticker _ticker;
-  float _lastBlinkPace;
+    private:
+      Interface* _interface;
+      Ticker _ticker;
+      float _lastBlinkPace;
 
-  static void _tick(uint8_t pin);
-};
-}  // namespace HomieInternals
+      static void _tick(unsigned char pin);
+  };
+}

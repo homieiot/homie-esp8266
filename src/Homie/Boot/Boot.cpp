@@ -1,11 +1,11 @@
 #include "Boot.hpp"
-#include "../Config.hpp"
 
 using namespace HomieInternals;
 
 Boot::Boot(const char* name)
 : _interface(nullptr)
-, _name(name) {
+, _name(name)
+{
 }
 
 void Boot::attachInterface(Interface* interface) {
@@ -13,20 +13,25 @@ void Boot::attachInterface(Interface* interface) {
 }
 
 void Boot::setup() {
-  if (_interface->led.enabled) {
-    pinMode(_interface->led.pin, OUTPUT);
-    digitalWrite(_interface->led.pin, !_interface->led.on);
+  if (this->_interface->led.enabled) {
+    pinMode(this->_interface->led.pin, OUTPUT);
+    digitalWrite(this->_interface->led.pin, !this->_interface->led.on);
   }
 
-  WiFi.persistent(true);  // Persist data on SDK as it seems Wi-Fi connection is faster
+  WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie
+  WiFi.disconnect(); // Reset network state
 
-  _interface->logger->log(F("** Booting into "));
-  _interface->logger->log(_name);
-  _interface->logger->logln(F(" mode **"));
+  char hostname[MAX_WIFI_SSID_LENGTH];
+  strcpy(hostname, this->_interface->brand);
+  strcat_P(hostname, PSTR("-"));
+  strcat(hostname, Helpers::getDeviceId());
+
+  WiFi.hostname(hostname);
+
+  this->_interface->logger->log(F("** Booting into "));
+  this->_interface->logger->log(this->_name);
+  this->_interface->logger->logln(F(" mode **"));
 }
 
 void Boot::loop() {
-}
-
-void Boot::prepareForSleep() {
 }

@@ -5,27 +5,28 @@ using namespace HomieInternals;
 Timer::Timer()
 : _initialTime(0)
 , _interval(0)
-, _tickAtBeginning(false) {
+, _tickAtBeginning(false)
+{
 }
 
-void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
-  _interval = interval;
-  _tickAtBeginning = tickAtBeginning;
+void Timer::setInterval(unsigned long interval, bool tickAtBeginning) {
+  this->_interval = interval;
+  this->_tickAtBeginning = tickAtBeginning;
 
-  if (!tickAtBeginning) _initialTime = millis();
+  if (!tickAtBeginning) this->_initialTime = millis();
 }
 
-bool Timer::check() const {
-  if (_tickAtBeginning && _initialTime == 0) return true;
-  if (millis() - _initialTime >= _interval) return true;
+bool Timer::check() {
+  if (this->_tickAtBeginning && this->_initialTime == 0) return true;
+  if (millis() - this->_initialTime >= this->_interval) return true;
 
   return false;
 }
 
 void Timer::reset() {
-  _initialTime = 0;
+  this->_initialTime = 0;
 }
 
 void Timer::tick() {
-  _initialTime = millis();
+  this->_initialTime = millis();
 }

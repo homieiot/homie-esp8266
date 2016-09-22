@@ -4,15 +4,16 @@ using namespace HomieInternals;
 
 Uptime::Uptime()
 : _seconds(0)
-, _lastTick(0) {
+, _lastTick(0)
+{
 }
 
 void Uptime::update() {
-  uint32_t now = millis();
-  _seconds += (now - _lastTick) / 1000UL;
-  _lastTick = now;
+  unsigned long now = millis();
+  this->_seconds += (now - this->_lastTick) / 1000UL;
+  this->_lastTick = now;
 }
 
-uint32_t Uptime::getSeconds() const {
-  return _seconds;
+unsigned long Uptime::getSeconds() {
+  return this->_seconds;
 }

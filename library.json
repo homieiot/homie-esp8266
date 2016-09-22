@@ -17,7 +17,7 @@
   "platforms": "espressif",
   "dependencies": [
     {
-      "name": "ArduinoJson",
+      "name": "Json",
       "authors": "Benoit Blanchon",
       "frameworks": "arduino"
     },

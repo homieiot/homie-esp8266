@@ -1,6 +1,6 @@
-#ifndef SRC_HOMIE_H_
-#define SRC_HOMIE_H_
+#ifndef Homie_h
+#define Homie_h
 
 #include "Homie.hpp"
 
-#endif  // SRC_HOMIE_H_
+#endif

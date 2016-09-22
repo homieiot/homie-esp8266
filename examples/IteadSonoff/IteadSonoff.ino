@@ -8,14 +8,14 @@ const int PIN_BUTTON = 0;
 
 HomieNode switchNode("switch", "switch");
 
-bool switchOnHandler(HomieRange range, String value) {
+bool switchOnHandler(String value) {
   if (value == "true") {
     digitalWrite(PIN_RELAY, HIGH);
-    Homie.setNodeProperty(switchNode, "on").send("true");
+    Homie.setNodeProperty(switchNode, "on", "true");
     Serial.println("Switch is on");
   } else if (value == "false") {
     digitalWrite(PIN_RELAY, LOW);
-    Homie.setNodeProperty(switchNode, "on").send("false");
+    Homie.setNodeProperty(switchNode, "on", "false");
     Serial.println("Switch is off");
   } else {
     return false;
@@ -25,17 +25,14 @@ bool switchOnHandler(HomieRange range, String value) {
 }
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println();
-  Serial.println();
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 
-  Homie_setFirmware("itead-sonoff", "1.0.0");
-  Homie.setLedPin(PIN_LED, LOW).setResetTrigger(PIN_BUTTON, LOW, 5000);
-
-  switchNode.advertise("on").settable(switchOnHandler);
-
+  Homie.setFirmware("itead-sonoff", "1.0.0");
+  Homie.setLedPin(PIN_LED, LOW);
+  Homie.setResetTrigger(PIN_BUTTON, LOW, 5000);
+  switchNode.subscribe("on", switchOnHandler);
+  Homie.registerNode(switchNode);
   Homie.setup();
 }
 

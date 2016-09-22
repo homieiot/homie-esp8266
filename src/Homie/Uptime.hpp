@@ -3,14 +3,14 @@
 #include "Arduino.h"
 
 namespace HomieInternals {
-class Uptime {
- public:
-  Uptime();
-  void update();
-  uint32_t getSeconds() const;
+  class Uptime {
+    public:
+      Uptime();
+      void update();
+      unsigned long getSeconds();
 
- private:
-  uint32_t _seconds;
-  uint32_t _lastTick;
-};
-}  // namespace HomieInternals
+    private:
+      unsigned long _seconds;
+      unsigned long _lastTick;
+  };
+}

@@ -1,51 +1,52 @@
 #pragma once
 
-#include <AsyncMqttClient.h>
 #include "../Limits.hpp"
 #include "./Callbacks.hpp"
 #include "../../HomieNode.hpp"
 #include "../../HomieEvent.hpp"
 
 namespace HomieInternals {
-class Logger;
-class Blinker;
-class Config;
-struct Interface {
-  /***** User configurable data *****/
-  char brand[MAX_BRAND_LENGTH];
+  class Logger;
+  class Blinker;
+  class Config;
+  class MqttClient;
+  struct Interface {
+    /***** User configurable data *****/
+    char brand[MAX_BRAND_LENGTH];
 
-  bool standalone;
+    struct Firmware {
+      char name[MAX_FIRMWARE_NAME_LENGTH];
+      char version[MAX_FIRMWARE_VERSION_LENGTH];
+    } firmware;
 
-  struct Firmware {
-    char name[MAX_FIRMWARE_NAME_LENGTH];
-    char version[MAX_FIRMWARE_VERSION_LENGTH];
-  } firmware;
+    struct LED {
+      bool enabled;
+      unsigned char pin;
+      unsigned char on;
+    } led;
 
-  struct LED {
-    bool enabled;
-    uint8_t pin;
-    uint8_t on;
-  } led;
+    struct Reset {
+      bool enabled;
+      bool able;
+      unsigned char triggerPin;
+      unsigned char triggerState;
+      unsigned int triggerTime;
+      ResetFunction userFunction;
+    } reset;
 
-  struct Reset {
-    bool enabled;
-    bool able;
-    uint8_t triggerPin;
-    uint8_t triggerState;
-    uint16_t triggerTime;
-    ResetFunction userFunction;
-  } reset;
+    const HomieNode* registeredNodes[MAX_REGISTERED_NODES_COUNT];
+    unsigned char registeredNodesCount;
 
-  GlobalInputHandler globalInputHandler;
-  OperationFunction setupFunction;
-  OperationFunction loopFunction;
-  EventHandler eventHandler;
+    GlobalInputHandler globalInputHandler;
+    OperationFunction setupFunction;
+    OperationFunction loopFunction;
+    EventHandler eventHandler;
 
-  /***** Runtime data *****/
-  bool connected;
-  Logger* logger;
-  Blinker* blinker;
-  Config* config;
-  AsyncMqttClient* mqttClient;
-};
-}  // namespace HomieInternals
+    /***** Runtime data *****/
+    bool readyToOperate;
+    Logger* logger;
+    Blinker* blinker;
+    Config* config;
+    MqttClient* mqttClient;
+  };
+}

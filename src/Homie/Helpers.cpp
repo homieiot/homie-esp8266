@@ -2,7 +2,7 @@
 
 using namespace HomieInternals;
 
-char Helpers::_deviceId[] = "";  // need to define the static variable
+char Helpers::_deviceId[] = ""; // need to define the static variable
 
 void Helpers::generateDeviceId() {
   char flashChipId[6 + 1];
@@ -15,17 +15,19 @@ const char* Helpers::getDeviceId() {
   return Helpers::_deviceId;
 }
 
-uint8_t Helpers::rssiToPercentage(int32_t rssi) {
-  uint8_t quality;
-  if (rssi <= -100) {
-    quality = 0;
-  } else if (rssi >= -50) {
-    quality = 100;
+MdnsQueryResult Helpers::mdnsQuery(const char* service) {
+  MdnsQueryResult result;
+  result.success = false;
+  int n = MDNS.queryService(service, "tcp");
+  if (n == 0) {
+    return result;
   } else {
-    quality = 2 * (rssi + 100);
+    result.success = true;
+    result.ip = MDNS.IP(0);
+    result.port = MDNS.port(0);
   }
 
-  return quality;
+  return result;
 }
 
 ConfigValidationResult Helpers::validateConfig(const JsonObject& object) {
@@ -38,16 +40,16 @@ ConfigValidationResult Helpers::validateConfig(const JsonObject& object) {
   if (!result.valid) return result;
   result = _validateConfigOta(object);
   if (!result.valid) return result;
-  result = _validateConfigSettings(object);
-  if (!result.valid) return result;
 
   result.valid = true;
+  result.reason = nullptr;
   return result;
 }
 
 ConfigValidationResult Helpers::_validateConfigRoot(const JsonObject& object) {
   ConfigValidationResult result;
   result.valid = false;
+  result.reason = nullptr;
   if (!object.containsKey("name") || !object["name"].is<const char*>()) {
     result.reason = F("name is not a string");
     return result;
@@ -81,6 +83,7 @@ ConfigValidationResult Helpers::_validateConfigRoot(const JsonObject& object) {
 ConfigValidationResult Helpers::_validateConfigWifi(const JsonObject& object) {
   ConfigValidationResult result;
   result.valid = false;
+  result.reason = nullptr;
 
   if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject&>()) {
     result.reason = F("wifi is not an object");
@@ -116,22 +119,36 @@ ConfigValidationResult Helpers::_validateConfigWifi(const JsonObject& object) {
 ConfigValidationResult Helpers::_validateConfigMqtt(const JsonObject& object) {
   ConfigValidationResult result;
   result.valid = false;
+  result.reason = nullptr;
 
   if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject&>()) {
     result.reason = F("mqtt is not an object");
     return result;
   }
-  if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
-    result.reason = F("mqtt.host is not a string");
-    return result;
-  }
-  if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
-    result.reason = F("mqtt.host is too long");
-    return result;
-  }
-  if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
-    result.reason = F("mqtt.port is not an integer");
-    return result;
+  bool mdns = false;
+  if (object["mqtt"].as<JsonObject&>().containsKey("mdns")) {
+    if (!object["mqtt"]["mdns"].is<const char*>()) {
+      result.reason = F("mqtt.mdns is not a string");
+      return result;
+    }
+    if (strlen(object["mqtt"]["mdns"]) + 1 > MAX_HOSTNAME_LENGTH) {
+      result.reason = F("mqtt.mdns is too long");
+      return result;
+    }
+    mdns = true;
+  } else {
+    if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
+      result.reason = F("mqtt.host is not a string");
+      return result;
+    }
+    if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
+      result.reason = F("mqtt.host is too long");
+      return result;
+    }
+    if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<unsigned int>()) {
+      result.reason = F("mqtt.port is not an unsigned integer");
+      return result;
+    }
   }
   if (object["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
     if (!object["mqtt"]["base_topic"].is<const char*>()) {
@@ -169,11 +186,32 @@ ConfigValidationResult Helpers::_validateConfigMqtt(const JsonObject& object) {
       }
     }
   }
+  if (object["mqtt"].as<JsonObject&>().containsKey("ssl")) {
+    if (!object["mqtt"]["ssl"].is<bool>()) {
+      result.reason = F("mqtt.ssl is not a boolean");
+      return result;
+    }
 
-  const char* host = object["mqtt"]["host"];
-  if (strcmp_P(host, PSTR("")) == 0) {
-    result.reason = F("mqtt.host is empty");
-    return result;
+    if (object["mqtt"]["ssl"]) {
+      if (object["mqtt"].as<JsonObject&>().containsKey("fingerprint") && !object["mqtt"]["fingerprint"].is<const char*>()) {
+        result.reason = F("mqtt.fingerprint is not a string");
+        return result;
+      }
+    }
+  }
+
+  if (mdns) {
+    const char* mdnsService = object["mqtt"]["mdns"];
+    if (strcmp_P(mdnsService, PSTR("")) == 0) {
+      result.reason = F("mqtt.mdns is empty");
+      return result;
+    }
+  } else {
+    const char* host = object["mqtt"]["host"];
+    if (strcmp_P(host, PSTR("")) == 0) {
+      result.reason = F("mqtt.host is empty");
+      return result;
+    }
   }
 
   result.valid = true;
@@ -183,6 +221,7 @@ ConfigValidationResult Helpers::_validateConfigMqtt(const JsonObject& object) {
 ConfigValidationResult Helpers::_validateConfigOta(const JsonObject& object) {
   ConfigValidationResult result;
   result.valid = false;
+  result.reason = nullptr;
 
   if (!object.containsKey("ota") || !object["ota"].is<JsonObject&>()) {
     result.reason = F("ota is not an object");
@@ -192,113 +231,53 @@ ConfigValidationResult Helpers::_validateConfigOta(const JsonObject& object) {
     result.reason = F("ota.enabled is not a boolean");
     return result;
   }
-
-  result.valid = true;
-  return result;
-}
-
-ConfigValidationResult Helpers::_validateConfigSettings(const JsonObject& object) {
-  ConfigValidationResult result;
-  result.valid = false;
-
-  StaticJsonBuffer<0> emptySettingsBuffer;
-
-  JsonObject* settingsObject = &(emptySettingsBuffer.createObject());
-
-  if (object.containsKey("settings") && object["settings"].is<JsonObject&>()) {
-    settingsObject = &(object["settings"].as<JsonObject&>());
-  }
-
-  for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    if (iSetting->isBool()) {
-      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<bool>()) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting is not a boolean"));
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<bool>())) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting does not pass the validator function"));
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        result.reason = String(setting->getName());
-        result.reason.concat(F(" setting is missing"));
+  if (object["ota"]["enabled"]) {
+    if (object["ota"].as<JsonObject&>().containsKey("mdns")) {
+      if (!object["ota"]["mdns"].is<const char*>()) {
+        result.reason = F("ota.mdns is not a string");
         return result;
       }
-    } else if (iSetting->isUnsignedLong()) {
-      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<unsigned long>()) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting is not an unsigned long"));
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<unsigned long>())) {
-          result.reason = String(setting->getName());
-          result.reason.concat((" setting does not pass the validator function"));
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        result.reason = String(setting->getName());
-        result.reason.concat(F(" setting is missing"));
+      if (strlen(object["ota"]["mdns"]) + 1 > MAX_HOSTNAME_LENGTH) {
+        result.reason = F("ota.mdns is too long");
         return result;
       }
-    } else if (iSetting->isLong()) {
-      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<long>()) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting is not a long"));
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<long>())) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting does not pass the validator function"));
+    } else {
+      if (object["ota"].as<JsonObject&>().containsKey("host")) {
+        if (!object["ota"]["host"].is<const char*>()) {
+          result.reason = F("ota.host is not a string");
           return result;
         }
-      } else if (setting->isRequired()) {
-        result.reason = String(setting->getName());
-        result.reason.concat(F(" setting is missing"));
+        if (strlen(object["ota"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
+          result.reason = F("ota.host is too long");
+          return result;
+        }
+      }
+      if (object["ota"].as<JsonObject&>().containsKey("port") && !object["ota"]["port"].is<unsigned int>()) {
+        result.reason = F("ota.port is not an unsigned integer");
         return result;
       }
-    } else if (iSetting->isDouble()) {
-      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<double>()) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting is not a double"));
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<double>())) {
-          result.reason = String(setting->getName());
-          result.reason.concat((" setting does not pass the validator function"));
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        result.reason = String(setting->getName());
-        result.reason.concat(F(" setting is missing"));
+    }
+    if (object["ota"].as<JsonObject&>().containsKey("path")) {
+      if (!object["ota"]["path"].is<const char*>()) {
+        result.reason = F("ota.path is not a string");
         return result;
       }
-    } else if (iSetting->isConstChar()) {
-      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+      if (strlen(object["ota"]["path"]) + 1 > MAX_OTA_PATH_LENGTH) {
+        result.reason = F("ota.path is too long");
+        return result;
+      }
+    }
+    if (object["ota"].as<JsonObject&>().containsKey("ssl")) {
+      if (!object["ota"]["ssl"].is<bool>()) {
+        result.reason = F("ota.ssl is not a boolean");
+        return result;
+      }
 
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<const char*>()) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting is not a const char*"));
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<const char*>())) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting does not pass the validator function"));
+      if (object["ota"]["ssl"]) {
+        if (object["ota"].as<JsonObject&>().containsKey("fingerprint") && !object["ota"]["fingerprint"].is<const char*>()) {
+          result.reason = F("ota.fingerprint is not a string");
           return result;
         }
-      } else if (setting->isRequired()) {
-        result.reason = String(setting->getName());
-        result.reason.concat(F(" setting is missing"));
-        return result;
       }
     }
   }

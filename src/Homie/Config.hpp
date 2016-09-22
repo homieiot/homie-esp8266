@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Arduino.h"
-
 #include <ArduinoJson.h>
 #include "FS.h"
 #include "Datatypes/Interface.hpp"
@@ -9,34 +7,28 @@
 #include "Helpers.hpp"
 #include "Limits.hpp"
 #include "Logger.hpp"
-#include "../HomieSetting.hpp"
 
 namespace HomieInternals {
-class Config {
- public:
-  Config();
-  void attachInterface(Interface* interface);
-  bool load();
-  inline const ConfigStruct& get() const;
-  char* getSafeConfigFile() const;
-  void erase();
-  void bypassStandalone();
-  bool canBypassStandalone();
-  void write(const char* config);
-  bool patch(const char* patch);
-  BootMode getBootMode() const;
-  void log() const;  // print the current config to log output
+  class Config {
+    public:
+      Config();
+      void attachInterface(Interface* interface);
+      bool load();
+      const ConfigStruct& get();
+      void erase();
+      void write(const String& config);
+      void setOtaMode(bool enabled, const char* version = "");
+      const char* getOtaVersion();
+      BootMode getBootMode();
+      void log(); // print the current config to log output
 
- private:
-  Interface* _interface;
-  BootMode _bootMode;
-  ConfigStruct _configStruct;
-  bool _spiffsBegan;
+    private:
+      Interface* _interface;
+      BootMode _bootMode;
+      ConfigStruct _configStruct;
+      char _otaVersion[MAX_FIRMWARE_VERSION_LENGTH];
+      bool _spiffsBegan;
 
-  bool _spiffsBegin();
-};
-
-const ConfigStruct& Config::get() const {
-  return _configStruct;
+      bool _spiffsBegin();
+  };
 }
-}  // namespace HomieInternals

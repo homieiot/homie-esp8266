@@ -14,25 +14,23 @@ void loopHandler() {
      Serial.print("Door is now: ");
      Serial.println(doorValue ? "open" : "close");
 
-     Homie.setNodeProperty(doorNode, "open").send(doorValue ? "true" : "false");
-     lastDoorValue = doorValue;
+     if (Homie.setNodeProperty(doorNode, "open", doorValue ? "true" : "false", true)) {
+       lastDoorValue = doorValue;
+     } else {
+       Serial.println("Sending failed");
+     }
   }
 }
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println();
-  Serial.println();
   pinMode(PIN_DOOR, INPUT);
   digitalWrite(PIN_DOOR, HIGH);
   debouncer.attach(PIN_DOOR);
   debouncer.interval(50);
 
-  Homie_setFirmware("awesome-door", "1.0.0");
+  Homie.setFirmware("awesome-door", "1.0.0");
+  Homie.registerNode(doorNode);
   Homie.setLoopFunction(loopHandler);
-
-  doorNode.advertise("open");
-
   Homie.setup();
 }
 

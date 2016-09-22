@@ -1,58 +1,59 @@
 #include "HomieNode.hpp"
-#include "Homie.hpp"
 
 using namespace HomieInternals;
 
-std::vector<HomieNode*> HomieNode::nodes;
-
-PropertyInterface::PropertyInterface()
-: _property(nullptr) {
-}
-
-void PropertyInterface::settable(PropertyInputHandler inputHandler) {
-  _property->settable(inputHandler);
-}
-
-PropertyInterface& PropertyInterface::setProperty(Property* property) {
-  _property = property;
-  return *this;
-}
-
-HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
+HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler, bool subscribeToAll)
 : _id(id)
 , _type(type)
-, _properties()
+, _subscriptionsCount(0)
+, _subscribeToAll(subscribeToAll)
 , _inputHandler(inputHandler) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
     Serial.println(F("✖ HomieNode(): either the id or type string is too long"));
-    Serial.flush();
     abort();
   }
-  Homie._checkBeforeSetup(F("HomieNode::HomieNode"));
 
-  HomieNode::nodes.push_back(this);
+  this->_id = id;
+  this->_type = type;
 }
 
-PropertyInterface& HomieNode::advertise(const char* property) {
-  Property* propertyObject = new Property(property);
+void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandler) {
+  if (strlen(property) + 1 > MAX_NODE_PROPERTY_LENGTH) {
+    Serial.println(F("✖ subscribe(): the property string is too long"));
+    abort();
+  }
 
-  _properties.push_back(propertyObject);
+  if (this->_subscriptionsCount > MAX_SUBSCRIPTIONS_COUNT_PER_NODE) {
+    Serial.println(F("✖ subscribe(): the max subscription count has been reached"));
+    abort();
+  }
 
-  return _propertyInterface.setProperty(propertyObject);
+  Subscription subscription;
+  strcpy(subscription.property, property);
+  subscription.inputHandler = inputHandler;
+  this->_subscriptions[this->_subscriptionsCount++] = subscription;
 }
 
-PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
-  Property* propertyObject = new Property(property, true, lower, upper);
-
-  _properties.push_back(propertyObject);
-
-  return _propertyInterface.setProperty(propertyObject);
+const char* HomieNode::getId() const {
+  return this->_id;
 }
 
-bool HomieNode::handleInput(String const &property, HomieRange range, String const &value) {
-  return _inputHandler(property, range, value);
+const char* HomieNode::getType() const {
+  return this->_type;
 }
 
-const std::vector<HomieInternals::Property*>& HomieNode::getProperties() const {
-  return _properties;
+const Subscription* HomieNode::getSubscriptions() const {
+  return this->_subscriptions;
+}
+
+unsigned char HomieNode::getSubscriptionsCount() const {
+  return this->_subscriptionsCount;
+}
+
+bool HomieNode::getSubscribeToAll() const {
+  return this->_subscribeToAll;
+}
+
+NodeInputHandler HomieNode::getInputHandler() const {
+  return this->_inputHandler;
 }
