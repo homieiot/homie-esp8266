@@ -1,35 +1,50 @@
 {
   "name": "Homie",
-  "keywords": "iot, home, automation, mqtt, esp8266",
+  "version": "2.0.0",
+  "keywords": "iot, home, automation, mqtt, esp8266, async, sensor",
   "description": "ESP8266 framework for Homie, a lightweight MQTT convention for the IoT",
+  "homepage": "https://homie-esp8266.readme.io",
+  "license": "MIT",
   "authors":
   {
     "name": "Marvin Roger",
-    "url": "https://www.marvinroger.fr"
+    "url": "https://www.marvinroger.fr",
+    "maintainer": true
   },
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/marvinroger/homie-esp8266.git"
+    "url": "https://github.com/marvinroger/homie-esp8266.git",
+    "branch": "master"
   },
-  "version": "1.5.0",
   "frameworks": "arduino",
   "platforms": "espressif",
   "dependencies": [
     {
       "name": "ArduinoJson",
+      "version": "^5.0.0",
       "authors": "Benoit Blanchon",
       "frameworks": "arduino"
     },
     {
-      "name": "PubSubClient",
-      "authors": "Nick O'Leary",
+      "name": "AsyncMqttClient",
+      "version": "^0.3.0",
+      "authors": "Marvin Roger",
       "frameworks": "arduino"
     },
     {
       "name": "Bounce2",
+      "version": "^2.0.0",
       "authors": "Thomas O Fredericks",
       "frameworks": "arduino"
     }
-  ]
+  ],
+  "export": {
+    "include": [
+      "LICENSE",
+      "src/*",
+      "examples/*"
+    ]
+  },
+  "examples": "examples/*.ino"
 }
