@@ -100,6 +100,7 @@ HomieClass::HomieClass()
   _interface.reset.triggerTime = DEFAULT_RESET_TIME;
   _interface.reset.userFunction = []() { return false; };
   _interface.globalInputHandler = [](String node, String property, HomieRange range, String value) { return false; };
+  _interface.broadcastHandler = [](String level, String value) { return false; };
   _interface.setupFunction = []() {};
   _interface.loopFunction = []() {};
   _interface.eventHandler = [](HomieEvent event) {};
@@ -234,6 +235,14 @@ HomieClass& HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
   _checkBeforeSetup(F("setGlobalInputHandler"));
 
   _interface.globalInputHandler = inputHandler;
+
+  return *this;
+}
+
+HomieClass& HomieClass::setBroadcastHandler(BroadcastHandler broadcastHandler) {
+  _checkBeforeSetup(F("setGlobalInputHandler"));
+
+  _interface.broadcastHandler = broadcastHandler;
 
   return *this;
 }

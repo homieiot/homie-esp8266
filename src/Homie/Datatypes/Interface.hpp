@@ -37,6 +37,7 @@ struct Interface {
   } reset;
 
   GlobalInputHandler globalInputHandler;
+  BroadcastHandler broadcastHandler;
   OperationFunction setupFunction;
   OperationFunction loopFunction;
   EventHandler eventHandler;
