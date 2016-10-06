@@ -88,7 +88,7 @@ void BootConfig::_onWifiConnectRequest() {
   }
 
   _interface->logger->logln(F("Connecting to Wi-Fi"));
-  WiFi.begin(parsedJson["ssid"], parsedJson["password"]);
+  WiFi.begin(parsedJson["ssid"].as<const char*>(), parsedJson["password"].as<const char*>());
   _http.send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
   free(bodyCharArray);
 }
