@@ -10,8 +10,5 @@
   },
   "ota": {
     "enabled": false
-  },
-  "settings": {
-    
   }
 }
