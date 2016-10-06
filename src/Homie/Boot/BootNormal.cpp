@@ -183,8 +183,8 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     _interface->logger->logln(F("Triggering MQTT_DISCONNECTED event..."));
     _interface->eventHandler(HomieEvent::MQTT_DISCONNECTED);
     if (_flaggedForSleep) {
-      _interface->logger->logln(F("Triggering READY_FOR_SLEEP event..."));
-      _interface->eventHandler(HomieEvent::READY_FOR_SLEEP);
+      _interface->logger->logln(F("Triggering READY_TO_SLEEP event..."));
+      _interface->eventHandler(HomieEvent::READY_TO_SLEEP);
     }
     _mqttDisconnectNotified = true;
   }

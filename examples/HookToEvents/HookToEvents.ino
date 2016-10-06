@@ -35,6 +35,9 @@ void onHomieEvent(HomieEvent event) {
     case HomieEvent::MQTT_DISCONNECTED:
       Serial.println("MQTT disconnected");
       break;
+    case HomieEvent::READY_TO_SLEEP:
+      Serial.println("Ready to sleep");
+      break;
   }
 }
 
