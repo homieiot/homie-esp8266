@@ -48,7 +48,7 @@ void BootConfig::setup() {
 
   _http.on("/heart", HTTP_GET, [this]() {
     _interface->logger->logln(F("Received heart request"));
-    _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"heart\":\"beat\"}"));
+    _http.send(204);
   });
   _http.on("/device-info", HTTP_GET, std::bind(&BootConfig::_onDeviceInfoRequest, this));
   _http.on("/networks", HTTP_GET, std::bind(&BootConfig::_onNetworksRequest, this));
@@ -57,62 +57,98 @@ void BootConfig::setup() {
     _interface->logger->logln(F("Received CORS request for /config"));
     _http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
-  _http.on("/wifi-connect", HTTP_POST, std::bind(&BootConfig::_onWifiConnectRequest, this));
-  _http.on("/wifi-status", HTTP_GET, std::bind(&BootConfig::_onWifiStatusRequest, this));
-  _http.on("/proxy-control", HTTP_POST, std::bind(&BootConfig::_onProxyControlRequest, this));
+  _http.on("/wifi/connect", HTTP_PUT, std::bind(&BootConfig::_onWifiConnectRequest, this));
+  _http.on("/wifi/status", HTTP_GET, std::bind(&BootConfig::_onWifiStatusRequest, this));
+  _http.on("/proxy/control", HTTP_PUT, std::bind(&BootConfig::_onProxyControlRequest, this));
   _http.onNotFound(std::bind(&BootConfig::_onCaptivePortal, this));
   _http.begin();
 }
 
 void BootConfig::_onWifiConnectRequest() {
-  _interface->logger->logln(F("Received wifi connect request"));
-  String ssid = _http.arg("ssid");
-  String pass = _http.arg("password");
-  if (ssid && pass && ssid != "" && pass != "") {
-    _interface->logger->logln(F("Connecting to WiFi"));
-    WiFi.begin(ssid.c_str(), pass.c_str());
-    _http.send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":true}");
-  } else {
-    _interface->logger->logln(F("ssid/password required"));
-    _http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"success\":false, \"error\":\"ssid-password-required\"}");
+  _interface->logger->logln(F("Received Wi-Fi connect request"));
+  StaticJsonBuffer<JSON_OBJECT_SIZE(2)> parseJsonBuffer;
+  char* bodyCharArray = strdup(_http.arg("plain").c_str());
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray);  // do not use plain String, else fails
+  if (!parsedJson.success()) {
+    free(bodyCharArray);
+    _interface->logger->logln(F("✖ Invalid or too big JSON"));
+    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+    errorJson.concat(F("Invalid or too big JSON\"}"));
+    _http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    return;
   }
+
+  if (!parsedJson.containsKey("ssid") || !parsedJson["ssid"].is<const char*>() || !parsedJson.containsKey("password") || !parsedJson["password"].is<const char*>()) {
+    free(bodyCharArray);
+    _interface->logger->logln(F("✖ SSID and password required"));
+    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+    errorJson.concat(F("SSID and password required\"}"));
+    _http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    return;
+  }
+
+  _interface->logger->logln(F("Connecting to Wi-Fi"));
+  WiFi.begin(parsedJson["ssid"], parsedJson["password"]);
+  _http.send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
+  free(bodyCharArray);
 }
 
 void BootConfig::_onWifiStatusRequest() {
-  _interface->logger->logln(F("Received wifi status request"));
+  _interface->logger->logln(F("Received Wi-Fi status request"));
   String json = "";
   switch (WiFi.status()) {
     case WL_IDLE_STATUS:
-      json = "{\"status\":\"idle\"}"; break;
+      json = F("{\"status\":\"idle\"}");
+      break;
     case WL_CONNECT_FAILED:
-      json = "{\"status\":\"connect-failed\"}"; break;
+      json = F("{\"status\":\"connect_failed\"}");
+      break;
     case WL_CONNECTION_LOST:
-      json = "{\"status\":\"connection-lost\"}"; break;
+      json = F("{\"status\":\"connection_lost\"}");
+      break;
     case WL_NO_SSID_AVAIL:
-      json = "{\"status\":\"no-ssid-avail\"}"; break;
+      json = F("{\"status\":\"no_ssid_available\"}");
+      break;
     case WL_CONNECTED:
-      json = "{\"status\":\"connected\", \"ip\":\""+ WiFi.localIP().toString() +"\"}"; break;
+      json = "{\"status\":\"connected\",\"local_ip\":\"" + WiFi.localIP().toString() + "\"}";
+      break;
     case WL_DISCONNECTED:
-      json = "{\"status\":\"disconnected\"}"; break;
+      json = F("{\"status\":\"disconnected\"}");
+      break;
     default:
-      json = "{\"status\":\"other\"}"; break;
+      json = F("{\"status\":\"other\"}");
+      break;
   }
-  _interface->logger->log(F("WiFi status "));
-  _interface->logger->logln(json);
+
   _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), json);
 }
 
 void BootConfig::_onProxyControlRequest() {
   _interface->logger->logln(F("Received proxy control request"));
-  String enable = _http.arg("enable");
-  _proxyEnabled = (enable == "true");
-  if (_proxyEnabled) {
-    _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"message\":\"proxy-enabled\"}");
-  } else {
-    _http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), "{\"message\":\"proxy-disabled\"}");
+  StaticJsonBuffer<JSON_OBJECT_SIZE(1)> parseJsonBuffer;
+  char* bodyCharArray = strdup(_http.arg("plain").c_str());
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray);  // do not use plain String, else fails
+  if (!parsedJson.success()) {
+    free(bodyCharArray);
+    _interface->logger->logln(F("✖ Invalid or too big JSON"));
+    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+    errorJson.concat(F("Invalid or too big JSON\"}"));
+    _http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    return;
   }
-  _interface->logger->log(F("Transparent proxy enabled="));
-  _interface->logger->logln(_proxyEnabled);
+
+  if (!parsedJson.containsKey("enable") || !parsedJson["enable"].is<bool>()) {
+    free(bodyCharArray);
+    _interface->logger->logln(F("✖ enable parameter is required"));
+    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+    errorJson.concat(F("enable parameter is required\"}"));
+    _http.send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    return;
+  }
+
+  _proxyEnabled = parsedJson["enable"];
+  _http.send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
+  free(bodyCharArray);
 }
 
 void BootConfig::_generateNetworksJson() {
@@ -214,12 +250,12 @@ void BootConfig::_proxyHttpRequest() {
 }
 
 void BootConfig::_onDeviceInfoRequest() {
-  _interface->logger->logln(F("Received device info request"));
+  _interface->logger->logln(F("Received device information request"));
   auto numSettings = IHomieSetting::settings.size();
   auto numNodes = HomieNode::nodes.size();
   DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
   JsonObject& json = jsonBuffer.createObject();
-  json["device_id"] = Helpers::getDeviceId();
+  json["hardware_device_id"] = Helpers::getDeviceId();
   json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
   JsonObject& firmware = json.createNestedObject("firmware");
   firmware["name"] = _interface->firmware.name;
