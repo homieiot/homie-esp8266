@@ -202,7 +202,7 @@ bool Config::canBypassStandalone() {
   return SPIFFS.exists(CONFIG_BYPASS_STANDALONE_FILE_PATH);
 }
 
-void Config::write(const char* config) {
+void Config::write(const JsonObject& config) {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
@@ -213,7 +213,7 @@ void Config::write(const char* config) {
     return;
   }
 
-  configFile.print(config);
+  config.printTo(configFile);
   configFile.close();
 }
 
@@ -269,11 +269,7 @@ bool Config::patch(const char* patch) {
       return false;
     }
 
-    size_t finalBufferLength = configObject.measureLength() + 1;
-    std::unique_ptr<char[]> finalConfigString(new char[finalBufferLength]);
-    configObject.printTo(finalConfigString.get(), finalBufferLength);
-
-    write(finalConfigString.get());
+    write(configObject);
 
     return true;
 }

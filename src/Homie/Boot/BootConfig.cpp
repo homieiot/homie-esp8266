@@ -67,10 +67,8 @@ void BootConfig::setup() {
 void BootConfig::_onWifiConnectRequest() {
   _interface->logger->logln(F("Received Wi-Fi connect request"));
   StaticJsonBuffer<JSON_OBJECT_SIZE(2)> parseJsonBuffer;
-  char* bodyCharArray = strdup(_http.arg("plain").c_str());
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray);  // do not use plain String, else fails
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(_http.arg("plain"));
   if (!parsedJson.success()) {
-    free(bodyCharArray);
     _interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
     errorJson.concat(F("Invalid or too big JSON\"}"));
@@ -79,7 +77,6 @@ void BootConfig::_onWifiConnectRequest() {
   }
 
   if (!parsedJson.containsKey("ssid") || !parsedJson["ssid"].is<const char*>() || !parsedJson.containsKey("password") || !parsedJson["password"].is<const char*>()) {
-    free(bodyCharArray);
     _interface->logger->logln(F("✖ SSID and password required"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
     errorJson.concat(F("SSID and password required\"}"));
@@ -90,7 +87,6 @@ void BootConfig::_onWifiConnectRequest() {
   _interface->logger->logln(F("Connecting to Wi-Fi"));
   WiFi.begin(parsedJson["ssid"].as<const char*>(), parsedJson["password"].as<const char*>());
   _http.send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
-  free(bodyCharArray);
 }
 
 void BootConfig::_onWifiStatusRequest() {
@@ -126,10 +122,8 @@ void BootConfig::_onWifiStatusRequest() {
 void BootConfig::_onProxyControlRequest() {
   _interface->logger->logln(F("Received proxy control request"));
   StaticJsonBuffer<JSON_OBJECT_SIZE(1)> parseJsonBuffer;
-  char* bodyCharArray = strdup(_http.arg("plain").c_str());
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray);  // do not use plain String, else fails
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(_http.arg("plain"));  // do not use plain String, else fails
   if (!parsedJson.success()) {
-    free(bodyCharArray);
     _interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
     errorJson.concat(F("Invalid or too big JSON\"}"));
@@ -138,7 +132,6 @@ void BootConfig::_onProxyControlRequest() {
   }
 
   if (!parsedJson.containsKey("enable") || !parsedJson["enable"].is<bool>()) {
-    free(bodyCharArray);
     _interface->logger->logln(F("✖ enable parameter is required"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
     errorJson.concat(F("enable parameter is required\"}"));
@@ -148,7 +141,6 @@ void BootConfig::_onProxyControlRequest() {
 
   _proxyEnabled = parsedJson["enable"];
   _http.send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
-  free(bodyCharArray);
 }
 
 void BootConfig::_generateNetworksJson() {
@@ -348,10 +340,8 @@ void BootConfig::_onConfigRequest() {
   }
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
-  char* bodyCharArray = strdup(_http.arg("plain").c_str());
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray);  // do not use plain String, else fails
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(_http.arg("plain"));
   if (!parsedJson.success()) {
-    free(bodyCharArray);
     _interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
     errorJson.concat(F("Invalid or too big JSON\"}"));
@@ -361,7 +351,6 @@ void BootConfig::_onConfigRequest() {
 
   ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
-    free(bodyCharArray);
     _interface->logger->log(F("✖ Config file is not valid, reason: "));
     _interface->logger->logln(configValidationResult.reason);
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -372,8 +361,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  free(bodyCharArray);
-  _interface->config->write(_http.arg("plain").c_str());
+  _interface->config->write(parsedJson);
 
   _interface->logger->logln(F("✔ Configured"));
 

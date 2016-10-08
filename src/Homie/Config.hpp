@@ -22,7 +22,7 @@ class Config {
   void erase();
   void bypassStandalone();
   bool canBypassStandalone();
-  void write(const char* config);
+  void write(const JsonObject& config);
   bool patch(const char* patch);
   BootMode getBootMode() const;
   void log() const;  // print the current config to log output
