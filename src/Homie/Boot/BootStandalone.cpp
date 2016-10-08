@@ -48,7 +48,8 @@ void BootStandalone::loop() {
     _interface->logger->logln(F("Next reboot will bypass standalone mode"));
 
     _interface->logger->logln(F("Triggering ABOUT_TO_RESET event..."));
-    _interface->eventHandler(HomieEvent::ABOUT_TO_RESET);
+    _interface->event.type = HomieEventType::ABOUT_TO_RESET;
+    _interface->eventHandler(_interface->event);
 
     _interface->logger->logln(F("↻ Rebooting into config mode..."));
     _interface->logger->flush();

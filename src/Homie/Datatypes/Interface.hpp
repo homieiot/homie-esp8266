@@ -42,6 +42,7 @@ struct Interface {
   EventHandler eventHandler;
 
   /***** Runtime data *****/
+  HomieEvent event;
   bool connected;
   Logger* logger;
   Blinker* blinker;

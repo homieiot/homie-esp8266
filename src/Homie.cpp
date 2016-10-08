@@ -29,7 +29,7 @@ SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
   _range = range;
 }
 
-void SendingPromise::send(const String& value) {
+uint16_t SendingPromise::send(const String& value) {
   if (!_homie->isConnected()) {
     _homie->_logger.logln(F("✖ setNodeProperty(): impossible now"));
     return;
@@ -50,8 +50,10 @@ void SendingPromise::send(const String& value) {
     strcat(topic, rangeStr);
   }
 
-  _homie->getMqttClient().publish(topic, _qos, _retained, value.c_str());
+  uint16_t packetId = _homie->getMqttClient().publish(topic, _qos, _retained, value.c_str());
   delete[] topic;
+
+  return packetId;
 }
 
 SendingPromise& SendingPromise::setNode(const HomieNode& node) {
@@ -102,7 +104,7 @@ HomieClass::HomieClass()
   _interface.globalInputHandler = [](String node, String property, HomieRange range, String value) { return false; };
   _interface.setupFunction = []() {};
   _interface.loopFunction = []() {};
-  _interface.eventHandler = [](HomieEvent event) {};
+  _interface.eventHandler = [](const HomieEvent& event) {};
   _interface.connected = false;
   _interface.logger = &_logger;
   _interface.blinker = &_blinker;
@@ -139,18 +141,21 @@ void HomieClass::setup() {
     if (_interface.standalone && !_config.canBypassStandalone()) {
       _boot = &_bootStandalone;
       _logger.logln(F("Triggering STANDALONE_MODE event..."));
-      _interface.eventHandler(HomieEvent::STANDALONE_MODE);
+      _interface.event.type = HomieEventType::STANDALONE_MODE;
+      _interface.eventHandler(_interface.event);
     } else {
       _boot = &_bootConfig;
       _logger.logln(F("Triggering CONFIGURATION_MODE event..."));
-      _interface.eventHandler(HomieEvent::CONFIGURATION_MODE);
+      _interface.event.type = HomieEventType::CONFIGURATION_MODE;
+      _interface.eventHandler(_interface.event);
     }
   } else {
     switch (_config.getBootMode()) {
       case BOOT_NORMAL:
         _boot = &_bootNormal;
         _logger.logln(F("Triggering NORMAL_MODE event..."));
-        _interface.eventHandler(HomieEvent::NORMAL_MODE);
+        _interface.event.type = HomieEventType::NORMAL_MODE;
+        _interface.eventHandler(_interface.event);
         break;
       default:
         _logger.logln(F("✖ The boot mode is invalid"));

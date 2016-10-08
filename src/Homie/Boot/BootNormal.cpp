@@ -53,7 +53,11 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   if (_interface->led.enabled) _interface->blinker->stop();
   _interface->logger->logln(F("✔ Wi-Fi connected"));
   _interface->logger->logln(F("Triggering WIFI_CONNECTED event..."));
-  _interface->eventHandler(HomieEvent::WIFI_CONNECTED);
+  _interface->event.type = HomieEventType::WIFI_CONNECTED;
+  _interface->event.ip = event.ip;
+  _interface->event.mask = event.mask;
+  _interface->event.gateway = event.gw;
+  _interface->eventHandler(_interface->event);
   MDNS.begin(_interface->config->get().deviceId);
 
   _mqttConnect();
@@ -66,7 +70,9 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
   _signalQualityTimer.reset();
   _interface->logger->logln(F("✖ Wi-Fi disconnected"));
   _interface->logger->logln(F("Triggering WIFI_DISCONNECTED event..."));
-  _interface->eventHandler(HomieEvent::WIFI_DISCONNECTED);
+  _interface->event.type = HomieEventType::WIFI_DISCONNECTED;
+  _interface->event.wifiReason = event.reason;
+  _interface->eventHandler(_interface->event);
 
   if (!_flaggedForSleep) {
     _wifiConnect();
@@ -161,7 +167,8 @@ void BootNormal::_onMqttConnected() {
 
   _interface->logger->logln(F("✔ MQTT ready"));
   _interface->logger->logln(F("Triggering MQTT_CONNECTED event..."));
-  _interface->eventHandler(HomieEvent::MQTT_CONNECTED);
+  _interface->event.type = HomieEventType::MQTT_CONNECTED;
+  _interface->eventHandler(_interface->event);
 
   for (HomieNode* iNode : HomieNode::nodes) {
     iNode->onReadyToOperate();
@@ -181,10 +188,13 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     _signalQualityTimer.reset();
     _interface->logger->logln(F("✖ MQTT disconnected"));
     _interface->logger->logln(F("Triggering MQTT_DISCONNECTED event..."));
-    _interface->eventHandler(HomieEvent::MQTT_DISCONNECTED);
+    _interface->event.type = HomieEventType::MQTT_DISCONNECTED;
+    _interface->event.mqttReason = reason;
+    _interface->eventHandler(_interface->event);
     if (_flaggedForSleep) {
       _interface->logger->logln(F("Triggering READY_TO_SLEEP event..."));
-      _interface->eventHandler(HomieEvent::READY_TO_SLEEP);
+      _interface->event.type = HomieEventType::READY_TO_SLEEP;
+      _interface->eventHandler(_interface->event);
     }
     _mqttDisconnectNotified = true;
   }
@@ -204,7 +214,8 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         Update.begin(total);
         _interface->logger->logln(F("OTA started"));
         _interface->logger->logln(F("Triggering OTA_STARTED event..."));
-        _interface->eventHandler(HomieEvent::OTA_STARTED);
+        _interface->event.type = HomieEventType::OTA_STARTED;
+        _interface->eventHandler(_interface->event);
       }
       _interface->logger->log(F("Receiving OTA payload ("));
       _interface->logger->log(index + len);
@@ -220,12 +231,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         if (success) {
           _interface->logger->logln(F("✔ OTA success"));
           _interface->logger->logln(F("Triggering OTA_SUCCESSFUL event..."));
-          _interface->eventHandler(HomieEvent::OTA_SUCCESSFUL);
+          _interface->event.type = HomieEventType::OTA_SUCCESSFUL;
+          _interface->eventHandler(_interface->event);
           _flaggedForReboot = true;
         } else {
           _interface->logger->logln(F("✖ OTA failed"));
           _interface->logger->logln(F("Triggering OTA_FAILED event..."));
-          _interface->eventHandler(HomieEvent::OTA_FAILED);
+          _interface->event.type = HomieEventType::OTA_FAILED;
+          _interface->eventHandler(_interface->event);
         }
 
         _flaggedForOta = false;
@@ -386,6 +399,11 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 }
 
 void BootNormal::_onMqttPublish(uint16_t id) {
+  _interface->logger->logln(F("Triggering MQTT_PACKET_ACKNOWLEDGED event..."));
+  _interface->event.type = HomieEventType::MQTT_PACKET_ACKNOWLEDGED;
+  _interface->event.packetId = id;
+  _interface->eventHandler(_interface->event);
+
   if (_flaggedForSleep && id == _mqttOfflineMessageId) {
     _interface->logger->logln(F("Offline message acknowledged.  Disconnecting MQTT..."));
     _interface->mqttClient->disconnect();
@@ -481,7 +499,8 @@ void BootNormal::loop() {
     _interface->logger->logln(F("Configuration erased"));
 
     _interface->logger->logln(F("Triggering ABOUT_TO_RESET event..."));
-    _interface->eventHandler(HomieEvent::ABOUT_TO_RESET);
+    _interface->event.type = HomieEventType::ABOUT_TO_RESET;
+    _interface->eventHandler(_interface->event);
 
     _interface->logger->logln(F("↻ Rebooting into config mode..."));
     _interface->logger->flush();

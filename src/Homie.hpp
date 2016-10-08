@@ -30,7 +30,7 @@ class SendingPromise {
   SendingPromise& setRetained(bool retained);
   SendingPromise& setRange(HomieRange range);
   SendingPromise& setRange(uint16_t rangeIndex);
-  void send(const String& value);
+  uint16_t send(const String& value);
 
  private:
   SendingPromise& setNode(const HomieNode& node);

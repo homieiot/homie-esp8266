@@ -1,41 +1,52 @@
 #include <Homie.h>
 
-void onHomieEvent(HomieEvent event) {
-  switch(event) {
-    case HomieEvent::STANDALONE_MODE:
+void onHomieEvent(const HomieEvent& event) {
+  switch (event.type) {
+    case HomieEventType::STANDALONE_MODE:
       Serial.println("Standalone mode started");
       break;
-    case HomieEvent::CONFIGURATION_MODE:
+    case HomieEventType::CONFIGURATION_MODE:
       Serial.println("Configuration mode started");
       break;
-    case HomieEvent::NORMAL_MODE:
+    case HomieEventType::NORMAL_MODE:
       Serial.println("Normal mode started");
       break;
-    case HomieEvent::OTA_STARTED:
+    case HomieEventType::OTA_STARTED:
       Serial.println("OTA started");
       break;
-    case HomieEvent::OTA_FAILED:
+    case HomieEventType::OTA_FAILED:
       Serial.println("OTA failed");
       break;
-    case HomieEvent::OTA_SUCCESSFUL:
+    case HomieEventType::OTA_SUCCESSFUL:
       Serial.println("OTA successful");
       break;
-    case HomieEvent::ABOUT_TO_RESET:
+    case HomieEventType::ABOUT_TO_RESET:
       Serial.println("About to reset");
       break;
-    case HomieEvent::WIFI_CONNECTED:
-      Serial.println("Wi-Fi connected");
+    case HomieEventType::WIFI_CONNECTED:
+      Serial.print("Wi-Fi connected, IP: ");
+      Serial.print(event.ip);
+      Serial.print(", gateway: ");
+      Serial.print(event.gateway);
+      Serial.print(", mask: ");
+      Serial.println(event.mask);
       break;
-    case HomieEvent::WIFI_DISCONNECTED:
-      Serial.println("Wi-Fi disconnected");
+    case HomieEventType::WIFI_DISCONNECTED:
+      Serial.print("Wi-Fi disconnected, reason: ");
+      Serial.println((int8_t)event.wifiReason);
       break;
-    case HomieEvent::MQTT_CONNECTED:
+    case HomieEventType::MQTT_CONNECTED:
       Serial.println("MQTT connected");
       break;
-    case HomieEvent::MQTT_DISCONNECTED:
-      Serial.println("MQTT disconnected");
+    case HomieEventType::MQTT_DISCONNECTED:
+      Serial.print("MQTT disconnected, reason: ");
+      Serial.println((int8_t)event.mqttReason);
       break;
-    case HomieEvent::READY_TO_SLEEP:
+    case HomieEventType::MQTT_PACKET_ACKNOWLEDGED:
+      Serial.print("MQTT packet acknowledged, packetId: ");
+      Serial.println(event.packetId);
+      break;
+    case HomieEventType::READY_TO_SLEEP:
       Serial.println("Ready to sleep");
       break;
   }
