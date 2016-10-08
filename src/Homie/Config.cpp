@@ -50,6 +50,7 @@ bool Config::load() {
   char buf[MAX_JSON_CONFIG_FILE_SIZE];
   configFile.readBytes(buf, configSize);
   configFile.close();
+  buf[configSize] = '\0';
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(buf);
@@ -162,6 +163,7 @@ char* Config::getSafeConfigFile() const {
   char buf[MAX_JSON_CONFIG_FILE_SIZE];
   configFile.readBytes(buf, configSize);
   configFile.close();
+  buf[configSize] = '\0';
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(buf);
@@ -239,6 +241,7 @@ bool Config::patch(const char* patch) {
     char configJson[MAX_JSON_CONFIG_FILE_SIZE];
     configFile.readBytes(configJson, configSize);
     configFile.close();
+    configJson[configSize] = '\0';
 
     StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
     JsonObject& configObject = configJsonBuffer.parseObject(configJson);
