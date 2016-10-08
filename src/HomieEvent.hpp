@@ -20,15 +20,15 @@ enum class HomieEventType : uint8_t {
 };
 
 struct HomieEvent {
-   HomieEventType type;
-   /* WIFI_CONNECTED */
-   IPAddress ip;
-   IPAddress mask;
-   IPAddress gateway;
-   /* WIFI_DISCONNECTED */
-   WiFiDisconnectReason wifiReason;
-   /* MQTT_DISCONNECTED */
-   AsyncMqttClientDisconnectReason mqttReason;
-   /* MQTT_PACKET_ACKNOWLEDGED */
-   uint16_t packetId;
- };
+  HomieEventType type;
+  /* WIFI_CONNECTED */
+  IPAddress ip;
+  IPAddress mask;
+  IPAddress gateway;
+  /* WIFI_DISCONNECTED */
+  WiFiDisconnectReason wifiReason;
+  /* MQTT_DISCONNECTED */
+  AsyncMqttClientDisconnectReason mqttReason;
+  /* MQTT_PACKET_ACKNOWLEDGED */
+  uint16_t packetId;
+};
