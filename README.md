@@ -32,11 +32,11 @@ HomieNode lightNode("light", "switch");
 bool lightOnHandler(HomieRange range, String value) {
   if (value == "true") {
     digitalWrite(PIN_RELAY, HIGH);
-    Homie.setNodeProperty(lightNode, "on", "true"); // Update the state of the light
+    Homie.setNodeProperty(lightNode, "on").send("false"); // Update the state of the light
     Serial.println("Light is on");
   } else if (value == "false") {
     digitalWrite(PIN_RELAY, LOW);
-    Homie.setNodeProperty(lightNode, "on", "false");
+    Homie.setNodeProperty(lightNode, "on").send("false");
     Serial.println("Light is off");
   } else {
     return false;
@@ -67,3 +67,9 @@ void loop() {
 ## Requirements, installation and usage
 
 The project is documented on https://homie-esp8266.readme.io with a *Getting started* guide and every piece of information you will need.
+
+## Donate
+
+I am a student and maintaining Homie for ESP8266 takes time. **I am not in need and I will continue to maintain this project as much as I can even without donations**. Consider this as a way to tip the project if you like it. :wink:
+
+<div style="text-align:center">[![Donate button](https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JSGTYJPMNRC74)</div>
