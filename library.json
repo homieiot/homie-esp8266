@@ -42,6 +42,7 @@
   "export": {
     "include": [
       "LICENSE",
+      "keywords.txt",
       "src/*",
       "examples/*"
     ]
