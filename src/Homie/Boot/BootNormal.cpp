@@ -552,7 +552,7 @@ void BootNormal::loop() {
   }
 }
 
-void BootNormal::prepareForSleep() {
+void BootNormal::prepareToSleep() {
   _interface->logger->logln(F("Sending offline message..."));
   _flaggedForSleep = true;
   _mqttOfflineMessageId = _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");

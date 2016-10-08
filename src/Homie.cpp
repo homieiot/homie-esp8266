@@ -322,8 +322,8 @@ AsyncMqttClient& HomieClass::getMqttClient() {
   return _mqttClient;
 }
 
-void HomieClass::prepareForSleep() {
-  _boot->prepareForSleep();
+void HomieClass::prepareToSleep() {
+  _boot->prepareToSleep();
 }
 
 HomieClass Homie;

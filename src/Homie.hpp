@@ -85,7 +85,7 @@ class HomieClass {
   bool isConnected() const;
   const ConfigStruct& getConfiguration() const;
   AsyncMqttClient& getMqttClient();
-  void prepareForSleep();
+  void prepareToSleep();
 
  private:
   bool _setupCalled;

@@ -37,6 +37,7 @@ isConfigured	KEYWORD2
 isConnected	KEYWORD2
 getConfiguration	KEYWORD2
 getMqttClient	KEYWORD2
+prepareToSleep	KEYWORD2
 
 advertise	KEYWORD2
 advertiseRange	KEYWORD2

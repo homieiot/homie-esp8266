@@ -27,7 +27,7 @@ class BootNormal : public Boot {
   ~BootNormal();
   void setup();
   void loop();
-  void prepareForSleep();
+  void prepareToSleep();
 
  private:
   Uptime _uptime;

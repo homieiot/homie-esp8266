@@ -28,5 +28,5 @@ void Boot::setup() {
 void Boot::loop() {
 }
 
-void Boot::prepareForSleep() {
+void Boot::prepareToSleep() {
 }
