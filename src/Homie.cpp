@@ -32,7 +32,7 @@ SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
 uint16_t SendingPromise::send(const String& value) {
   if (!_homie->isConnected()) {
     _homie->_logger.logln(F("✖ setNodeProperty(): impossible now"));
-    return;
+    return 0;
   }
 
   char* topic = new char[strlen(_homie->getConfiguration().mqtt.baseTopic) + strlen(_homie->getConfiguration().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 1];  // last + 6 for range _65536
