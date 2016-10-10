@@ -11,7 +11,7 @@ void loopHandler() {
   int doorValue = debouncer.read();
 
   if (doorValue != lastDoorValue) {
-     Serial << "Door is now " << doorValue ? "open" : "close" << endl;
+     Serial << "Door is now " << (doorValue ? "open" : "close") << endl;
 
      Homie.setNodeProperty(doorNode, "open").send(doorValue ? "true" : "false");
      lastDoorValue = doorValue;
