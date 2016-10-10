@@ -13,9 +13,7 @@ void setupHandler() {
 void loopHandler() {
   if (millis() - lastTemperatureSent >= TEMPERATURE_INTERVAL * 1000UL || lastTemperatureSent == 0) {
     float temperature = 22; // Fake temperature here, for the example
-    Serial.print("Temperature: ");
-    Serial.print(temperature);
-    Serial.println(" °C");
+    Serial << "Temperature: " << temperature << " °C" << endl;
     Homie.setNodeProperty(temperatureNode, "degrees").send(String(temperature));
     lastTemperatureSent = millis();
   }
@@ -23,8 +21,7 @@ void loopHandler() {
 
 void setup() {
   Serial.begin(115200);
-  Serial.println();
-  Serial.println();
+  Serial << endl << endl;
   Homie_setFirmware("awesome-temperature", "1.0.0");
   Homie.setSetupFunction(setupHandler).setLoopFunction(loopHandler);
 

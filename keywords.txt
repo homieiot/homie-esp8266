@@ -16,6 +16,8 @@ HomieRange	KEYWORD1
 Homie_setBrand	KEYWORD2
 Homie_setFirmware	KEYWORD2
 
+# Homie
+
 setup	KEYWORD2
 loop	KEYWORD2
 disableLogging	KEYWORD2
@@ -39,17 +41,25 @@ getConfiguration	KEYWORD2
 getMqttClient	KEYWORD2
 prepareToSleep	KEYWORD2
 
+# HomieNode
+
 advertise	KEYWORD2
 advertiseRange	KEYWORD2
 settable	KEYWORD2
+
+# HomieSetting
 
 get	KEYWORD2
 wasProvided	KEYWORD2
 setDefaultValue	KEYWORD2
 setValidator	KEYWORD2
 
+# HomieRange
+
 isRange	KEYWORD2
 index	KEYWORD2
+
+# SendingPromise
 
 setQos	KEYWORD2
 setRetained	KEYWORD2
@@ -59,6 +69,8 @@ send	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+# HomieEventType
 
 STANDALONE_MODE	LITERAL1
 CONFIGURATION_MODE	LITERAL1
@@ -73,3 +85,7 @@ MQTT_CONNECTED	LITERAL1
 MQTT_DISCONNECTED	LITERAL1
 MQTT_PACKET_ACKNOWLEDGED	LITERAL1
 READY_TO_SLEEP	LITERAL1
+
+# StreamingOperator
+
+endl	LITERAL1

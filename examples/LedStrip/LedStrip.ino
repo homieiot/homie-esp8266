@@ -8,18 +8,15 @@ HomieNode stripNode("strip", "strip");
 bool stripLedHandler(HomieRange range, String value) {
   if (!range.isRange) return false;  // if it's not a range
 
-  if (range.index < 1 || range.index > NUMBER_OF_LED) return false;  // if it's not a valid number
+  if (range.index < 1 || range.index > NUMBER_OF_LED) return false;  // if it's not a valid range
 
   if (value != "on" && value != "off") return false;  // if the value is not valid
 
-  bool switchOn = value == "on";
+  bool on = (value == "on");
 
-  digitalWrite(LED_PINS[range.index - 1], switchOn ? HIGH : LOW);
+  digitalWrite(LED_PINS[range.index - 1], on ? HIGH : LOW);
   Homie.setNodeProperty(stripNode, "led").setRange(range).send(value);  // Update the state of the led
-  Serial.print("Led ");
-  Serial.print(range.index);
-  Serial.print(" is ");
-  Serial.println(value);
+  Serial << "Led " << range.index << " is " << value << endl;
 
   return true;
 }
@@ -31,8 +28,7 @@ void setup() {
   }
 
   Serial.begin(115200);
-  Serial.println();
-  Serial.println();
+  Serial << endl << endl;
 
   Homie_setFirmware("awesome-ledstrip", "1.0.0");
 
