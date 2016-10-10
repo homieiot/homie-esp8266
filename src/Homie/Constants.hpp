@@ -9,7 +9,7 @@ namespace HomieInternals {
   const IPAddress ACCESS_POINT_IP(192, 168, 1, 1);
 
   const uint16_t DEFAULT_MQTT_PORT = 1883;
-  const char DEFAULT_MQTT_BASE_TOPIC[] = "devices/";
+  const char DEFAULT_MQTT_BASE_TOPIC[] = "homie/";
 
   const uint8_t DEFAULT_RESET_PIN = 0;  // == D3 on nodeMCU
   const uint8_t DEFAULT_RESET_STATE = LOW;
