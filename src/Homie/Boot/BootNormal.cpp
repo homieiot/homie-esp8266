@@ -281,14 +281,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     String broadcastLevel(broadcast_topic);
     _interface->logger->logln(F("Calling broadcast handler..."));
     bool handled = _interface->broadcastHandler(broadcastLevel, _mqttPayloadBuffer.get());
-	  if (!handled) {
+    if (!handled) {
       _interface->logger->logln(F("The following broadcast was not handled:"));
       _interface->logger->log(F("  • Level: "));
       _interface->logger->logln(broadcastLevel);
       _interface->logger->log(F("  • Value: "));
       _interface->logger->logln(_mqttPayloadBuffer.get());
     }
-	  return;
+    return;
   }
 
   // 4. Special Functions: $ota
