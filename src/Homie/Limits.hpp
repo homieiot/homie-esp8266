@@ -12,6 +12,7 @@ namespace HomieInternals {
 
   const uint8_t MAX_MQTT_CREDS_LENGTH = 32 + 1;
   const uint8_t MAX_MQTT_BASE_TOPIC_LENGTH = sizeof("shared-broker/username-lolipop/homie/sensors/");
+  const uint8_t MAX_MQTT_TOPIC_LENGTH = 128;
 
   const uint8_t MAX_FRIENDLY_NAME_LENGTH = sizeof("My awesome friendly name of the living room");
   const uint8_t MAX_DEVICE_ID_LENGTH = sizeof("my-awesome-device-id-living-room");

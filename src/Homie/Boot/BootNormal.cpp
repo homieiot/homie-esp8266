@@ -399,13 +399,15 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 }
 
 void BootNormal::_onMqttPublish(uint16_t id) {
-  _interface->logger->logln(F("Triggering MQTT_PACKET_ACKNOWLEDGED event..."));
+  _interface->logger->log(F("Triggering MQTT_PACKET_ACKNOWLEDGED event (packetId "));
+  _interface->logger->log(id);
+  _interface->logger->logln(F(")..."));
   _interface->event.type = HomieEventType::MQTT_PACKET_ACKNOWLEDGED;
   _interface->event.packetId = id;
   _interface->eventHandler(_interface->event);
 
   if (_flaggedForSleep && id == _mqttOfflineMessageId) {
-    _interface->logger->logln(F("Offline message acknowledged.  Disconnecting MQTT..."));
+    _interface->logger->logln(F("Offline message acknowledged. Disconnecting MQTT..."));
     _interface->mqttClient->disconnect();
   }
 }
@@ -458,7 +460,7 @@ void BootNormal::setup() {
   _interface->mqttClient->onPublish(std::bind(&BootNormal::_onMqttPublish, this, std::placeholders::_1));
 
   _interface->mqttClient->setServer(_interface->config->get().mqtt.server.host, _interface->config->get().mqtt.server.port);
-  _interface->mqttClient->setKeepAlive(10);
+  _interface->mqttClient->setKeepAlive(10).setMaxTopicLength(MAX_MQTT_TOPIC_LENGTH);
   _mqttClientId = std::unique_ptr<char[]>(new char[strlen(_interface->brand) + 1 + strlen(_interface->config->get().deviceId) + 1]);
   strcpy(_mqttClientId.get(), _interface->brand);
   strcat_P(_mqttClientId.get(), PSTR("-"));
