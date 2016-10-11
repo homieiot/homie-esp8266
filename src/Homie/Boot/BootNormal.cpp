@@ -156,6 +156,11 @@ void BootNormal::_onMqttConnected() {
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/reset")), 2);
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/config/set")), 2);
 
+  /** Euphi: TODO #142: Homie $broadcast */
+  String broadcast_topic(_interface->config->get().mqtt.baseTopic);
+  broadcast_topic.concat("$broadcast/+");
+  _interface->mqttClient->subscribe(broadcast_topic.c_str(), 2);
+
   if (_interface->config->get().ota.enabled) {
     _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
   }
@@ -206,9 +211,17 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
   if (total == 0) return;  // no empty message possible
 
-  topic = topic + strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId) + 1;  // Remove devices/${id}/ --- +1 for /
+  HomieRange range;
+  range.isRange = false;
+  range.index = 0;
 
-  if (strcmp_P(topic, PSTR("$implementation/ota/payload")) == 0) {  // If this is the $ota payload
+  //Check for Broadcast first (it does not contain device-id)
+  char* broadcast_topic = topic + strlen(_interface->config->get().mqtt.baseTopic);
+  // Skip devices/${id}/ --- +1 for /
+  char* device_topic = broadcast_topic + strlen(_interface->config->get().deviceId) + 1;
+
+  // 1. Handle OTA Payload (not copied to payload buffer)
+  if (strcmp_P(device_topic, PSTR("$implementation/ota/payload")) == 0) {  // If this is the $ota payload
     if (_flaggedForOta) {
       if (index == 0) {
         Update.begin(total);
@@ -250,14 +263,30 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
-  if (_mqttPayloadBuffer == nullptr) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
+  // 2. Fill Payload Buffer
 
+  //    Reallocate Buffer everytime a new message is received
+  if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
+
+  //    TODO: Check if buffer size matches payload length
   memcpy(_mqttPayloadBuffer.get() + index, payload, len);
 
-  if (index + len != total) return;
+  if (index + len != total) return; // return if payload buffer is not complete
   _mqttPayloadBuffer.get()[total] = '\0';
 
-  if (strcmp_P(topic, PSTR("$ota")) == 0) {  // If this is the $ota announcement
+  // 3. Special Functions: $broadcast
+  /** Euphi: TODO #142: Homie $broadcast */
+  if (strncmp(broadcast_topic, "$broadcast", 10) == 0) {
+	  broadcast_topic += sizeof("$broadcast"); // move pointer to second char after $broadcast (sizeof counts the \0)
+	  String broadcastlevel(broadcast_topic);
+	  _interface->logger->logln(F("Calling broadcasthandler..."));
+	  bool handled = _interface->broadcastHandler(broadcastlevel, _mqttPayloadBuffer.get());
+	  if (!handled) _interface->logger->logln(F("Broadcast not handled"));
+	  return;
+  }
+
+  // 4. Special Functions: $ota
+  if (strcmp_P(device_topic, PSTR("$ota")) == 0) {  // If this is the $ota announcement
     if (strcmp(_mqttPayloadBuffer.get(), _interface->firmware.version) != 0) {
       _interface->logger->log(F("✴ OTA available (version "));
       _interface->logger->log(_mqttPayloadBuffer.get());
@@ -271,14 +300,16 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
-  if (strcmp_P(topic, PSTR("$implementation/reset")) == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
+  // 5. Special Functions: $reset
+  if (strcmp_P(device_topic, PSTR("$implementation/reset")) == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
     _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
     _flaggedForReset = true;
     _interface->logger->logln(F("Flagged for reset by network"));
     return;
   }
 
-  if (strcmp_P(topic, PSTR("$implementation/config/set")) == 0) {
+  // 6. Special Functions set $config
+  if (strcmp_P(device_topic, PSTR("$implementation/config/set")) == 0) {
     if (_interface->config->patch(_mqttPayloadBuffer.get())) {
       _interface->logger->logln(F("✔ Configuration updated"));
       _flaggedForReboot = true;
@@ -289,18 +320,21 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
+
+  // 7. Determine specific Node
+
   // Implicit node properties
-  topic[strlen(topic) - 4] = '\0';  // Remove /set
+  device_topic[strlen(device_topic) - 4] = '\0';  // Remove /set
   uint16_t separator = 0;
-  for (uint16_t i = 0; i < strlen(topic); i++) {
-    if (topic[i] == '/') {
+  for (uint16_t i = 0; i < strlen(device_topic); i++) {
+    if (device_topic[i] == '/') {
       separator = i;
       break;
     }
   }
-  char* node = topic;
+  char* node = device_topic;
   node[separator] = '\0';
-  char* property = topic + separator + 1;
+  char* property = device_topic + separator + 1;
   HomieNode* homieNode = HomieNode::find(node);
   if (!homieNode) {
     _interface->logger->log(F("Node "));
@@ -316,10 +350,8 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       break;
     }
   }
-  bool isRange = false;
-  uint16_t rangeIndex = 0;
   if (rangeSeparator != -1) {
-    isRange = true;
+    range.isRange = true;
     property[rangeSeparator] = '\0';
     char* rangeIndexStr = property + rangeSeparator + 1;
     String rangeIndexTest = String(rangeIndexStr);
@@ -331,19 +363,19 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         return;
       }
     }
-    rangeIndex = rangeIndexTest.toInt();
+    range.index = rangeIndexTest.toInt();
   }
 
   Property* propertyObject = nullptr;
   for (Property* iProperty : homieNode->getProperties()) {
-    if (isRange) {
+    if (range.isRange) {
       if (iProperty->isRange() && strcmp(property, iProperty->getProperty()) == 0) {
-        if (rangeIndex >= iProperty->getLower() && rangeIndex <= iProperty->getUpper()) {
+        if (range.index >= iProperty->getLower() && range.index <= iProperty->getUpper()) {
           propertyObject = iProperty;
           break;
         } else {
           _interface->logger->log(F("Range index "));
-          _interface->logger->log(rangeIndex);
+          _interface->logger->log(range.index);
           _interface->logger->log(F(" is not within the bounds of "));
           _interface->logger->logln(property);
           return;
@@ -364,10 +396,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
-  HomieRange range;
-  range.isRange = isRange;
-  range.index = rangeIndex;
-
   _interface->logger->logln(F("Calling global input handler..."));
   bool handled = _interface->globalInputHandler(String(node), String(property), range, String(_mqttPayloadBuffer.get()));
   if (handled) return;
@@ -386,9 +414,9 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     _interface->logger->log(F("  • Property: "));
     _interface->logger->logln(property);
     _interface->logger->log(F("  • Is range? "));
-    if (isRange) {
+    if (range.isRange) {
       _interface->logger->log(F("yes ("));
-      _interface->logger->log(rangeIndex);
+      _interface->logger->log(range.index);
       _interface->logger->logln(F(")"));
     } else {
       _interface->logger->logln(F("no"));

@@ -68,6 +68,7 @@ class HomieClass {
   HomieClass& disableLedFeedback();
   HomieClass& setLedPin(uint8_t pin, uint8_t on);
   HomieClass& setGlobalInputHandler(GlobalInputHandler globalInputHandler);
+  HomieClass& setBroadcastHandler(BroadcastHandler broadcastHandler);
   HomieClass& onEvent(EventHandler handler);
   HomieClass& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
   HomieClass& disableResetTrigger();
