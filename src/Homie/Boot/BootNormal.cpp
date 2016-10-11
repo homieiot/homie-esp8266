@@ -215,7 +215,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   range.isRange = false;
   range.index = 0;
 
-  //Check for Broadcast first (it does not contain device-id)
+  // Check for Broadcast first (it does not contain device-id)
   char* broadcast_topic = topic + strlen(_interface->config->get().mqtt.baseTopic);
   // Skip devices/${id}/ --- +1 for /
   char* device_topic = broadcast_topic + strlen(_interface->config->get().deviceId) + 1;
@@ -265,23 +265,29 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
   // 2. Fill Payload Buffer
 
-  //    Reallocate Buffer everytime a new message is received
+  // Reallocate Buffer everytime a new message is received
   if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
 
-  //    TODO: Check if buffer size matches payload length
+  // TODO(euphi): Check if buffer size matches payload length
   memcpy(_mqttPayloadBuffer.get() + index, payload, len);
 
-  if (index + len != total) return; // return if payload buffer is not complete
+  if (index + len != total) return;  // return if payload buffer is not complete
   _mqttPayloadBuffer.get()[total] = '\0';
 
   // 3. Special Functions: $broadcast
-  /** Euphi: TODO #142: Homie $broadcast */
+  /** TODO(euphi): Homie $broadcast */
   if (strncmp(broadcast_topic, "$broadcast", 10) == 0) {
-	  broadcast_topic += sizeof("$broadcast"); // move pointer to second char after $broadcast (sizeof counts the \0)
-	  String broadcastlevel(broadcast_topic);
-	  _interface->logger->logln(F("Calling broadcasthandler..."));
-	  bool handled = _interface->broadcastHandler(broadcastlevel, _mqttPayloadBuffer.get());
-	  if (!handled) _interface->logger->logln(F("Broadcast not handled"));
+    broadcast_topic += sizeof("$broadcast");  // move pointer to second char after $broadcast (sizeof counts the \0)
+    String broadcastLevel(broadcast_topic);
+    _interface->logger->logln(F("Calling broadcast handler..."));
+    bool handled = _interface->broadcastHandler(broadcastLevel, _mqttPayloadBuffer.get());
+	  if (!handled) {
+      _interface->logger->logln(F("The following broadcast was not handled:"));
+      _interface->logger->log(F("  • Level: "));
+      _interface->logger->logln(broadcastLevel);
+      _interface->logger->log(F("  • Value: "));
+      _interface->logger->logln(_mqttPayloadBuffer.get());
+    }
 	  return;
   }
 

@@ -245,7 +245,7 @@ HomieClass& HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
 }
 
 HomieClass& HomieClass::setBroadcastHandler(BroadcastHandler broadcastHandler) {
-  _checkBeforeSetup(F("setGlobalInputHandler"));
+  _checkBeforeSetup(F("setBroadcastHandler"));
 
   _interface.broadcastHandler = broadcastHandler;
 
