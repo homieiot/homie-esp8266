@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Arduino.h"
+#include <StreamString.h>
 
 #include <functional>
 #include <ESP8266WiFi.h>
