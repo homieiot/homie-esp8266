@@ -61,5 +61,7 @@ class BootNormal : public Boot {
   void _onMqttPublish(uint16_t id);
   void _prefixMqttTopic();
   char* _prefixMqttTopic(PGM_P topic);
+  uint16_t _publishOtaStatus(int status, const char* info=0);
+  uint16_t _publishOtaStatus_P(int status, PGM_P info);
 };
 }  // namespace HomieInternals
