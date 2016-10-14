@@ -246,7 +246,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       String progress(index + len);
       progress += '/';
       progress += total;
-      _publishOtaStatus(206, progress.c_str()); // 206 Partial Content
+      _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
       _interface->logger->log(F("Receiving OTA payload ("));
       _interface->logger->log(progress.c_str());
       _interface->logger->logln(F(")..."));
@@ -261,14 +261,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           _interface->logger->logln(F("Triggering OTA_SUCCESSFUL event..."));
           _interface->event.type = HomieEventType::OTA_SUCCESSFUL;
           _interface->eventHandler(_interface->event);
-          _publishOtaStatus(200); // 200 OK
+          _publishOtaStatus(200);  // 200 OK
           _flaggedForReboot = true;
         } else {
           _interface->logger->logln(F("✖ OTA failed"));
           _interface->logger->logln(F("Triggering OTA_FAILED event..."));
           _interface->event.type = HomieEventType::OTA_FAILED;
           _interface->eventHandler(_interface->event);
-          _publishOtaStatus(500, PSTR("OTA failed")); // 500 Internal Server Error
+          _publishOtaStatus(500, PSTR("OTA failed"));  // 500 Internal Server Error
         }
 
         _flaggedForOta = false;
@@ -318,9 +318,9 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       _interface->logger->logln(F("Subscribing to OTA payload..."));
       _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/payload")), 0);
       _flaggedForOta = true;
-      _publishOtaStatus(202); // 202 Accepted
+      _publishOtaStatus(202);  // 202 Accepted
     } else {
-      _publishOtaStatus(304); // 304 Not Modified
+      _publishOtaStatus(304);  // 304 Not Modified
     }
 
     return;
