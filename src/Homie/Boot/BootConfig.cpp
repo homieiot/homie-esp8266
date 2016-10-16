@@ -67,7 +67,11 @@ void BootConfig::setup() {
 void BootConfig::_onWifiConnectRequest() {
   _interface->logger->logln(F("Received Wi-Fi connect request"));
   StaticJsonBuffer<JSON_OBJECT_SIZE(2)> parseJsonBuffer;
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(_http.arg("plain"));
+  size_t bodyLength = _http.arg("plain").length();
+  std::unique_ptr<char[]> bodyString(new char[bodyLength + 1]);
+  memcpy(bodyString.get(), _http.arg("plain").c_str(), bodyLength);
+  bodyString.get()[bodyLength] = '\0';
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyString.get());
   if (!parsedJson.success()) {
     _interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -122,7 +126,11 @@ void BootConfig::_onWifiStatusRequest() {
 void BootConfig::_onProxyControlRequest() {
   _interface->logger->logln(F("Received proxy control request"));
   StaticJsonBuffer<JSON_OBJECT_SIZE(1)> parseJsonBuffer;
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(_http.arg("plain"));  // do not use plain String, else fails
+  size_t bodyLength = _http.arg("plain").length();
+  std::unique_ptr<char[]> bodyString(new char[bodyLength + 1]);
+  memcpy(bodyString.get(), _http.arg("plain").c_str(), bodyLength);
+  bodyString.get()[bodyLength] = '\0';
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyString.get());  // do not use plain String, else fails
   if (!parsedJson.success()) {
     _interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -340,7 +348,11 @@ void BootConfig::_onConfigRequest() {
   }
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(_http.arg("plain"));
+  size_t bodyLength = _http.arg("plain").length();
+  std::unique_ptr<char[]> bodyString(new char[bodyLength + 1]);
+  memcpy(bodyString.get(), _http.arg("plain").c_str(), bodyLength);
+  bodyString.get()[bodyLength] = '\0';
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyString.get());  // workaround, cannot pass raw String otherwise JSON parsing fails randomly
   if (!parsedJson.success()) {
     _interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
