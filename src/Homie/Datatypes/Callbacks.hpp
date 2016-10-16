@@ -4,10 +4,12 @@
 #include "../../HomieEvent.hpp"
 #include "../../HomieRange.hpp"
 
+class HomieNode;
+
 namespace HomieInternals {
   typedef std::function<void()> OperationFunction;
 
-  typedef std::function<bool(String nodeId, String property, HomieRange range, String value)> GlobalInputHandler;
+  typedef std::function<bool(const HomieNode& node, String property, HomieRange range, String value)> GlobalInputHandler;
   typedef std::function<bool(String property, HomieRange range, String value)> NodeInputHandler;
   typedef std::function<bool(HomieRange range, String value)> PropertyInputHandler;
 

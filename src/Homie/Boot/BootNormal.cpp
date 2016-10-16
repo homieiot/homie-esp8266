@@ -398,12 +398,12 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     _interface->logger->print(node);
     _interface->logger->print(F(":"));
     _interface->logger->println(property);
-    _interface->logger->print(F(" property not settable"));
+    _interface->logger->println(F(" property not settable"));
     return;
   }
 
   _interface->logger->println(F("Calling global input handler..."));
-  bool handled = _interface->globalInputHandler(String(node), String(property), range, String(_mqttPayloadBuffer.get()));
+  bool handled = _interface->globalInputHandler(*homieNode, String(property), range, String(_mqttPayloadBuffer.get()));
   if (handled) return;
 
   _interface->logger->println(F("Calling node input handler..."));
