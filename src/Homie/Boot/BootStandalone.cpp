@@ -16,13 +16,13 @@ void BootStandalone::_handleReset() {
 
     if (_resetDebouncer.read() == _interface->reset.triggerState) {
       _flaggedForConfig = true;
-      _interface->logger->logln(F("Flagged for configuration mode by pin"));
+      _interface->logger->println(F("Flagged for configuration mode by pin"));
     }
   }
 
   if (_interface->reset.userFunction()) {
     _flaggedForConfig = true;
-    _interface->logger->logln(F("Flagged for configuration mode by function"));
+    _interface->logger->println(F("Flagged for configuration mode by function"));
   }
 }
 
@@ -43,16 +43,16 @@ void BootStandalone::loop() {
   _handleReset();
 
   if (_flaggedForConfig && _interface->reset.able) {
-    _interface->logger->logln(F("Device is in a resettable state"));
+    _interface->logger->println(F("Device is in a resettable state"));
     _interface->config->bypassStandalone();
-    _interface->logger->logln(F("Next reboot will bypass standalone mode"));
+    _interface->logger->println(F("Next reboot will bypass standalone mode"));
 
-    _interface->logger->logln(F("Triggering ABOUT_TO_RESET event..."));
+    _interface->logger->println(F("Triggering ABOUT_TO_RESET event..."));
     _interface->event.type = HomieEventType::ABOUT_TO_RESET;
     _interface->eventHandler(_interface->event);
 
-    _interface->logger->logln(F("↻ Rebooting into config mode..."));
-    _interface->logger->flush();
+    _interface->logger->println(F("↻ Rebooting into config mode..."));
+    Serial.flush();
     ESP.restart();
   }
 }

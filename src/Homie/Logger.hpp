@@ -3,23 +3,13 @@
 #include "Arduino.h"
 
 namespace HomieInternals {
-class Logger {
+class Logger : public Print {
  public:
   Logger();
   void setPrinter(Print* printer);
   void setLogging(bool enable);
-  template <typename T> void log(T value) const {
-    if (_loggingEnabled) {
-      _printer->print(value);
-    }
-  }
-  template <typename T> void logln(T value) const {
-    if (_loggingEnabled) {
-      _printer->println(value);
-    }
-  }
-  void logln() const;
-  void flush() const;
+  virtual size_t write(uint8_t character);
+  virtual size_t write(const uint8_t* buffer, size_t size);
 
  private:
   bool _loggingEnabled;

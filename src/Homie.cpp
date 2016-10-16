@@ -31,7 +31,7 @@ SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
 
 uint16_t SendingPromise::send(const String& value) {
   if (!_homie->isConnected()) {
-    _homie->_logger.logln(F("✖ setNodeProperty(): impossible now"));
+    _homie->_logger.println(F("✖ setNodeProperty(): impossible now"));
     return 0;
   }
 
@@ -125,12 +125,10 @@ HomieClass::HomieClass()
 HomieClass::~HomieClass() {
 }
 
-void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) const {
+void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
   if (_setupCalled) {
-    _logger.log(F("✖ "));
-    _logger.log(functionName);
-    _logger.logln(F("(): has to be called before setup()"));
-    _logger.flush();
+    _logger << F("✖ ") << functionName << F("(): has to be called before setup()") << endl;
+    Serial.flush();
     abort();
   }
 }
@@ -141,12 +139,12 @@ void HomieClass::setup() {
   if (!_config.load()) {
     if (_interface.standalone && !_config.canBypassStandalone()) {
       _boot = &_bootStandalone;
-      _logger.logln(F("Triggering STANDALONE_MODE event..."));
+      _logger.println(F("Triggering STANDALONE_MODE event..."));
       _interface.event.type = HomieEventType::STANDALONE_MODE;
       _interface.eventHandler(_interface.event);
     } else {
       _boot = &_bootConfig;
-      _logger.logln(F("Triggering CONFIGURATION_MODE event..."));
+      _logger.println(F("Triggering CONFIGURATION_MODE event..."));
       _interface.event.type = HomieEventType::CONFIGURATION_MODE;
       _interface.eventHandler(_interface.event);
     }
@@ -154,13 +152,13 @@ void HomieClass::setup() {
     switch (_config.getBootMode()) {
       case BOOT_NORMAL:
         _boot = &_bootNormal;
-        _logger.logln(F("Triggering NORMAL_MODE event..."));
+        _logger.println(F("Triggering NORMAL_MODE event..."));
         _interface.event.type = HomieEventType::NORMAL_MODE;
         _interface.eventHandler(_interface.event);
         break;
       default:
-        _logger.logln(F("✖ The boot mode is invalid"));
-        _logger.flush();
+        _logger.println(F("✖ The boot mode is invalid"));
+        Serial.flush();
         abort();
         break;
     }
@@ -209,8 +207,8 @@ HomieClass& HomieClass::setLedPin(uint8_t pin, uint8_t on) {
 void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
   if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
-    _logger.logln(F("✖ setFirmware(): either the name or version string is too long"));
-    _logger.flush();
+    _logger.println(F("✖ setFirmware(): either the name or version string is too long"));
+    Serial.flush();
     abort();
   }
 
@@ -223,8 +221,8 @@ void HomieClass::__setFirmware(const char* name, const char* version) {
 void HomieClass::__setBrand(const char* brand) {
   _checkBeforeSetup(F("setBrand"));
   if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
-    _logger.logln(F("✖ setBrand(): the brand string is too long"));
-    _logger.flush();
+    _logger.println(F("✖ setBrand(): the brand string is too long"));
+    Serial.flush();
     abort();
   }
 

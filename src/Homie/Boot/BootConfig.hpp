@@ -16,6 +16,7 @@
 #include "../Timer.hpp"
 #include "../Utils/DeviceId.hpp"
 #include "../Utils/Validation.hpp"
+#include "../Utils/Helpers.hpp"
 #include "../Logger.hpp"
 #include "../Strings.hpp"
 #include "../../HomieSetting.hpp"

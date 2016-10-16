@@ -14,3 +14,12 @@ uint8_t Helpers::rssiToPercentage(int32_t rssi) {
 
   return quality;
 }
+
+std::unique_ptr<char[]> Helpers::cloneString(const String& string) {
+  size_t length = string.length();
+  std::unique_ptr<char[]> copy(new char[length + 1]);
+  memcpy(copy.get(), string.c_str(), length);
+  copy.get()[length] = '\0';
+
+  return copy;
+}

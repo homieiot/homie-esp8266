@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Arduino.h"
+
 #include <AsyncMqttClient.h>
 #include "Homie/Blinker.hpp"
 #include "Homie/Logger.hpp"
@@ -102,7 +104,7 @@ class HomieClass {
   Config _config;
   AsyncMqttClient _mqttClient;
 
-  void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
+  void _checkBeforeSetup(const __FlashStringHelper* functionName);
 
   const char* __HOMIE_SIGNATURE;
 };
