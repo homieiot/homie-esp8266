@@ -59,7 +59,7 @@ bool Config::load() {
     return false;
   }
 
-  ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
+  ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
     _interface->logger->log(F("✖ Config file is not valid, reason: "));
     _interface->logger->logln(configValidationResult.reason);
@@ -73,7 +73,7 @@ bool Config::load() {
   const char* reqWifiPassword = parsedJson["wifi"]["password"];
 
   const char* reqMqttHost = parsedJson["mqtt"]["host"];
-  const char* reqDeviceId = Helpers::getDeviceId();
+  const char* reqDeviceId = DeviceId::get();
   if (parsedJson.containsKey("device_id")) {
     reqDeviceId = parsedJson["device_id"];
   }
@@ -265,7 +265,7 @@ bool Config::patch(const char* patch) {
       }
     }
 
-    ConfigValidationResult configValidationResult = Helpers::validateConfig(configObject);
+    ConfigValidationResult configValidationResult = Validation::validateConfig(configObject);
     if (!configValidationResult.valid) {
       _interface->logger->log(F("✖ Config file is not valid, reason: "));
       _interface->logger->logln(configValidationResult.reason);
@@ -284,7 +284,7 @@ BootMode Config::getBootMode() const {
 void Config::log() const {
   _interface->logger->logln(F("{} Stored configuration:"));
   _interface->logger->log(F("  • Hardware device ID: "));
-  _interface->logger->logln(Helpers::getDeviceId());
+  _interface->logger->logln(DeviceId::get());
   _interface->logger->log(F("  • Device ID: "));
   _interface->logger->logln(_configStruct.deviceId);
   _interface->logger->log(F("  • Boot mode: "));

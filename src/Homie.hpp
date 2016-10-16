@@ -6,7 +6,7 @@
 #include "Homie/Config.hpp"
 #include "Homie/Constants.hpp"
 #include "Homie/Limits.hpp"
-#include "Homie/Helpers.hpp"
+#include "Homie/Utils/DeviceId.hpp"
 #include "Homie/Boot/Boot.hpp"
 #include "Homie/Boot/BootStandalone.hpp"
 #include "Homie/Boot/BootNormal.hpp"

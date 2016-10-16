@@ -25,7 +25,7 @@ void BootConfig::setup() {
     digitalWrite(_interface->led.pin, _interface->led.on);
   }
 
-  const char* deviceId = Helpers::getDeviceId();
+  const char* deviceId = DeviceId::get();
 
   _interface->logger->log(F("Device ID is "));
   _interface->logger->logln(deviceId);
@@ -35,7 +35,7 @@ void BootConfig::setup() {
   char apName[MAX_WIFI_SSID_LENGTH];
   strcpy(apName, _interface->brand);
   strcat_P(apName, PSTR("-"));
-  strcat(apName, Helpers::getDeviceId());
+  strcat(apName, DeviceId::get());
 
   WiFi.softAPConfig(ACCESS_POINT_IP, ACCESS_POINT_IP, IPAddress(255, 255, 255, 0));
   WiFi.softAP(apName, deviceId);
@@ -255,7 +255,7 @@ void BootConfig::_onDeviceInfoRequest() {
   auto numNodes = HomieNode::nodes.size();
   DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
   JsonObject& json = jsonBuffer.createObject();
-  json["hardware_device_id"] = Helpers::getDeviceId();
+  json["hardware_device_id"] = DeviceId::get();
   json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
   JsonObject& firmware = json.createNestedObject("firmware");
   firmware["name"] = _interface->firmware.name;
@@ -361,7 +361,7 @@ void BootConfig::_onConfigRequest() {
     return;
   }
 
-  ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
+  ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
     _interface->logger->log(F("✖ Config file is not valid, reason: "));
     _interface->logger->logln(configValidationResult.reason);

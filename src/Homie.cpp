@@ -112,7 +112,7 @@ HomieClass::HomieClass()
   _interface.config = &_config;
   _interface.mqttClient = &_mqttClient;
 
-  Helpers::generateDeviceId();
+  DeviceId::generate();
 
   _config.attachInterface(&_interface);
   _blinker.attachInterface(&_interface);
