@@ -29,7 +29,7 @@ const int PIN_RELAY = 5;
 
 HomieNode lightNode("light", "switch");
 
-bool lightOnHandler(HomieRange range, String value) {
+bool lightOnHandler(const HomieRange& range, const String& value) {
   if (value != "true" && value != "false") return false;
 
   bool on = (value == "true");
