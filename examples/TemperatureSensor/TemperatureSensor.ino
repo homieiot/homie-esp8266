@@ -7,7 +7,7 @@ unsigned long lastTemperatureSent = 0;
 HomieNode temperatureNode("temperature", "temperature");
 
 void setupHandler() {
-  Homie.setNodeProperty(temperatureNode, "unit").setRetained(true).send("c");
+  Homie.setNodeProperty(temperatureNode, "unit").send("c");
 }
 
 void loopHandler() {

@@ -49,7 +49,7 @@ PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lowe
   return _propertyInterface.setProperty(propertyObject);
 }
 
-bool HomieNode::handleInput(String const &property, HomieRange range, String const &value) {
+bool HomieNode::handleInput(const String& property, const HomieRange& range, const String& value) {
   return _inputHandler(property, range, value);
 }
 

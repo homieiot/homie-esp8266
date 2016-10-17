@@ -9,7 +9,7 @@ HomieNode temperatureNode("temperature", "temperature");
 HomieSetting<unsigned long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in seconds");
 
 void setupHandler() {
-  Homie.setNodeProperty(temperatureNode, "unit").setRetained(true).send("c");
+  Homie.setNodeProperty(temperatureNode, "unit").send("c");
 }
 
 void loopHandler() {

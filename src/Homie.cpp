@@ -101,8 +101,8 @@ HomieClass::HomieClass()
   _interface.reset.triggerState = DEFAULT_RESET_STATE;
   _interface.reset.triggerTime = DEFAULT_RESET_TIME;
   _interface.reset.userFunction = []() { return false; };
-  _interface.globalInputHandler = [](const HomieNode& node, String property, HomieRange range, String value) { return false; };
-  _interface.broadcastHandler = [](String level, String value) { return false; };
+  _interface.globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
+  _interface.broadcastHandler = [](const String& level, const String& value) { return false; };
   _interface.setupFunction = []() {};
   _interface.loopFunction = []() {};
   _interface.eventHandler = [](const HomieEvent& event) {};
