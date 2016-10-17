@@ -44,6 +44,8 @@ prepareToSleep	KEYWORD2
 
 # HomieNode
 
+getId	KEYWORD2
+getType	KEYWORD2
 advertise	KEYWORD2
 advertiseRange	KEYWORD2
 settable	KEYWORD2

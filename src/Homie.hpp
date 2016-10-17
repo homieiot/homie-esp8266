@@ -1,12 +1,14 @@
 #pragma once
 
+#include "Arduino.h"
+
 #include <AsyncMqttClient.h>
 #include "Homie/Blinker.hpp"
 #include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
 #include "Homie/Constants.hpp"
 #include "Homie/Limits.hpp"
-#include "Homie/Helpers.hpp"
+#include "Homie/Utils/DeviceId.hpp"
 #include "Homie/Boot/Boot.hpp"
 #include "Homie/Boot/BootStandalone.hpp"
 #include "Homie/Boot/BootNormal.hpp"
@@ -29,7 +31,7 @@ class SendingPromise {
   explicit SendingPromise(HomieClass* homie);
   SendingPromise& setQos(uint8_t qos);
   SendingPromise& setRetained(bool retained);
-  SendingPromise& setRange(HomieRange range);
+  SendingPromise& setRange(const HomieRange& range);
   SendingPromise& setRange(uint16_t rangeIndex);
   uint16_t send(const String& value);
 
@@ -102,7 +104,7 @@ class HomieClass {
   Config _config;
   AsyncMqttClient _mqttClient;
 
-  void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
+  void _checkBeforeSetup(const __FlashStringHelper* functionName);
 
   const char* __HOMIE_SIGNATURE;
 };

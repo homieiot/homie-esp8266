@@ -15,14 +15,10 @@ void Logger::setPrinter(Print* printer) {
   _printer = printer;
 }
 
-void Logger::logln() const {
-  if (_loggingEnabled) {
-    _printer->println();
-  }
+size_t Logger::write(uint8_t character) {
+  if (_loggingEnabled) _printer->write(character);
 }
 
-void Logger::flush() const {
-  if (_loggingEnabled && _printer == &Serial) {
-    static_cast<Stream*>(_printer)->flush();
-  }
+size_t Logger::write(const uint8_t* buffer, size_t size) {
+  if (_loggingEnabled) _printer->write(buffer, size);
 }
