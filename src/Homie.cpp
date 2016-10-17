@@ -18,7 +18,7 @@ SendingPromise& SendingPromise::setRetained(bool retained) {
   _retained = retained;
 }
 
-SendingPromise& SendingPromise::setRange(HomieRange range) {
+SendingPromise& SendingPromise::setRange(const HomieRange& range) {
   _range = range;
 }
 

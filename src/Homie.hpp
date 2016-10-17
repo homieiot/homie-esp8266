@@ -31,7 +31,7 @@ class SendingPromise {
   explicit SendingPromise(HomieClass* homie);
   SendingPromise& setQos(uint8_t qos);
   SendingPromise& setRetained(bool retained);
-  SendingPromise& setRange(HomieRange range);
+  SendingPromise& setRange(const HomieRange& range);
   SendingPromise& setRange(uint16_t rangeIndex);
   uint16_t send(const String& value);
 
