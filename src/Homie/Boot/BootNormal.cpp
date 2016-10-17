@@ -37,7 +37,7 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
 uint16_t BootNormal::_publishOtaStatus(int status, const char* info) {
   String payload(status);
   if (info) {
-    payload += ',';
+    payload += ' ';
     payload += info;
   }
   return _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 1, true, payload.c_str());
