@@ -269,28 +269,31 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           _interface->event.type = HomieEventType::OTA_FAILED;
           _interface->eventHandler(_interface->event);
           int status;
-          StreamString info;
-          info.print(PSTR("OTA failed: "));
+          String info;
           switch (Update.getError()) {
+            case UPDATE_ERROR_SIZE:               // new firmware size is zero
+            case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
+            case UPDATE_ERROR_NEW_FLASH_CONFIG:   // bad new flash config (does not match flash ID)
+              status = 400;  // 400 Bad Request
+              info = PSTR("BAD_FIRMWARE");
+              break;
+            case UPDATE_ERROR_MD5:
+              status = 400;  // 400 Bad Request
+              info = PSTR("BAD_CHECKSUM");
+              break;
+            case UPDATE_ERROR_SPACE:
+              status = 400;  // 400 Bad Request
+              info = PSTR("NOT_ENOUGH_SPACE");
+              break;
             case UPDATE_ERROR_WRITE:
             case UPDATE_ERROR_ERASE:
             case UPDATE_ERROR_READ:
-            case UPDATE_ERROR_STREAM:
-            case UPDATE_ERROR_FLASH_CONFIG:
               status = 500;  // 500 Internal Server Error
-              Update.printError(info);
-              break;
-            case UPDATE_ERROR_SPACE:
-            case UPDATE_ERROR_SIZE:
-            case UPDATE_ERROR_MD5:
-            case UPDATE_ERROR_NEW_FLASH_CONFIG:
-            case UPDATE_ERROR_MAGIC_BYTE:
-              status = 400;  // 400 Bad Request
-              Update.printError(info);
+              info = PSTR("FLASH_ERROR");
               break;
             default:
               status = 500;  // 500 Internal Server Error
-              info.printf(PSTR("error code %u"), Update.getError());
+              info = PSTR("INTERNAL_ERROR ") + Update.getError();
               break;
           }
           _publishOtaStatus(status, info.c_str());
