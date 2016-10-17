@@ -5,7 +5,7 @@ const unsigned char LED_PINS[NUMBER_OF_LED] = { 16, 5, 4, 0 };
 
 HomieNode stripNode("strip", "strip");
 
-bool stripLedHandler(HomieRange range, String value) {
+bool stripLedHandler(const HomieRange& range, const String& value) {
   if (!range.isRange) return false;  // if it's not a range
 
   if (range.index < 1 || range.index > NUMBER_OF_LED) return false;  // if it's not a valid range

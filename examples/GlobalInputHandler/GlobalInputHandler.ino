@@ -2,7 +2,7 @@
 
 HomieNode lightNode("light", "switch");
 
-bool globalInputHandler(const HomieNode& node, String property, HomieRange range, String value) {
+bool globalInputHandler(const HomieNode& node, const String& property, const HomieRange& range, const String& value) {
   Serial << "Received on node " << node.getId() << ": " << property << " = " << value << endl;
   return true;
 }
@@ -12,6 +12,8 @@ void setup() {
   Serial << endl << endl;
   Homie_setFirmware("global-input-handler", "1.0.0");
   Homie.setGlobalInputHandler(globalInputHandler);
+
+  lightNode.advertise("on").settable();
 
   Homie.setup();
 }
