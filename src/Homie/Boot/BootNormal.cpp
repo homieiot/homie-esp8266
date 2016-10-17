@@ -304,6 +304,10 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       }
     } else {
       _interface->logger->log(F("Receiving OTA payload but not requested, skipping..."));
+      if (_interface->config->get().ota.enabled)
+        _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
+      else
+        _publishOtaStatus(400, PSTR("NOT_ENABLED"));
     }
     return;
   }
