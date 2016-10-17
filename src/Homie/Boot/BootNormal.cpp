@@ -307,7 +307,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       if (_interface->config->get().ota.enabled)
         _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
       else
-        _publishOtaStatus(400, PSTR("NOT_ENABLED"));
+        _publishOtaStatus(403);  // 403 Forbidden
     }
     return;
   }
@@ -342,19 +342,22 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
   // 4. Special Functions: $ota
   if (strcmp_P(device_topic, PSTR("$ota")) == 0) {  // If this is the $ota announcement
-    if (strcmp(_mqttPayloadBuffer.get(), _interface->firmware.version) != 0) {
-      _interface->logger->print(F("✴ OTA available (version "));
-      _interface->logger->print(_mqttPayloadBuffer.get());
-      _interface->logger->println(F(")"));
+    if (_interface->config->get().ota.enabled) {
+      if (strcmp(_mqttPayloadBuffer.get(), _interface->firmware.version) != 0) {
+        _interface->logger->print(F("? OTA available (version "));
+        _interface->logger->print(_mqttPayloadBuffer.get());
+        _interface->logger->println(F(")"));
 
-      _interface->logger->println(F("Subscribing to OTA payload..."));
-      _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/payload")), 0);
-      _flaggedForOta = true;
-      _publishOtaStatus(202);  // 202 Accepted
+        _interface->logger->println(F("Subscribing to OTA payload..."));
+        _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/payload")), 0);
+        _flaggedForOta = true;
+        _publishOtaStatus(202);  // 202 Accepted
+      } else {
+        _publishOtaStatus(304);  // 304 Not Modified
+      }
     } else {
-      _publishOtaStatus(304);  // 304 Not Modified
+      _publishOtaStatus(403);  // 403 Forbidden
     }
-
     return;
   }
 
