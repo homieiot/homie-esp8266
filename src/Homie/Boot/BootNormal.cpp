@@ -34,6 +34,19 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
   return _mqttTopic.get();
 }
 
+uint16_t BootNormal::_publishOtaStatus(int status, const char* info) {
+  String payload(status);
+  if (info) {
+    payload += ' ';
+    payload += info;
+  }
+  return _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 1, true, payload.c_str());
+}
+
+uint16_t BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
+  return _publishOtaStatus(status, String(info).c_str());
+}
+
 void BootNormal::_wifiConnect() {
   if (_interface->led.enabled) _interface->blinker->start(LED_WIFI_DELAY);
   _interface->logger->println(F("↕ Attempting to connect to Wi-Fi..."));
@@ -230,10 +243,12 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         _interface->event.type = HomieEventType::OTA_STARTED;
         _interface->eventHandler(_interface->event);
       }
+      String progress(index + len);
+      progress += '/';
+      progress += total;
+      _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
       _interface->logger->print(F("Receiving OTA payload ("));
-      _interface->logger->print(index + len);
-      _interface->logger->print(F("/"));
-      _interface->logger->print(total);
+      _interface->logger->print(progress.c_str());
       _interface->logger->println(F(")..."));
 
       Update.write(reinterpret_cast<uint8_t*>(payload), len);
@@ -246,12 +261,42 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           _interface->logger->println(F("Triggering OTA_SUCCESSFUL event..."));
           _interface->event.type = HomieEventType::OTA_SUCCESSFUL;
           _interface->eventHandler(_interface->event);
+          _publishOtaStatus(200);  // 200 OK
           _flaggedForReboot = true;
         } else {
           _interface->logger->println(F("✖ OTA failed"));
           _interface->logger->println(F("Triggering OTA_FAILED event..."));
           _interface->event.type = HomieEventType::OTA_FAILED;
           _interface->eventHandler(_interface->event);
+          int status;
+          String info;
+          switch (Update.getError()) {
+            case UPDATE_ERROR_SIZE:               // new firmware size is zero
+            case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
+            case UPDATE_ERROR_NEW_FLASH_CONFIG:   // bad new flash config (does not match flash ID)
+              status = 400;  // 400 Bad Request
+              info = PSTR("BAD_FIRMWARE");
+              break;
+            case UPDATE_ERROR_MD5:
+              status = 400;  // 400 Bad Request
+              info = PSTR("BAD_CHECKSUM");
+              break;
+            case UPDATE_ERROR_SPACE:
+              status = 400;  // 400 Bad Request
+              info = PSTR("NOT_ENOUGH_SPACE");
+              break;
+            case UPDATE_ERROR_WRITE:
+            case UPDATE_ERROR_ERASE:
+            case UPDATE_ERROR_READ:
+              status = 500;  // 500 Internal Server Error
+              info = PSTR("FLASH_ERROR");
+              break;
+            default:
+              status = 500;  // 500 Internal Server Error
+              info = PSTR("INTERNAL_ERROR ") + Update.getError();
+              break;
+          }
+          _publishOtaStatus(status, info.c_str());
         }
 
         _flaggedForOta = false;
@@ -259,6 +304,10 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       }
     } else {
       _interface->logger->print(F("Receiving OTA payload but not requested, skipping..."));
+      if (_interface->config->get().ota.enabled)
+        _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
+      else
+        _publishOtaStatus(400, PSTR("NOT_ENABLED"));
     }
     return;
   }
@@ -301,6 +350,9 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       _interface->logger->println(F("Subscribing to OTA payload..."));
       _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/payload")), 0);
       _flaggedForOta = true;
+      _publishOtaStatus(202);  // 202 Accepted
+    } else {
+      _publishOtaStatus(304);  // 304 Not Modified
     }
 
     return;
