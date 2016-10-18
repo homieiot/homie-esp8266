@@ -174,9 +174,7 @@ void BootNormal::_onMqttConnected() {
   broadcast_topic.concat("$broadcast/+");
   _interface->mqttClient->subscribe(broadcast_topic.c_str(), 2);
 
-  if (_interface->config->get().ota.enabled) {
-    _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
-  }
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
 
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
 
