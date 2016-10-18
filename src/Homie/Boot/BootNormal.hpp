@@ -43,6 +43,7 @@ class BootNormal : public Boot {
   Bounce _resetDebouncer;
   bool _flaggedForSleep;
   uint16_t _mqttOfflineMessageId;
+  String _otaChecksum;
 
   std::unique_ptr<char[]> _mqttTopic;
 
@@ -63,5 +64,6 @@ class BootNormal : public Boot {
   char* _prefixMqttTopic(PGM_P topic);
   uint16_t _publishOtaStatus(int status, const char* info = 0);
   uint16_t _publishOtaStatus_P(int status, PGM_P info);
+  void _endOtaUpdate(bool success, uint8_t update_error = 0);
 };
 }  // namespace HomieInternals

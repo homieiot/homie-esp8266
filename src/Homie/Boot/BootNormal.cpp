@@ -14,7 +14,8 @@ BootNormal::BootNormal()
 , _mqttWillTopic(nullptr)
 , _mqttPayloadBuffer(nullptr)
 , _flaggedForSleep(false)
-, _mqttOfflineMessageId(0) {
+, _mqttOfflineMessageId(0)
+, _otaChecksum(String()) {
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
   _uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);
 }
@@ -45,6 +46,60 @@ uint16_t BootNormal::_publishOtaStatus(int status, const char* info) {
 
 uint16_t BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
   return _publishOtaStatus(status, String(info).c_str());
+}
+
+void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
+  if (success) {
+    _interface->logger->println(F("✔ OTA success"));
+    _interface->logger->println(F("Triggering OTA_SUCCESSFUL event..."));
+    _interface->event.type = HomieEventType::OTA_SUCCESSFUL;
+    _interface->eventHandler(_interface->event);
+
+    _publishOtaStatus(200);  // 200 OK
+    _flaggedForReboot = true;
+  } else {
+    _interface->logger->println(F("✖ OTA failed"));
+    _interface->logger->println(F("Triggering OTA_FAILED event..."));
+    _interface->event.type = HomieEventType::OTA_FAILED;
+    _interface->eventHandler(_interface->event);
+
+    int code;
+    String info;
+    switch (update_error) {
+      case UPDATE_ERROR_SIZE:               // new firmware size is zero
+      case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
+      case UPDATE_ERROR_NEW_FLASH_CONFIG:   // bad new flash config (does not match flash ID)
+        code = 400;  // 400 Bad Request
+        info = PSTR("BAD_FIRMWARE");
+        break;
+      case UPDATE_ERROR_MD5:
+        code = 400;  // 400 Bad Request
+        info = PSTR("BAD_CHECKSUM");
+        break;
+      case UPDATE_ERROR_SPACE:
+        code = 400;  // 400 Bad Request
+        info = PSTR("NOT_ENOUGH_SPACE");
+        break;
+      case UPDATE_ERROR_WRITE:
+      case UPDATE_ERROR_ERASE:
+      case UPDATE_ERROR_READ:
+        code = 500;  // 500 Internal Server Error
+        info = PSTR("FLASH_ERROR");
+        break;
+      default:
+        code = 500;  // 500 Internal Server Error
+        info = PSTR("INTERNAL_ERROR ") + update_error;
+        break;
+    }
+    _publishOtaStatus(code, info.c_str());
+
+    // Reboot if Updater::setMD5 was called (cannot clear expected MD5 otherwise)
+    if (_otaChecksum.length()) {
+      _flaggedForReboot = true;
+    }
+  }
+  _flaggedForOta = false;
+  _otaChecksum = String();
 }
 
 void BootNormal::_wifiConnect() {
@@ -166,6 +221,8 @@ void BootNormal::_onMqttConnected() {
   free(safeConfigFile);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/version")), 1, true, HOMIE_ESP8266_VERSION);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/ota/enabled")), 1, true, _interface->config->get().ota.enabled ? "true" : "false");
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")), 0);
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/checksum")), 0);
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/reset")), 2);
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/config/set")), 2);
 
@@ -233,82 +290,78 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
   // 1. Handle OTA firmware (not copied to payload buffer)
   if (strcmp_P(device_topic, PSTR("$implementation/ota/firmware")) == 0) {  // If this is the OTA firmware
-    if (_flaggedForOta) {
-      if (index == 0) {
-        Update.begin(total);
-        _interface->logger->println(F("OTA started"));
-        _interface->logger->println(F("Triggering OTA_STARTED event..."));
-        _interface->event.type = HomieEventType::OTA_STARTED;
-        _interface->eventHandler(_interface->event);
-      }
-      String progress(index + len);
-      progress += '/';
-      progress += total;
-      _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
-      _interface->logger->print(F("Receiving OTA firmware ("));
-      _interface->logger->print(progress.c_str());
-      _interface->logger->println(F(")..."));
-
-      Update.write(reinterpret_cast<uint8_t*>(payload), len);
-
-      if (index + len == total) {
-        bool success = Update.end();
-
-        if (success) {
-          _interface->logger->println(F("✔ OTA success"));
-          _interface->logger->println(F("Triggering OTA_SUCCESSFUL event..."));
-          _interface->event.type = HomieEventType::OTA_SUCCESSFUL;
-          _interface->eventHandler(_interface->event);
-          _publishOtaStatus(200);  // 200 OK
-          _flaggedForReboot = true;
-        } else {
-          _interface->logger->println(F("✖ OTA failed"));
-          _interface->logger->println(F("Triggering OTA_FAILED event..."));
-          _interface->event.type = HomieEventType::OTA_FAILED;
-          _interface->eventHandler(_interface->event);
-          int status;
-          String info;
-          switch (Update.getError()) {
-            case UPDATE_ERROR_SIZE:               // new firmware size is zero
-            case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
-            case UPDATE_ERROR_NEW_FLASH_CONFIG:   // bad new flash config (does not match flash ID)
-              status = 400;  // 400 Bad Request
-              info = PSTR("BAD_FIRMWARE");
-              break;
-            case UPDATE_ERROR_MD5:
-              status = 400;  // 400 Bad Request
-              info = PSTR("BAD_CHECKSUM");
-              break;
-            case UPDATE_ERROR_SPACE:
-              status = 400;  // 400 Bad Request
-              info = PSTR("NOT_ENOUGH_SPACE");
-              break;
-            case UPDATE_ERROR_WRITE:
-            case UPDATE_ERROR_ERASE:
-            case UPDATE_ERROR_READ:
-              status = 500;  // 500 Internal Server Error
-              info = PSTR("FLASH_ERROR");
-              break;
-            default:
-              status = 500;  // 500 Internal Server Error
-              info = PSTR("INTERNAL_ERROR ") + Update.getError();
-              break;
-          }
-          _publishOtaStatus(status, info.c_str());
-        }
-
-        _flaggedForOta = false;
-        _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")));
-      }
-    } else {
+    if (!_interface->config->get().ota.enabled) {
+      _publishOtaStatus(403);  // 403 Forbidden
+    } else if (!_flaggedForOta) {
       _interface->logger->print(F("Receiving OTA firmware but not requested, skipping..."));
-      if (_interface->config->get().ota.enabled)
-        _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
-      else
-        _publishOtaStatus(403);  // 403 Forbidden
+      _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
+    } else {
+      if (index == 0) {
+        if (Update.begin(total)) {
+          _interface->logger->println(F("OTA started"));
+          _interface->logger->println(F("Triggering OTA_STARTED event..."));
+          _interface->event.type = HomieEventType::OTA_STARTED;
+          _interface->eventHandler(_interface->event);
+        } else {
+          // Detected error during begin (e.g. size == 0 or size > space)
+          _endOtaUpdate(false, Update.getError());
+        }
+      }
+      if (_flaggedForOta) {
+        String progress(index + len);
+        progress += '/';
+        progress += total;
+        _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
+        _interface->logger->print(F("Receiving OTA firmware ("));
+        _interface->logger->print(progress.c_str());
+        _interface->logger->println(F(")..."));
+        if (Update.write(reinterpret_cast<uint8_t*>(payload), len)) {
+          // Flash write successful. Done with update?
+          if (index + len == total) {
+            _endOtaUpdate(Update.end(), Update.getError());
+          }
+        } else {
+          // Error erasing or writing flash
+          _endOtaUpdate(false, Update.getError());
+        }
+      }
     }
     return;
   }
+
+  if (strcmp_P(device_topic, PSTR("$implementation/ota/checksum")) == 0) {  // If this is the MD5 OTA checksum (32 hex characters)
+    if (!_interface->config->get().ota.enabled) {
+      _publishOtaStatus(403);  // 403 Forbidden
+    } else if (!_flaggedForOta) {
+      _interface->logger->print(F("Receiving OTA checksum but not requested, skipping..."));
+      _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
+    } else {
+      _interface->logger->print(F("Receiving OTA checksum ("));
+      _interface->logger->print(payload);
+      _interface->logger->println(F(")..."));
+      // 32 hex characters?
+      String md5 = payload;
+      unsigned int i = 0;
+      bool valid = md5.length() == 32;
+      while (valid && (i < 32)) {
+        char c = md5[i ++];
+        valid = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+      }
+      if (valid) {
+        // Set expected MD5 with Updater (setMD5 needs us to provide a string buffer)
+        _otaChecksum = md5;
+        valid = Update.setMD5(_otaChecksum.c_str());
+      }
+      if (valid) {
+        _publishOtaStatus(202);  // 202 Accepted
+      } else {
+        // Invalid MD5 number => 400 BAD_CHECKSUM
+        _endOtaUpdate(false, UPDATE_ERROR_MD5);
+      }
+    }
+    return;
+  }
+
 
   // 2. Fill Payload Buffer
 
@@ -345,9 +398,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         _interface->logger->print(F("? OTA available (version "));
         _interface->logger->print(_mqttPayloadBuffer.get());
         _interface->logger->println(F(")"));
-
-        _interface->logger->println(F("Subscribing to OTA firmware..."));
-        _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")), 0);
+        _otaChecksum = String();
         _flaggedForOta = true;
         _publishOtaStatus(202);  // 202 Accepted
       } else {
