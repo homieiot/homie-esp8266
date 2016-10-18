@@ -44,6 +44,10 @@ uint16_t BootNormal::_publishOtaStatus(int status, const char* info) {
   return _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 1, true, payload.c_str());
 }
 
+uint16_t BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
+  return _publishOtaStatus(status, String(info).c_str());
+}
+
 void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
   if (success) {
     _interface->logger->println(F("✔ OTA success"));
@@ -98,11 +102,6 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
   _otaChecksum = String();
   _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")));
   _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$implementation/ota/checksum")));
-}
-
-
-uint16_t BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
-  return _publishOtaStatus(status, String(info).c_str());
 }
 
 void BootNormal::_wifiConnect() {
