@@ -293,8 +293,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   if (strcmp_P(device_topic, PSTR("$implementation/ota/firmware")) == 0) {  // If this is the OTA firmware
     if (!_interface->config->get().ota.enabled) {
       _publishOtaStatus(403);  // 403 Forbidden
-    }
-    else if (!_flaggedForOta) {
+    } else if (!_flaggedForOta) {
       _interface->logger->print(F("Receiving OTA firmware but not requested, skipping..."));
       _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
     } else {
@@ -334,8 +333,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   if (strcmp_P(device_topic, PSTR("$implementation/ota/checksum")) == 0) {  // If this is the MD5 OTA checksum (32 hex characters)
     if (!_interface->config->get().ota.enabled) {
       _publishOtaStatus(403);  // 403 Forbidden
-    }
-    else if (!_flaggedForOta) {
+    } else if (!_flaggedForOta) {
       _interface->logger->print(F("Receiving OTA checksum but not requested, skipping..."));
       _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
     } else {
