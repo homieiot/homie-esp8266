@@ -231,8 +231,8 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   // Skip devices/${id}/ --- +1 for /
   char* device_topic = broadcast_topic + strlen(_interface->config->get().deviceId) + 1;
 
-  // 1. Handle OTA Payload (not copied to payload buffer)
-  if (strcmp_P(device_topic, PSTR("$implementation/ota/payload")) == 0) {  // If this is the $ota payload
+  // 1. Handle OTA firmware (not copied to payload buffer)
+  if (strcmp_P(device_topic, PSTR("$implementation/ota/firmware")) == 0) {  // If this is the OTA firmware
     if (_flaggedForOta) {
       if (index == 0) {
         Update.begin(total);
@@ -245,7 +245,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       progress += '/';
       progress += total;
       _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
-      _interface->logger->print(F("Receiving OTA payload ("));
+      _interface->logger->print(F("Receiving OTA firmware ("));
       _interface->logger->print(progress.c_str());
       _interface->logger->println(F(")..."));
 
@@ -298,10 +298,10 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         }
 
         _flaggedForOta = false;
-        _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$implementation/ota/payload")));
+        _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")));
       }
     } else {
-      _interface->logger->print(F("Receiving OTA payload but not requested, skipping..."));
+      _interface->logger->print(F("Receiving OTA firmware but not requested, skipping..."));
       if (_interface->config->get().ota.enabled)
         _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
       else
@@ -346,8 +346,8 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         _interface->logger->print(_mqttPayloadBuffer.get());
         _interface->logger->println(F(")"));
 
-        _interface->logger->println(F("Subscribing to OTA payload..."));
-        _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/payload")), 0);
+        _interface->logger->println(F("Subscribing to OTA firmware..."));
+        _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")), 0);
         _flaggedForOta = true;
         _publishOtaStatus(202);  // 202 Accepted
       } else {
@@ -524,7 +524,7 @@ void BootNormal::setup() {
 
   // Generate topic buffer
   size_t baseTopicLength = strlen(_interface->config->get().mqtt.baseTopic) + strlen(_interface->config->get().deviceId);
-  size_t longestSubtopicLength = 28 + 1;  // /$implementation/ota/enabled
+  size_t longestSubtopicLength = 29 + 1;  // /$implementation/ota/firmware
   for (HomieNode* iNode : HomieNode::nodes) {
     size_t nodeMaxTopicLength = 1 + strlen(iNode->getId()) + 12 + 1;  // /id/$properties
     if (nodeMaxTopicLength > longestSubtopicLength) longestSubtopicLength = nodeMaxTopicLength;
