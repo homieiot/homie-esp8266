@@ -100,8 +100,6 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
   }
   _flaggedForOta = false;
   _otaChecksum = String();
-  _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")));
-  _interface->mqttClient->unsubscribe(_prefixMqttTopic(PSTR("/$implementation/ota/checksum")));
 }
 
 void BootNormal::_wifiConnect() {
@@ -223,6 +221,8 @@ void BootNormal::_onMqttConnected() {
   free(safeConfigFile);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/version")), 1, true, HOMIE_ESP8266_VERSION);
   _interface->mqttClient->publish(_prefixMqttTopic(PSTR("/$implementation/ota/enabled")), 1, true, _interface->config->get().ota.enabled ? "true" : "false");
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")), 0);
+  _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/checksum")), 0);
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/reset")), 2);
   _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/config/set")), 2);
 
@@ -398,10 +398,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         _interface->logger->print(F("? OTA available (version "));
         _interface->logger->print(_mqttPayloadBuffer.get());
         _interface->logger->println(F(")"));
-
-        _interface->logger->println(F("Subscribing to OTA firmware..."));
-        _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")), 0);
-        _interface->mqttClient->subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/checksum")), 0);
         _otaChecksum = String();
         _flaggedForOta = true;
         _publishOtaStatus(202);  // 202 Accepted
