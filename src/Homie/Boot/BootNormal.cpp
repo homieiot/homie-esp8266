@@ -415,6 +415,19 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
+  // 2. Fill Payload Buffer
+
+  // Reallocate Buffer everytime a new message is received
+  if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
+
+  // TODO(euphi): Check if buffer size matches payload length
+  memcpy(_mqttPayloadBuffer.get() + index, payload, len);
+
+  if (index + len != total) return;  // return if payload buffer is not complete
+  _mqttPayloadBuffer.get()[total] = '\0';
+
+  /* Arrived here, the payload is complete */
+
   if (strcmp_P(device_topic, PSTR("$implementation/ota/checksum")) == 0) {  // If this is the MD5 OTA checksum (32 hex characters)
     if (!_interface->config->get().ota.enabled) {
       _publishOtaStatus(403);  // 403 Forbidden
@@ -427,14 +440,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       _interface->logger->println(F(")..."));
       // 32 hex characters?
 
-      if (strlen(payload) != 32) {
+      if (strlen(_mqttPayloadBuffer.get()) != 32) {
         // Invalid MD5 number => 400 BAD_CHECKSUM
         _endOtaUpdate(false, UPDATE_ERROR_MD5);
         return;
       }
 
       for (uint8_t i = 0; i < 32; i++) {
-        char c = payload[i];
+        char c = _mqttPayloadBuffer.get()[i];
         bool valid = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
 
         if (!valid) {
@@ -443,25 +456,13 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         }
       }
 
-      strcpy(_otaChecksum, payload);
+      strcpy(_otaChecksum, _mqttPayloadBuffer.get());
       _otaChecksumSet = true;
       Update.setMD5(_otaChecksum);
       _publishOtaStatus(202);
     }
     return;
   }
-
-
-  // 2. Fill Payload Buffer
-
-  // Reallocate Buffer everytime a new message is received
-  if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
-
-  // TODO(euphi): Check if buffer size matches payload length
-  memcpy(_mqttPayloadBuffer.get() + index, payload, len);
-
-  if (index + len != total) return;  // return if payload buffer is not complete
-  _mqttPayloadBuffer.get()[total] = '\0';
 
   // 3. Special Functions: $broadcast
   /** TODO(euphi): Homie $broadcast */
