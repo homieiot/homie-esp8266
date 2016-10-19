@@ -15,7 +15,10 @@ BootNormal::BootNormal()
 , _mqttPayloadBuffer(nullptr)
 , _flaggedForSleep(false)
 , _mqttOfflineMessageId(0)
-, _otaChecksum(String()) {
+, _otaChecksum(String())
+, _otaIsBase64(false)
+, _otaSizeTotal(0)
+, _otaSizeDone(0) {
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
   _uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);
 }
@@ -58,11 +61,6 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     _publishOtaStatus(200);  // 200 OK
     _flaggedForReboot = true;
   } else {
-    _interface->logger->println(F("✖ OTA failed"));
-    _interface->logger->println(F("Triggering OTA_FAILED event..."));
-    _interface->event.type = HomieEventType::OTA_FAILED;
-    _interface->eventHandler(_interface->event);
-
     int code;
     String info;
     switch (update_error) {
@@ -92,6 +90,16 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
         break;
     }
     _publishOtaStatus(code, info.c_str());
+
+    _interface->logger->print(F("✖ OTA failed ("));
+    _interface->logger->print(code);
+    _interface->logger->print(' ');
+    _interface->logger->print(info);
+    _interface->logger->println(')');
+
+    _interface->logger->println(F("Triggering OTA_FAILED event..."));
+    _interface->event.type = HomieEventType::OTA_FAILED;
+    _interface->eventHandler(_interface->event);
 
     // Reboot if Updater::setMD5 was called (cannot clear expected MD5 otherwise)
     if (_otaChecksum.length()) {
@@ -296,29 +304,106 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       _interface->logger->print(F("Receiving OTA firmware but not requested, skipping..."));
       _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
     } else {
+      bool success;
       if (index == 0) {
-        if (Update.begin(total)) {
-          _interface->logger->println(F("OTA started"));
-          _interface->logger->println(F("Triggering OTA_STARTED event..."));
-          _interface->event.type = HomieEventType::OTA_STARTED;
-          _interface->eventHandler(_interface->event);
+        _interface->logger->println(F("OTA started"));
+        _interface->logger->println(F("Triggering OTA_STARTED event..."));
+        _interface->event.type = HomieEventType::OTA_STARTED;
+        _interface->eventHandler(_interface->event);
+
+        // Autodetect if firmware is binary or base64-encoded. ESP firmware always has a magic first byte 0xE9.
+        if (*payload == 0xE9) {
+          _otaIsBase64 = false;
+          _interface->logger->println(F("Firmware is binary"));
         } else {
+          // Base64-decode first two bytes. Compare decoded value against magic byte.
+          char plain[2];  // need 12 bits
+          base64_init_decodestate(&_otaBase64State);
+          int l = base64_decode_block(payload, 2, plain, &_otaBase64State);
+          if ((l == 1) && (plain[0] == 0xE9)) {
+            _otaIsBase64 = true;
+            _interface->logger->println(F("Firmware is base64-encoded"));
+            // Restart base64-decoder
+            base64_init_decodestate(&_otaBase64State);
+          } else {
+            // Bad firmware format
+            _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
+            return;
+          }
+        }
+        _otaSizeDone = 0;
+        _otaSizeTotal = _otaIsBase64 ? base64_decode_expected_len(total) : total;
+        success = Update.begin(_otaSizeTotal);
+        if (!success) {
           // Detected error during begin (e.g. size == 0 or size > space)
           _endOtaUpdate(false, Update.getError());
+          return;
         }
       }
-      if (_flaggedForOta) {
-        String progress(index + len);
-        progress += '/';
-        progress += total;
-        _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
-        _interface->logger->print(F("Receiving OTA firmware ("));
-        _interface->logger->print(progress.c_str());
-        _interface->logger->println(F(")..."));
-        if (Update.write(reinterpret_cast<uint8_t*>(payload), len)) {
-          // Flash write successful. Done with update?
+      size_t write_len;
+      if (_otaIsBase64) {
+        // Base64-firmware: Make sure there are no non-base64 characters in the payload.
+        // libb64/cdecode.c doesn't ignore such characters if the compiler treats `char`
+        // as `unsigned char`.
+        size_t bin_len = 0;
+        char* p = payload;
+        for (size_t i = 0; i < len; i ++) {
+          char c = *p++;
+          bool b64 = ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '+') || (c == '/');
+          if (b64) {
+            bin_len++;
+          } else if (c == '=') {
+            // Ignore trailing (and only up to 2 trailing) "="
+            if (index + i < total - 2) {
+              _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
+              return;
+            }
+          } else {
+            // Non-base64 character in firmware
+            _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
+            return;
+          }
+        }
+        if (bin_len > 0) {
+          // Decode base64 payload in-place. base64_decode_block() can decode in-place,
+          // except for the very first byte. So we "manually" decode the first byte into
+          // a temporary buffer and manually merge that back into the payload. This one
+          // is a little tricky, but it saves us from having to dynamically allocate
+          // some 800 bytes of memory for every $implementation/ota/firmware.
+          char c;
+          write_len = (size_t) base64_decode_block(payload, 1, &c, &_otaBase64State);
+          *payload = c;
+
+          if (bin_len > 1) {
+            write_len += (size_t) base64_decode_block((const char*) payload + 1, bin_len - 1, payload, &_otaBase64State);
+          }
+        } else {
+          write_len = 0;
+        }
+      } else {
+        // Binary firmware
+        write_len = len;
+      }
+      if (write_len > 0) {
+        success = Update.write(reinterpret_cast<uint8_t*>(payload), write_len) > 0;
+        if (success) {
+          // Flash write successful.
+          _otaSizeDone += write_len;
+          String progress(_otaSizeDone);
+          progress += '/';
+          progress += _otaSizeTotal;
+          _interface->logger->print(F("Received OTA firmware ("));
+          _interface->logger->print(progress.c_str());
+          _interface->logger->println(F(")..."));
+          _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
+
+          //  Done with the update?
           if (index + len == total) {
-            _endOtaUpdate(Update.end(), Update.getError());
+            // In case of base64-coded firmware, we have given the wrong length to Update.begin()
+            // because the base64-encoded firmware may have contained non-base64 characters such
+            // as line feeds
+            success = Update.end(_otaIsBase64);
+            _endOtaUpdate(success, Update.getError());
           }
         } else {
           // Error erasing or writing flash
