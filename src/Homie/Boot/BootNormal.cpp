@@ -348,10 +348,10 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         size_t bin_len = 0;
         char* p = payload;
         for (size_t i = 0; i < len; i ++) {
-          char c = *p ++;
+          char c = *p++;
           bool b64 = ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '+') || (c == '/');
           if (b64) {
-            bin_len ++;
+            bin_len++;
           } else if (c == '=') {
             // Ignore trailing (and only up to 2 trailing) "="
             if (index + i < total - 2) {
