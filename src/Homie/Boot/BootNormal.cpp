@@ -404,7 +404,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
           //  Done with the update?
           if (index + len == total) {
-            // With base64-coded firmware, we may have provided a length off by one to 
+            // With base64-coded firmware, we may have provided a length off by one to
             // Update.begin() because the base64-coded firmware may use padding (one or
             // two "=") at the end. If that is the case, check the real length here and
             // ask Update::end() to skip this test.
