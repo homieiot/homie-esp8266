@@ -47,6 +47,7 @@ class BootNormal : public Boot {
   bool _otaChecksumSet;
   char _otaChecksum[32 + 1];
   bool _otaIsBase64;
+  bool _otaBase64Padded;
   base64_decodestate _otaBase64State;
   size_t _otaSizeTotal;
   size_t _otaSizeDone;
