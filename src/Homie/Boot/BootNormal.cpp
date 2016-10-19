@@ -18,6 +18,7 @@ BootNormal::BootNormal()
 , _otaChecksumSet(false)
 , _otaChecksum()
 , _otaIsBase64(false)
+, _otaBase64Padded(false)
 , _otaSizeTotal(0)
 , _otaSizeDone(0) {
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
@@ -322,6 +323,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           int l = base64_decode_block(payload, 2, plain, &_otaBase64State);
           if ((l == 1) && (plain[0] == 0xE9)) {
             _otaIsBase64 = true;
+            _otaBase64Padded = false;
             _interface->logger->println(F("Firmware is base64-encoded"));
             // Restart base64-decoder
             base64_init_decodestate(&_otaBase64State);
@@ -354,11 +356,13 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           if (b64) {
             bin_len++;
           } else if (c == '=') {
-            // Ignore trailing (and only up to 2 trailing) "="
+            // Ignore "=" padding (but only at the end and only up to 2)
             if (index + i < total - 2) {
               _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
               return;
             }
+            // Actual firmware size is 1 less than initially thought
+            _otaBase64Padded = true;
           } else {
             // Non-base64 character in firmware
             _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
@@ -391,7 +395,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           // Flash write successful.
           _otaSizeDone += write_len;
           String progress(_otaSizeDone);
-          progress += '/';
+          progress += F("/");
           progress += _otaSizeTotal;
           _interface->logger->print(F("Received OTA firmware ("));
           _interface->logger->print(progress.c_str());
@@ -400,10 +404,17 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
           //  Done with the update?
           if (index + len == total) {
-            // In case of base64-coded firmware, we have given the wrong length to Update.begin()
-            // because the base64-encoded firmware may have contained non-base64 characters such
-            // as line feeds
-            success = Update.end(_otaIsBase64);
+            // With base64-coded firmware, we may have provided a length off by one to
+            // Update.begin() because the base64-coded firmware may use padding (one or
+            // two "=") at the end. If that is the case, check the real length here and
+            // ask Update::end() to skip this test.
+            if (_otaIsBase64 && _otaBase64Padded) {
+              if (_otaSizeDone != _otaSizeTotal - 1) {
+                _endOtaUpdate(false, UPDATE_ERROR_SIZE);
+                return;
+              }
+            }
+            success = Update.end(_otaIsBase64 && _otaBase64Padded);
             _endOtaUpdate(success, Update.getError());
           }
         } else {
@@ -438,8 +449,8 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       _interface->logger->print(F("Receiving OTA checksum ("));
       _interface->logger->print(payload);
       _interface->logger->println(F(")..."));
-      // 32 hex characters?
 
+      // 32 hex characters?
       if (strlen(_mqttPayloadBuffer.get()) != 32) {
         // Invalid MD5 number => 400 BAD_CHECKSUM
         _endOtaUpdate(false, UPDATE_ERROR_MD5);
