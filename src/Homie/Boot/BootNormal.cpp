@@ -15,7 +15,8 @@ BootNormal::BootNormal()
 , _mqttPayloadBuffer(nullptr)
 , _flaggedForSleep(false)
 , _mqttOfflineMessageId(0)
-, _otaChecksum(String())
+, _otaChecksumSet(false)
+, _otaChecksum()
 , _otaIsBase64(false)
 , _otaSizeTotal(0)
 , _otaSizeDone(0) {
@@ -93,21 +94,21 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
 
     _interface->logger->print(F("✖ OTA failed ("));
     _interface->logger->print(code);
-    _interface->logger->print(' ');
+    _interface->logger->print(F(" "));
     _interface->logger->print(info);
-    _interface->logger->println(')');
+    _interface->logger->println(F(")"));
 
     _interface->logger->println(F("Triggering OTA_FAILED event..."));
     _interface->event.type = HomieEventType::OTA_FAILED;
     _interface->eventHandler(_interface->event);
 
     // Reboot if Updater::setMD5 was called (cannot clear expected MD5 otherwise)
-    if (_otaChecksum.length()) {
+    if (_otaChecksumSet) {
       _flaggedForReboot = true;
     }
   }
   _flaggedForOta = false;
-  _otaChecksum = String();
+  _otaChecksumSet = false;
 }
 
 void BootNormal::_wifiConnect() {
@@ -304,7 +305,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       _interface->logger->print(F("Receiving OTA firmware but not requested, skipping..."));
       _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
     } else {
-      bool success;
       if (index == 0) {
         _interface->logger->println(F("OTA started"));
         _interface->logger->println(F("Triggering OTA_STARTED event..."));
@@ -333,13 +333,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         }
         _otaSizeDone = 0;
         _otaSizeTotal = _otaIsBase64 ? base64_decode_expected_len(total) : total;
-        success = Update.begin(_otaSizeTotal);
+        bool success = Update.begin(_otaSizeTotal);
         if (!success) {
           // Detected error during begin (e.g. size == 0 or size > space)
           _endOtaUpdate(false, Update.getError());
           return;
         }
       }
+
       size_t write_len;
       if (_otaIsBase64) {
         // Base64-firmware: Make sure there are no non-base64 characters in the payload.
@@ -385,7 +386,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         write_len = len;
       }
       if (write_len > 0) {
-        success = Update.write(reinterpret_cast<uint8_t*>(payload), write_len) > 0;
+        bool success = Update.write(reinterpret_cast<uint8_t*>(payload), write_len) > 0;
         if (success) {
           // Flash write successful.
           _otaSizeDone += write_len;
@@ -425,24 +426,27 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       _interface->logger->print(payload);
       _interface->logger->println(F(")..."));
       // 32 hex characters?
-      String md5 = payload;
-      unsigned int i = 0;
-      bool valid = md5.length() == 32;
-      while (valid && (i < 32)) {
-        char c = md5[i ++];
-        valid = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-      }
-      if (valid) {
-        // Set expected MD5 with Updater (setMD5 needs us to provide a string buffer)
-        _otaChecksum = md5;
-        valid = Update.setMD5(_otaChecksum.c_str());
-      }
-      if (valid) {
-        _publishOtaStatus(202);  // 202 Accepted
-      } else {
+
+      if (strlen(payload) != 32) {
         // Invalid MD5 number => 400 BAD_CHECKSUM
         _endOtaUpdate(false, UPDATE_ERROR_MD5);
+        return;
       }
+
+      for (uint8_t i = 0; i < 32; i++) {
+        char c = payload[i];
+        bool valid = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+
+        if (!valid) {
+          _endOtaUpdate(false, UPDATE_ERROR_MD5);
+          return;
+        }
+      }
+
+      strcpy(_otaChecksum, payload);
+      _otaChecksumSet = true;
+      Update.setMD5(_otaChecksum);
+      _publishOtaStatus(202);
     }
     return;
   }
@@ -483,7 +487,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         _interface->logger->print(F("? OTA available (version "));
         _interface->logger->print(_mqttPayloadBuffer.get());
         _interface->logger->println(F(")"));
-        _otaChecksum = String();
         _flaggedForOta = true;
         _publishOtaStatus(202);  // 202 Accepted
       } else {

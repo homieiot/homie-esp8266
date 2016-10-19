@@ -3,11 +3,11 @@
 #include "Arduino.h"
 
 #include <functional>
+#include <libb64/cdecode.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <AsyncMqttClient.h>
 #include <Bounce2.h>
-#include <libb64/cdecode.h>
 #include "../../HomieNode.hpp"
 #include "../../HomieRange.hpp"
 #include "../Constants.hpp"
@@ -44,7 +44,8 @@ class BootNormal : public Boot {
   Bounce _resetDebouncer;
   bool _flaggedForSleep;
   uint16_t _mqttOfflineMessageId;
-  String _otaChecksum;
+  bool _otaChecksumSet;
+  char _otaChecksum[32 + 1];
   bool _otaIsBase64;
   base64_decodestate _otaBase64State;
   size_t _otaSizeTotal;
@@ -67,7 +68,7 @@ class BootNormal : public Boot {
   void _onMqttPublish(uint16_t id);
   void _prefixMqttTopic();
   char* _prefixMqttTopic(PGM_P topic);
-  uint16_t _publishOtaStatus(int status, const char* info = 0);
+  uint16_t _publishOtaStatus(int status, const char* info = nullptr);
   uint16_t _publishOtaStatus_P(int status, PGM_P info);
   void _endOtaUpdate(bool success, uint8_t update_error = UPDATE_ERROR_OK);
 };
