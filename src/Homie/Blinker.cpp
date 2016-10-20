@@ -3,17 +3,12 @@
 using namespace HomieInternals;
 
 Blinker::Blinker()
-: _interface(nullptr)
-, _lastBlinkPace(0) {
-}
-
-void Blinker::attachInterface(Interface* interface) {
-  _interface = interface;
+: _lastBlinkPace(0) {
 }
 
 void Blinker::start(float blinkPace) {
   if (_lastBlinkPace != blinkPace) {
-    _ticker.attach(blinkPace, _tick, _interface->led.pin);
+    _ticker.attach(blinkPace, _tick, Interface::get().led.pin);
     _lastBlinkPace = blinkPace;
   }
 }
@@ -22,7 +17,7 @@ void Blinker::stop() {
   if (_lastBlinkPace != 0) {
     _ticker.detach();
     _lastBlinkPace = 0;
-    digitalWrite(_interface->led.pin, !_interface->led.on);
+    digitalWrite(Interface::get().led.pin, !Interface::get().led.on);
   }
 }
 

@@ -4,7 +4,6 @@
 
 #include <Bounce2.h>
 #include "Boot.hpp"
-#include "../Config.hpp"
 
 namespace HomieInternals {
 class BootStandalone : public Boot {

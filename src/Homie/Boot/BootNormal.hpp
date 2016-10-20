@@ -14,11 +14,8 @@
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
 #include "../Utils/Helpers.hpp"
-#include "../Config.hpp"
-#include "../Blinker.hpp"
 #include "../Uptime.hpp"
 #include "../Timer.hpp"
-#include "../Logger.hpp"
 #include "Boot.hpp"
 
 namespace HomieInternals {

@@ -9,7 +9,6 @@
 #include <DNSServer.h>
 #include <ArduinoJson.h>
 #include "Boot.hpp"
-#include "../Config.hpp"
 #include "../Constants.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"

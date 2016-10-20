@@ -3,9 +3,7 @@
 #include "Arduino.h"
 
 #include <AsyncMqttClient.h>
-#include "Homie/Blinker.hpp"
-#include "Homie/Logger.hpp"
-#include "Homie/Config.hpp"
+#include "Homie/Datatypes/Interface.hpp"
 #include "Homie/Constants.hpp"
 #include "Homie/Limits.hpp"
 #include "Homie/Utils/DeviceId.hpp"
@@ -13,6 +11,9 @@
 #include "Homie/Boot/BootStandalone.hpp"
 #include "Homie/Boot/BootNormal.hpp"
 #include "Homie/Boot/BootConfig.hpp"
+#include "Homie/Logger.hpp"
+#include "Homie/Config.hpp"
+#include "Homie/Blinker.hpp"
 
 #include "HomieNode.hpp"
 #include "HomieSetting.hpp"
@@ -28,7 +29,7 @@ class SendingPromise {
   friend HomieClass;
 
  public:
-  explicit SendingPromise(HomieClass* homie);
+  explicit SendingPromise();
   SendingPromise& setQos(uint8_t qos);
   SendingPromise& setRetained(bool retained);
   SendingPromise& setRange(const HomieRange& range);
@@ -44,7 +45,6 @@ class SendingPromise {
   HomieRange getRange() const;
   bool isRetained() const;
 
-  HomieClass* _homie;
   const HomieNode* _node;
   const String* _property;
   uint8_t _qos;
@@ -98,7 +98,6 @@ class HomieClass {
   BootNormal _bootNormal;
   BootConfig _bootConfig;
   SendingPromise _sendingPromise;
-  Interface _interface;
   Logger _logger;
   Blinker _blinker;
   Config _config;

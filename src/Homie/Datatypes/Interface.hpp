@@ -1,6 +1,9 @@
 #pragma once
 
 #include <AsyncMqttClient.h>
+#include "../Logger.hpp"
+#include "../Blinker.hpp"
+#include "../Config.hpp"
 #include "../Limits.hpp"
 #include "./Callbacks.hpp"
 #include "../../HomieNode.hpp"
@@ -10,7 +13,7 @@ namespace HomieInternals {
 class Logger;
 class Blinker;
 class Config;
-struct Interface {
+struct InterfaceStruct {
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
 
@@ -49,5 +52,13 @@ struct Interface {
   Blinker* blinker;
   Config* config;
   AsyncMqttClient* mqttClient;
+};
+
+class Interface {
+ public:
+  static InterfaceStruct& get();
+
+ private:
+  static InterfaceStruct _interface;
 };
 }  // namespace HomieInternals
