@@ -32,11 +32,11 @@ struct InterfaceStruct {
 
   struct Reset {
     bool enabled;
-    bool able;
+    bool idle;
     uint8_t triggerPin;
     uint8_t triggerState;
     uint16_t triggerTime;
-    ResetFunction userFunction;
+    bool flaggedBySketch;
   } reset;
 
   GlobalInputHandler globalInputHandler;

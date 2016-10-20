@@ -94,12 +94,12 @@ HomieClass::HomieClass()
   Interface::get().led.enabled = true;
   Interface::get().led.pin = BUILTIN_LED;
   Interface::get().led.on = LOW;
-  Interface::get().reset.able = true;
+  Interface::get().reset.idle = true;
   Interface::get().reset.enabled = true;
   Interface::get().reset.triggerPin = DEFAULT_RESET_PIN;
   Interface::get().reset.triggerState = DEFAULT_RESET_STATE;
   Interface::get().reset.triggerTime = DEFAULT_RESET_TIME;
-  Interface::get().reset.userFunction = []() { return false; };
+  Interface::get().reset.flaggedBySketch = false;
   Interface::get().globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
   Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
   Interface::get().setupFunction = []() {};
@@ -232,8 +232,12 @@ void HomieClass::__setBrand(const char* brand) {
   Interface::get().brand[strlen(brand) - 10] = '\0';
 }
 
+void HomieClass::reset() {
+  Interface::get().reset.flaggedBySketch = true;
+}
+
 void HomieClass::setIdle(bool idle) {
-  Interface::get().reset.able = idle;
+  Interface::get().reset.idle = idle;
 }
 
 HomieClass& HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
@@ -248,14 +252,6 @@ HomieClass& HomieClass::setBroadcastHandler(BroadcastHandler broadcastHandler) {
   _checkBeforeSetup(F("setBroadcastHandler"));
 
   Interface::get().broadcastHandler = broadcastHandler;
-
-  return *this;
-}
-
-HomieClass& HomieClass::setResetFunction(ResetFunction function) {
-  _checkBeforeSetup(F("setResetFunction"));
-
-  Interface::get().reset.userFunction = function;
 
   return *this;
 }
@@ -317,10 +313,6 @@ HomieClass& HomieClass::disableResetTrigger() {
   Interface::get().reset.enabled = false;
 
   return *this;
-}
-
-void HomieClass::eraseConfiguration() {
-  Interface::get().config->erase();
 }
 
 const ConfigStruct& HomieClass::getConfiguration() const {

@@ -20,9 +20,9 @@ void BootStandalone::_handleReset() {
     }
   }
 
-  if (Interface::get().reset.userFunction()) {
+  if (Interface::get().reset.flaggedBySketch) {
     _flaggedForConfig = true;
-    Interface::get().logger->println(F("Flagged for configuration mode by function"));
+    Interface::get().logger->println(F("Flagged for configuration mode by sketch"));
   }
 }
 
@@ -42,8 +42,8 @@ void BootStandalone::loop() {
 
   _handleReset();
 
-  if (_flaggedForConfig && Interface::get().reset.able) {
-    Interface::get().logger->println(F("Device is in a resettable state"));
+  if (_flaggedForConfig && Interface::get().reset.idle) {
+    Interface::get().logger->println(F("Device is idle"));
     Interface::get().config->bypassStandalone();
     Interface::get().logger->println(F("Next reboot will bypass standalone mode"));
 

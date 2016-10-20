@@ -74,7 +74,6 @@ class HomieClass {
   HomieClass& onEvent(EventHandler handler);
   HomieClass& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
   HomieClass& disableResetTrigger();
-  HomieClass& setResetFunction(ResetFunction function);
   HomieClass& setSetupFunction(OperationFunction function);
   HomieClass& setLoopFunction(OperationFunction function);
   HomieClass& setStandalone();
@@ -83,8 +82,8 @@ class HomieClass {
     return _sendingPromise.setNode(node).setProperty(property).setQos(1).setRetained(true).setRange({ .isRange = false, .index = 0 });
   }
 
+  void reset();
   void setIdle(bool idle);
-  void eraseConfiguration();
   bool isConfigured() const;
   bool isConnected() const;
   const ConfigStruct& getConfiguration() const;

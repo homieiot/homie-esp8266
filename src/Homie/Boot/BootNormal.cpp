@@ -660,9 +660,9 @@ void BootNormal::_handleReset() {
     }
   }
 
-  if (Interface::get().reset.userFunction()) {
+  if (Interface::get().reset.flaggedBySketch) {
     _flaggedForReset = true;
-    Interface::get().logger->println(F("Flagged for reset by function"));
+    Interface::get().logger->println(F("Flagged for reset by sketch"));
   }
 }
 
@@ -733,8 +733,8 @@ void BootNormal::loop() {
 
   _handleReset();
 
-  if (_flaggedForReset && Interface::get().reset.able) {
-    Interface::get().logger->println(F("Device is in a resettable state"));
+  if (_flaggedForReset && Interface::get().reset.idle) {
+    Interface::get().logger->println(F("Device is idle"));
     Interface::get().config->erase();
     Interface::get().logger->println(F("Configuration erased"));
 
@@ -747,8 +747,8 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
-  if (_flaggedForReboot && Interface::get().reset.able) {
-    Interface::get().logger->println(F("Device is in a resettable state"));
+  if (_flaggedForReboot && Interface::get().reset.idle) {
+    Interface::get().logger->println(F("Device is idle"));
 
     Interface::get().logger->println(F("↻ Rebooting..."));
     Serial.flush();

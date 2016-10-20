@@ -16,6 +16,4 @@ namespace HomieInternals {
   typedef std::function<void(const HomieEvent& event)> EventHandler;
 
   typedef std::function<bool(const String& level, const String& value)> BroadcastHandler;
-
-  typedef std::function<bool()> ResetFunction;
 }  // namespace HomieInternals

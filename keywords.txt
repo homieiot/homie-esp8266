@@ -29,13 +29,12 @@ setBroadcastHandler	KEYWORD2
 onEvent	KEYWORD2
 setResetTrigger	KEYWORD2
 disableResetTrigger	KEYWORD2
-setResetFunction	KEYWORD2
 setSetupFunction	KEYWORD2
 setLoopFunction	KEYWORD2
 setStandalone	KEYWORD2
 setNodeProperty	KEYWORD2
+reset	KEYWORD2
 setIdle	KEYWORD2
-eraseConfiguration	KEYWORD2
 isConfigured	KEYWORD2
 isConnected	KEYWORD2
 getConfiguration	KEYWORD2
