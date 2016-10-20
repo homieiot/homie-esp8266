@@ -3,6 +3,7 @@
 #include "Arduino.h"
 
 #include <Bounce2.h>
+#include "../../StreamingOperator.hpp"
 #include "Boot.hpp"
 
 namespace HomieInternals {

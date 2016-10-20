@@ -3,6 +3,7 @@
 #include <functional>
 #include <vector>
 #include "Arduino.h"
+#include "StreamingOperator.hpp"
 #include "Homie/Datatypes/Interface.hpp"
 #include "Homie/Datatypes/Callbacks.hpp"
 #include "Homie/Limits.hpp"

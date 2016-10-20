@@ -10,6 +10,7 @@
 #include "Utils/Validation.hpp"
 #include "Limits.hpp"
 #include "../HomieSetting.hpp"
+#include "../StreamingOperator.hpp"
 
 namespace HomieInternals {
 class Config {

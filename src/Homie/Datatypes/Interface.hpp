@@ -13,7 +13,10 @@ namespace HomieInternals {
 class Logger;
 class Blinker;
 class Config;
-struct InterfaceStruct {
+class HomieClass;
+class InterfaceData {
+ friend HomieClass;
+ public:
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
 
@@ -48,17 +51,22 @@ struct InterfaceStruct {
   /***** Runtime data *****/
   HomieEvent event;
   bool connected;
-  Logger* logger;
-  Blinker* blinker;
-  Config* config;
-  AsyncMqttClient* mqttClient;
+  Logger& getLogger() { return *_logger; }
+  Blinker& getBlinker() { return *_blinker; }
+  Config& getConfig() { return *_config; }
+  AsyncMqttClient& getMqttClient() { return *_mqttClient; }
+ private:
+   Logger* _logger;
+   Blinker* _blinker;
+   Config* _config;
+   AsyncMqttClient* _mqttClient;
 };
 
 class Interface {
  public:
-  static InterfaceStruct& get();
+  static InterfaceData& get();
 
  private:
-  static InterfaceStruct _interface;
+  static InterfaceData _interface;
 };
 }  // namespace HomieInternals

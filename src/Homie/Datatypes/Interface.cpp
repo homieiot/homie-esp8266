@@ -2,8 +2,8 @@
 
 using namespace HomieInternals;
 
-InterfaceStruct Interface::_interface;  // need to define the static variable
+InterfaceData Interface::_interface;  // need to define the static variable
 
-InterfaceStruct& Interface::get() {
+InterfaceData& Interface::get() {
   return _interface;
 }

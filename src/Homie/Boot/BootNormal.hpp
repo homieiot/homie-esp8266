@@ -10,6 +10,7 @@
 #include <Bounce2.h>
 #include "../../HomieNode.hpp"
 #include "../../HomieRange.hpp"
+#include "../../StreamingOperator.hpp"
 #include "../Constants.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"

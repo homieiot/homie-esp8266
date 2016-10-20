@@ -16,13 +16,13 @@ void BootStandalone::_handleReset() {
 
     if (_resetDebouncer.read() == Interface::get().reset.triggerState) {
       _flaggedForConfig = true;
-      Interface::get().logger->println(F("Flagged for configuration mode by pin"));
+      Interface::get().getLogger() << F("Flagged for configuration mode by pin") << endl;
     }
   }
 
   if (Interface::get().reset.flaggedBySketch) {
     _flaggedForConfig = true;
-    Interface::get().logger->println(F("Flagged for configuration mode by sketch"));
+    Interface::get().getLogger() << F("Flagged for configuration mode by sketch") << endl;
   }
 }
 
@@ -43,15 +43,15 @@ void BootStandalone::loop() {
   _handleReset();
 
   if (_flaggedForConfig && Interface::get().reset.idle) {
-    Interface::get().logger->println(F("Device is idle"));
-    Interface::get().config->bypassStandalone();
-    Interface::get().logger->println(F("Next reboot will bypass standalone mode"));
+    Interface::get().getLogger() << F("Device is idle") << endl;
+    Interface::get().getConfig().bypassStandalone();
+    Interface::get().getLogger() << F("Next reboot will bypass standalone mode") << endl;
 
-    Interface::get().logger->println(F("Triggering ABOUT_TO_RESET event..."));
+    Interface::get().getLogger() << F("Triggering ABOUT_TO_RESET event...") << endl;
     Interface::get().event.type = HomieEventType::ABOUT_TO_RESET;
     Interface::get().eventHandler(Interface::get().event);
 
-    Interface::get().logger->println(F("↻ Rebooting into config mode..."));
+    Interface::get().getLogger() << F("↻ Rebooting into config mode...") << endl;
     Serial.flush();
     ESP.restart();
   }

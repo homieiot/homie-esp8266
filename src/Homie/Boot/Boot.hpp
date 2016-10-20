@@ -3,6 +3,7 @@
 #include "Arduino.h"
 
 #include <ESP8266WiFi.h>
+#include "../../StreamingOperator.hpp"
 #include "../Datatypes/Interface.hpp"
 #include "../Constants.hpp"
 #include "../Limits.hpp"

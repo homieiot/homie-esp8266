@@ -19,6 +19,7 @@
 #include "../Logger.hpp"
 #include "../Strings.hpp"
 #include "../../HomieSetting.hpp"
+#include "../../StreamingOperator.hpp"
 
 namespace HomieInternals {
 class BootConfig : public Boot {

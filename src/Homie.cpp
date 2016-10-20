@@ -30,13 +30,13 @@ SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
 
 uint16_t SendingPromise::send(const String& value) {
   if (!Interface::get().connected) {
-    Interface::get().logger->println(F("✖ setNodeProperty(): impossible now"));
+    Interface::get().getLogger() << F("✖ setNodeProperty(): impossible now") << endl;
     return 0;
   }
 
-  char* topic = new char[strlen(Interface::get().config->get().mqtt.baseTopic) + strlen(Interface::get().config->get().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 1];  // last + 6 for range _65536
-  strcpy(topic, Interface::get().config->get().mqtt.baseTopic);
-  strcat(topic, Interface::get().config->get().deviceId);
+  char* topic = new char[strlen(Interface::get().getConfig().get().mqtt.baseTopic) + strlen(Interface::get().getConfig().get().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 1];  // last + 6 for range _65536
+  strcpy(topic, Interface::get().getConfig().get().mqtt.baseTopic);
+  strcat(topic, Interface::get().getConfig().get().deviceId);
   strcat_P(topic, PSTR("/"));
   strcat(topic, _node->getId());
   strcat_P(topic, PSTR("/"));
@@ -49,7 +49,7 @@ uint16_t SendingPromise::send(const String& value) {
     strcat(topic, rangeStr);
   }
 
-  uint16_t packetId = Interface::get().mqttClient->publish(topic, _qos, _retained, value.c_str());
+  uint16_t packetId = Interface::get().getMqttClient().publish(topic, _qos, _retained, value.c_str());
   delete[] topic;
 
   return packetId;
@@ -104,10 +104,10 @@ HomieClass::HomieClass()
   Interface::get().loopFunction = []() {};
   Interface::get().eventHandler = [](const HomieEvent& event) {};
   Interface::get().connected = false;
-  Interface::get().mqttClient = &_mqttClient;
-  Interface::get().blinker = &_blinker;
-  Interface::get().logger = &_logger;
-  Interface::get().config = &_config;
+  Interface::get()._mqttClient = &_mqttClient;
+  Interface::get()._blinker = &_blinker;
+  Interface::get()._logger = &_logger;
+  Interface::get()._config = &_config;
 
   DeviceId::generate();
 }
@@ -117,9 +117,7 @@ HomieClass::~HomieClass() {
 
 void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
   if (_setupCalled) {
-    Interface::get().logger->print(F("✖ "));
-    Interface::get().logger->print(functionName);
-    Interface::get().logger->println(F("(): has to be called before setup()"));
+    Interface::get().getLogger() << F("✖ ") << functionName << F("(): has to be called before setup()") << endl;
     Serial.flush();
     abort();
   }
@@ -129,34 +127,33 @@ void HomieClass::setup() {
   _setupCalled = true;
 
   if (!_firmwareSet) {
-    Interface::get().logger->print(F("✖ "));
-    Interface::get().logger->println(F("firmware must be set before setup()"));
+    Interface::get().getLogger() << F("✖ firmware must be set before calling setup()") << endl;
     Serial.flush();
     abort();
   }
 
-  if (!Interface::get().config->load()) {
-    if (Interface::get().standalone && !Interface::get().config->canBypassStandalone()) {
+  if (!Interface::get().getConfig().load()) {
+    if (Interface::get().standalone && !Interface::get().getConfig().canBypassStandalone()) {
       _boot = &_bootStandalone;
-      Interface::get().logger->println(F("Triggering STANDALONE_MODE event..."));
+      Interface::get().getLogger() << F("Triggering STANDALONE_MODE event...") << endl;
       Interface::get().event.type = HomieEventType::STANDALONE_MODE;
       Interface::get().eventHandler(Interface::get().event);
     } else {
       _boot = &_bootConfig;
-      Interface::get().logger->println(F("Triggering CONFIGURATION_MODE event..."));
+      Interface::get().getLogger() << F("Triggering CONFIGURATION_MODE event...") << endl;
       Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
       Interface::get().eventHandler(Interface::get().event);
     }
   } else {
-    switch (Interface::get().config->getBootMode()) {
+    switch (Interface::get().getConfig().getBootMode()) {
       case BOOT_NORMAL:
         _boot = &_bootNormal;
-        Interface::get().logger->println(F("Triggering NORMAL_MODE event..."));
+        Interface::get().getLogger() << F("Triggering NORMAL_MODE event...") << endl;
         Interface::get().event.type = HomieEventType::NORMAL_MODE;
         Interface::get().eventHandler(Interface::get().event);
         break;
       default:
-        Interface::get().logger->println(F("✖ The boot mode is invalid"));
+        Interface::get().getLogger() << F("✖ The boot mode is invalid") << endl;
         Serial.flush();
         abort();
         break;
@@ -173,7 +170,7 @@ void HomieClass::loop() {
 HomieClass& HomieClass::disableLogging() {
   _checkBeforeSetup(F("disableLogging"));
 
-  Interface::get().logger->setLogging(false);
+  Interface::get().getLogger().setLogging(false);
 
   return *this;
 }
@@ -181,7 +178,7 @@ HomieClass& HomieClass::disableLogging() {
 HomieClass& HomieClass::setLoggingPrinter(Print* printer) {
   _checkBeforeSetup(F("setLoggingPrinter"));
 
-  Interface::get().logger->setPrinter(printer);
+  Interface::get().getLogger().setPrinter(printer);
 
   return *this;
 }
@@ -206,7 +203,7 @@ HomieClass& HomieClass::setLedPin(uint8_t pin, uint8_t on) {
 void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
   if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
-    Interface::get().logger->println(F("✖ setFirmware(): either the name or version string is too long"));
+    Interface::get().getLogger() << F("✖ setFirmware(): either the name or version string is too long") << endl;
     Serial.flush();
     abort();
   }
@@ -221,7 +218,7 @@ void HomieClass::__setFirmware(const char* name, const char* version) {
 void HomieClass::__setBrand(const char* brand) {
   _checkBeforeSetup(F("setBrand"));
   if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
-    Interface::get().logger->println(F("✖ setBrand(): the brand string is too long"));
+    Interface::get().getLogger() << F("✖ setBrand(): the brand string is too long") << endl;
     Serial.flush();
     abort();
   }
@@ -279,7 +276,7 @@ HomieClass& HomieClass::setStandalone() {
 }
 
 bool HomieClass::isConfigured() const {
-  return Interface::get().config->getBootMode() == BOOT_NORMAL;
+  return Interface::get().getConfig().getBootMode() == BOOT_NORMAL;
 }
 
 bool HomieClass::isConnected() const {
@@ -314,7 +311,7 @@ HomieClass& HomieClass::disableResetTrigger() {
 }
 
 const ConfigStruct& HomieClass::getConfiguration() const {
-  return Interface::get().config->get();
+  return Interface::get().getConfig().get();
 }
 
 AsyncMqttClient& HomieClass::getMqttClient() {
