@@ -130,7 +130,7 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
 void HomieClass::setup() {
   _setupCalled = true;
 
-  if (_firmwareSet) {
+  if (!_firmwareSet) {
     Interface::get().logger->print(F("✖ "));
     Interface::get().logger->println(F("firmware must be set before setup()"));
     Serial.flush();
