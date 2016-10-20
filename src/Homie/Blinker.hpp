@@ -4,7 +4,6 @@
 #include "Datatypes/Interface.hpp"
 
 namespace HomieInternals {
-class Interface;
 class Blinker {
  public:
   Blinker();

@@ -29,7 +29,7 @@ class SendingPromise {
   friend HomieClass;
 
  public:
-  explicit SendingPromise();
+  SendingPromise();
   SendingPromise& setQos(uint8_t qos);
   SendingPromise& setRetained(bool retained);
   SendingPromise& setRange(const HomieRange& range);
