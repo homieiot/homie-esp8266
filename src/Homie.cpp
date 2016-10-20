@@ -85,6 +85,7 @@ bool SendingPromise::isRetained() const {
 
 HomieClass::HomieClass()
 : _setupCalled(false)
+, _firmwareSet(false)
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(Interface::get().brand, DEFAULT_BRAND);
   Interface::get().standalone = false;
@@ -128,6 +129,13 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
 
 void HomieClass::setup() {
   _setupCalled = true;
+
+  if (_firmwareSet) {
+    Interface::get().logger->print(F("✖ "));
+    Interface::get().logger->println(F("firmware must be set before setup()"));
+    Serial.flush();
+    abort();
+  }
 
   if (!Interface::get().config->load()) {
     if (Interface::get().standalone && !Interface::get().config->canBypassStandalone()) {
@@ -209,6 +217,7 @@ void HomieClass::__setFirmware(const char* name, const char* version) {
   Interface::get().firmware.name[strlen(name) - 10] = '\0';
   strncpy(Interface::get().firmware.version, version + 5, strlen(version) - 10);
   Interface::get().firmware.version[strlen(version) - 10] = '\0';
+  _firmwareSet = true;
 }
 
 void HomieClass::__setBrand(const char* brand) {

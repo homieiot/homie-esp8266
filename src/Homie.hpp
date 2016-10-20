@@ -93,6 +93,7 @@ class HomieClass {
 
  private:
   bool _setupCalled;
+  bool _firmwareSet;
   Boot* _boot;
   BootStandalone _bootStandalone;
   BootNormal _bootNormal;
