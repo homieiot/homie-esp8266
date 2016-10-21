@@ -20,7 +20,7 @@ bool Config::_spiffsBegin() {
 bool Config::load() {
   if (!_spiffsBegin()) { return false; }
 
-  _bootMode = BOOT_CONFIG;
+  _bootMode = BootMode::CONFIG;
 
   if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
     Interface::get().getLogger() << F("✖ ") << CONFIG_FILE_PATH << F(" doesn't exist") << endl;
@@ -58,7 +58,7 @@ bool Config::load() {
     return false;
   }
 
-  _bootMode = BOOT_NORMAL;
+  _bootMode = BootMode::NORMAL;
 
   const char* reqName = parsedJson["name"];
   const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
@@ -278,13 +278,13 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
   Interface::get().getLogger() << F("  • Boot mode: ");
   switch (_bootMode) {
-    case BOOT_CONFIG:
+    case BootMode::CONFIG:
       Interface::get().getLogger() << F("configuration") << endl;
       break;
-    case BOOT_NORMAL:
+    case BootMode::NORMAL:
       Interface::get().getLogger() << F("normal") << endl;
       break;
-    case BOOT_STANDALONE:
+    case BootMode::STANDALONE:
       Interface::get().getLogger() << F("standalone") << endl;
       break;
     default:

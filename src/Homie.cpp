@@ -146,7 +146,7 @@ void HomieClass::setup() {
     }
   } else {
     switch (Interface::get().getConfig().getBootMode()) {
-      case BOOT_NORMAL:
+      case BootMode::NORMAL:
         _boot = &_bootNormal;
         Interface::get().getLogger() << F("Triggering NORMAL_MODE event...") << endl;
         Interface::get().event.type = HomieEventType::NORMAL_MODE;
@@ -276,7 +276,7 @@ HomieClass& HomieClass::setStandalone() {
 }
 
 bool HomieClass::isConfigured() const {
-  return Interface::get().getConfig().getBootMode() == BOOT_NORMAL;
+  return Interface::get().getConfig().getBootMode() == BootMode::NORMAL;
 }
 
 bool HomieClass::isConnected() const {

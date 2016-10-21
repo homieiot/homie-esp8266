@@ -28,9 +28,9 @@ namespace HomieInternals {
   const char CONFIG_BYPASS_STANDALONE_FILE_PATH[] = "/homie/BYPASS_STANDALONE";
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
 
-  enum BootMode : uint8_t {
-    BOOT_STANDALONE = 1,
-    BOOT_NORMAL,
-    BOOT_CONFIG
+  enum class BootMode : uint8_t {
+    STANDALONE = 1,
+    NORMAL,
+    CONFIG
   };
 }  // namespace HomieInternals
