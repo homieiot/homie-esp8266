@@ -15,6 +15,7 @@
 #include "Homie/Config.hpp"
 #include "Homie/Blinker.hpp"
 
+#include "SendingPromise.hpp"
 #include "HomieNode.hpp"
 #include "HomieSetting.hpp"
 #include "StreamingOperator.hpp"
@@ -23,35 +24,6 @@
 #define Homie_setBrand(brand) const char* __FLAGGED_BRAND = "\xfb\x2a\xf5\x68\xc0" brand "\x6e\x2f\x0f\xeb\x2d"; Homie.__setBrand(__FLAGGED_BRAND);
 
 namespace HomieInternals {
-class HomieClass;
-
-class SendingPromise {
-  friend HomieClass;
-
- public:
-  SendingPromise();
-  SendingPromise& setQos(uint8_t qos);
-  SendingPromise& setRetained(bool retained);
-  SendingPromise& setRange(const HomieRange& range);
-  SendingPromise& setRange(uint16_t rangeIndex);
-  uint16_t send(const String& value);
-
- private:
-  SendingPromise& setNode(const HomieNode& node);
-  SendingPromise& setProperty(const String& property);
-  const HomieNode* getNode() const;
-  const String* getProperty() const;
-  uint8_t getQos() const;
-  HomieRange getRange() const;
-  bool isRetained() const;
-
-  const HomieNode* _node;
-  const String* _property;
-  uint8_t _qos;
-  bool _retained;
-  HomieRange _range;
-};
-
 class HomieClass {
   friend class ::HomieNode;
   friend SendingPromise;
@@ -77,10 +49,6 @@ class HomieClass {
   HomieClass& setSetupFunction(OperationFunction function);
   HomieClass& setLoopFunction(OperationFunction function);
   HomieClass& setStandalone();
-
-  SendingPromise& setNodeProperty(const HomieNode& node, const String& property) {
-    return _sendingPromise.setNode(node).setProperty(property).setQos(1).setRetained(true).setRange({ .isRange = false, .index = 0 });
-  }
 
   void reset();
   void setIdle(bool idle);

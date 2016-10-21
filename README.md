@@ -34,7 +34,7 @@ bool lightOnHandler(const HomieRange& range, const String& value) {
 
   bool on = (value == "true");
   digitalWrite(PIN_RELAY, on ? HIGH : LOW);
-  Homie.setNodeProperty(lightNode, "on").send(value);
+  lightNode.setProperty("on").send(value);
   Serial << "Light is " << on ? "on" : "off" << endl;
 
   return true;

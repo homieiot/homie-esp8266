@@ -16,6 +16,7 @@ class HomieClass;
 class Property;
 class BootNormal;
 class BootConfig;
+class SendingPromise;
 
 class PropertyInterface {
   friend ::HomieNode;
@@ -67,6 +68,8 @@ class HomieNode {
 
   HomieInternals::PropertyInterface& advertise(const char* property);
   HomieInternals::PropertyInterface& advertiseRange(const char* property, uint16_t lower, uint16_t upper);
+
+  HomieInternals::SendingPromise& setProperty(const String& property);
 
  protected:
   virtual void setup() {}

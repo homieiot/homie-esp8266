@@ -32,7 +32,6 @@ disableResetTrigger	KEYWORD2
 setSetupFunction	KEYWORD2
 setLoopFunction	KEYWORD2
 setStandalone	KEYWORD2
-setNodeProperty	KEYWORD2
 reset	KEYWORD2
 setIdle	KEYWORD2
 isConfigured	KEYWORD2
@@ -48,6 +47,7 @@ getType	KEYWORD2
 advertise	KEYWORD2
 advertiseRange	KEYWORD2
 settable	KEYWORD2
+setProperty	KEYWORD2
 
 # HomieSetting
 

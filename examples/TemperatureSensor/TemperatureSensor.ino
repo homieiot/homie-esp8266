@@ -7,14 +7,14 @@ unsigned long lastTemperatureSent = 0;
 HomieNode temperatureNode("temperature", "temperature");
 
 void setupHandler() {
-  Homie.setNodeProperty(temperatureNode, "unit").send("c");
+  temperatureNode.setProperty("unit").send("c");
 }
 
 void loopHandler() {
   if (millis() - lastTemperatureSent >= TEMPERATURE_INTERVAL * 1000UL || lastTemperatureSent == 0) {
     float temperature = 22; // Fake temperature here, for the example
     Serial << "Temperature: " << temperature << " °C" << endl;
-    Homie.setNodeProperty(temperatureNode, "degrees").send(String(temperature));
+    temperatureNode.setProperty("degrees").send(String(temperature));
     lastTemperatureSent = millis();
   }
 }

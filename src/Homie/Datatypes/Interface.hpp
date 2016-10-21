@@ -7,12 +7,14 @@
 #include "../Limits.hpp"
 #include "./Callbacks.hpp"
 #include "../../HomieNode.hpp"
+#include "../../SendingPromise.hpp"
 #include "../../HomieEvent.hpp"
 
 namespace HomieInternals {
 class Logger;
 class Blinker;
 class Config;
+class SendingPromise;
 class HomieClass;
 class InterfaceData {
   friend HomieClass;
@@ -56,12 +58,14 @@ class InterfaceData {
   Blinker& getBlinker() { return *_blinker; }
   Config& getConfig() { return *_config; }
   AsyncMqttClient& getMqttClient() { return *_mqttClient; }
+  SendingPromise& getSendingPromise() { return *_sendingPromise; }
 
  private:
   Logger* _logger;
   Blinker* _blinker;
   Config* _config;
   AsyncMqttClient* _mqttClient;
+  SendingPromise* _sendingPromise;
 };
 
 class Interface {
