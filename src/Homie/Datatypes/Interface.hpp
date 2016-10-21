@@ -15,7 +15,8 @@ class Blinker;
 class Config;
 class HomieClass;
 class InterfaceData {
- friend HomieClass;
+  friend HomieClass;
+
  public:
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
@@ -55,11 +56,12 @@ class InterfaceData {
   Blinker& getBlinker() { return *_blinker; }
   Config& getConfig() { return *_config; }
   AsyncMqttClient& getMqttClient() { return *_mqttClient; }
+
  private:
-   Logger* _logger;
-   Blinker* _blinker;
-   Config* _config;
-   AsyncMqttClient* _mqttClient;
+  Logger* _logger;
+  Blinker* _blinker;
+  Config* _config;
+  AsyncMqttClient* _mqttClient;
 };
 
 class Interface {
