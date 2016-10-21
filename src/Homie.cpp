@@ -11,14 +11,17 @@ SendingPromise::SendingPromise()
 
 SendingPromise& SendingPromise::setQos(uint8_t qos) {
   _qos = qos;
+  return *this;
 }
 
 SendingPromise& SendingPromise::setRetained(bool retained) {
   _retained = retained;
+  return *this;
 }
 
 SendingPromise& SendingPromise::setRange(const HomieRange& range) {
   _range = range;
+  return *this;
 }
 
 SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
@@ -26,6 +29,7 @@ SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
   range.isRange = true;
   range.index = rangeIndex;
   _range = range;
+  return *this;
 }
 
 uint16_t SendingPromise::send(const String& value) {
@@ -57,10 +61,12 @@ uint16_t SendingPromise::send(const String& value) {
 
 SendingPromise& SendingPromise::setNode(const HomieNode& node) {
   _node = &node;
+  return *this;
 }
 
 SendingPromise& SendingPromise::setProperty(const String& property) {
   _property = &property;
+  return *this;
 }
 
 const HomieNode* SendingPromise::getNode() const {
