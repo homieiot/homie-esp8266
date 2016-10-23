@@ -18,7 +18,7 @@ BootNormal::BootNormal()
 , _otaChecksumSet(false)
 , _otaChecksum()
 , _otaIsBase64(false)
-, _otaBase64Padded(false)
+, _otaBase64Pads(0)
 , _otaSizeTotal(0)
 , _otaSizeDone(0) {
   _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
@@ -323,8 +323,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           int l = base64_decode_block(payload, 2, plain, &_otaBase64State);
           if ((l == 1) && (plain[0] == 0xE9)) {
             _otaIsBase64 = true;
-            _otaBase64Padded = false;
+            _otaBase64Pads = 0;
             Interface::get().getLogger() << F("Firmware is base64-encoded") << endl;
+            if (total % 4) {
+              // Base64 encoded length not a multiple of 4 bytes
+              _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
+              return;
+            }
+
             // Restart base64-decoder
             base64_init_decodestate(&_otaBase64State);
           } else {
@@ -361,8 +367,8 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
               _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
               return;
             }
-            // Actual firmware size is 1 less than initially thought
-            _otaBase64Padded = true;
+            // Note the number of pad characters at the end
+            _otaBase64Pads ++;
           } else {
             // Non-base64 character in firmware
             _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
@@ -394,6 +400,15 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         if (success) {
           // Flash write successful.
           _otaSizeDone += write_len;
+          if (_otaIsBase64 && (index + len == total)) {
+            // Having received the last chunk of base64 encoded firmware, we can now determine
+            // the real size of the binary firmware from the number of padding character ("="):
+            // If we have received 1 pad character, real firmware size modulo 3 was 2.
+            // If we have received 2 pad characters, real firmware size modulo 3 was 1.
+            // Correct the total firmware length accordingly.
+            _otaSizeTotal -= _otaBase64Pads;
+          }
+
           String progress(_otaSizeDone);
           progress += F("/");
           progress += _otaSizeTotal;
@@ -402,17 +417,15 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
           //  Done with the update?
           if (index + len == total) {
-            // With base64-coded firmware, we may have provided a length off by one to
-            // Update.begin() because the base64-coded firmware may use padding (one or
-            // two "=") at the end. If that is the case, check the real length here and
-            // ask Update::end() to skip this test.
-            if (_otaIsBase64 && _otaBase64Padded) {
-              if (_otaSizeDone != _otaSizeTotal - 1) {
-                _endOtaUpdate(false, UPDATE_ERROR_SIZE);
-                return;
-              }
+            // With base64-coded firmware, we may have provided a length off by one or two
+            // to Update.begin() because the base64-coded firmware may use padding (one or
+            // two "=") at the end. In case of base64, total length was adjusted above. 
+            // Check the real length here and ask Update::end() to skip this test.
+            if ((_otaIsBase64) && (_otaSizeDone != _otaSizeTotal)) {
+              _endOtaUpdate(false, UPDATE_ERROR_SIZE);
+              return;
             }
-            success = Update.end(_otaIsBase64 && _otaBase64Padded);
+            success = Update.end(_otaIsBase64);
             _endOtaUpdate(success, Update.getError());
           }
         } else {
