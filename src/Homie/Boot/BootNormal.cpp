@@ -368,7 +368,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
               return;
             }
             // Note the number of pad characters at the end
-            _otaBase64Pads ++;
+            _otaBase64Pads++;
           } else {
             // Non-base64 character in firmware
             _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
@@ -419,7 +419,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           if (index + len == total) {
             // With base64-coded firmware, we may have provided a length off by one or two
             // to Update.begin() because the base64-coded firmware may use padding (one or
-            // two "=") at the end. In case of base64, total length was adjusted above. 
+            // two "=") at the end. In case of base64, total length was adjusted above.
             // Check the real length here and ask Update::end() to skip this test.
             if ((_otaIsBase64) && (_otaSizeDone != _otaSizeTotal)) {
               _endOtaUpdate(false, UPDATE_ERROR_SIZE);
