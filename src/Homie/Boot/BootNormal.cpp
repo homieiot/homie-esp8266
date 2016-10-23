@@ -297,10 +297,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   // 1. Handle OTA firmware (not copied to payload buffer)
   if (strcmp_P(device_topic, PSTR("$implementation/ota/firmware")) == 0) {  // If this is the OTA firmware
     if (!Interface::get().getConfig().get().ota.enabled) {
-      _publishOtaStatus(403);  // 403 Forbidden
+      if (index == 0) {
+        _publishOtaStatus(403);  // 403 Forbidden
+      }
     } else if (!_flaggedForOta) {
-      Interface::get().getLogger() << F("Receiving OTA firmware but not requested, skipping...") << endl;
-      _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
+      if (index == 0) {
+        Interface::get().getLogger() << F("Receiving OTA firmware but not requested, skipping...") << endl;
+        _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
+      }
     } else {
       if (index == 0) {
         Interface::get().getLogger() << F("OTA started") << endl;
