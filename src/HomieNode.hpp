@@ -3,6 +3,8 @@
 #include <functional>
 #include <vector>
 #include "Arduino.h"
+#include "StreamingOperator.hpp"
+#include "Homie/Datatypes/Interface.hpp"
 #include "Homie/Datatypes/Callbacks.hpp"
 #include "Homie/Limits.hpp"
 #include "HomieRange.hpp"
@@ -14,6 +16,7 @@ class HomieClass;
 class Property;
 class BootNormal;
 class BootConfig;
+class SendingPromise;
 
 class PropertyInterface {
   friend ::HomieNode;
@@ -21,7 +24,7 @@ class PropertyInterface {
  public:
   PropertyInterface();
 
-  void settable(PropertyInputHandler inputHandler = [](HomieRange range, String value) { return false; });
+  void settable(PropertyInputHandler inputHandler = [](const HomieRange& range, const String& value) { return false; });
 
  private:
   PropertyInterface& setProperty(Property* property);
@@ -33,7 +36,7 @@ class Property {
   friend BootNormal;
 
  public:
-  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; }
+  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; _settable = false; }
   void settable(PropertyInputHandler inputHandler) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
@@ -58,7 +61,7 @@ class HomieNode {
   friend HomieInternals::BootConfig;
 
  public:
-  HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](String property, HomieRange range, String value) { return false; });
+  HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](const String& property, const HomieRange& range, const String& value) { return false; });
 
   const char* getId() const { return _id; }
   const char* getType() const { return _type; }
@@ -66,11 +69,13 @@ class HomieNode {
   HomieInternals::PropertyInterface& advertise(const char* property);
   HomieInternals::PropertyInterface& advertiseRange(const char* property, uint16_t lower, uint16_t upper);
 
+  HomieInternals::SendingPromise& setProperty(const String& property);
+
  protected:
   virtual void setup() {}
   virtual void loop() {}
   virtual void onReadyToOperate() {}
-  virtual bool handleInput(String const &property, HomieRange range, String const &value);
+  virtual bool handleInput(const String& property, const HomieRange& range, const String& value);
 
  private:
   const std::vector<HomieInternals::Property*>& getProperties() const;

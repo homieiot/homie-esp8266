@@ -21,16 +21,18 @@ except Exception as err:
 firmware_binary = firmware_file.read()
 firmware_file.close()
 
-if not regex_homie.search(firmware_binary):
+regex_name_result = regex_name.search(firmware_binary)
+regex_version_result = regex_version.search(firmware_binary)
+
+if not regex_homie.search(firmware_binary) or not regex_name_result or not regex_version_result:
   print("Not a valid Homie firmware")
   sys.exit(3)
 
-regex_name_result = regex_name.search(firmware_binary)
-regex_version_result = regex_version.search(firmware_binary)
+
 regex_brand_result = regex_brand.search(firmware_binary)
 
-name = regex_name_result.group(1).decode() if regex_name_result else "unset (default is undefined)"
-version = regex_version_result.group(1).decode() if regex_version_result else "unset (default is undefined)"
+name = regex_name_result.group(1).decode()
+version = regex_version_result.group(1).decode()
 brand = regex_brand_result.group(1).decode() if regex_brand_result else "unset (default is Homie)"
 
 print("Name: {0}".format(name))

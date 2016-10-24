@@ -24,7 +24,7 @@ HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHan
 , _properties()
 , _inputHandler(inputHandler) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
-    Serial.println(F("✖ HomieNode(): either the id or type string is too long"));
+    Interface::get().getLogger() << F("✖ HomieNode(): either the id or type string is too long") << endl;
     Serial.flush();
     abort();
   }
@@ -49,7 +49,11 @@ PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lowe
   return _propertyInterface.setProperty(propertyObject);
 }
 
-bool HomieNode::handleInput(String const &property, HomieRange range, String const &value) {
+SendingPromise& HomieNode::setProperty(const String& property) {
+  return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true).setRange({ .isRange = false, .index = 0 });
+}
+
+bool HomieNode::handleInput(const String& property, const HomieRange& range, const String& value) {
   return _inputHandler(property, range, value);
 }
 

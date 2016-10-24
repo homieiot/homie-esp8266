@@ -3,7 +3,7 @@
 Homie for ESP8266
 =================
 
-[![Build Status](https://img.shields.io/travis/marvinroger/homie-esp8266/master.svg?style=flat-square)](https://travis-ci.org/marvinroger/homie-esp8266) [![Latest Release](https://img.shields.io/badge/release-v1.5.0-yellow.svg?style=flat-square)](https://github.com/marvinroger/homie-esp8266/releases)
+[![Build Status](https://img.shields.io/travis/marvinroger/homie-esp8266/develop.svg?style=flat-square)](https://travis-ci.org/marvinroger/homie-esp8266) [![Latest Release](https://img.shields.io/badge/release-v2.0.0-yellow.svg?style=flat-square)](https://github.com/marvinroger/homie-esp8266/releases)
 
 An Arduino for ESP8266 implementation of [Homie](https://github.com/marvinroger/homie), an MQTT convention for the IoT.
 
@@ -29,26 +29,20 @@ const int PIN_RELAY = 5;
 
 HomieNode lightNode("light", "switch");
 
-bool lightOnHandler(HomieRange range, String value) {
-  if (value == "true") {
-    digitalWrite(PIN_RELAY, HIGH);
-    Homie.setNodeProperty(lightNode, "on", "true"); // Update the state of the light
-    Serial.println("Light is on");
-  } else if (value == "false") {
-    digitalWrite(PIN_RELAY, LOW);
-    Homie.setNodeProperty(lightNode, "on", "false");
-    Serial.println("Light is off");
-  } else {
-    return false;
-  }
+bool lightOnHandler(const HomieRange& range, const String& value) {
+  if (value != "true" && value != "false") return false;
+
+  bool on = (value == "true");
+  digitalWrite(PIN_RELAY, on ? HIGH : LOW);
+  lightNode.setProperty("on").send(value);
+  Serial << "Light is " << (on ? "on" : "off") << endl;
 
   return true;
 }
 
 void setup() {
   Serial.begin(115200);
-  Serial.println();
-  Serial.println();
+  Serial << endl << endl;
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 
@@ -67,3 +61,9 @@ void loop() {
 ## Requirements, installation and usage
 
 The project is documented on https://homie-esp8266.readme.io with a *Getting started* guide and every piece of information you will need.
+
+## Donate
+
+I am a student and maintaining Homie for ESP8266 takes time. **I am not in need and I will continue to maintain this project as much as I can even without donations**. Consider this as a way to tip the project if you like it. :wink:
+
+[![Donate button](https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JSGTYJPMNRC74)

@@ -3,21 +3,20 @@
 #include "Arduino.h"
 
 #include <functional>
+#include <libb64/cdecode.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <AsyncMqttClient.h>
 #include <Bounce2.h>
 #include "../../HomieNode.hpp"
 #include "../../HomieRange.hpp"
+#include "../../StreamingOperator.hpp"
 #include "../Constants.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
-#include "../Helpers.hpp"
-#include "../Config.hpp"
-#include "../Blinker.hpp"
+#include "../Utils/Helpers.hpp"
 #include "../Uptime.hpp"
 #include "../Timer.hpp"
-#include "../Logger.hpp"
 #include "Boot.hpp"
 
 namespace HomieInternals {
@@ -27,7 +26,7 @@ class BootNormal : public Boot {
   ~BootNormal();
   void setup();
   void loop();
-  void prepareForSleep();
+  void prepareToSleep();
 
  private:
   Uptime _uptime;
@@ -43,6 +42,13 @@ class BootNormal : public Boot {
   Bounce _resetDebouncer;
   bool _flaggedForSleep;
   uint16_t _mqttOfflineMessageId;
+  bool _otaChecksumSet;
+  char _otaChecksum[32 + 1];
+  bool _otaIsBase64;
+  base64_decodestate _otaBase64State;
+  size_t _otaBase64Pads;
+  size_t _otaSizeTotal;
+  size_t _otaSizeDone;
 
   std::unique_ptr<char[]> _mqttTopic;
 
@@ -61,5 +67,8 @@ class BootNormal : public Boot {
   void _onMqttPublish(uint16_t id);
   void _prefixMqttTopic();
   char* _prefixMqttTopic(PGM_P topic);
+  uint16_t _publishOtaStatus(int status, const char* info = nullptr);
+  uint16_t _publishOtaStatus_P(int status, PGM_P info);
+  void _endOtaUpdate(bool success, uint8_t update_error = UPDATE_ERROR_OK);
 };
 }  // namespace HomieInternals

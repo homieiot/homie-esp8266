@@ -11,18 +11,16 @@ void loopHandler() {
   int doorValue = debouncer.read();
 
   if (doorValue != lastDoorValue) {
-     Serial.print("Door is now: ");
-     Serial.println(doorValue ? "open" : "close");
+     Serial << "Door is now " << (doorValue ? "open" : "close") << endl;
 
-     Homie.setNodeProperty(doorNode, "open").send(doorValue ? "true" : "false");
+     doorNode.setProperty("open").send(doorValue ? "true" : "false");
      lastDoorValue = doorValue;
   }
 }
 
 void setup() {
   Serial.begin(115200);
-  Serial.println();
-  Serial.println();
+  Serial << endl << endl;
   pinMode(PIN_DOOR, INPUT);
   digitalWrite(PIN_DOOR, HIGH);
   debouncer.attach(PIN_DOOR);

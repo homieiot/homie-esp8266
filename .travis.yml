@@ -10,6 +10,8 @@ env:
   - PLATFORMIO_CI_SRC=examples/LightOnOff
   - PLATFORMIO_CI_SRC=examples/TemperatureSensor
   - PLATFORMIO_CI_SRC=examples/LedStrip
+  - PLATFORMIO_CI_SRC=examples/Broadcast
+  - PLATFORMIO_CI_SRC=examples/GlobalInputHandler
   - CPPLINT=true
 
 install:

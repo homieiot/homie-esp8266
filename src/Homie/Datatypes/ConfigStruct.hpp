@@ -13,13 +13,11 @@ struct ConfigStruct {
     char password[MAX_WIFI_PASSWORD_LENGTH];
   } wifi;
 
-  struct Server {
-    char host[MAX_HOSTNAME_LENGTH];
-    uint16_t port;
-  };
-
   struct MQTT {
-    Server server;
+    struct Server {
+      char host[MAX_HOSTNAME_LENGTH];
+      uint16_t port;
+    } server;
     char baseTopic[MAX_MQTT_BASE_TOPIC_LENGTH];
     bool auth;
     char username[MAX_MQTT_CREDS_LENGTH];

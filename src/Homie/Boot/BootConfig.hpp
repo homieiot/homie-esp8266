@@ -9,15 +9,17 @@
 #include <DNSServer.h>
 #include <ArduinoJson.h>
 #include "Boot.hpp"
-#include "../Config.hpp"
 #include "../Constants.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
 #include "../Timer.hpp"
-#include "../Helpers.hpp"
+#include "../Utils/DeviceId.hpp"
+#include "../Utils/Validation.hpp"
+#include "../Utils/Helpers.hpp"
 #include "../Logger.hpp"
 #include "../Strings.hpp"
 #include "../../HomieSetting.hpp"
+#include "../../StreamingOperator.hpp"
 
 namespace HomieInternals {
 class BootConfig : public Boot {

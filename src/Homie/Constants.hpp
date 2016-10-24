@@ -9,15 +9,13 @@ namespace HomieInternals {
   const IPAddress ACCESS_POINT_IP(192, 168, 1, 1);
 
   const uint16_t DEFAULT_MQTT_PORT = 1883;
-  const char DEFAULT_MQTT_BASE_TOPIC[] = "devices/";
+  const char DEFAULT_MQTT_BASE_TOPIC[] = "homie/";
 
   const uint8_t DEFAULT_RESET_PIN = 0;  // == D3 on nodeMCU
   const uint8_t DEFAULT_RESET_STATE = LOW;
   const uint16_t DEFAULT_RESET_TIME = 5 * 1000;
 
   const char DEFAULT_BRAND[] = "Homie";
-  const char DEFAULT_FW_NAME[] = "undefined";
-  const char DEFAULT_FW_VERSION[] = "undefined";
 
   const uint16_t CONFIG_SCAN_INTERVAL = 20 * 1000;
   const uint32_t SIGNAL_QUALITY_SEND_INTERVAL = 5 * 60 * 1000;
@@ -30,9 +28,9 @@ namespace HomieInternals {
   const char CONFIG_BYPASS_STANDALONE_FILE_PATH[] = "/homie/BYPASS_STANDALONE";
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
 
-  enum BootMode : uint8_t {
-    BOOT_STANDALONE = 1,
-    BOOT_NORMAL,
-    BOOT_CONFIG
+  enum class BootMode : uint8_t {
+    STANDALONE = 1,
+    NORMAL,
+    CONFIG
   };
 }  // namespace HomieInternals

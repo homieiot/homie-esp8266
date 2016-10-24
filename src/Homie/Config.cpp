@@ -3,20 +3,15 @@
 using namespace HomieInternals;
 
 Config::Config()
-: _interface(nullptr)
-, _bootMode()
+: _bootMode()
 , _configStruct()
 , _spiffsBegan(false) {
-}
-
-void Config::attachInterface(Interface* interface) {
-  _interface = interface;
 }
 
 bool Config::_spiffsBegin() {
   if (!_spiffsBegan) {
     _spiffsBegan = SPIFFS.begin();
-    if (!_spiffsBegan) _interface->logger->logln(F("✖ Cannot mount filesystem"));
+    if (!_spiffsBegan) Interface::get().getLogger() << F("✖ Cannot mount filesystem") << endl;
   }
 
   return _spiffsBegan;
@@ -25,54 +20,52 @@ bool Config::_spiffsBegin() {
 bool Config::load() {
   if (!_spiffsBegin()) { return false; }
 
-  _bootMode = BOOT_CONFIG;
+  _bootMode = BootMode::CONFIG;
 
   if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
-    _interface->logger->log(F("✖ "));
-    _interface->logger->log(CONFIG_FILE_PATH);
-    _interface->logger->logln(F(" doesn't exist"));
+    Interface::get().getLogger() << F("✖ ") << CONFIG_FILE_PATH << F(" doesn't exist") << endl;
     return false;
   }
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
-    _interface->logger->logln(F("✖ Cannot open config file"));
+    Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return false;
   }
 
   size_t configSize = configFile.size();
 
   if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
-    _interface->logger->logln(F("✖ Config file too big"));
+    Interface::get().getLogger() << F("✖ Config file too big") << endl;
     return false;
   }
 
   char buf[MAX_JSON_CONFIG_FILE_SIZE];
   configFile.readBytes(buf, configSize);
   configFile.close();
+  buf[configSize] = '\0';
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(buf);
   if (!parsedJson.success()) {
-    _interface->logger->logln(F("✖ Invalid JSON in the config file"));
+    Interface::get().getLogger() << F("✖ Invalid JSON in the config file") << endl;
     return false;
   }
 
-  ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
+  ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
-    _interface->logger->log(F("✖ Config file is not valid, reason: "));
-    _interface->logger->logln(configValidationResult.reason);
+    Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
     return false;
   }
 
-  _bootMode = BOOT_NORMAL;
+  _bootMode = BootMode::NORMAL;
 
   const char* reqName = parsedJson["name"];
   const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
   const char* reqWifiPassword = parsedJson["wifi"]["password"];
 
   const char* reqMqttHost = parsedJson["mqtt"]["host"];
-  const char* reqDeviceId = Helpers::getDeviceId();
+  const char* reqDeviceId = DeviceId::get();
   if (parsedJson.containsKey("device_id")) {
     reqDeviceId = parsedJson["device_id"];
   }
@@ -162,6 +155,7 @@ char* Config::getSafeConfigFile() const {
   char buf[MAX_JSON_CONFIG_FILE_SIZE];
   configFile.readBytes(buf, configSize);
   configFile.close();
+  buf[configSize] = '\0';
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(buf);
@@ -188,7 +182,7 @@ void Config::bypassStandalone() {
 
   File bypassStandaloneFile = SPIFFS.open(CONFIG_BYPASS_STANDALONE_FILE_PATH, "w");
   if (!bypassStandaloneFile) {
-    _interface->logger->logln(F("✖ Cannot open bypass standalone file"));
+    Interface::get().getLogger() << F("✖ Cannot open bypass standalone file") << endl;
     return;
   }
 
@@ -202,18 +196,18 @@ bool Config::canBypassStandalone() {
   return SPIFFS.exists(CONFIG_BYPASS_STANDALONE_FILE_PATH);
 }
 
-void Config::write(const char* config) {
+void Config::write(const JsonObject& config) {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
   if (!configFile) {
-    _interface->logger->logln(F("✖ Cannot open config file"));
+    Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return;
   }
 
-  configFile.print(config);
+  config.printTo(configFile);
   configFile.close();
 }
 
@@ -224,13 +218,13 @@ bool Config::patch(const char* patch) {
     JsonObject& patchObject = patchJsonBuffer.parseObject(patch);
 
     if (!patchObject.success()) {
-      _interface->logger->logln(F("✖ Invalid or too big JSON"));
+      Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
       return false;
     }
 
     File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
     if (!configFile) {
-      _interface->logger->logln(F("✖ Cannot open config file"));
+      Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
       return false;
     }
 
@@ -239,6 +233,7 @@ bool Config::patch(const char* patch) {
     char configJson[MAX_JSON_CONFIG_FILE_SIZE];
     configFile.readBytes(configJson, configSize);
     configFile.close();
+    configJson[configSize] = '\0';
 
     StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
     JsonObject& configObject = configJsonBuffer.parseObject(configJson);
@@ -251,7 +246,7 @@ bool Config::patch(const char* patch) {
             String error = "✖ Config does not contain a ";
             error.concat(it->key);
             error.concat(" object");
-            _interface->logger->logln(error);
+            Interface::get().getLogger() << error << endl;
             return false;
           }
           JsonObject& subConfigObject = configObject[it->key].as<JsonObject&>();
@@ -262,18 +257,13 @@ bool Config::patch(const char* patch) {
       }
     }
 
-    ConfigValidationResult configValidationResult = Helpers::validateConfig(configObject);
+    ConfigValidationResult configValidationResult = Validation::validateConfig(configObject);
     if (!configValidationResult.valid) {
-      _interface->logger->log(F("✖ Config file is not valid, reason: "));
-      _interface->logger->logln(configValidationResult.reason);
+      Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
       return false;
     }
 
-    size_t finalBufferLength = configObject.measureLength() + 1;
-    std::unique_ptr<char[]> finalConfigString(new char[finalBufferLength]);
-    configObject.printTo(finalConfigString.get(), finalBufferLength);
-
-    write(finalConfigString.get());
+    write(configObject);
 
     return true;
 }
@@ -283,47 +273,41 @@ BootMode Config::getBootMode() const {
 }
 
 void Config::log() const {
-  _interface->logger->logln(F("{} Stored configuration:"));
-  _interface->logger->log(F("  • Hardware device ID: "));
-  _interface->logger->logln(Helpers::getDeviceId());
-  _interface->logger->log(F("  • Device ID: "));
-  _interface->logger->logln(_configStruct.deviceId);
-  _interface->logger->log(F("  • Boot mode: "));
+  Interface::get().getLogger() << F("{} Stored configuration") << endl;
+  Interface::get().getLogger() << F("  • Hardware device ID: ") << DeviceId::get() << endl;
+  Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
+  Interface::get().getLogger() << F("  • Boot mode: ");
   switch (_bootMode) {
-    case BOOT_CONFIG:
-      _interface->logger->logln(F("configuration"));
+    case BootMode::CONFIG:
+      Interface::get().getLogger() << F("configuration") << endl;
       break;
-    case BOOT_NORMAL:
-      _interface->logger->logln(F("normal"));
+    case BootMode::NORMAL:
+      Interface::get().getLogger() << F("normal") << endl;
+      break;
+    case BootMode::STANDALONE:
+      Interface::get().getLogger() << F("standalone") << endl;
       break;
     default:
-      _interface->logger->logln(F("unknown"));
+      Interface::get().getLogger() << F("unknown") << endl;
       break;
   }
-  _interface->logger->log(F("  • Name: "));
-  _interface->logger->logln(_configStruct.name);
 
-  _interface->logger->logln(F("  • Wi-Fi"));
-  _interface->logger->log(F("    ◦ SSID: "));
-  _interface->logger->logln(_configStruct.wifi.ssid);
-  _interface->logger->logln(F("    ◦ Password not shown"));
+  Interface::get().getLogger() << F("  • Name: ") << _configStruct.name << endl;
 
-  _interface->logger->logln(F("  • MQTT"));
-  _interface->logger->log(F("    ◦ Host: "));
-  _interface->logger->logln(_configStruct.mqtt.server.host);
-  _interface->logger->log(F("    ◦ Port: "));
-  _interface->logger->logln(_configStruct.mqtt.server.port);
-  _interface->logger->log(F("    ◦ Base topic: "));
-  _interface->logger->logln(_configStruct.mqtt.baseTopic);
-  _interface->logger->log(F("    ◦ Auth? "));
-  _interface->logger->logln(_configStruct.mqtt.auth ? F("yes") : F("no"));
+  Interface::get().getLogger() << F("  • Wi-Fi: ") << endl;
+  Interface::get().getLogger() << F("    ◦ SSID: ") << _configStruct.wifi.ssid << endl;
+  Interface::get().getLogger() << F("    ◦ Password not shown") << endl;
+
+  Interface::get().getLogger() << F("  • MQTT: ") << endl;
+  Interface::get().getLogger() << F("    ◦ Host: ") << _configStruct.mqtt.server.host << endl;
+  Interface::get().getLogger() << F("    ◦ Port: ") << _configStruct.mqtt.server.port << endl;
+  Interface::get().getLogger() << F("    ◦ Base topic: ") << _configStruct.mqtt.baseTopic << endl;
+  Interface::get().getLogger() << F("    ◦ Auth? ") << (_configStruct.mqtt.auth ? F("yes") : F("no")) << endl;
   if (_configStruct.mqtt.auth) {
-    _interface->logger->log(F("    ◦ Username: "));
-    _interface->logger->logln(_configStruct.mqtt.username);
-    _interface->logger->logln(F("    ◦ Password not shown"));
+    Interface::get().getLogger() << F("    ◦ Username: ") << _configStruct.mqtt.username << endl;
+    Interface::get().getLogger() << F("    ◦ Password not shown") << endl;
   }
 
-  _interface->logger->logln(F("  • OTA"));
-  _interface->logger->log(F("    ◦ Enabled? "));
-  _interface->logger->logln(_configStruct.ota.enabled ? F("yes") : F("no"));
+  Interface::get().getLogger() << F("  • OTA: ") << endl;
+  Interface::get().getLogger() << F("    ◦ Enabled? ") << (_configStruct.ota.enabled ? F("yes") : F("no")) << endl;
 }

@@ -3,8 +3,8 @@
 #include "Arduino.h"
 
 #include <Bounce2.h>
+#include "../../StreamingOperator.hpp"
 #include "Boot.hpp"
-#include "../Config.hpp"
 
 namespace HomieInternals {
 class BootStandalone : public Boot {
