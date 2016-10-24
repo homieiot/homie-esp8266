@@ -36,7 +36,7 @@ class Property {
   friend BootNormal;
 
  public:
-  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; }
+  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; _settable = false; }
   void settable(PropertyInputHandler inputHandler) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
