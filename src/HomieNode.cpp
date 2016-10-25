@@ -49,7 +49,7 @@ PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lowe
   return _propertyInterface.setProperty(propertyObject);
 }
 
-SendingPromise& HomieNode::setProperty(const String& property) {
+SendingPromise& HomieNode::setProperty(const String& property) const {
   return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true).setRange({ .isRange = false, .index = 0 });
 }
 

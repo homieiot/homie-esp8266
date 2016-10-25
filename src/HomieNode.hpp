@@ -69,7 +69,7 @@ class HomieNode {
   HomieInternals::PropertyInterface& advertise(const char* property);
   HomieInternals::PropertyInterface& advertiseRange(const char* property, uint16_t lower, uint16_t upper);
 
-  HomieInternals::SendingPromise& setProperty(const String& property);
+  HomieInternals::SendingPromise& setProperty(const String& property) const;
 
  protected:
   virtual void setup() {}
