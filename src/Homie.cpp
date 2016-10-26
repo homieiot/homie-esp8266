@@ -17,6 +17,7 @@ HomieClass::HomieClass()
   Interface::get().reset.triggerState = DEFAULT_RESET_STATE;
   Interface::get().reset.triggerTime = DEFAULT_RESET_TIME;
   Interface::get().reset.flaggedBySketch = false;
+  Interface::get().flaggedForSleep = false;
   Interface::get().globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
   Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
   Interface::get().setupFunction = []() {};
@@ -239,7 +240,13 @@ AsyncMqttClient& HomieClass::getMqttClient() {
 }
 
 void HomieClass::prepareToSleep() {
-  _boot->prepareToSleep();
+  if (Interface::get().connected) {
+    Interface::get().flaggedForSleep = true;
+  } else {
+    Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
+    Interface::get().event.type = HomieEventType::READY_TO_SLEEP;
+    Interface::get().eventHandler(Interface::get().event);
+  }
 }
 
 HomieClass Homie;

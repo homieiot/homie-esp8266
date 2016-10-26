@@ -26,7 +26,6 @@ class BootNormal : public Boot {
   ~BootNormal();
   void setup();
   void loop();
-  void prepareToSleep();
 
  private:
   Uptime _uptime;
@@ -40,7 +39,6 @@ class BootNormal : public Boot {
   bool _flaggedForReset;
   bool _flaggedForReboot;
   Bounce _resetDebouncer;
-  bool _flaggedForSleep;
   uint16_t _mqttOfflineMessageId;
   bool _otaChecksumSet;
   char _otaChecksum[32 + 1];

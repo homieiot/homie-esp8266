@@ -15,7 +15,6 @@ class Boot {
   explicit Boot(const char* name);
   virtual void setup();
   virtual void loop();
-  virtual void prepareToSleep();
 
  protected:
   const char* _name;

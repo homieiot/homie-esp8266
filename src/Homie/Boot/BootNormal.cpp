@@ -13,7 +13,6 @@ BootNormal::BootNormal()
 , _mqttClientId(nullptr)
 , _mqttWillTopic(nullptr)
 , _mqttPayloadBuffer(nullptr)
-, _flaggedForSleep(false)
 , _mqttOfflineMessageId(0)
 , _otaChecksumSet(false)
 , _otaChecksum()
@@ -148,9 +147,7 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
   Interface::get().event.wifiReason = event.reason;
   Interface::get().eventHandler(Interface::get().event);
 
-  if (!_flaggedForSleep) {
-    _wifiConnect();
-  }
+  _wifiConnect();
 }
 
 void BootNormal::_mqttConnect() {
@@ -270,16 +267,21 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     Interface::get().event.type = HomieEventType::MQTT_DISCONNECTED;
     Interface::get().event.mqttReason = reason;
     Interface::get().eventHandler(Interface::get().event);
-    if (_flaggedForSleep) {
+
+    _mqttDisconnectNotified = true;
+
+    if (_mqttOfflineMessageId != 0) {
+      _mqttOfflineMessageId = 0;
+      Interface::get().flaggedForSleep = false;
       Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
       Interface::get().event.type = HomieEventType::READY_TO_SLEEP;
       Interface::get().eventHandler(Interface::get().event);
+
+      return;
     }
-    _mqttDisconnectNotified = true;
   }
-  if (!_flaggedForSleep) {
-    _mqttConnect();
-  }
+
+  _mqttConnect();
 }
 
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
@@ -631,7 +633,7 @@ void BootNormal::_onMqttPublish(uint16_t id) {
   Interface::get().event.packetId = id;
   Interface::get().eventHandler(Interface::get().event);
 
-  if (_flaggedForSleep && id == _mqttOfflineMessageId) {
+  if (Interface::get().flaggedForSleep && id == _mqttOfflineMessageId) {
     Interface::get().getLogger() << F("Offline message acknowledged. Disconnecting MQTT...") << endl;
     Interface::get().getMqttClient().disconnect();
   }
@@ -744,6 +746,11 @@ void BootNormal::loop() {
 
   if (!Interface::get().connected) return;
 
+  if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
+    Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
+    _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
+  }
+
   if (_signalQualityTimer.check()) {
     uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
 
@@ -773,10 +780,4 @@ void BootNormal::loop() {
   for (HomieNode* iNode : HomieNode::nodes) {
     iNode->loop();
   }
-}
-
-void BootNormal::prepareToSleep() {
-  Interface::get().getLogger() << F("Sending offline message...") << endl;
-  _flaggedForSleep = true;
-  _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
 }
