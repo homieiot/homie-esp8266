@@ -20,8 +20,7 @@ BootNormal::BootNormal()
 , _otaBase64Pads(0)
 , _otaSizeTotal(0)
 , _otaSizeDone(0) {
-  _signalQualityTimer.setInterval(SIGNAL_QUALITY_SEND_INTERVAL);
-  _uptimeTimer.setInterval(UPTIME_SEND_INTERVAL);
+  _statsTimer.setInterval(STATS_SEND_INTERVAL);
 }
 
 BootNormal::~BootNormal() {
@@ -139,8 +138,7 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
 void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event) {
   Interface::get().connected = false;
   if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
-  _uptimeTimer.reset();
-  _signalQualityTimer.reset();
+  _statsTimer.reset();
   Interface::get().getLogger() << F("✖ Wi-Fi disconnected") << endl;
   Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
@@ -208,9 +206,9 @@ void BootNormal::_onMqttConnected() {
   strcat(localIpStr, localIpPartStr);
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
 
-  char uptimeIntervalStr[3 + 1];
-  itoa(UPTIME_SEND_INTERVAL / 1000, uptimeIntervalStr, 10);
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$uptime/interval")), 1, true, uptimeIntervalStr);
+  char statsIntervalStr[3 + 1];
+  itoa(STATS_SEND_INTERVAL / 1000, statsIntervalStr, 10);
+  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/interval")), 1, true, statsIntervalStr);
 
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/name")), 1, true, Interface::get().firmware.name);
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/version")), 1, true, Interface::get().firmware.version);
@@ -260,8 +258,7 @@ void BootNormal::_onMqttConnected() {
 void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
   Interface::get().connected = false;
   if (!_mqttDisconnectNotified) {
-    _uptimeTimer.reset();
-    _signalQualityTimer.reset();
+    _statsTimer.reset();
     Interface::get().getLogger() << F("✖ MQTT disconnected") << endl;
     Interface::get().getLogger() << F("Triggering MQTT_DISCONNECTED event...") << endl;
     Interface::get().event.type = HomieEventType::MQTT_DISCONNECTED;
@@ -751,28 +748,20 @@ void BootNormal::loop() {
     _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
   }
 
-  if (_signalQualityTimer.check()) {
+  if (_statsTimer.check()) {
     uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
-
     char qualityStr[3 + 1];
     itoa(quality, qualityStr, 10);
+    Interface::get().getLogger() << F("Sending statistics...") << endl;
+    Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
+    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
 
-    Interface::get().getLogger() << F("Sending Wi-Fi signal quality (") << qualityStr << F("%)...") << endl;
-
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$signal")), 1, true, qualityStr);
-    _signalQualityTimer.tick();
-  }
-
-  if (_uptimeTimer.check()) {
     _uptime.update();
-
-    char uptimeStr[10 + 1];
+    char uptimeStr[20 + 1];
     itoa(_uptime.getSeconds(), uptimeStr, 10);
-
-    Interface::get().getLogger() << F("Sending uptime (") << _uptime.getSeconds() << F("s)...") << endl;
-
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$uptime/value")), 1, true, uptimeStr);
-    _uptimeTimer.tick();
+    Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
+    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
+    _statsTimer.tick();
   }
 
   Interface::get().loopFunction();

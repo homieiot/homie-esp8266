@@ -29,8 +29,7 @@ class BootNormal : public Boot {
 
  private:
   Uptime _uptime;
-  Timer _signalQualityTimer;
-  Timer _uptimeTimer;
+  Timer _statsTimer;
   bool _setupFunctionCalled;
   WiFiEventHandler _wifiGotIpHandler;
   WiFiEventHandler _wifiDisconnectedHandler;
