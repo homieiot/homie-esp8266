@@ -45,6 +45,8 @@ class InterfaceData {
     bool flaggedBySketch;
   } reset;
 
+  bool flaggedForSleep;
+
   GlobalInputHandler globalInputHandler;
   BroadcastHandler broadcastHandler;
   OperationFunction setupFunction;
