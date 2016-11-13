@@ -36,7 +36,7 @@ HomieClass::HomieClass()
 HomieClass::~HomieClass() {
 }
 
-void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) {
+void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) const {
   if (_setupCalled) {
     Interface::get().getLogger() << F("✖ ") << functionName << F("(): has to be called before setup()") << endl;
     Serial.flush();
@@ -136,7 +136,7 @@ void HomieClass::__setFirmware(const char* name, const char* version) {
   _firmwareSet = true;
 }
 
-void HomieClass::__setBrand(const char* brand) {
+void HomieClass::__setBrand(const char* brand) const {
   _checkBeforeSetup(F("setBrand"));
   if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
     Interface::get().getLogger() << F("✖ setBrand(): the brand string is too long") << endl;

@@ -35,7 +35,7 @@ class HomieClass {
   void loop();
 
   void __setFirmware(const char* name, const char* version);
-  void __setBrand(const char* brand);
+  void __setBrand(const char* brand) const;
 
   HomieClass& disableLogging();
   HomieClass& setLoggingPrinter(Print* printer);
@@ -71,7 +71,7 @@ class HomieClass {
   Config _config;
   AsyncMqttClient _mqttClient;
 
-  void _checkBeforeSetup(const __FlashStringHelper* functionName);
+  void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
 
   const char* __HOMIE_SIGNATURE;
 };

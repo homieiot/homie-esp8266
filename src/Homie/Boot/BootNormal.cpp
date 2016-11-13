@@ -9,17 +9,17 @@ BootNormal::BootNormal()
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 , _flaggedForReboot(false)
-, _mqttTopic(nullptr)
-, _mqttClientId(nullptr)
-, _mqttWillTopic(nullptr)
-, _mqttPayloadBuffer(nullptr)
 , _mqttOfflineMessageId(0)
 , _otaChecksumSet(false)
-, _otaChecksum()
+, _otaChecksum({'\0'})
 , _otaIsBase64(false)
 , _otaBase64Pads(0)
 , _otaSizeTotal(0)
-, _otaSizeDone(0) {
+, _otaSizeDone(0)
+, _mqttTopic(nullptr)
+, _mqttClientId(nullptr)
+, _mqttWillTopic(nullptr)
+, _mqttPayloadBuffer(nullptr) {
   _statsTimer.setInterval(STATS_SEND_INTERVAL);
 }
 
@@ -488,7 +488,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   if (strncmp(broadcast_topic, "$broadcast", 10) == 0) {
     broadcast_topic += sizeof("$broadcast");  // move pointer to second char after $broadcast (sizeof counts the \0)
     String broadcastLevel(broadcast_topic);
-    Interface::get().getLogger() << F("Calling broadcast handler...") << endl;
+    Interface::get().getLogger() << F("📢 Calling broadcast handler...") << endl;
     bool handled = Interface::get().broadcastHandler(broadcastLevel, _mqttPayloadBuffer.get());
     if (!handled) {
       Interface::get().getLogger() << F("The following broadcast was not handled:") << endl;
@@ -752,7 +752,7 @@ void BootNormal::loop() {
     uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
     char qualityStr[3 + 1];
     itoa(quality, qualityStr, 10);
-    Interface::get().getLogger() << F("Sending statistics...") << endl;
+    Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
     Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
     Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
 
