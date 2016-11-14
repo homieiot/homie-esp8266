@@ -163,7 +163,7 @@ void BootNormal::_onMqttConnected() {
 
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$mac")), 1, true, deviceId);
+  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$deviceId")), 1, true, deviceId);
 
   for (HomieNode* iNode : HomieNode::nodes) {
     std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(iNode->getId()) + 12 + 1]);  // /id/$properties
