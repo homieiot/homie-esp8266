@@ -21,7 +21,7 @@ class InterfaceData {
 
  public:
   InterfaceData();
-  
+
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
 

@@ -17,7 +17,6 @@ InterfaceData::InterfaceData()
 , _config(nullptr)
 , _mqttClient(nullptr)
 , _sendingPromise(nullptr) {
-  
 }
 
 InterfaceData& Interface::get() {

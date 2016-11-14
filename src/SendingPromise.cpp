@@ -6,7 +6,7 @@ SendingPromise::SendingPromise()
 : _node(nullptr)
 , _property(nullptr)
 , _qos(0)
-, _retained(false) 
+, _retained(false)
 , _range { .isRange = false, .index = 0 } {
 }
 
