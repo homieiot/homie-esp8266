@@ -7,6 +7,7 @@ SendingPromise::SendingPromise()
 , _property(nullptr)
 , _qos(0)
 , _retained(false)
+, _overwriteSetter(false)
 , _range { .isRange = false, .index = 0 } {
 }
 
@@ -17,6 +18,11 @@ SendingPromise& SendingPromise::setQos(uint8_t qos) {
 
 SendingPromise& SendingPromise::setRetained(bool retained) {
   _retained = retained;
+  return *this;
+}
+
+SendingPromise& SendingPromise::overwriteSetter(bool overwrite) {
+  _overwriteSetter = overwrite;
   return *this;
 }
 
@@ -39,7 +45,7 @@ uint16_t SendingPromise::send(const String& value) {
     return 0;
   }
 
-  char* topic = new char[strlen(Interface::get().getConfig().get().mqtt.baseTopic) + strlen(Interface::get().getConfig().get().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 1];  // last + 6 for range _65536
+  char* topic = new char[strlen(Interface::get().getConfig().get().mqtt.baseTopic) + strlen(Interface::get().getConfig().get().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 4 + 1];  // last + 6 for range _65536, last + 4 for /set
   strcpy(topic, Interface::get().getConfig().get().mqtt.baseTopic);
   strcat(topic, Interface::get().getConfig().get().deviceId);
   strcat_P(topic, PSTR("/"));
@@ -55,6 +61,12 @@ uint16_t SendingPromise::send(const String& value) {
   }
 
   uint16_t packetId = Interface::get().getMqttClient().publish(topic, _qos, _retained, value.c_str());
+
+  if (_overwriteSetter) {
+    strcat_P(topic, PSTR("/set"));
+    Interface::get().getMqttClient().publish(topic, 1, true, value.c_str());
+  }
+
   delete[] topic;
 
   return packetId;
@@ -88,4 +100,8 @@ HomieRange SendingPromise::getRange() const {
 
 bool SendingPromise::isRetained() const {
   return _retained;
+}
+
+bool SendingPromise::doesOverwriteSetter() const {
+  return _overwriteSetter;
 }
