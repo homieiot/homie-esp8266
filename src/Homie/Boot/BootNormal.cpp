@@ -376,16 +376,18 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         }
         if (bin_len > 0) {
           // Decode base64 payload in-place. base64_decode_block() can decode in-place,
-          // except for the very first byte. So we "manually" decode the first byte into
-          // a temporary buffer and manually merge that back into the payload. This one
-          // is a little tricky, but it saves us from having to dynamically allocate
-          // some 800 bytes of memory for every $implementation/ota/firmware.
+          // except for the first two base64-characters which make one binary byte plus
+          // 4 extra bits (saved in _otaBase64State). So we "manually" decode the first
+          // two characters into a temporary buffer and manually merge that back into
+          // the payload. This one is a little tricky, but it saves us from having to
+          // dynamically allocate some 800 bytes of memory for every payload chunk.
+          size_t dec_len = bin_len > 1 ? 2 : 1;
           char c;
-          write_len = (size_t) base64_decode_block(payload, 1, &c, &_otaBase64State);
+          write_len = (size_t) base64_decode_block(payload, dec_len, &c, &_otaBase64State);
           *payload = c;
 
           if (bin_len > 1) {
-            write_len += (size_t) base64_decode_block((const char*) payload + 1, bin_len - 1, payload, &_otaBase64State);
+            write_len += (size_t) base64_decode_block((const char*) payload + dec_len, bin_len - dec_len, payload + write_len, &_otaBase64State);
           }
         } else {
           write_len = 0;
