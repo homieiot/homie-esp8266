@@ -97,7 +97,7 @@ bool Config::load() {
 
   strcpy(_configStruct.name, reqName);
   strcpy(_configStruct.wifi.ssid, reqWifiSsid);
-  strcpy(_configStruct.wifi.password, reqWifiPassword);
+  if (reqWifiPassword) strcpy(_configStruct.wifi.password, reqWifiPassword);
   strcpy(_configStruct.deviceId, reqDeviceId);
   strcpy(_configStruct.mqtt.server.host, reqMqttHost);
   _configStruct.mqtt.server.port = reqMqttPort;

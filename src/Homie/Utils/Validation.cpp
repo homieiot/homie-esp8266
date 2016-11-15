@@ -72,7 +72,7 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.password is not a string");
     return result;
   }
-  if (strlen(object["wifi"]["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
+  if (object["wifi"]["password"] && strlen(object["wifi"]["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
     result.reason = F("wifi.password is too long");
     return result;
   }
