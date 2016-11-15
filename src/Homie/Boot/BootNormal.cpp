@@ -456,7 +456,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       Interface::get().getLogger() << F("Receiving OTA checksum but not requested, skipping...") << endl;
       _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
     } else {
-      Interface::get().getLogger() << F("Receiving OTA checksum (") << payload << F(")...") << endl;
+      Interface::get().getLogger() << F("Receiving OTA checksum (") << _mqttPayloadBuffer.get() << F(")...") << endl;
 
       // 32 hex characters?
       if (strlen(_mqttPayloadBuffer.get()) != 32) {
