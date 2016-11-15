@@ -53,7 +53,7 @@ uint16_t BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
 
 void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
   if (success) {
-    Interface::get().getLogger() << F("✔ OTA success") << endl;
+    Interface::get().getLogger() << F("✔ OTA succeeded") << endl;
     Interface::get().getLogger() << F("Triggering OTA_SUCCESSFUL event...") << endl;
     Interface::get().event.type = HomieEventType::OTA_SUCCESSFUL;
     Interface::get().eventHandler(Interface::get().event);
@@ -299,7 +299,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       }
     } else {
       if (index == 0) {
-        Interface::get().getLogger() << F("OTA started") << endl;
+        Interface::get().getLogger() << F("↕ OTA started") << endl;
         Interface::get().getLogger() << F("Triggering OTA_STARTED event...") << endl;
         Interface::get().event.type = HomieEventType::OTA_STARTED;
         Interface::get().eventHandler(Interface::get().event);
