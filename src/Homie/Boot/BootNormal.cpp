@@ -152,12 +152,9 @@ void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
   Interface::get().getLogger() << F("Sending initial information...") << endl;
 
-  const char* deviceId = DeviceId::get();
-  Interface::get().getLogger() << F("Device ID is ") << deviceId << endl;
-
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$deviceId")), 1, true, deviceId);
+  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$mac")), 1, true, DeviceId::get());
 
   for (HomieNode* iNode : HomieNode::nodes) {
     std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(iNode->getId()) + 12 + 1]);  // /id/$properties
