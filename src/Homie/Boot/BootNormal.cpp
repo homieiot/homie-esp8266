@@ -38,17 +38,30 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
   return _mqttTopic.get();
 }
 
-uint16_t BootNormal::_publishOtaStatus(int status, const char* info) {
-  String payload(status);
-  if (info) {
-    payload += ' ';
-    payload += info;
+void BootNormal::_publishOtaStatus(int status, PGM_P info_P, const char* info) {
+  if ((status < 100) || (status > 999))
+    status = 999;  // Make sure status has 3 digits
+  size_t len = 3 + 1;  // trailing \0
+  if (info_P) {
+    len += 1 + strlen_P(info_P);
   }
-  return Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 1, true, payload.c_str());
-}
-
-uint16_t BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
-  return _publishOtaStatus(status, String(info).c_str());
+  if (info) {
+    len += 1 + strlen(info);
+  }
+  char* payload = new char[len + 1];
+  if (payload) {
+    itoa(status, payload, 10);
+    if (info_P) {
+      strcat_P(payload, PSTR(" "));
+      strcat_P(payload, info_P);
+    }
+    if (info) {
+      strcat_P(payload, PSTR(" "));
+      strcat(payload, info);
+    }
+    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 1, true, payload);
+    delete [] payload;
+  }
 }
 
 void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
@@ -62,7 +75,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     _flaggedForReboot = true;
   } else {
     int code;
-    String info;
+    PGM_P info;
     switch (update_error) {
       case UPDATE_ERROR_SIZE:               // new firmware size is zero
       case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
@@ -86,10 +99,10 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
         break;
       default:
         code = 500;  // 500 Internal Server Error
-        info = PSTR("INTERNAL_ERROR ") + update_error;
+        info = PSTR("INTERNAL_ERROR");
         break;
     }
-    _publishOtaStatus(code, info.c_str());
+    _publishOtaStatus(code, info);
 
     Interface::get().getLogger() << F("✖ OTA failed (") << code << F(" ") << info << F(")") << endl;
 
@@ -408,7 +421,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           progress += F("/");
           progress += _otaSizeTotal;
           Interface::get().getLogger() << F("Receiving OTA firmware (") << progress << F(")...") << endl;
-          _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
+          _publishOtaStatus(206, nullptr, progress.c_str());  // 206 Partial Content
 
           //  Done with the update?
           if (index + len == total) {
