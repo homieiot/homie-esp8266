@@ -6,7 +6,7 @@ unsigned long lastTemperatureSent = 0;
 
 HomieNode temperatureNode("temperature", "temperature");
 
-HomieSetting<unsigned long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in seconds");
+HomieSetting<long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in seconds");
 
 void setupHandler() {
   temperatureNode.setProperty("unit").send("c");
@@ -30,7 +30,9 @@ void setup() {
   temperatureNode.advertise("unit");
   temperatureNode.advertise("degrees");
 
-  temperatureIntervalSetting.setDefaultValue(DEFAULT_TEMPERATURE_INTERVAL);
+  temperatureIntervalSetting.setDefaultValue(DEFAULT_TEMPERATURE_INTERVAL).setValidator([] (long candidate) {
+    return candidate > 0;
+  });
 
   Homie.setup();
 }

@@ -118,12 +118,6 @@ bool Config::load() {
       if (settingsObject.containsKey(setting->getName())) {
         setting->set(settingsObject[setting->getName()].as<bool>());
       }
-    } else if (iSetting->isUnsignedLong()) {
-      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<unsigned long>());
-      }
     } else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
 

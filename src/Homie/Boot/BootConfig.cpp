@@ -272,15 +272,6 @@ void BootConfig::_onDeviceInfoRequest() {
       if (!setting->isRequired()) {
         jsonSetting["default"] = setting->get();
       }
-    } else if (iSetting->isUnsignedLong()) {
-      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
-      jsonSetting["name"] = setting->getName();
-      jsonSetting["description"] = setting->getDescription();
-      jsonSetting["type"] = "ulong";
-      jsonSetting["required"] = setting->isRequired();
-      if (!setting->isRequired()) {
-        jsonSetting["default"] = setting->get();
-      }
     } else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
       jsonSetting["name"] = setting->getName();

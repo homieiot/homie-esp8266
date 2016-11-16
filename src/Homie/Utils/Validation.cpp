@@ -202,24 +202,6 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
         result.reason.concat(F(" setting is missing"));
         return result;
       }
-    } else if (iSetting->isUnsignedLong()) {
-      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<unsigned long>()) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting is not an unsigned long"));
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<unsigned long>())) {
-          result.reason = String(setting->getName());
-          result.reason.concat((" setting does not pass the validator function"));
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        result.reason = String(setting->getName());
-        result.reason.concat(F(" setting is missing"));
-        return result;
-      }
     } else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
 

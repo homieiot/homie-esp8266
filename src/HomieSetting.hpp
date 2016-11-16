@@ -14,7 +14,6 @@ class IHomieSetting {
   IHomieSetting() {}
 
   virtual bool isBool() const { return false; }
-  virtual bool isUnsignedLong() const { return false; }
   virtual bool isLong() const { return false; }
   virtual bool isDouble() const { return false; }
   virtual bool isConstChar() const { return false; }
@@ -51,7 +50,6 @@ class HomieSetting : public HomieInternals::IHomieSetting {
   const char* getDescription() const;
 
   bool isBool() const;
-  bool isUnsignedLong() const;
   bool isLong() const;
   bool isDouble() const;
   bool isConstChar() const;
