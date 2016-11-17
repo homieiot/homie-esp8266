@@ -104,7 +104,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     }
     _publishOtaStatus(code, info);
 
-    Interface::get().getLogger() << F("✖ OTA failed (") << code << F(" ") << info << F(")") << endl;
+    Interface::get().getLogger() << F("✖ OTA failed (") << code << F(" ") << FPSTR(info) << F(")") << endl;
 
     Interface::get().getLogger() << F("Triggering OTA_FAILED event...") << endl;
     Interface::get().event.type = HomieEventType::OTA_FAILED;
