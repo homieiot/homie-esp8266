@@ -41,7 +41,7 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
 void BootNormal::_publishOtaStatus(int status, PGM_P info_P, const char* info) {
   if ((status < 100) || (status > 999))
     status = 999;  // Make sure status has 3 digits
-  size_t len = 3 + 1;  // trailing \0
+  size_t len = 3 + 1;  // +1 for trailing \0
   if (info_P) {
     len += 1 + strlen_P(info_P);
   }
