@@ -6,7 +6,7 @@ namespace HomieInternals {
   const char HOMIE_VERSION[] = "2.0.0";
   const char HOMIE_ESP8266_VERSION[] = "2.0.0";
 
-  const IPAddress ACCESS_POINT_IP(192, 168, 1, 1);
+  const IPAddress ACCESS_POINT_IP(192, 168, 123, 1);
 
   const uint16_t DEFAULT_MQTT_PORT = 1883;
   const char DEFAULT_MQTT_BASE_TOPIC[] = "homie/";
