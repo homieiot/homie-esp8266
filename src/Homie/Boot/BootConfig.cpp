@@ -25,9 +25,7 @@ void BootConfig::setup() {
     digitalWrite(Interface::get().led.pin, Interface::get().led.on);
   }
 
-  const char* deviceId = DeviceId::get();
-
-  Interface::get().getLogger() << F("Device ID is ") << deviceId << endl;
+  Interface::get().getLogger() << F("Device ID is ") << DeviceId::get() << endl;
 
   WiFi.mode(WIFI_AP_STA);
 
@@ -37,7 +35,7 @@ void BootConfig::setup() {
   strcat(apName, DeviceId::get());
 
   WiFi.softAPConfig(ACCESS_POINT_IP, ACCESS_POINT_IP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(apName, deviceId);
+  WiFi.softAP(apName, DeviceId::get());
 
   Interface::get().getLogger() << F("AP started as ") << apName << endl;
   _dns.setTTL(30);
