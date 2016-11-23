@@ -57,3 +57,14 @@ bool HomieNode::getSubscribeToAll() const {
 NodeInputHandler HomieNode::getInputHandler() const {
   return this->_inputHandler;
 }
+
+
+bool HomieNode::InputHandler(String property, String value)
+{
+	  return getInputHandler()(property, value);
+}
+
+void HomieNode::loop() {return;}
+void HomieNode::setup(){return;}
+
+

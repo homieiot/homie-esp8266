@@ -26,7 +26,7 @@ namespace HomieInternals {
   const unsigned char MAX_NODE_TYPE_LENGTH = sizeof("my-super-awesome-type");
   const unsigned char MAX_NODE_PROPERTY_LENGTH = sizeof("my-super-awesome-property");
 
-  const unsigned char MAX_REGISTERED_NODES_COUNT = 5;
+  const unsigned char MAX_REGISTERED_NODES_COUNT = 7;
   const unsigned char MAX_SUBSCRIPTIONS_COUNT_PER_NODE = 5;
 
   const unsigned char TOPIC_BUFFER_LENGTH = MAX_MQTT_BASE_TOPIC_LENGTH + MAX_DEVICE_ID_LENGTH + 1 + MAX_NODE_ID_LENGTH + 1 + MAX_NODE_PROPERTY_LENGTH + 4 + 1;

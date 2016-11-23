@@ -18,13 +18,13 @@ const char* Helpers::getDeviceId() {
 MdnsQueryResult Helpers::mdnsQuery(const char* service) {
   MdnsQueryResult result;
   result.success = false;
-  int n = MDNS.queryService(service, "tcp");
+  int n = 0; // MDNS.queryService(service, "tcp");
   if (n == 0) {
     return result;
   } else {
     result.success = true;
-    result.ip = MDNS.IP(0);
-    result.port = MDNS.port(0);
+//    result.ip = MDNS.IP(0);
+//    result.port = MDNS.port(0);
   }
 
   return result;
