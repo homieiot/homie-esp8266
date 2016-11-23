@@ -27,7 +27,7 @@ namespace HomieInternals {
       void setLedPin(unsigned char pin, unsigned char on);
       void setBrand(const char* name);
       void setFirmware(const char* name, const char* version);
-      void registerNode(const HomieNode& node);
+      void registerNode(HomieNode& node);
       void setGlobalInputHandler(GlobalInputHandler globalInputHandler);
       void setResettable(bool resettable);
       void onEvent(EventHandler handler);
@@ -41,6 +41,7 @@ namespace HomieInternals {
         return this->setNodeProperty(node, property.c_str(), value.c_str(), retained);
       }
       bool setNodeProperty(const HomieNode& node, const char* property, const char* value, bool retained = true);
+      bool publishProperty(String const &path, const char *property, const char* value, bool retained = true);
     private:
       bool _setupCalled;
       Boot* _boot;

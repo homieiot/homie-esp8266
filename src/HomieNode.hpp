@@ -20,6 +20,9 @@ class HomieNode {
 
     void subscribe(const char* property, HomieInternals::PropertyInputHandler inputHandler = [](String value) { return false; });
 
+  protected:
+    virtual void onReadyToOperate() {}
+
   private:
     const char* getId() const;
     const char* getType() const;
