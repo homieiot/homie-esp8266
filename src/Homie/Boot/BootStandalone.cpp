@@ -29,6 +29,8 @@ void BootStandalone::_handleReset() {
 void BootStandalone::setup() {
   Boot::setup();
 
+  WiFi.mode(WIFI_OFF);
+
   if (Interface::get().reset.enabled) {
     pinMode(Interface::get().reset.triggerPin, INPUT_PULLUP);
 
@@ -44,8 +46,7 @@ void BootStandalone::loop() {
 
   if (_flaggedForConfig && Interface::get().reset.idle) {
     Interface::get().getLogger() << F("Device is idle") << endl;
-    Interface::get().getConfig().bypassStandalone();
-    Interface::get().getLogger() << F("Next reboot will bypass standalone mode") << endl;
+    Interface::get().getConfig().setBootModeOnNextBoot(BootMode::CONFIG);
 
     Interface::get().getLogger() << F("Triggering ABOUT_TO_RESET event...") << endl;
     Interface::get().event.type = HomieEventType::ABOUT_TO_RESET;
