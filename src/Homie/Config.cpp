@@ -173,7 +173,7 @@ void Config::erase() {
 void Config::setBootModeOnNextBoot(BootMode bootMode) {
   if (!_spiffsBegin()) { return; }
 
-  if(bootMode==BootMode::UNDEFINED) {
+  if (bootMode == BootMode::UNDEFINED) {
     SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
   } else {
     File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
@@ -192,14 +192,14 @@ BootMode Config::getBootModeOnNextBoot() {
   if (!_spiffsBegin()) { return BootMode::UNDEFINED; }
 
   File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
-  if(bootModeFile) {
-    int v = bootModeFile.parseInt();//returns 0 if a number is not found
+  if (bootModeFile) {
+    int v = bootModeFile.parseInt();
     bootModeFile.close();
-    if(v==1) {
+    if (v == 1) {
       return BootMode::STANDALONE;
-    } else if(v==2) {
+    } else if (v == 2) {
       return BootMode::CONFIG;
-    } else if(v==3) {
+    } else if (v == 3) {
       return BootMode::NORMAL;
     } else {
       return BootMode::UNDEFINED;
@@ -281,7 +281,7 @@ bool Config::patch(const char* patch) {
     return true;
 }
 
-bool Config::isValid() {
+bool Config::isValid() const {
   return this->_valid;
 }
 

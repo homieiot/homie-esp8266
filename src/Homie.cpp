@@ -53,44 +53,44 @@ void HomieClass::setup() {
     abort();
   }
 
-  //boot mode set during this boot by application before Homie.setup()
+  // boot mode set during this boot by application before Homie.setup()
   BootMode _applicationBootMode = Interface::get().bootMode;
 
-  //boot mode set before resetting the device. If application has defined a boot mode, this will be ignored
+  // boot mode set before resetting the device. If application has defined a boot mode, this will be ignored
   BootMode _nextBootMode = Interface::get().getConfig().getBootModeOnNextBoot();
-  if(_nextBootMode!=BootMode::UNDEFINED) {
+  if (_nextBootMode != BootMode::UNDEFINED) {
     Interface::get().getConfig().setBootModeOnNextBoot(BootMode::UNDEFINED);
   }
 
   BootMode _selectedBootMode = BootMode::CONFIG;
 
-  //select boot mode source
-  if(_applicationBootMode!=BootMode::UNDEFINED) {
+  // select boot mode source
+  if (_applicationBootMode != BootMode::UNDEFINED) {
     _selectedBootMode = _applicationBootMode;
-  } else if(_nextBootMode!=BootMode::UNDEFINED) {
+  } else if (_nextBootMode != BootMode::UNDEFINED) {
     _selectedBootMode = _nextBootMode;
   } else {
     _selectedBootMode = BootMode::NORMAL;
   }
 
-  //validate selected mode and fallback as needed
-  if(_selectedBootMode==BootMode::NORMAL && !Interface::get().getConfig().load()) {
+  // validate selected mode and fallback as needed
+  if (_selectedBootMode == BootMode::NORMAL && !Interface::get().getConfig().load()) {
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
     _selectedBootMode = BootMode::CONFIG;
   }
 
-  //run selected mode
-  if(_selectedBootMode==BootMode::NORMAL) {
+  // run selected mode
+  if (_selectedBootMode == BootMode::NORMAL) {
     _boot = &_bootNormal;
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
 
-  } else if(_selectedBootMode==BootMode::CONFIG) {
+  } else if (_selectedBootMode == BootMode::CONFIG) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
 
-  } else if(_selectedBootMode==BootMode::STANDALONE) {
+  } else if (_selectedBootMode == BootMode::STANDALONE) {
     _boot = &_bootStandalone;
     Interface::get().event.type = HomieEventType::STANDALONE_MODE;
     Interface::get().eventHandler(Interface::get().event);

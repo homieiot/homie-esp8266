@@ -37,10 +37,10 @@ class HomieClass {
   void __setFirmware(const char* name, const char* version);
   void __setBrand(const char* brand) const;
 
-  const BootMode MODE_UNDEFINED = BootMode::UNDEFINED;
-  const BootMode MODE_STANDALONE = BootMode::STANDALONE;
-  const BootMode MODE_CONFIG = BootMode::CONFIG;
-  const BootMode MODE_NORMAL = BootMode::NORMAL;
+  const static BootMode MODE_UNDEFINED = BootMode::UNDEFINED;
+  const static BootMode MODE_STANDALONE = BootMode::STANDALONE;
+  const static BootMode MODE_CONFIG = BootMode::CONFIG;
+  const static BootMode MODE_NORMAL = BootMode::NORMAL;
 
   HomieClass& disableLogging();
   HomieClass& setLoggingPrinter(Print* printer);

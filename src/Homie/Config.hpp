@@ -26,7 +26,7 @@ class Config {
   void write(const JsonObject& config);
   bool patch(const char* patch);
   void log() const;  // print the current config to log output
-  bool isValid();
+  bool isValid() const;
 
  private:
   BootMode _bootMode;
