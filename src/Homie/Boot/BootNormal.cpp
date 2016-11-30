@@ -512,6 +512,13 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   }
 
   // 6. Determine specific Node
+  // Determine if message for our deviceid // [Issue #243]
+  const char* messageDeviceId = Interface::get().getConfig().get().deviceId;
+  for (uint16_t i = 0; i < strlen(device_topic); i++) {
+    if ((device_topic[i] != messageDeviceId[i]) || (device_topic[i] == '/' && messageDeviceId[i] != '\0')) {
+      return;
+    }
+  }
 
   // Implicit node properties
   device_topic[strlen(device_topic) - 4] = '\0';  // Remove /set
