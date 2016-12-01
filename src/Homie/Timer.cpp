@@ -23,7 +23,7 @@ bool Timer::check() const {
 }
 
 void Timer::reset() {
-  if (tickAtBeginning) {
+  if (_tickAtBeginning) {
     _initialTime = 0;
   } else {
     this->tick();
