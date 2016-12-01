@@ -239,6 +239,10 @@ AsyncMqttClient& HomieClass::getMqttClient() {
   return _mqttClient;
 }
 
+Logger& HomieClass::getLogger() {
+  return _logger;
+}
+
 void HomieClass::prepareToSleep() {
   if (Interface::get().connected) {
     Interface::get().flaggedForSleep = true;

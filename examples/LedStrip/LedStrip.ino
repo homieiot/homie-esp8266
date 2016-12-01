@@ -16,7 +16,7 @@ bool stripLedHandler(const HomieRange& range, const String& value) {
 
   digitalWrite(LED_PINS[range.index - 1], on ? HIGH : LOW);
   stripNode.setProperty("led").setRange(range).send(value);  // Update the state of the led
-  Serial << "Led " << range.index << " is " << value << endl;
+  Homie.getLogger() << "Led " << range.index << " is " << value << endl;
 
   return true;
 }
