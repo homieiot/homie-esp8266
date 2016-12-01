@@ -37,6 +37,11 @@ class HomieClass {
   void __setFirmware(const char* name, const char* version);
   void __setBrand(const char* brand) const;
 
+  static const HomieBootNode MODE_UNDEFINED = HomieBootNode::UNDEFINED;
+  static const HomieBootNode MODE_STANDALONE = HomieBootNode::STANDALONE;
+  static const HomieBootNode MODE_CONFIG = HomieBootNode::CONFIG;
+  static const HomieBootNode MODE_NORMAL = HomieBootNode::NORMAL;
+
   HomieClass& disableLogging();
   HomieClass& setLoggingPrinter(Print* printer);
   HomieClass& disableLedFeedback();
@@ -48,9 +53,11 @@ class HomieClass {
   HomieClass& disableResetTrigger();
   HomieClass& setSetupFunction(OperationFunction function);
   HomieClass& setLoopFunction(OperationFunction function);
-  HomieClass& setStandalone();
+  HomieClass& setHomieBootNode(HomieBootNode bootMode);
+  HomieClass& setHomieBootNodeNextBoot(HomieBootNode bootMode);
 
   void reset();
+  void reboot();
   void setIdle(bool idle);
   bool isConfigured() const;
   bool isConnected() const;
@@ -66,6 +73,7 @@ class HomieClass {
   BootStandalone _bootStandalone;
   BootNormal _bootNormal;
   BootConfig _bootConfig;
+  bool _flaggedForReboot;
   SendingPromise _sendingPromise;
   Logger _logger;
   Blinker _blinker;

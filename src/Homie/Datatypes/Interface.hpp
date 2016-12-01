@@ -3,6 +3,7 @@
 #include <AsyncMqttClient.h>
 #include "../Logger.hpp"
 #include "../Blinker.hpp"
+#include "../Constants.hpp"
 #include "../Config.hpp"
 #include "../Limits.hpp"
 #include "./Callbacks.hpp"
@@ -25,7 +26,7 @@ class InterfaceData {
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
 
-  bool standalone;
+  HomieBootNode bootMode;
 
   struct Firmware {
     char name[MAX_FIRMWARE_NAME_LENGTH];

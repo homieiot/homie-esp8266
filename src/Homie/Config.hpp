@@ -8,6 +8,7 @@
 #include "Datatypes/ConfigStruct.hpp"
 #include "Utils/DeviceId.hpp"
 #include "Utils/Validation.hpp"
+#include "Constants.hpp"
 #include "Limits.hpp"
 #include "../HomieSetting.hpp"
 #include "../StreamingOperator.hpp"
@@ -20,17 +21,18 @@ class Config {
   inline const ConfigStruct& get() const;
   char* getSafeConfigFile() const;
   void erase();
-  void bypassStandalone();
-  bool canBypassStandalone();
+  void setHomieBootNodeOnNextBoot(HomieBootNode bootMode);
+  HomieBootNode getHomieBootNodeOnNextBoot();
   void write(const JsonObject& config);
   bool patch(const char* patch);
-  BootMode getBootMode() const;
   void log() const;  // print the current config to log output
+  bool isValid() const;
 
  private:
-  BootMode _bootMode;
+  HomieBootNode _bootMode;
   ConfigStruct _configStruct;
   bool _spiffsBegan;
+  bool _valid;
 
   bool _spiffsBegin();
 };
