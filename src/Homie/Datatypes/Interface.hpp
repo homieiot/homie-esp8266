@@ -26,7 +26,7 @@ class InterfaceData {
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
 
-  BootMode bootMode;
+  HomieBootNode bootMode;
 
   struct Firmware {
     char name[MAX_FIRMWARE_NAME_LENGTH];

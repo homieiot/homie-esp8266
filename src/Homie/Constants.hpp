@@ -27,7 +27,7 @@ namespace HomieInternals {
   const char CONFIG_NEXT_BOOT_MODE_FILE_PATH[] = "/homie/NEXTMODE";
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
 
-  enum class BootMode : uint8_t {
+  enum class HomieBootNode : uint8_t {
     UNDEFINED = 0,
     STANDALONE = 1,
     CONFIG = 2,

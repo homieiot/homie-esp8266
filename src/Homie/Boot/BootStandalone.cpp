@@ -46,7 +46,7 @@ void BootStandalone::loop() {
 
   if (_flaggedForConfig && Interface::get().reset.idle) {
     Interface::get().getLogger() << F("Device is idle") << endl;
-    Interface::get().getConfig().setBootModeOnNextBoot(BootMode::CONFIG);
+    Interface::get().getConfig().setHomieBootNodeOnNextBoot(HomieBootNode::CONFIG);
 
     Interface::get().getLogger() << F("Triggering ABOUT_TO_RESET event...") << endl;
     Interface::get().event.type = HomieEventType::ABOUT_TO_RESET;

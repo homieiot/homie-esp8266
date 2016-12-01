@@ -170,10 +170,10 @@ void Config::erase() {
   SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
 }
 
-void Config::setBootModeOnNextBoot(BootMode bootMode) {
+void Config::setHomieBootNodeOnNextBoot(HomieBootNode bootMode) {
   if (!_spiffsBegin()) { return; }
 
-  if (bootMode == BootMode::UNDEFINED) {
+  if (bootMode == HomieBootNode::UNDEFINED) {
     SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
   } else {
     File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
@@ -188,24 +188,24 @@ void Config::setBootModeOnNextBoot(BootMode bootMode) {
   }
 }
 
-BootMode Config::getBootModeOnNextBoot() {
-  if (!_spiffsBegin()) { return BootMode::UNDEFINED; }
+HomieBootNode Config::getHomieBootNodeOnNextBoot() {
+  if (!_spiffsBegin()) { return HomieBootNode::UNDEFINED; }
 
   File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
   if (bootModeFile) {
     int v = bootModeFile.parseInt();
     bootModeFile.close();
     if (v == 1) {
-      return BootMode::STANDALONE;
+      return HomieBootNode::STANDALONE;
     } else if (v == 2) {
-      return BootMode::CONFIG;
+      return HomieBootNode::CONFIG;
     } else if (v == 3) {
-      return BootMode::NORMAL;
+      return HomieBootNode::NORMAL;
     } else {
-      return BootMode::UNDEFINED;
+      return HomieBootNode::UNDEFINED;
     }
   } else {
-    return BootMode::UNDEFINED;
+    return HomieBootNode::UNDEFINED;
   }
 }
 
@@ -291,13 +291,13 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
   Interface::get().getLogger() << F("  • Boot mode: ");
   switch (_bootMode) {
-    case BootMode::CONFIG:
+    case HomieBootNode::CONFIG:
       Interface::get().getLogger() << F("configuration") << endl;
       break;
-    case BootMode::NORMAL:
+    case HomieBootNode::NORMAL:
       Interface::get().getLogger() << F("normal") << endl;
       break;
-    case BootMode::STANDALONE:
+    case HomieBootNode::STANDALONE:
       Interface::get().getLogger() << F("standalone") << endl;
       break;
     default:

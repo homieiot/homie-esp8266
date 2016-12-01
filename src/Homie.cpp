@@ -7,7 +7,7 @@ HomieClass::HomieClass()
 , _firmwareSet(false)
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(Interface::get().brand, DEFAULT_BRAND);
-  Interface::get().bootMode = BootMode::UNDEFINED;
+  Interface::get().bootMode = HomieBootNode::UNDEFINED;
   Interface::get().led.enabled = true;
   Interface::get().led.pin = BUILTIN_LED;
   Interface::get().led.on = LOW;
@@ -54,43 +54,43 @@ void HomieClass::setup() {
   }
 
   // boot mode set during this boot by application before Homie.setup()
-  BootMode _applicationBootMode = Interface::get().bootMode;
+  HomieBootNode _applicationHomieBootNode = Interface::get().bootMode;
 
   // boot mode set before resetting the device. If application has defined a boot mode, this will be ignored
-  BootMode _nextBootMode = Interface::get().getConfig().getBootModeOnNextBoot();
-  if (_nextBootMode != BootMode::UNDEFINED) {
-    Interface::get().getConfig().setBootModeOnNextBoot(BootMode::UNDEFINED);
+  HomieBootNode _nextHomieBootNode = Interface::get().getConfig().getHomieBootNodeOnNextBoot();
+  if (_nextHomieBootNode != HomieBootNode::UNDEFINED) {
+    Interface::get().getConfig().setHomieBootNodeOnNextBoot(HomieBootNode::UNDEFINED);
   }
 
-  BootMode _selectedBootMode = BootMode::CONFIG;
+  HomieBootNode _selectedHomieBootNode = HomieBootNode::CONFIG;
 
   // select boot mode source
-  if (_applicationBootMode != BootMode::UNDEFINED) {
-    _selectedBootMode = _applicationBootMode;
-  } else if (_nextBootMode != BootMode::UNDEFINED) {
-    _selectedBootMode = _nextBootMode;
+  if (_applicationHomieBootNode != HomieBootNode::UNDEFINED) {
+    _selectedHomieBootNode = _applicationHomieBootNode;
+  } else if (_nextHomieBootNode != HomieBootNode::UNDEFINED) {
+    _selectedHomieBootNode = _nextHomieBootNode;
   } else {
-    _selectedBootMode = BootMode::NORMAL;
+    _selectedHomieBootNode = HomieBootNode::NORMAL;
   }
 
   // validate selected mode and fallback as needed
-  if (_selectedBootMode == BootMode::NORMAL && !Interface::get().getConfig().load()) {
+  if (_selectedHomieBootNode == HomieBootNode::NORMAL && !Interface::get().getConfig().load()) {
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
-    _selectedBootMode = BootMode::CONFIG;
+    _selectedHomieBootNode = HomieBootNode::CONFIG;
   }
 
   // run selected mode
-  if (_selectedBootMode == BootMode::NORMAL) {
+  if (_selectedHomieBootNode == HomieBootNode::NORMAL) {
     _boot = &_bootNormal;
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
 
-  } else if (_selectedBootMode == BootMode::CONFIG) {
+  } else if (_selectedHomieBootNode == HomieBootNode::CONFIG) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
 
-  } else if (_selectedBootMode == BootMode::STANDALONE) {
+  } else if (_selectedHomieBootNode == HomieBootNode::STANDALONE) {
     _boot = &_bootStandalone;
     Interface::get().event.type = HomieEventType::STANDALONE_MODE;
     Interface::get().eventHandler(Interface::get().event);
@@ -223,14 +223,14 @@ HomieClass& HomieClass::setLoopFunction(OperationFunction function) {
   return *this;
 }
 
-HomieClass& HomieClass::setBootMode(BootMode bootMode) {
-  _checkBeforeSetup(F("setBootMode"));
+HomieClass& HomieClass::setHomieBootNode(HomieBootNode bootMode) {
+  _checkBeforeSetup(F("setHomieBootNode"));
   Interface::get().bootMode = bootMode;
   return *this;
 }
 
-HomieClass& HomieClass::setBootModeNextBoot(BootMode bootMode) {
-  Interface::get().getConfig().setBootModeOnNextBoot(bootMode);
+HomieClass& HomieClass::setHomieBootNodeNextBoot(HomieBootNode bootMode) {
+  Interface::get().getConfig().setHomieBootNodeOnNextBoot(bootMode);
   return *this;
 }
 
