@@ -735,7 +735,6 @@ void BootNormal::loop() {
   }
 
   if (Interface::get().connected) {
-
     if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
       Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
       _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");

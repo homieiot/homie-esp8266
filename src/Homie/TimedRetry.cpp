@@ -11,7 +11,7 @@ TimedRetry::TimedRetry(uint32_t stepInterval, uint32_t maxInterval) :
 }
 
 void TimedRetry::activate() {
-  if(!_timer.isActive()) {
+  if (!_timer.isActive()) {
     _timer.setInterval(_stepInterval, false);
     _timer.activate();
     _currentStep = 1;
@@ -19,9 +19,9 @@ void TimedRetry::activate() {
 }
 
 bool TimedRetry::check() {
-  if(_timer.check()) {
+  if (_timer.check()) {
     long nextInterval = (_currentStep*2)*_stepInterval;
-    if(nextInterval <= _maxInterval) {
+    if (nextInterval <= _maxInterval) {
       _currentStep = _currentStep*2;
     } else {
       nextInterval = _maxInterval;
