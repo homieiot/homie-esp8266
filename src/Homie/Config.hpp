@@ -21,15 +21,15 @@ class Config {
   inline const ConfigStruct& get() const;
   char* getSafeConfigFile() const;
   void erase();
-  void setHomieBootNodeOnNextBoot(HomieBootNode bootMode);
-  HomieBootNode getHomieBootNodeOnNextBoot();
+  void setHomieBootModeOnNextBoot(HomieBootMode bootMode);
+  HomieBootMode getHomieBootModeOnNextBoot();
   void write(const JsonObject& config);
   bool patch(const char* patch);
   void log() const;  // print the current config to log output
   bool isValid() const;
 
  private:
-  HomieBootNode _bootMode;
+  HomieBootMode _bootMode;
   ConfigStruct _configStruct;
   bool _spiffsBegan;
   bool _valid;

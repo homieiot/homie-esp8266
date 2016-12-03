@@ -37,10 +37,10 @@ class HomieClass {
   void __setFirmware(const char* name, const char* version);
   void __setBrand(const char* brand) const;
 
-  static const HomieBootNode MODE_UNDEFINED = HomieBootNode::UNDEFINED;
-  static const HomieBootNode MODE_STANDALONE = HomieBootNode::STANDALONE;
-  static const HomieBootNode MODE_CONFIG = HomieBootNode::CONFIG;
-  static const HomieBootNode MODE_NORMAL = HomieBootNode::NORMAL;
+  static const HomieBootMode MODE_UNDEFINED = HomieBootMode::UNDEFINED;
+  static const HomieBootMode MODE_STANDALONE = HomieBootMode::STANDALONE;
+  static const HomieBootMode MODE_CONFIG = HomieBootMode::CONFIG;
+  static const HomieBootMode MODE_NORMAL = HomieBootMode::NORMAL;
 
   HomieClass& disableLogging();
   HomieClass& setLoggingPrinter(Print* printer);
@@ -53,8 +53,8 @@ class HomieClass {
   HomieClass& disableResetTrigger();
   HomieClass& setSetupFunction(OperationFunction function);
   HomieClass& setLoopFunction(OperationFunction function);
-  HomieClass& setHomieBootNode(HomieBootNode bootMode);
-  HomieClass& setHomieBootNodeNextBoot(HomieBootNode bootMode);
+  HomieClass& setHomieBootMode(HomieBootMode bootMode);
+  HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
 
   void reset();
   void reboot();

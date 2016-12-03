@@ -170,10 +170,10 @@ void Config::erase() {
   SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
 }
 
-void Config::setHomieBootNodeOnNextBoot(HomieBootNode bootMode) {
+void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   if (!_spiffsBegin()) { return; }
 
-  if (bootMode == HomieBootNode::UNDEFINED) {
+  if (bootMode == HomieBootMode::UNDEFINED) {
     SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
   } else {
     File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
@@ -188,24 +188,24 @@ void Config::setHomieBootNodeOnNextBoot(HomieBootNode bootMode) {
   }
 }
 
-HomieBootNode Config::getHomieBootNodeOnNextBoot() {
-  if (!_spiffsBegin()) { return HomieBootNode::UNDEFINED; }
+HomieBootMode Config::getHomieBootModeOnNextBoot() {
+  if (!_spiffsBegin()) { return HomieBootMode::UNDEFINED; }
 
   File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
   if (bootModeFile) {
     int v = bootModeFile.parseInt();
     bootModeFile.close();
     if (v == 1) {
-      return HomieBootNode::STANDALONE;
+      return HomieBootMode::STANDALONE;
     } else if (v == 2) {
-      return HomieBootNode::CONFIG;
+      return HomieBootMode::CONFIG;
     } else if (v == 3) {
-      return HomieBootNode::NORMAL;
+      return HomieBootMode::NORMAL;
     } else {
-      return HomieBootNode::UNDEFINED;
+      return HomieBootMode::UNDEFINED;
     }
   } else {
-    return HomieBootNode::UNDEFINED;
+    return HomieBootMode::UNDEFINED;
   }
 }
 
@@ -291,13 +291,13 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
   Interface::get().getLogger() << F("  • Boot mode: ");
   switch (_bootMode) {
-    case HomieBootNode::CONFIG:
+    case HomieBootMode::CONFIG:
       Interface::get().getLogger() << F("configuration") << endl;
       break;
-    case HomieBootNode::NORMAL:
+    case HomieBootMode::NORMAL:
       Interface::get().getLogger() << F("normal") << endl;
       break;
-    case HomieBootNode::STANDALONE:
+    case HomieBootMode::STANDALONE:
       Interface::get().getLogger() << F("standalone") << endl;
       break;
     default:

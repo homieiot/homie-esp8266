@@ -7,7 +7,7 @@ HomieClass::HomieClass()
 , _firmwareSet(false)
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(Interface::get().brand, DEFAULT_BRAND);
-  Interface::get().bootMode = HomieBootNode::UNDEFINED;
+  Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().led.enabled = true;
   Interface::get().led.pin = BUILTIN_LED;
   Interface::get().led.on = LOW;
@@ -54,43 +54,43 @@ void HomieClass::setup() {
   }
 
   // boot mode set during this boot by application before Homie.setup()
-  HomieBootNode _applicationHomieBootNode = Interface::get().bootMode;
+  HomieBootMode _applicationHomieBootMode = Interface::get().bootMode;
 
   // boot mode set before resetting the device. If application has defined a boot mode, this will be ignored
-  HomieBootNode _nextHomieBootNode = Interface::get().getConfig().getHomieBootNodeOnNextBoot();
-  if (_nextHomieBootNode != HomieBootNode::UNDEFINED) {
-    Interface::get().getConfig().setHomieBootNodeOnNextBoot(HomieBootNode::UNDEFINED);
+  HomieBootMode _nextHomieBootMode = Interface::get().getConfig().getHomieBootModeOnNextBoot();
+  if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
+    Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::UNDEFINED);
   }
 
-  HomieBootNode _selectedHomieBootNode = HomieBootNode::CONFIG;
+  HomieBootMode _selectedHomieBootMode = HomieBootMode::CONFIG;
 
   // select boot mode source
-  if (_applicationHomieBootNode != HomieBootNode::UNDEFINED) {
-    _selectedHomieBootNode = _applicationHomieBootNode;
-  } else if (_nextHomieBootNode != HomieBootNode::UNDEFINED) {
-    _selectedHomieBootNode = _nextHomieBootNode;
+  if (_applicationHomieBootMode != HomieBootMode::UNDEFINED) {
+    _selectedHomieBootMode = _applicationHomieBootMode;
+  } else if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
+    _selectedHomieBootMode = _nextHomieBootMode;
   } else {
-    _selectedHomieBootNode = HomieBootNode::NORMAL;
+    _selectedHomieBootMode = HomieBootMode::NORMAL;
   }
 
   // validate selected mode and fallback as needed
-  if (_selectedHomieBootNode == HomieBootNode::NORMAL && !Interface::get().getConfig().load()) {
+  if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load()) {
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
-    _selectedHomieBootNode = HomieBootNode::CONFIG;
+    _selectedHomieBootMode = HomieBootMode::CONFIG;
   }
 
   // run selected mode
-  if (_selectedHomieBootNode == HomieBootNode::NORMAL) {
+  if (_selectedHomieBootMode == HomieBootMode::NORMAL) {
     _boot = &_bootNormal;
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
 
-  } else if (_selectedHomieBootNode == HomieBootNode::CONFIG) {
+  } else if (_selectedHomieBootMode == HomieBootMode::CONFIG) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
 
-  } else if (_selectedHomieBootNode == HomieBootNode::STANDALONE) {
+  } else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
     _boot = &_bootStandalone;
     Interface::get().event.type = HomieEventType::STANDALONE_MODE;
     Interface::get().eventHandler(Interface::get().event);
@@ -223,14 +223,14 @@ HomieClass& HomieClass::setLoopFunction(OperationFunction function) {
   return *this;
 }
 
-HomieClass& HomieClass::setHomieBootNode(HomieBootNode bootMode) {
-  _checkBeforeSetup(F("setHomieBootNode"));
+HomieClass& HomieClass::setHomieBootMode(HomieBootMode bootMode) {
+  _checkBeforeSetup(F("setHomieBootMode"));
   Interface::get().bootMode = bootMode;
   return *this;
 }
 
-HomieClass& HomieClass::setHomieBootNodeNextBoot(HomieBootNode bootMode) {
-  Interface::get().getConfig().setHomieBootNodeOnNextBoot(bootMode);
+HomieClass& HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
+  Interface::get().getConfig().setHomieBootModeOnNextBoot(bootMode);
   return *this;
 }
 

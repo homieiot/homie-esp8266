@@ -19,6 +19,8 @@ namespace HomieInternals {
 
   const uint16_t CONFIG_SCAN_INTERVAL = 20 * 1000;
   const uint32_t STATS_SEND_INTERVAL = 1 * 60 * 1000;
+  const uint32_t MQTT_RECONNECT_STEP_INTERVAL = 250;
+  const uint32_t MQTT_RECONNECT_MAX_INTERVAL = 60000;
 
   const float LED_WIFI_DELAY = 1;
   const float LED_MQTT_DELAY = 0.2;
@@ -27,7 +29,7 @@ namespace HomieInternals {
   const char CONFIG_NEXT_BOOT_MODE_FILE_PATH[] = "/homie/NEXTMODE";
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
 
-  enum class HomieBootNode : uint8_t {
+  enum class HomieBootMode : uint8_t {
     UNDEFINED = 0,
     STANDALONE = 1,
     CONFIG = 2,
