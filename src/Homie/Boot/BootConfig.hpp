@@ -24,6 +24,7 @@ namespace HomieInternals {
       void loop();
     private:
       ESP8266WebServer _http;
+      String _hostName;
       DNSServer _dns;
       unsigned char _ssidCount;
       bool _wifiScanAvailable;
@@ -37,5 +38,6 @@ namespace HomieInternals {
       void _onNetworksRequest();
       void _onConfigRequest();
       void _generateNetworksJson();
+      void _handleFileRead();
   };
 }

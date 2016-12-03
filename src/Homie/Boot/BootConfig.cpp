@@ -42,15 +42,12 @@ void BootConfig::setup() {
 
   this->_interface->logger->log(F("AP started as "));
   this->_interface->logger->logln(apName);
+  this->_hostName = apName;
+  this->_hostName += ".local";
+  this->_dns.setTTL(30);
+  this->_dns.setErrorReplyCode(DNSReplyCode::NoError);
+  this->_dns.start(53, F("*"), ACCESS_POINT_IP);
 
-  this->_dns.setTTL(300);
-  this->_dns.setErrorReplyCode(DNSReplyCode::ServerFailure);
-  this->_dns.start(53, F("homie.config"), ACCESS_POINT_IP);
-
-  this->_http.on("/", HTTP_GET, [this]() {
-    this->_interface->logger->logln(F("Received index request"));
-    this->_http.send(200, F("text/plain"), F("See Configuration API usage: http://marvinroger.viewdocs.io/homie-esp8266/6.-Configuration-API"));
-  });
   this->_http.on("/heart", HTTP_GET, [this]() {
     this->_interface->logger->logln(F("Received heart request"));
     this->_http.send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"heart\":\"beat\"}"));
@@ -62,6 +59,7 @@ void BootConfig::setup() {
     this->_interface->logger->logln(F("Received CORS request for /config"));
     this->_http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
+  this->_http.onNotFound([this](){this->_handleFileRead();});
   this->_http.begin();
 }
 
@@ -105,6 +103,56 @@ void BootConfig::_generateNetworksJson() {
   delete[] this->_jsonWifiNetworks;
   this->_jsonWifiNetworks = new char[jsonLength];
   json.printTo(this->_jsonWifiNetworks, jsonLength);
+}
+
+static String getContentType(String filename){
+  if(filename.endsWith(F(".html"))) return F("text/html");
+  if(filename.endsWith(F(".css")))  return F("text/css");
+  if(filename.endsWith(F(".js")))   return F("application/javascript");
+  if(filename.endsWith(F(".png")))  return F("image/png");
+  if(filename.endsWith(F(".ico")))  return F("image/x-icon");
+  if(filename.endsWith(F(".woff")))  return F("application/font-woff");
+  return F("application/octet-stream");
+}
+
+void BootConfig::_handleFileRead() {
+  // Check the hostname
+  String host = this->_http.hostHeader();
+  if (host && !host.equalsIgnoreCase(this->_hostName)) {
+    String url = F("http://");
+    url += this->_hostName;
+    url += '/';
+    this->_http.sendHeader(F("Location"), url);
+    this->_http.send(302, F("text/plain"), F(""));
+  }
+
+  // Get the requested path
+  String path = "/http" + this->_http.uri();
+  if (path.endsWith(F("/")))
+    path += F("index.html");
+  this->_interface->logger->log(F("handleFileRead: "));
+  this->_interface->logger->logln(path);
+
+  // Get the content type
+  String contentType = getContentType(path);
+
+  // Check if the path is allowed and exists
+  bool found = SPIFFS.exists(path + F(".gz"));
+  if (found) {
+    //this->_http.sendHeader(F("Content-Encoding"), F("gzip"));
+    path += F(".gz");
+  } else {
+    found = SPIFFS.exists(path);
+  }
+
+  // Serve the response
+  if (found) {
+    File file = SPIFFS.open(path, "r");
+    size_t sent = this->_http.streamFile(file, contentType);
+    file.close();
+  } else {
+    this->_http.send(404, F("text/plain"), F("TODO: replace me with instructions to load the config portal in SPIFFS"));
+  }
 }
 
 void BootConfig::_onDeviceInfoRequest() {
