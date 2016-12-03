@@ -38,6 +38,7 @@ isConfigured	KEYWORD2
 isConnected	KEYWORD2
 getConfiguration	KEYWORD2
 getMqttClient	KEYWORD2
+getLogger	KEYWORD2
 prepareToSleep	KEYWORD2
 
 # HomieNode

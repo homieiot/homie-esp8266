@@ -14,7 +14,7 @@ bool switchOnHandler(const HomieRange& range, const String& value) {
   bool on = (value == "true");
   digitalWrite(PIN_RELAY, on ? HIGH : LOW);
   switchNode.setProperty("on").send(value);
-  Serial << "Switch is " << (on ? "on" : "off") << endl;
+  Homie.getLogger() << "Switch is " << (on ? "on" : "off") << endl;
 
   return true;
 }

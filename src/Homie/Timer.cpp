@@ -13,7 +13,7 @@ void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
   _interval = interval;
   _tickAtBeginning = tickAtBeginning;
 
-  if (!tickAtBeginning) _initialTime = millis();
+  this->reset();
 }
 
 bool Timer::check() const {
@@ -25,7 +25,11 @@ bool Timer::check() const {
 }
 
 void Timer::reset() {
-  _initialTime = 0;
+  if (_tickAtBeginning) {
+    _initialTime = 0;
+  } else {
+    this->tick();
+  }
 }
 
 void Timer::tick() {
