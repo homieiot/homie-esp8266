@@ -8,6 +8,8 @@ HomieClass::HomieClass()
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(Interface::get().brand, DEFAULT_BRAND);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
+  Interface::get().standalone = false;
+  Interface::get().configurationAp.secured = false;
   Interface::get().led.enabled = true;
   Interface::get().led.pin = BUILTIN_LED;
   Interface::get().led.on = LOW;
@@ -150,6 +152,13 @@ HomieClass& HomieClass::setLedPin(uint8_t pin, uint8_t on) {
   Interface::get().led.on = on;
 
   return *this;
+}
+
+HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
+  _checkBeforeSetup(F("setConfigurationApPassword"));
+
+  Interface::get().configurationAp.secured = true;
+  strcpy(Interface::get().configurationAp.password, password);
 }
 
 void HomieClass::__setFirmware(const char* name, const char* version) {

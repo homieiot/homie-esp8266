@@ -46,6 +46,7 @@ class HomieClass {
   HomieClass& setLoggingPrinter(Print* printer);
   HomieClass& disableLedFeedback();
   HomieClass& setLedPin(uint8_t pin, uint8_t on);
+  HomieClass& setConfigurationApPassword(const char* password);
   HomieClass& setGlobalInputHandler(GlobalInputHandler globalInputHandler);
   HomieClass& setBroadcastHandler(BroadcastHandler broadcastHandler);
   HomieClass& onEvent(EventHandler handler);

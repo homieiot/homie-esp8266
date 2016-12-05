@@ -28,6 +28,11 @@ class InterfaceData {
 
   HomieBootMode bootMode;
 
+  struct ConfigurationAP {
+    bool secured;
+    char password[MAX_WIFI_PASSWORD_LENGTH];
+  } configurationAp;
+
   struct Firmware {
     char name[MAX_FIRMWARE_NAME_LENGTH];
     char version[MAX_FIRMWARE_VERSION_LENGTH];

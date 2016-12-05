@@ -35,7 +35,11 @@ void BootConfig::setup() {
   strcat(apName, DeviceId::get());
 
   WiFi.softAPConfig(ACCESS_POINT_IP, ACCESS_POINT_IP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(apName);
+  if (Interface::get().configurationAp.secured) {
+    WiFi.softAP(apName, Interface::get().configurationAp.password);
+  } else {
+    WiFi.softAP(apName);
+  }
 
   sprintf(_apIpStr, "%d.%d.%d.%d", ACCESS_POINT_IP[0], ACCESS_POINT_IP[1], ACCESS_POINT_IP[2], ACCESS_POINT_IP[3]);
 
