@@ -8,7 +8,6 @@ HomieClass::HomieClass()
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(Interface::get().brand, DEFAULT_BRAND);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
-  Interface::get().standalone = false;
   Interface::get().configurationAp.secured = false;
   Interface::get().led.enabled = true;
   Interface::get().led.pin = BUILTIN_LED;
