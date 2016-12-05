@@ -6,6 +6,7 @@ BootNormal::BootNormal()
 : Boot("normal")
 , _setupFunctionCalled(false)
 , _mqttDisconnectNotified(true)
+, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 , _flaggedForReboot(false)
@@ -150,6 +151,8 @@ void BootNormal::_mqttConnect() {
 
 void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
+  _mqttTimedRetry.deactivate();
+
   Interface::get().getLogger() << F("Sending initial information...") << endl;
 
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
@@ -270,9 +273,12 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 
       return;
     }
-  }
 
-  _mqttConnect();
+    _mqttConnect();
+
+  } else {
+    _mqttTimedRetry.activate();
+  }
 }
 
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
@@ -702,6 +708,10 @@ void BootNormal::loop() {
 
   _handleReset();
 
+  if (_mqttTimedRetry.check()) {
+    _mqttConnect();
+  }
+
   if (_flaggedForReset && Interface::get().reset.idle) {
     Interface::get().getLogger() << F("Device is idle") << endl;
     Interface::get().getConfig().erase();
@@ -724,27 +734,27 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
-  if (!Interface::get().connected) return;
+  if (Interface::get().connected) {
+    if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
+      Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
+      _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
+    }
 
-  if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
-    Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
-    _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
-  }
+    if (_statsTimer.check()) {
+      uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
+      char qualityStr[3 + 1];
+      itoa(quality, qualityStr, 10);
+      Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
+      Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
+      Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
 
-  if (_statsTimer.check()) {
-    uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
-    char qualityStr[3 + 1];
-    itoa(quality, qualityStr, 10);
-    Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
-    Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
-
-    _uptime.update();
-    char uptimeStr[20 + 1];
-    itoa(_uptime.getSeconds(), uptimeStr, 10);
-    Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
-    _statsTimer.tick();
+      _uptime.update();
+      char uptimeStr[20 + 1];
+      itoa(_uptime.getSeconds(), uptimeStr, 10);
+      Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
+      Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
+      _statsTimer.tick();
+    }
   }
 
   Interface::get().loopFunction();

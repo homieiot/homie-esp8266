@@ -5,7 +5,8 @@ using namespace HomieInternals;
 Timer::Timer()
 : _initialTime(0)
 , _interval(0)
-, _tickAtBeginning(false) {
+, _tickAtBeginning(false)
+, _active(true) {
 }
 
 void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
@@ -16,9 +17,10 @@ void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
 }
 
 bool Timer::check() const {
-  if (_tickAtBeginning && _initialTime == 0) return true;
-  if (millis() - _initialTime >= _interval) return true;
-
+  if (_active) {
+    if (_tickAtBeginning && _initialTime == 0) return true;
+    if (millis() - _initialTime >= _interval) return true;
+  }
   return false;
 }
 
@@ -32,4 +34,17 @@ void Timer::reset() {
 
 void Timer::tick() {
   _initialTime = millis();
+}
+
+void Timer::activate() {
+  _active = true;
+}
+
+void Timer::deactivate() {
+  _active = false;
+  reset();
+}
+
+bool Timer::isActive() {
+  return _active;
 }

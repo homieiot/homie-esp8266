@@ -7,7 +7,7 @@ HomieClass::HomieClass()
 , _firmwareSet(false)
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strcpy(Interface::get().brand, DEFAULT_BRAND);
-  Interface::get().standalone = false;
+  Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().led.enabled = true;
   Interface::get().led.pin = BUILTIN_LED;
   Interface::get().led.on = LOW;
@@ -48,37 +48,57 @@ void HomieClass::setup() {
   _setupCalled = true;
 
   if (!_firmwareSet) {
-    Interface::get().getLogger() << F("✖ firmware must be set before calling setup()") << endl;
+    Interface::get().getLogger() << F("✖ Firmware name must be set before calling setup()") << endl;
     Serial.flush();
     abort();
   }
 
-  if (!Interface::get().getConfig().load()) {
-    if (Interface::get().standalone && !Interface::get().getConfig().canBypassStandalone()) {
-      _boot = &_bootStandalone;
-      Interface::get().getLogger() << F("Triggering STANDALONE_MODE event...") << endl;
-      Interface::get().event.type = HomieEventType::STANDALONE_MODE;
-      Interface::get().eventHandler(Interface::get().event);
-    } else {
-      _boot = &_bootConfig;
-      Interface::get().getLogger() << F("Triggering CONFIGURATION_MODE event...") << endl;
-      Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
-      Interface::get().eventHandler(Interface::get().event);
-    }
+  // boot mode set during this boot by application before Homie.setup()
+  HomieBootMode _applicationHomieBootMode = Interface::get().bootMode;
+
+  // boot mode set before resetting the device. If application has defined a boot mode, this will be ignored
+  HomieBootMode _nextHomieBootMode = Interface::get().getConfig().getHomieBootModeOnNextBoot();
+  if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
+    Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::UNDEFINED);
+  }
+
+  HomieBootMode _selectedHomieBootMode = HomieBootMode::CONFIG;
+
+  // select boot mode source
+  if (_applicationHomieBootMode != HomieBootMode::UNDEFINED) {
+    _selectedHomieBootMode = _applicationHomieBootMode;
+  } else if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
+    _selectedHomieBootMode = _nextHomieBootMode;
   } else {
-    switch (Interface::get().getConfig().getBootMode()) {
-      case BootMode::NORMAL:
-        _boot = &_bootNormal;
-        Interface::get().getLogger() << F("Triggering NORMAL_MODE event...") << endl;
-        Interface::get().event.type = HomieEventType::NORMAL_MODE;
-        Interface::get().eventHandler(Interface::get().event);
-        break;
-      default:
-        Interface::get().getLogger() << F("✖ The boot mode is invalid") << endl;
-        Serial.flush();
-        abort();
-        break;
-    }
+    _selectedHomieBootMode = HomieBootMode::NORMAL;
+  }
+
+  // validate selected mode and fallback as needed
+  if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load()) {
+    Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
+    _selectedHomieBootMode = HomieBootMode::CONFIG;
+  }
+
+  // run selected mode
+  if (_selectedHomieBootMode == HomieBootMode::NORMAL) {
+    _boot = &_bootNormal;
+    Interface::get().event.type = HomieEventType::NORMAL_MODE;
+    Interface::get().eventHandler(Interface::get().event);
+
+  } else if (_selectedHomieBootMode == HomieBootMode::CONFIG) {
+    _boot = &_bootConfig;
+    Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
+    Interface::get().eventHandler(Interface::get().event);
+
+  } else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
+    _boot = &_bootStandalone;
+    Interface::get().event.type = HomieEventType::STANDALONE_MODE;
+    Interface::get().eventHandler(Interface::get().event);
+
+  } else {
+    Interface::get().getLogger() << F("✖ Boot mode invalid") << endl;
+    Serial.flush();
+    abort();
   }
 
   _boot->setup();
@@ -86,6 +106,17 @@ void HomieClass::setup() {
 
 void HomieClass::loop() {
   _boot->loop();
+
+  if (_flaggedForReboot && Interface::get().reset.idle) {
+    Interface::get().getLogger() << F("Device is idle") << endl;
+    Interface::get().getLogger() << F("Triggering ABOUT_TO_RESET event...") << endl;
+    Interface::get().event.type = HomieEventType::ABOUT_TO_RESET;
+    Interface::get().eventHandler(Interface::get().event);
+
+    Interface::get().getLogger() << F("↻ Rebooting device...") << endl;
+    Serial.flush();
+    ESP.restart();
+  }
 }
 
 HomieClass& HomieClass::disableLogging() {
@@ -152,6 +183,10 @@ void HomieClass::reset() {
   Interface::get().reset.flaggedBySketch = true;
 }
 
+void HomieClass::reboot() {
+  _flaggedForReboot = true;
+}
+
 void HomieClass::setIdle(bool idle) {
   Interface::get().reset.idle = idle;
 }
@@ -188,16 +223,19 @@ HomieClass& HomieClass::setLoopFunction(OperationFunction function) {
   return *this;
 }
 
-HomieClass& HomieClass::setStandalone() {
-  _checkBeforeSetup(F("setStandalone"));
+HomieClass& HomieClass::setHomieBootMode(HomieBootMode bootMode) {
+  _checkBeforeSetup(F("setHomieBootMode"));
+  Interface::get().bootMode = bootMode;
+  return *this;
+}
 
-  Interface::get().standalone = true;
-
+HomieClass& HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
+  Interface::get().getConfig().setHomieBootModeOnNextBoot(bootMode);
   return *this;
 }
 
 bool HomieClass::isConfigured() const {
-  return Interface::get().getConfig().getBootMode() == BootMode::NORMAL;
+  return Interface::get().getConfig().load();
 }
 
 bool HomieClass::isConnected() const {

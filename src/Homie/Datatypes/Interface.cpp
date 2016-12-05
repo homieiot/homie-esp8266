@@ -6,7 +6,7 @@ InterfaceData Interface::_interface;  // need to define the static variable
 
 InterfaceData::InterfaceData()
 : brand({'\0'})
-, standalone(false)
+, bootMode(HomieBootMode::UNDEFINED)
 , firmware { .name = {'\0'}, .version = {'\0'} }
 , led { .enabled = false, .pin = 0, .on = 0 }
 , reset { .enabled = false, .idle = false, .triggerPin = 0, .triggerState = 0, .triggerTime = 0, .flaggedBySketch = false }

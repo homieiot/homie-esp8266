@@ -17,6 +17,7 @@
 #include "../Utils/Helpers.hpp"
 #include "../Uptime.hpp"
 #include "../Timer.hpp"
+#include "../TimedRetry.hpp"
 #include "Boot.hpp"
 
 namespace HomieInternals {
@@ -30,6 +31,7 @@ class BootNormal : public Boot {
  private:
   Uptime _uptime;
   Timer _statsTimer;
+  TimedRetry _mqttTimedRetry;
   bool _setupFunctionCalled;
   WiFiEventHandler _wifiGotIpHandler;
   WiFiEventHandler _wifiDisconnectedHandler;
