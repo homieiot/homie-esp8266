@@ -169,6 +169,9 @@ void BootNormal::_mqttSetup() {
   this->_fillMqttTopic(PSTR("/$fwversion"));
   if (!this->_publishRetainedOrFail(this->_interface->firmware.version)) return;
 
+  this->_fillMqttTopic(PSTR("/$fwcompiled"));
+  if (!this->_publishRetainedOrFail(__DATE__ " - " __TIME__)) return;
+
   this->_interface->logger->logln(F(" OK"));
 
   this->_fillMqttTopic(PSTR("/+/+/set"));
