@@ -60,6 +60,10 @@ void BootConfig::setup() {
     _http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
   _http.on("/wifi/connect", HTTP_PUT, std::bind(&BootConfig::_onWifiConnectRequest, this));
+  _http.on("/wifi/connect", HTTP_OPTIONS, [this]() {  // CORS
+    Interface::get().getLogger() << F("Received CORS request for /wifi/connect") << endl;
+    _http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
+  });
   _http.on("/wifi/status", HTTP_GET, std::bind(&BootConfig::_onWifiStatusRequest, this));
   _http.on("/proxy/control", HTTP_PUT, std::bind(&BootConfig::_onProxyControlRequest, this));
   _http.onNotFound(std::bind(&BootConfig::_onCaptivePortal, this));
