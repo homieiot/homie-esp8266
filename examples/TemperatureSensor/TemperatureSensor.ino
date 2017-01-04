@@ -13,7 +13,7 @@ void setupHandler() {
 void loopHandler() {
   if (millis() - lastTemperatureSent >= TEMPERATURE_INTERVAL * 1000UL || lastTemperatureSent == 0) {
     float temperature = 22; // Fake temperature here, for the example
-    Serial << "Temperature: " << temperature << " °C" << endl;
+    Homie.getLogger() << "Temperature: " << temperature << " °C" << endl;
     temperatureNode.setProperty("degrees").send(String(temperature));
     lastTemperatureSent = millis();
   }

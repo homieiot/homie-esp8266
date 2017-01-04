@@ -2,6 +2,8 @@
 
 #include "Arduino.h"
 
+#include <ESP8266WiFi.h>
+
 namespace HomieInternals {
 class DeviceId {
  public:
@@ -9,6 +11,6 @@ class DeviceId {
   static const char* get();
 
  private:
-  static char _deviceId[8 + 1];
+  static char _deviceId[12 + 1];
 };
 }  // namespace HomieInternals

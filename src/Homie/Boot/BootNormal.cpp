@@ -6,21 +6,22 @@ BootNormal::BootNormal()
 : Boot("normal")
 , _setupFunctionCalled(false)
 , _mqttDisconnectNotified(true)
+, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 , _flaggedForReboot(false)
-, _mqttTopic(nullptr)
-, _mqttClientId(nullptr)
-, _mqttWillTopic(nullptr)
-, _mqttPayloadBuffer(nullptr)
 , _mqttOfflineMessageId(0)
-, _otaChecksumSet(false)
-, _otaChecksum()
 , _otaIsBase64(false)
 , _otaBase64Pads(0)
 , _otaSizeTotal(0)
-, _otaSizeDone(0) {
+, _otaSizeDone(0)
+, _mqttTopic(nullptr)
+, _mqttClientId(nullptr)
+, _mqttWillTopic(nullptr)
+, _mqttPayloadBuffer(nullptr) {
   _statsTimer.setInterval(STATS_SEND_INTERVAL);
+  strncpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum) - 1);
+  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
 }
 
 BootNormal::~BootNormal() {
@@ -53,7 +54,7 @@ uint16_t BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
 
 void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
   if (success) {
-    Interface::get().getLogger() << F("✔ OTA success") << endl;
+    Interface::get().getLogger() << F("✔ OTA succeeded") << endl;
     Interface::get().getLogger() << F("Triggering OTA_SUCCESSFUL event...") << endl;
     Interface::get().event.type = HomieEventType::OTA_SUCCESSFUL;
     Interface::get().eventHandler(Interface::get().event);
@@ -96,14 +97,8 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     Interface::get().getLogger() << F("Triggering OTA_FAILED event...") << endl;
     Interface::get().event.type = HomieEventType::OTA_FAILED;
     Interface::get().eventHandler(Interface::get().event);
-
-    // Reboot if Updater::setMD5 was called (cannot clear expected MD5 otherwise)
-    if (_otaChecksumSet) {
-      _flaggedForReboot = true;
-    }
   }
   _flaggedForOta = false;
-  _otaChecksumSet = false;
 }
 
 void BootNormal::_wifiConnect() {
@@ -156,10 +151,13 @@ void BootNormal::_mqttConnect() {
 
 void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
+  _mqttTimedRetry.deactivate();
+
   Interface::get().getLogger() << F("Sending initial information...") << endl;
 
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
+  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$mac")), 1, true, WiFi.macAddress().c_str());
 
   for (HomieNode* iNode : HomieNode::nodes) {
     std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(iNode->getId()) + 12 + 1]);  // /id/$properties
@@ -212,6 +210,7 @@ void BootNormal::_onMqttConnected() {
 
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/name")), 1, true, Interface::get().firmware.name);
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/version")), 1, true, Interface::get().firmware.version);
+  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/checksum")), 1, true, _fwChecksum);
 
   Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/+/+/set")), 2);
 
@@ -231,8 +230,6 @@ void BootNormal::_onMqttConnected() {
   String broadcast_topic(Interface::get().getConfig().get().mqtt.baseTopic);
   broadcast_topic.concat("$broadcast/+");
   Interface::get().getMqttClient().subscribe(broadcast_topic.c_str(), 2);
-
-  Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$ota")), 2);
 
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
 
@@ -276,9 +273,12 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 
       return;
     }
-  }
 
-  _mqttConnect();
+    _mqttConnect();
+
+  } else {
+    _mqttTimedRetry.activate();
+  }
 }
 
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
@@ -306,7 +306,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       }
     } else {
       if (index == 0) {
-        Interface::get().getLogger() << F("OTA started") << endl;
+        Interface::get().getLogger() << F("↕ OTA started") << endl;
         Interface::get().getLogger() << F("Triggering OTA_STARTED event...") << endl;
         Interface::get().event.type = HomieEventType::OTA_STARTED;
         Interface::get().eventHandler(Interface::get().event);
@@ -376,16 +376,18 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         }
         if (bin_len > 0) {
           // Decode base64 payload in-place. base64_decode_block() can decode in-place,
-          // except for the very first byte. So we "manually" decode the first byte into
-          // a temporary buffer and manually merge that back into the payload. This one
-          // is a little tricky, but it saves us from having to dynamically allocate
-          // some 800 bytes of memory for every $implementation/ota/firmware.
+          // except for the first two base64-characters which make one binary byte plus
+          // 4 extra bits (saved in _otaBase64State). So we "manually" decode the first
+          // two characters into a temporary buffer and manually merge that back into
+          // the payload. This one is a little tricky, but it saves us from having to
+          // dynamically allocate some 800 bytes of memory for every payload chunk.
+          size_t dec_len = bin_len > 1 ? 2 : 1;
           char c;
-          write_len = (size_t) base64_decode_block(payload, 1, &c, &_otaBase64State);
+          write_len = (size_t) base64_decode_block(payload, dec_len, &c, &_otaBase64State);
           *payload = c;
 
           if (bin_len > 1) {
-            write_len += (size_t) base64_decode_block((const char*) payload + 1, bin_len - 1, payload, &_otaBase64State);
+            write_len += (size_t) base64_decode_block((const char*) payload + dec_len, bin_len - dec_len, payload + write_len, &_otaBase64State);
           }
         } else {
           write_len = 0;
@@ -450,14 +452,12 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   /* Arrived here, the payload is complete */
 
   if (strcmp_P(device_topic, PSTR("$implementation/ota/checksum")) == 0) {  // If this is the MD5 OTA checksum (32 hex characters)
+    Interface::get().getLogger() << F("✴ OTA available (checksum ") << _mqttPayloadBuffer.get() << F(")") << endl;
     if (!Interface::get().getConfig().get().ota.enabled) {
       _publishOtaStatus(403);  // 403 Forbidden
-    } else if (!_flaggedForOta) {
-      Interface::get().getLogger() << F("Receiving OTA checksum but not requested, skipping...") << endl;
-      _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
+    } else if (strcmp(_mqttPayloadBuffer.get(), _fwChecksum) == 0) {
+      _publishOtaStatus(304);  // 304 Not Modified
     } else {
-      Interface::get().getLogger() << F("Receiving OTA checksum (") << payload << F(")...") << endl;
-
       // 32 hex characters?
       if (strlen(_mqttPayloadBuffer.get()) != 32) {
         // Invalid MD5 number => 400 BAD_CHECKSUM
@@ -468,16 +468,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       for (uint8_t i = 0; i < 32; i++) {
         char c = _mqttPayloadBuffer.get()[i];
         bool valid = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-
         if (!valid) {
           _endOtaUpdate(false, UPDATE_ERROR_MD5);
           return;
         }
       }
 
-      strcpy(_otaChecksum, _mqttPayloadBuffer.get());
-      _otaChecksumSet = true;
-      Update.setMD5(_otaChecksum);
+      _flaggedForOta = true;
+      Update.setMD5(_mqttPayloadBuffer.get());
       _publishOtaStatus(202);
     }
     return;
@@ -488,7 +486,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   if (strncmp(broadcast_topic, "$broadcast", 10) == 0) {
     broadcast_topic += sizeof("$broadcast");  // move pointer to second char after $broadcast (sizeof counts the \0)
     String broadcastLevel(broadcast_topic);
-    Interface::get().getLogger() << F("Calling broadcast handler...") << endl;
+    Interface::get().getLogger() << F("📢 Calling broadcast handler...") << endl;
     bool handled = Interface::get().broadcastHandler(broadcastLevel, _mqttPayloadBuffer.get());
     if (!handled) {
       Interface::get().getLogger() << F("The following broadcast was not handled:") << endl;
@@ -498,23 +496,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
-  // 4. Special Functions: $ota
-  if (strcmp_P(device_topic, PSTR("$ota")) == 0) {  // If this is the $ota announcement
-    if (Interface::get().getConfig().get().ota.enabled) {
-      if (strcmp(_mqttPayloadBuffer.get(), Interface::get().firmware.version) != 0) {
-        Interface::get().getLogger() << F("✴ OTA available (version ") << _mqttPayloadBuffer.get() << F(")") << endl;
-        _flaggedForOta = true;
-        _publishOtaStatus(202);  // 202 Accepted
-      } else {
-        _publishOtaStatus(304);  // 304 Not Modified
-      }
-    } else {
-      _publishOtaStatus(403);  // 403 Forbidden
-    }
-    return;
-  }
-
-  // 5. Special Functions: $reset
+  // 4. Special Functions: $reset
   if (strcmp_P(device_topic, PSTR("$implementation/reset")) == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
     Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
     _flaggedForReset = true;
@@ -522,8 +504,9 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
-  // 6. Special Functions set $config
+  // 5. Special Functions set $config
   if (strcmp_P(device_topic, PSTR("$implementation/config/set")) == 0) {
+    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config/set")), 1, true, "");
     if (Interface::get().getConfig().patch(_mqttPayloadBuffer.get())) {
       Interface::get().getLogger() << F("✔ Configuration updated") << endl;
       _flaggedForReboot = true;
@@ -534,8 +517,14 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
-
-  // 7. Determine specific Node
+  // 6. Determine specific Node
+  // Determine if message for our deviceid // [Issue #243]
+  const char* messageDeviceId = Interface::get().getConfig().get().deviceId;
+  for (uint16_t i = 0; i < strlen(messageDeviceId); i++) {
+    if ((broadcast_topic[i] != messageDeviceId[i]) || (broadcast_topic[i] == '/' && messageDeviceId[i] != '\0')) {
+      return;
+    }
+  }
 
   // Implicit node properties
   device_topic[strlen(device_topic) - 4] = '\0';  // Remove /set
@@ -719,6 +708,10 @@ void BootNormal::loop() {
 
   _handleReset();
 
+  if (_mqttTimedRetry.check()) {
+    _mqttConnect();
+  }
+
   if (_flaggedForReset && Interface::get().reset.idle) {
     Interface::get().getLogger() << F("Device is idle") << endl;
     Interface::get().getConfig().erase();
@@ -741,27 +734,27 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
-  if (!Interface::get().connected) return;
+  if (Interface::get().connected) {
+    if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
+      Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
+      _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
+    }
 
-  if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
-    Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
-    _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
-  }
+    if (_statsTimer.check()) {
+      uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
+      char qualityStr[3 + 1];
+      itoa(quality, qualityStr, 10);
+      Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
+      Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
+      Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
 
-  if (_statsTimer.check()) {
-    uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
-    char qualityStr[3 + 1];
-    itoa(quality, qualityStr, 10);
-    Interface::get().getLogger() << F("Sending statistics...") << endl;
-    Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
-
-    _uptime.update();
-    char uptimeStr[20 + 1];
-    itoa(_uptime.getSeconds(), uptimeStr, 10);
-    Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
-    _statsTimer.tick();
+      _uptime.update();
+      char uptimeStr[20 + 1];
+      itoa(_uptime.getSeconds(), uptimeStr, 10);
+      Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
+      Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
+      _statsTimer.tick();
+    }
   }
 
   Interface::get().loopFunction();

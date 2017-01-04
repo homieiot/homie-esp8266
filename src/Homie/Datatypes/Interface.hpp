@@ -3,6 +3,7 @@
 #include <AsyncMqttClient.h>
 #include "../Logger.hpp"
 #include "../Blinker.hpp"
+#include "../Constants.hpp"
 #include "../Config.hpp"
 #include "../Limits.hpp"
 #include "./Callbacks.hpp"
@@ -20,10 +21,17 @@ class InterfaceData {
   friend HomieClass;
 
  public:
+  InterfaceData();
+
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
 
-  bool standalone;
+  HomieBootMode bootMode;
+
+  struct ConfigurationAP {
+    bool secured;
+    char password[MAX_WIFI_PASSWORD_LENGTH];
+  } configurationAp;
 
   struct Firmware {
     char name[MAX_FIRMWARE_NAME_LENGTH];

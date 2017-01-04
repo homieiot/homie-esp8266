@@ -25,9 +25,7 @@ void BootConfig::setup() {
     digitalWrite(Interface::get().led.pin, Interface::get().led.on);
   }
 
-  const char* deviceId = DeviceId::get();
-
-  Interface::get().getLogger() << F("Device ID is ") << deviceId << endl;
+  Interface::get().getLogger() << F("Device ID is ") << DeviceId::get() << endl;
 
   WiFi.mode(WIFI_AP_STA);
 
@@ -37,9 +35,15 @@ void BootConfig::setup() {
   strcat(apName, DeviceId::get());
 
   WiFi.softAPConfig(ACCESS_POINT_IP, ACCESS_POINT_IP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(apName, deviceId);
+  if (Interface::get().configurationAp.secured) {
+    WiFi.softAP(apName, Interface::get().configurationAp.password);
+  } else {
+    WiFi.softAP(apName);
+  }
 
-  Interface::get().getLogger() << F("AP started as ") << apName << endl;
+  sprintf(_apIpStr, "%d.%d.%d.%d", ACCESS_POINT_IP[0], ACCESS_POINT_IP[1], ACCESS_POINT_IP[2], ACCESS_POINT_IP[3]);
+
+  Interface::get().getLogger() << F("AP started as ") << apName << F(" with IP ") << _apIpStr << endl;
   _dns.setTTL(30);
   _dns.setErrorReplyCode(DNSReplyCode::NoError);
   _dns.start(53, F("*"), ACCESS_POINT_IP);
@@ -56,6 +60,10 @@ void BootConfig::setup() {
     _http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
   });
   _http.on("/wifi/connect", HTTP_PUT, std::bind(&BootConfig::_onWifiConnectRequest, this));
+  _http.on("/wifi/connect", HTTP_OPTIONS, [this]() {  // CORS
+    Interface::get().getLogger() << F("Received CORS request for /wifi/connect") << endl;
+    _http.sendContent(FPSTR(PROGMEM_CONFIG_CORS));
+  });
   _http.on("/wifi/status", HTTP_GET, std::bind(&BootConfig::_onWifiStatusRequest, this));
   _http.on("/proxy/control", HTTP_PUT, std::bind(&BootConfig::_onProxyControlRequest, this));
   _http.onNotFound(std::bind(&BootConfig::_onCaptivePortal, this));
@@ -181,14 +189,16 @@ void BootConfig::_generateNetworksJson() {
 
 void BootConfig::_onCaptivePortal() {
   String host = _http.hostHeader();
-  if (host && !host.equalsIgnoreCase(F("homie.config"))) {
+  if (host && !host.equals(_apIpStr)) {
     // redirect unknown host requests to self if not connected to Internet yet
     if (!_proxyEnabled) {
       Interface::get().getLogger() << F("Received captive portal request") << endl;
       // Catch any captive portal probe.
       // Every browser brand uses a different URL for this purpose
       // We MUST redirect all them to local webserver to prevent cache poisoning
-      _http.sendHeader(F("Location"), F("http://homie.config/"));
+      String redirectUrl = String("http://");
+      redirectUrl.concat(_apIpStr);
+      _http.sendHeader(F("Location"), redirectUrl);
       _http.send(302, F("text/plain"), F(""));
     // perform transparent proxy to Internet if connected
     } else {
@@ -208,9 +218,13 @@ void BootConfig::_onCaptivePortal() {
 void BootConfig::_proxyHttpRequest() {
   Interface::get().getLogger() << F("Received transparent proxy request") << endl;
 
+  String url = String("http://");
+  url.concat(_http.hostHeader());
+  url.concat(_http.uri());
+
   // send request to destination (as in incoming host header)
-  _httpClient.setUserAgent("ESP8266-Homie");
-  _httpClient.begin("http://" + _http.hostHeader() + _http.uri());
+  _httpClient.setUserAgent(F("ESP8266-Homie"));
+  _httpClient.begin(url);
   // copy headers
   for (int i = 0; i < _http.headers(); i++) {
     _httpClient.addHeader(_http.headerName(i), _http.header(i));
@@ -218,11 +232,11 @@ void BootConfig::_proxyHttpRequest() {
 
   String method = "";
   switch (_http.method()) {
-    case HTTP_GET: method = "GET"; break;
-    case HTTP_PUT: method = "PUT"; break;
-    case HTTP_POST: method = "POST"; break;
-    case HTTP_DELETE: method = "DELETE"; break;
-    case HTTP_OPTIONS: method = "OPTIONS"; break;
+    case HTTP_GET: method = F("GET"); break;
+    case HTTP_PUT: method = F("PUT"); break;
+    case HTTP_POST: method = F("POST"); break;
+    case HTTP_DELETE: method = F("DELETE"); break;
+    case HTTP_OPTIONS: method = F("OPTIONS"); break;
     default: break;
   }
 
@@ -268,15 +282,6 @@ void BootConfig::_onDeviceInfoRequest() {
       jsonSetting["name"] = setting->getName();
       jsonSetting["description"] = setting->getDescription();
       jsonSetting["type"] = "bool";
-      jsonSetting["required"] = setting->isRequired();
-      if (!setting->isRequired()) {
-        jsonSetting["default"] = setting->get();
-      }
-    } else if (iSetting->isUnsignedLong()) {
-      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
-      jsonSetting["name"] = setting->getName();
-      jsonSetting["description"] = setting->getDescription();
-      jsonSetting["type"] = "ulong";
       jsonSetting["required"] = setting->isRequired();
       if (!setting->isRequired()) {
         jsonSetting["default"] = setting->get();

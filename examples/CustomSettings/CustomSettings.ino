@@ -6,7 +6,7 @@ unsigned long lastTemperatureSent = 0;
 
 HomieNode temperatureNode("temperature", "temperature");
 
-HomieSetting<unsigned long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in seconds");
+HomieSetting<long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in seconds");
 
 void setupHandler() {
   temperatureNode.setProperty("unit").send("c");
@@ -15,7 +15,7 @@ void setupHandler() {
 void loopHandler() {
   if (millis() - lastTemperatureSent >= temperatureIntervalSetting.get() * 1000UL || lastTemperatureSent == 0) {
     float temperature = 22; // Fake temperature here, for the example
-    Serial << "Temperature: " << temperature << " °C" << endl;
+    Homie.getLogger() << "Temperature: " << temperature << " °C" << endl;
     temperatureNode.setProperty("degrees").send(String(temperature));
     lastTemperatureSent = millis();
   }
@@ -30,7 +30,9 @@ void setup() {
   temperatureNode.advertise("unit");
   temperatureNode.advertise("degrees");
 
-  temperatureIntervalSetting.setDefaultValue(DEFAULT_TEMPERATURE_INTERVAL);
+  temperatureIntervalSetting.setDefaultValue(DEFAULT_TEMPERATURE_INTERVAL).setValidator([] (long candidate) {
+    return candidate > 0;
+  });
 
   Homie.setup();
 }
