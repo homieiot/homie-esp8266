@@ -62,6 +62,7 @@ class HomieNode {
 
  public:
   HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](const String& property, const HomieRange& range, const String& value) { return false; });
+  virtual ~HomieNode();
 
   const char* getId() const { return _id; }
   const char* getType() const { return _type; }
