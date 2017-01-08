@@ -68,9 +68,6 @@ template <class T>
 bool HomieSetting<T>::isBool() const { return false; }
 
 template <class T>
-bool HomieSetting<T>::isUnsignedLong() const { return false; }
-
-template <class T>
 bool HomieSetting<T>::isLong() const { return false; }
 
 template <class T>
@@ -83,9 +80,6 @@ template<>
 bool HomieSetting<bool>::isBool() const { return true; }
 
 template<>
-bool HomieSetting<unsigned long>::isUnsignedLong() const { return true; }
-
-template<>
 bool HomieSetting<long>::isLong() const { return true; }
 
 template<>
@@ -95,7 +89,6 @@ template<>
 bool HomieSetting<const char*>::isConstChar() const { return true; }
 
 template class HomieSetting<bool>;  // Needed because otherwise undefined reference to
-template class HomieSetting<unsigned long>;
 template class HomieSetting<long>;
 template class HomieSetting<double>;
 template class HomieSetting<const char*>;

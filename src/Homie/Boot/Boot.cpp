@@ -15,11 +15,8 @@ void Boot::setup() {
 
   WiFi.persistent(true);  // Persist data on SDK as it seems Wi-Fi connection is faster
 
-  Interface::get().getLogger() << F("** Booting into ") << _name << F(" mode **") << endl;
+  Interface::get().getLogger() << F("🔌 Booting into ") << _name << F(" mode 🔌") << endl;
 }
 
 void Boot::loop() {
-}
-
-void Boot::prepareToSleep() {
 }

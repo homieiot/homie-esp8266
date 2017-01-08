@@ -1,7 +1,7 @@
-/*  
+/*
  *   Tested with "WiFi Smart Socket ESP8266 MQTT"
  *   and "Sonoff - WiFi Wireless Smart Switch ESP8266 MQTT"
- *   
+ *
  *   The Relay could be toggeled with the physical pushbutton
 */
 
@@ -18,31 +18,21 @@ byte buttonPressHandled = 0;
 HomieNode switchNode("switch", "switch");
 
 bool switchOnHandler(HomieRange range, String value) {
-  if (value == "true") {
-    digitalWrite(PIN_RELAY, HIGH);
-    switchNode.setProperty("on").send("true");
-    Serial.println("Switch is on");
-  } else if (value == "false") {
-    digitalWrite(PIN_RELAY, LOW);
-    switchNode.setProperty("on").send("false");
-    Serial.println("Switch is off");
-  } else {
-    return false;
-  }
+  if (value != "true" && value != "false") return false;
+
+  bool on = (value == "true");
+  digitalWrite(PIN_RELAY, on ? HIGH : LOW);
+  switchNode.setProperty("on").send(value);
+  Homie.getLogger() << "Switch is " << (on ? "on" : "off") << endl;
 
   return true;
 }
 
 void toggleRelay() {
-  if (digitalRead(PIN_RELAY) == LOW) {
-    digitalWrite(PIN_RELAY, HIGH);
-    switchNode.setProperty("on").send("true");
-    Serial.println("Switch is on");
-  } else {
-    digitalWrite(PIN_RELAY, LOW);
-    switchNode.setProperty("on").send("false");
-    Serial.println("Switch is off");
-  }
+  bool on = digitalRead(PIN_RELAY) == HIGH;
+  digitalWrite(PIN_RELAY, on ? LOW : HIGH);
+  switchNode.setProperty("on").send(on ? "false" : "true");
+  Homie.getLogger() << "Switch is " << (on ? "off" : "on") << endl;
 }
 
 void loopHandler() {

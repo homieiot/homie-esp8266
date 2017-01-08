@@ -72,7 +72,7 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.password is not a string");
     return result;
   }
-  if (strlen(object["wifi"]["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
+  if (object["wifi"]["password"] && strlen(object["wifi"]["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
     result.reason = F("wifi.password is too long");
     return result;
   }
@@ -195,24 +195,6 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
         } else if (!setting->validate((*settingsObject)[setting->getName()].as<bool>())) {
           result.reason = String(setting->getName());
           result.reason.concat(F(" setting does not pass the validator function"));
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        result.reason = String(setting->getName());
-        result.reason.concat(F(" setting is missing"));
-        return result;
-      }
-    } else if (iSetting->isUnsignedLong()) {
-      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<unsigned long>()) {
-          result.reason = String(setting->getName());
-          result.reason.concat(F(" setting is not an unsigned long"));
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<unsigned long>())) {
-          result.reason = String(setting->getName());
-          result.reason.concat((" setting does not pass the validator function"));
           return result;
         }
       } else if (setting->isRequired()) {

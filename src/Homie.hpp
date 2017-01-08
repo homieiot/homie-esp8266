@@ -35,12 +35,18 @@ class HomieClass {
   void loop();
 
   void __setFirmware(const char* name, const char* version);
-  void __setBrand(const char* brand);
+  void __setBrand(const char* brand) const;
+
+  static const HomieBootMode MODE_UNDEFINED = HomieBootMode::UNDEFINED;
+  static const HomieBootMode MODE_STANDALONE = HomieBootMode::STANDALONE;
+  static const HomieBootMode MODE_CONFIG = HomieBootMode::CONFIG;
+  static const HomieBootMode MODE_NORMAL = HomieBootMode::NORMAL;
 
   HomieClass& disableLogging();
   HomieClass& setLoggingPrinter(Print* printer);
   HomieClass& disableLedFeedback();
   HomieClass& setLedPin(uint8_t pin, uint8_t on);
+  HomieClass& setConfigurationApPassword(const char* password);
   HomieClass& setGlobalInputHandler(GlobalInputHandler globalInputHandler);
   HomieClass& setBroadcastHandler(BroadcastHandler broadcastHandler);
   HomieClass& onEvent(EventHandler handler);
@@ -48,14 +54,17 @@ class HomieClass {
   HomieClass& disableResetTrigger();
   HomieClass& setSetupFunction(OperationFunction function);
   HomieClass& setLoopFunction(OperationFunction function);
-  HomieClass& setStandalone();
+  HomieClass& setHomieBootMode(HomieBootMode bootMode);
+  HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
 
   void reset();
+  void reboot();
   void setIdle(bool idle);
   bool isConfigured() const;
   bool isConnected() const;
   const ConfigStruct& getConfiguration() const;
   AsyncMqttClient& getMqttClient();
+  Logger& getLogger();
   void prepareToSleep();
 
  private:
@@ -65,13 +74,14 @@ class HomieClass {
   BootStandalone _bootStandalone;
   BootNormal _bootNormal;
   BootConfig _bootConfig;
+  bool _flaggedForReboot;
   SendingPromise _sendingPromise;
   Logger _logger;
   Blinker _blinker;
   Config _config;
   AsyncMqttClient _mqttClient;
 
-  void _checkBeforeSetup(const __FlashStringHelper* functionName);
+  void _checkBeforeSetup(const __FlashStringHelper* functionName) const;
 
   const char* __HOMIE_SIGNATURE;
 };

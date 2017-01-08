@@ -3,7 +3,7 @@
 HomieNode lightNode("light", "switch");
 
 bool globalInputHandler(const HomieNode& node, const String& property, const HomieRange& range, const String& value) {
-  Serial << "Received on node " << node.getId() << ": " << property << " = " << value << endl;
+  Homie.getLogger() << "Received on node " << node.getId() << ": " << property << " = " << value << endl;
   return true;
 }
 

@@ -7,6 +7,13 @@ Homie for ESP8266
 
 An Arduino for ESP8266 implementation of [Homie](https://github.com/marvinroger/homie), an MQTT convention for the IoT.
 
+## Note for v1.x users
+
+The new documentation and Web configurator are only for the v2.
+
+* The docs for the v1.5 is available at https://github.com/marvinroger/homie-esp8266/blob/528a4f77c6371366847ebf4def6aba942dfd0c4c/docs/index.md
+* The Web configurator for v1.5 is available at http://marvinroger.github.io/homie-esp8266/
+
 ## Download
 
 The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/marvinroger/homie-esp8266/releases).
@@ -35,7 +42,7 @@ bool lightOnHandler(const HomieRange& range, const String& value) {
   bool on = (value == "true");
   digitalWrite(PIN_RELAY, on ? HIGH : LOW);
   lightNode.setProperty("on").send(value);
-  Serial << "Light is " << (on ? "on" : "off") << endl;
+  Homie.getLogger() << "Light is " << (on ? "on" : "off") << endl;
 
   return true;
 }

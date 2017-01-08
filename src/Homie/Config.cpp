@@ -3,7 +3,7 @@
 using namespace HomieInternals;
 
 Config::Config()
-: _bootMode()
+: _valid(false)
 , _configStruct()
 , _spiffsBegan(false) {
 }
@@ -20,7 +20,7 @@ bool Config::_spiffsBegin() {
 bool Config::load() {
   if (!_spiffsBegin()) { return false; }
 
-  _bootMode = BootMode::CONFIG;
+  _valid = false;
 
   if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
     Interface::get().getLogger() << F("✖ ") << CONFIG_FILE_PATH << F(" doesn't exist") << endl;
@@ -57,8 +57,6 @@ bool Config::load() {
     Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
     return false;
   }
-
-  _bootMode = BootMode::NORMAL;
 
   const char* reqName = parsedJson["name"];
   const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
@@ -97,7 +95,7 @@ bool Config::load() {
 
   strcpy(_configStruct.name, reqName);
   strcpy(_configStruct.wifi.ssid, reqWifiSsid);
-  strcpy(_configStruct.wifi.password, reqWifiPassword);
+  if (reqWifiPassword) strcpy(_configStruct.wifi.password, reqWifiPassword);
   strcpy(_configStruct.deviceId, reqDeviceId);
   strcpy(_configStruct.mqtt.server.host, reqMqttHost);
   _configStruct.mqtt.server.port = reqMqttPort;
@@ -117,12 +115,6 @@ bool Config::load() {
 
       if (settingsObject.containsKey(setting->getName())) {
         setting->set(settingsObject[setting->getName()].as<bool>());
-      }
-    } else if (iSetting->isUnsignedLong()) {
-      HomieSetting<unsigned long>* setting = static_cast<HomieSetting<unsigned long>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<unsigned long>());
       }
     } else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
@@ -145,6 +137,7 @@ bool Config::load() {
     }
   }
 
+  _valid = true;
   return true;
 }
 
@@ -174,26 +167,46 @@ void Config::erase() {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
-  SPIFFS.remove(CONFIG_BYPASS_STANDALONE_FILE_PATH);
+  SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
 }
 
-void Config::bypassStandalone() {
+void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   if (!_spiffsBegin()) { return; }
 
-  File bypassStandaloneFile = SPIFFS.open(CONFIG_BYPASS_STANDALONE_FILE_PATH, "w");
-  if (!bypassStandaloneFile) {
-    Interface::get().getLogger() << F("✖ Cannot open bypass standalone file") << endl;
-    return;
-  }
+  if (bootMode == HomieBootMode::UNDEFINED) {
+    SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
+  } else {
+    File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
+    if (!bootModeFile) {
+      Interface::get().getLogger() << F("✖ Cannot open BOOTMODE file") << endl;
+      return;
+    }
 
-  bypassStandaloneFile.print("1");
-  bypassStandaloneFile.close();
+    bootModeFile.printf("#%d", bootMode);
+    bootModeFile.close();
+    Interface::get().getLogger().printf("Setting next boot mode to %d\n", bootMode);
+  }
 }
 
-bool Config::canBypassStandalone() {
-  if (!_spiffsBegin()) { return false; }
+HomieBootMode Config::getHomieBootModeOnNextBoot() {
+  if (!_spiffsBegin()) { return HomieBootMode::UNDEFINED; }
 
-  return SPIFFS.exists(CONFIG_BYPASS_STANDALONE_FILE_PATH);
+  File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
+  if (bootModeFile) {
+    int v = bootModeFile.parseInt();
+    bootModeFile.close();
+    if (v == 1) {
+      return HomieBootMode::STANDALONE;
+    } else if (v == 2) {
+      return HomieBootMode::CONFIG;
+    } else if (v == 3) {
+      return HomieBootMode::NORMAL;
+    } else {
+      return HomieBootMode::UNDEFINED;
+    }
+  } else {
+    return HomieBootMode::UNDEFINED;
+  }
 }
 
 void Config::write(const JsonObject& config) {
@@ -268,8 +281,8 @@ bool Config::patch(const char* patch) {
     return true;
 }
 
-BootMode Config::getBootMode() const {
-  return _bootMode;
+bool Config::isValid() const {
+  return this->_valid;
 }
 
 void Config::log() const {
@@ -278,13 +291,13 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
   Interface::get().getLogger() << F("  • Boot mode: ");
   switch (_bootMode) {
-    case BootMode::CONFIG:
+    case HomieBootMode::CONFIG:
       Interface::get().getLogger() << F("configuration") << endl;
       break;
-    case BootMode::NORMAL:
+    case HomieBootMode::NORMAL:
       Interface::get().getLogger() << F("normal") << endl;
       break;
-    case BootMode::STANDALONE:
+    case HomieBootMode::STANDALONE:
       Interface::get().getLogger() << F("standalone") << endl;
       break;
     default:

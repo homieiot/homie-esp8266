@@ -24,6 +24,7 @@ disableLogging	KEYWORD2
 setLoggingPrinter	KEYWORD2
 disableLedFeedback	KEYWORD2
 setLedPin	KEYWORD2
+setConfigurationApPassword	KEYWORD2
 setGlobalInputHandler	KEYWORD2
 setBroadcastHandler	KEYWORD2
 onEvent	KEYWORD2
@@ -38,6 +39,7 @@ isConfigured	KEYWORD2
 isConnected	KEYWORD2
 getConfiguration	KEYWORD2
 getMqttClient	KEYWORD2
+getLogger	KEYWORD2
 prepareToSleep	KEYWORD2
 
 # HomieNode
