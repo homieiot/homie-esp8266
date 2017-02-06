@@ -755,7 +755,7 @@ void BootNormal::loop() {
       Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
       _statsTimer.tick();
     }
-  
+
     Interface::get().loopFunction();
 
     for (HomieNode* iNode : HomieNode::nodes) {
