@@ -20,7 +20,7 @@ BootNormal::BootNormal()
 , _mqttWillTopic(nullptr)
 , _mqttPayloadBuffer(nullptr) {
   _statsTimer.setInterval(STATS_SEND_INTERVAL);
-  strncpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum) - 1);
+  strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
   _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
 }
 
@@ -189,19 +189,9 @@ void BootNormal::_onMqttConnected() {
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$name")), 1, true, Interface::get().getConfig().get().name);
 
   IPAddress localIp = WiFi.localIP();
-  char localIpStr[15 + 1];
-  char localIpPartStr[3 + 1];
-  itoa(localIp[0], localIpPartStr, 10);
-  strcpy(localIpStr, localIpPartStr);
-  strcat_P(localIpStr, PSTR("."));
-  itoa(localIp[1], localIpPartStr, 10);
-  strcat(localIpStr, localIpPartStr);
-  strcat_P(localIpStr, PSTR("."));
-  itoa(localIp[2], localIpPartStr, 10);
-  strcat(localIpStr, localIpPartStr);
-  strcat_P(localIpStr, PSTR("."));
-  itoa(localIp[3], localIpPartStr, 10);
-  strcat(localIpStr, localIpPartStr);
+  char localIpStr[MAX_IP_STRING_LENGTH];
+  snprintf(localIpStr, MAX_IP_STRING_LENGTH - 1, "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
+  
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
 
   char statsIntervalStr[3 + 1];

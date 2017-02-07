@@ -24,4 +24,8 @@ namespace HomieInternals {
   const uint8_t MAX_NODE_ID_LENGTH = sizeof("my-super-awesome-node-id");
   const uint8_t MAX_NODE_TYPE_LENGTH = sizeof("my-super-awesome-type");
   const uint8_t MAX_NODE_PROPERTY_LENGTH = sizeof("my-super-awesome-property");
+  
+  const uint8_t MAX_IP_STRING_LENGTH = sizeof("123.123.123.123");
+  
+  const uint8_t MAX_MAC_STRING_LENGTH = 12;
 }  // namespace HomieInternals
