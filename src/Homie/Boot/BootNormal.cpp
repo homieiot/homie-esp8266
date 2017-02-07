@@ -118,7 +118,7 @@ void BootNormal::_wifiConnect() {
 
 void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
-  Interface::get().getLogger() << F("✔ Wi-Fi connected") << endl;
+  Interface::get().getLogger() << F("✔ Wi-Fi connected IP: ") << event.ip << endl;
   Interface::get().getLogger() << F("Triggering WIFI_CONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_CONNECTED;
   Interface::get().event.ip = event.ip;
