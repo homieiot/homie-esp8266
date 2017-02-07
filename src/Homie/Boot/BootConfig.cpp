@@ -30,7 +30,7 @@ void BootConfig::setup() {
   WiFi.mode(WIFI_AP_STA);
 
   char apName[MAX_WIFI_SSID_LENGTH];
-  strcpy(apName, Interface::get().brand);
+  strlcpy(apName, Interface::get().brand, MAX_WIFI_SSID_LENGTH - 1 - MAX_DEVICE_ID_LENTH);
   strcat_P(apName, PSTR("-"));
   strcat(apName, DeviceId::get());
 
@@ -41,7 +41,7 @@ void BootConfig::setup() {
     WiFi.softAP(apName);
   }
 
-  sprintf(_apIpStr, "%d.%d.%d.%d", ACCESS_POINT_IP[0], ACCESS_POINT_IP[1], ACCESS_POINT_IP[2], ACCESS_POINT_IP[3]);
+  snprintf(_apIpStr, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", ACCESS_POINT_IP[0], ACCESS_POINT_IP[1], ACCESS_POINT_IP[2], ACCESS_POINT_IP[3]);
 
   Interface::get().getLogger() << F("AP started as ") << apName << F(" with IP ") << _apIpStr << endl;
   _dns.setTTL(30);

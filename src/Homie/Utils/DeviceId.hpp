@@ -4,6 +4,8 @@
 
 #include <ESP8266WiFi.h>
 
+#include "../Limits.hpp"
+
 namespace HomieInternals {
 class DeviceId {
  public:
@@ -11,6 +13,6 @@ class DeviceId {
   static const char* get();
 
  private:
-  static char _deviceId[12 + 1];
+  static char _deviceId[MAX_DEVICE_ID_LENTH + 1];
 };
 }  // namespace HomieInternals

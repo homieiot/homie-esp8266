@@ -6,7 +6,7 @@ HomieClass::HomieClass()
 : _setupCalled(false)
 , _firmwareSet(false)
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
-  strcpy(Interface::get().brand, DEFAULT_BRAND);
+  strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
   Interface::get().led.enabled = true;
@@ -157,7 +157,7 @@ HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
   _checkBeforeSetup(F("setConfigurationApPassword"));
 
   Interface::get().configurationAp.secured = true;
-  strcpy(Interface::get().configurationAp.password, password);
+  strlcpy(Interface::get().configurationAp.password, password, MAX_WIFI_PASSWORD_LENGTH);
 }
 
 void HomieClass::__setFirmware(const char* name, const char* version) {
