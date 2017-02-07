@@ -614,7 +614,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 }
 
 void BootNormal::_onMqttPublish(uint16_t id) {
-  Interface::get().getLogger() << F("Triggering MQTT_PACKET_ACKNOWLEDGED event (packetId ") << id << F(")...") << endl;
   Interface::get().event.type = HomieEventType::MQTT_PACKET_ACKNOWLEDGED;
   Interface::get().event.packetId = id;
   Interface::get().eventHandler(Interface::get().event);
