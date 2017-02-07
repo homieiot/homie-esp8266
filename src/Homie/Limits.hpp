@@ -27,5 +27,5 @@ namespace HomieInternals {
   
   const uint8_t MAX_IP_STRING_LENGTH = sizeof("123.123.123.123");
   
-  const uint8_t MAX_DEVICE_ID_LENTH = 12;
+  const uint8_t MAX_MAC_STRING_LENGTH = 12;
 }  // namespace HomieInternals

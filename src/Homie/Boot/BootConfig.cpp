@@ -30,7 +30,7 @@ void BootConfig::setup() {
   WiFi.mode(WIFI_AP_STA);
 
   char apName[MAX_WIFI_SSID_LENGTH];
-  strlcpy(apName, Interface::get().brand, MAX_WIFI_SSID_LENGTH - 1 - MAX_DEVICE_ID_LENTH);
+  strlcpy(apName, Interface::get().brand, MAX_WIFI_SSID_LENGTH - 1 - MAX_MAC_STRING_LENGTH);
   strcat_P(apName, PSTR("-"));
   strcat(apName, DeviceId::get());
 

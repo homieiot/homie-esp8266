@@ -13,6 +13,6 @@ class DeviceId {
   static const char* get();
 
  private:
-  static char _deviceId[MAX_DEVICE_ID_LENTH + 1];
+  static char _deviceId[MAX_MAC_STRING_LENGTH + 1];
 };
 }  // namespace HomieInternals
