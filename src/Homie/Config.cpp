@@ -178,7 +178,7 @@ void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   } else {
     File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
     if (!bootModeFile) {
-      Interface::get().getLogger() << F("✖ Cannot open BOOTMODE file") << endl;
+      Interface::get().getLogger() << F("✖ Cannot open NEXTMODE file") << endl;
       return;
     }
 
@@ -195,15 +195,7 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
   if (bootModeFile) {
     int v = bootModeFile.parseInt();
     bootModeFile.close();
-    if (v == 1) {
-      return HomieBootMode::STANDALONE;
-    } else if (v == 2) {
-      return HomieBootMode::CONFIG;
-    } else if (v == 3) {
-      return HomieBootMode::NORMAL;
-    } else {
-      return HomieBootMode::UNDEFINED;
-    }
+    return static_cast<HomieBootMode>(v);
   } else {
     return HomieBootMode::UNDEFINED;
   }

@@ -10,6 +10,7 @@
 #include "Utils/Validation.hpp"
 #include "Constants.hpp"
 #include "Limits.hpp"
+#include "../HomieBootMode.hpp"
 #include "../HomieSetting.hpp"
 #include "../StreamingOperator.hpp"
 

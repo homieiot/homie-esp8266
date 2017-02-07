@@ -16,6 +16,8 @@
 #include "Homie/Blinker.hpp"
 
 #include "SendingPromise.hpp"
+#include "HomieBootMode.hpp"
+#include "HomieEvent.hpp"
 #include "HomieNode.hpp"
 #include "HomieSetting.hpp"
 #include "StreamingOperator.hpp"
@@ -36,11 +38,6 @@ class HomieClass {
 
   void __setFirmware(const char* name, const char* version);
   void __setBrand(const char* brand) const;
-
-  static const HomieBootMode MODE_UNDEFINED = HomieBootMode::UNDEFINED;
-  static const HomieBootMode MODE_STANDALONE = HomieBootMode::STANDALONE;
-  static const HomieBootMode MODE_CONFIG = HomieBootMode::CONFIG;
-  static const HomieBootMode MODE_NORMAL = HomieBootMode::NORMAL;
 
   HomieClass& disableLogging();
   HomieClass& setLoggingPrinter(Print* printer);
