@@ -13,7 +13,7 @@ class Timer {
   void reset();
   void activate();
   void deactivate();
-  bool isActive();
+  bool isActive() const;
 
  private:
   uint32_t _initialTime;

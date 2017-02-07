@@ -3,9 +3,9 @@
 using namespace HomieInternals;
 
 Config::Config()
-: _valid(false)
-, _configStruct()
-, _spiffsBegan(false) {
+: _configStruct()
+, _spiffsBegan(false)
+, _valid(false) {
 }
 
 bool Config::_spiffsBegin() {
@@ -178,7 +178,7 @@ void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   } else {
     File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
     if (!bootModeFile) {
-      Interface::get().getLogger() << F("✖ Cannot open BOOTMODE file") << endl;
+      Interface::get().getLogger() << F("✖ Cannot open NEXTMODE file") << endl;
       return;
     }
 
@@ -195,15 +195,7 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
   if (bootModeFile) {
     int v = bootModeFile.parseInt();
     bootModeFile.close();
-    if (v == 1) {
-      return HomieBootMode::STANDALONE;
-    } else if (v == 2) {
-      return HomieBootMode::CONFIG;
-    } else if (v == 3) {
-      return HomieBootMode::NORMAL;
-    } else {
-      return HomieBootMode::UNDEFINED;
-    }
+    return static_cast<HomieBootMode>(v);
   } else {
     return HomieBootMode::UNDEFINED;
   }
@@ -289,22 +281,6 @@ void Config::log() const {
   Interface::get().getLogger() << F("{} Stored configuration") << endl;
   Interface::get().getLogger() << F("  • Hardware device ID: ") << DeviceId::get() << endl;
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
-  Interface::get().getLogger() << F("  • Boot mode: ");
-  switch (_bootMode) {
-    case HomieBootMode::CONFIG:
-      Interface::get().getLogger() << F("configuration") << endl;
-      break;
-    case HomieBootMode::NORMAL:
-      Interface::get().getLogger() << F("normal") << endl;
-      break;
-    case HomieBootMode::STANDALONE:
-      Interface::get().getLogger() << F("standalone") << endl;
-      break;
-    default:
-      Interface::get().getLogger() << F("unknown") << endl;
-      break;
-  }
-
   Interface::get().getLogger() << F("  • Name: ") << _configStruct.name << endl;
 
   Interface::get().getLogger() << F("  • Wi-Fi: ") << endl;

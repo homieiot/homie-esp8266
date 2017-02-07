@@ -4,9 +4,9 @@ using namespace HomieInternals;
 
 BootNormal::BootNormal()
 : Boot("normal")
+, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
 , _setupFunctionCalled(false)
 , _mqttDisconnectNotified(true)
-, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 , _flaggedForReboot(false)
@@ -118,7 +118,7 @@ void BootNormal::_wifiConnect() {
 
 void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
-  Interface::get().getLogger() << F("✔ Wi-Fi connected IP: ") << event.ip << endl;
+  Interface::get().getLogger() << F("✔ Wi-Fi connected, IP: ") << event.ip << endl;
   Interface::get().getLogger() << F("Triggering WIFI_CONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_CONNECTED;
   Interface::get().event.ip = event.ip;
@@ -604,7 +604,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 }
 
 void BootNormal::_onMqttPublish(uint16_t id) {
-  Interface::get().getLogger() << F("Triggering MQTT_PACKET_ACKNOWLEDGED event (packetId ") << id << F(")...") << endl;
   Interface::get().event.type = HomieEventType::MQTT_PACKET_ACKNOWLEDGED;
   Interface::get().event.packetId = id;
   Interface::get().eventHandler(Interface::get().event);
