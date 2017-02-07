@@ -242,11 +242,11 @@ HomieClass& HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   return *this;
 }
 
-bool HomieClass::isConfigured() const {
+bool HomieClass::isConfigured() {
   return Interface::get().getConfig().load();
 }
 
-bool HomieClass::isConnected() const {
+bool HomieClass::isConnected() {
   return Interface::get().connected;
 }
 
@@ -277,7 +277,7 @@ HomieClass& HomieClass::disableResetTrigger() {
   return *this;
 }
 
-const ConfigStruct& HomieClass::getConfiguration() const {
+const ConfigStruct& HomieClass::getConfiguration() {
   return Interface::get().getConfig().get();
 }
 

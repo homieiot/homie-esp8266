@@ -11,7 +11,8 @@ BootConfig::BootConfig()
 , _jsonWifiNetworks()
 , _flaggedForReboot(false)
 , _flaggedForRebootAt(0)
-, _proxyEnabled(false) {
+, _proxyEnabled(false)
+, _apIpStr({'\0'}) {
   _wifiScanTimer.setInterval(CONFIG_SCAN_INTERVAL);
 }
 

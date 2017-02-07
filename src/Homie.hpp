@@ -57,15 +57,15 @@ class HomieClass {
   HomieClass& setHomieBootMode(HomieBootMode bootMode);
   HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
 
-  void reset();
+  static void reset();
   void reboot();
-  void setIdle(bool idle);
-  bool isConfigured() const;
-  bool isConnected() const;
-  const ConfigStruct& getConfiguration() const;
+  static void setIdle(bool idle);
+  static bool isConfigured();
+  static bool isConnected();
+  static const ConfigStruct& getConfiguration();
   AsyncMqttClient& getMqttClient();
   Logger& getLogger();
-  void prepareToSleep();
+  static void prepareToSleep();
 
  private:
   bool _setupCalled;

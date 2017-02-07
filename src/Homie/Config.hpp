@@ -29,7 +29,6 @@ class Config {
   bool isValid() const;
 
  private:
-  HomieBootMode _bootMode;
   ConfigStruct _configStruct;
   bool _spiffsBegan;
   bool _valid;

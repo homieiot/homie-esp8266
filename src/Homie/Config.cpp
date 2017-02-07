@@ -3,9 +3,9 @@
 using namespace HomieInternals;
 
 Config::Config()
-: _valid(false)
-, _configStruct()
-, _spiffsBegan(false) {
+: _configStruct()
+, _spiffsBegan(false)
+, _valid(false) {
 }
 
 bool Config::_spiffsBegin() {
@@ -289,22 +289,6 @@ void Config::log() const {
   Interface::get().getLogger() << F("{} Stored configuration") << endl;
   Interface::get().getLogger() << F("  • Hardware device ID: ") << DeviceId::get() << endl;
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
-  Interface::get().getLogger() << F("  • Boot mode: ");
-  switch (_bootMode) {
-    case HomieBootMode::CONFIG:
-      Interface::get().getLogger() << F("configuration") << endl;
-      break;
-    case HomieBootMode::NORMAL:
-      Interface::get().getLogger() << F("normal") << endl;
-      break;
-    case HomieBootMode::STANDALONE:
-      Interface::get().getLogger() << F("standalone") << endl;
-      break;
-    default:
-      Interface::get().getLogger() << F("unknown") << endl;
-      break;
-  }
-
   Interface::get().getLogger() << F("  • Name: ") << _configStruct.name << endl;
 
   Interface::get().getLogger() << F("  • Wi-Fi: ") << endl;

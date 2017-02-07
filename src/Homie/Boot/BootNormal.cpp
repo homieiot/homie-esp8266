@@ -4,9 +4,9 @@ using namespace HomieInternals;
 
 BootNormal::BootNormal()
 : Boot("normal")
+, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
 , _setupFunctionCalled(false)
 , _mqttDisconnectNotified(true)
-, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 , _flaggedForReboot(false)
