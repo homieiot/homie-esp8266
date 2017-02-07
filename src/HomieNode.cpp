@@ -33,8 +33,7 @@ HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHan
   HomieNode::nodes.push_back(this);
 }
 
-HomieNode::~HomieNode()
-{
+HomieNode::~HomieNode() {
     Interface::get().getLogger() << F("✖ ~HomieNode(): Destruction of HomieNode object not possible") << endl;
     Interface::get().getLogger() << F("  Hint: Don't create HomieNode objects as a local variable (e.g. in setup())") << endl;
     Serial.flush();
