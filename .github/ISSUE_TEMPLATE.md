@@ -3,7 +3,7 @@ If you have some questions or if you need help, some people might help you on th
 
 Before submitting your issue, make sure:
 
-- [ ] You've read the documentation for *your* release (in the `docs/` folder for the v1, at https://homie-esp8266.readme.io) which contains some answsers to the most common problems
+- [ ] You've read the documentation for *your* release (in the `docs/` folder for the v1, at https://homie-esp8266.readme.io) which contains some answsers to the most common problems (notably the `Limitations and know issues` and `Troubleshooting` pages)
 - [ ] You're using the examples bundled in *your* release, which are in the `examples/` folder of the `.zip` of the release you're using. Examples might not be backward-compatible
 
 Thanks!
