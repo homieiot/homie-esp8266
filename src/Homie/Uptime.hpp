@@ -7,10 +7,11 @@ class Uptime {
  public:
   Uptime();
   void update();
-  uint64_t getSeconds() const;
+  uint32_t getSeconds() const;
 
  private:
-  uint64_t _seconds;
+  uint32_t _seconds;
   uint32_t _lastTick;
+  uint32_t _rolloverCount;
 };
 }  // namespace HomieInternals
