@@ -14,6 +14,7 @@ void Uptime::update() {
   if (now < _lastTick) {
     _rolloverCount++;
   }
+  
   _lastTick = now;
   _seconds =  (0xFFFFFFFF / 1000 ) * _rolloverCount + (_lastTick / 1000);
 }
