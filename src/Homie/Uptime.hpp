@@ -10,7 +10,7 @@ class Uptime {
   uint64_t getSeconds() const;
 
  private:
-  uint64_t _seconds;
+  uint64_t _milliseconds;
   uint32_t _lastTick;
 };
 }  // namespace HomieInternals
