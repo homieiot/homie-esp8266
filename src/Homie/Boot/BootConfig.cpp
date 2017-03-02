@@ -42,7 +42,7 @@ void BootConfig::setup() {
     WiFi.softAP(apName);
   }
 
-  snprintf(_apIpStr, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", ACCESS_POINT_IP[0], ACCESS_POINT_IP[1], ACCESS_POINT_IP[2], ACCESS_POINT_IP[3]);
+  snprintf(_apIpStr, MAX_IP_STRING_LENGTH + 1, "%d.%d.%d.%d", ACCESS_POINT_IP[0], ACCESS_POINT_IP[1], ACCESS_POINT_IP[2], ACCESS_POINT_IP[3]);
 
   Interface::get().getLogger() << F("AP started as ") << apName << F(" with IP ") << _apIpStr << endl;
   _dns.setTTL(30);
