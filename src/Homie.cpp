@@ -6,7 +6,7 @@ HomieClass::HomieClass()
 : _setupCalled(false)
 , _firmwareSet(false)
 , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
-  strcpy(Interface::get().brand, DEFAULT_BRAND);
+  strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
   Interface::get().led.enabled = true;
@@ -63,7 +63,7 @@ void HomieClass::setup() {
     Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::UNDEFINED);
   }
 
-  HomieBootMode _selectedHomieBootMode = HomieBootMode::CONFIG;
+  HomieBootMode _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
 
   // select boot mode source
   if (_applicationHomieBootMode != HomieBootMode::UNDEFINED) {
@@ -77,7 +77,7 @@ void HomieClass::setup() {
   // validate selected mode and fallback as needed
   if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load()) {
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
-    _selectedHomieBootMode = HomieBootMode::CONFIG;
+    _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
   }
 
   // run selected mode
@@ -86,7 +86,7 @@ void HomieClass::setup() {
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
 
-  } else if (_selectedHomieBootMode == HomieBootMode::CONFIG) {
+  } else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
@@ -157,7 +157,7 @@ HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
   _checkBeforeSetup(F("setConfigurationApPassword"));
 
   Interface::get().configurationAp.secured = true;
-  strcpy(Interface::get().configurationAp.password, password);
+  strlcpy(Interface::get().configurationAp.password, password, MAX_WIFI_PASSWORD_LENGTH);
 }
 
 void HomieClass::__setFirmware(const char* name, const char* version) {
@@ -242,11 +242,11 @@ HomieClass& HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   return *this;
 }
 
-bool HomieClass::isConfigured() const {
+bool HomieClass::isConfigured() {
   return Interface::get().getConfig().load();
 }
 
-bool HomieClass::isConnected() const {
+bool HomieClass::isConnected() {
   return Interface::get().connected;
 }
 
@@ -277,7 +277,7 @@ HomieClass& HomieClass::disableResetTrigger() {
   return *this;
 }
 
-const ConfigStruct& HomieClass::getConfiguration() const {
+const ConfigStruct& HomieClass::getConfiguration() {
   return Interface::get().getConfig().get();
 }
 

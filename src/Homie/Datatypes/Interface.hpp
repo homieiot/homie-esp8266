@@ -7,6 +7,7 @@
 #include "../Config.hpp"
 #include "../Limits.hpp"
 #include "./Callbacks.hpp"
+#include "../../HomieBootMode.hpp"
 #include "../../HomieNode.hpp"
 #include "../../SendingPromise.hpp"
 #include "../../HomieEvent.hpp"

@@ -41,7 +41,7 @@ class BootConfig : public Boot {
   bool _flaggedForReboot;
   uint32_t _flaggedForRebootAt;
   bool _proxyEnabled;
-  char _apIpStr[15 + 1];
+  char _apIpStr[MAX_IP_STRING_LENGTH];
 
   void _onCaptivePortal();
   void _onDeviceInfoRequest();

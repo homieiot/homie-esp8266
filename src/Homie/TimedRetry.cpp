@@ -3,11 +3,12 @@
 
 using namespace HomieInternals;
 
-TimedRetry::TimedRetry(uint32_t stepInterval, uint32_t maxInterval) :
-  _stepInterval(stepInterval),
-  _maxInterval(maxInterval),
-  _timer(Timer()) {
-    _timer.deactivate();
+TimedRetry::TimedRetry(uint32_t stepInterval, uint32_t maxInterval)
+: _currentStep(0)
+, _stepInterval(stepInterval)
+, _maxInterval(maxInterval)
+, _timer(Timer()) {
+  _timer.deactivate();
 }
 
 void TimedRetry::activate() {

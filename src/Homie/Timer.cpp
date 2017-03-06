@@ -45,6 +45,6 @@ void Timer::deactivate() {
   reset();
 }
 
-bool Timer::isActive() {
+bool Timer::isActive() const {
   return _active;
 }

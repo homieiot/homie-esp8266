@@ -16,6 +16,8 @@
 #include "Homie/Blinker.hpp"
 
 #include "SendingPromise.hpp"
+#include "HomieBootMode.hpp"
+#include "HomieEvent.hpp"
 #include "HomieNode.hpp"
 #include "HomieSetting.hpp"
 #include "StreamingOperator.hpp"
@@ -37,11 +39,6 @@ class HomieClass {
   void __setFirmware(const char* name, const char* version);
   void __setBrand(const char* brand) const;
 
-  static const HomieBootMode MODE_UNDEFINED = HomieBootMode::UNDEFINED;
-  static const HomieBootMode MODE_STANDALONE = HomieBootMode::STANDALONE;
-  static const HomieBootMode MODE_CONFIG = HomieBootMode::CONFIG;
-  static const HomieBootMode MODE_NORMAL = HomieBootMode::NORMAL;
-
   HomieClass& disableLogging();
   HomieClass& setLoggingPrinter(Print* printer);
   HomieClass& disableLedFeedback();
@@ -57,15 +54,15 @@ class HomieClass {
   HomieClass& setHomieBootMode(HomieBootMode bootMode);
   HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
 
-  void reset();
+  static void reset();
   void reboot();
-  void setIdle(bool idle);
-  bool isConfigured() const;
-  bool isConnected() const;
-  const ConfigStruct& getConfiguration() const;
+  static void setIdle(bool idle);
+  static bool isConfigured();
+  static bool isConnected();
+  static const ConfigStruct& getConfiguration();
   AsyncMqttClient& getMqttClient();
   Logger& getLogger();
-  void prepareToSleep();
+  static void prepareToSleep();
 
  private:
   bool _setupCalled;

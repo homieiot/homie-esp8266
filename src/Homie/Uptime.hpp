@@ -11,6 +11,6 @@ class Uptime {
 
  private:
   uint64_t _seconds;
-  uint64_t _lastTick;
+  uint32_t _lastTick;
 };
 }  // namespace HomieInternals
