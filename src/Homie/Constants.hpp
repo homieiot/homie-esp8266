@@ -28,11 +28,4 @@ namespace HomieInternals {
   const char CONFIG_UI_BUNDLE_PATH[] = "/homie/ui_bundle.gz";
   const char CONFIG_NEXT_BOOT_MODE_FILE_PATH[] = "/homie/NEXTMODE";
   const char CONFIG_FILE_PATH[] = "/homie/config.json";
-
-  enum class HomieBootMode : uint8_t {
-    UNDEFINED = 0,
-    STANDALONE = 1,
-    CONFIG = 2,
-    NORMAL = 3
-  };
 }  // namespace HomieInternals

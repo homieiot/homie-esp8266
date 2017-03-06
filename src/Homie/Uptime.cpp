@@ -8,7 +8,7 @@ Uptime::Uptime()
 }
 
 void Uptime::update() {
-  uint64_t now = millis();
+  uint32_t now = millis();
   _seconds += (now - _lastTick) / 1000UL;
   _lastTick = now;
 }

@@ -10,6 +10,7 @@
 #include "Utils/Validation.hpp"
 #include "Constants.hpp"
 #include "Limits.hpp"
+#include "../HomieBootMode.hpp"
 #include "../HomieSetting.hpp"
 #include "../StreamingOperator.hpp"
 
@@ -29,7 +30,6 @@ class Config {
   bool isValid() const;
 
  private:
-  HomieBootMode _bootMode;
   ConfigStruct _configStruct;
   bool _spiffsBegan;
   bool _valid;

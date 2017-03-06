@@ -4,9 +4,9 @@ using namespace HomieInternals;
 
 BootNormal::BootNormal()
 : Boot("normal")
+, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
 , _setupFunctionCalled(false)
 , _mqttDisconnectNotified(true)
-, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
 , _flaggedForOta(false)
 , _flaggedForReset(false)
 , _flaggedForReboot(false)
@@ -20,7 +20,7 @@ BootNormal::BootNormal()
 , _mqttWillTopic(nullptr)
 , _mqttPayloadBuffer(nullptr) {
   _statsTimer.setInterval(STATS_SEND_INTERVAL);
-  strncpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum) - 1);
+  strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
   _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
 }
 
@@ -118,7 +118,7 @@ void BootNormal::_wifiConnect() {
 
 void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
-  Interface::get().getLogger() << F("✔ Wi-Fi connected") << endl;
+  Interface::get().getLogger() << F("✔ Wi-Fi connected, IP: ") << event.ip << endl;
   Interface::get().getLogger() << F("Triggering WIFI_CONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_CONNECTED;
   Interface::get().event.ip = event.ip;
@@ -189,19 +189,9 @@ void BootNormal::_onMqttConnected() {
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$name")), 1, true, Interface::get().getConfig().get().name);
 
   IPAddress localIp = WiFi.localIP();
-  char localIpStr[15 + 1];
-  char localIpPartStr[3 + 1];
-  itoa(localIp[0], localIpPartStr, 10);
-  strcpy(localIpStr, localIpPartStr);
-  strcat_P(localIpStr, PSTR("."));
-  itoa(localIp[1], localIpPartStr, 10);
-  strcat(localIpStr, localIpPartStr);
-  strcat_P(localIpStr, PSTR("."));
-  itoa(localIp[2], localIpPartStr, 10);
-  strcat(localIpStr, localIpPartStr);
-  strcat_P(localIpStr, PSTR("."));
-  itoa(localIp[3], localIpPartStr, 10);
-  strcat(localIpStr, localIpPartStr);
+  char localIpStr[MAX_IP_STRING_LENGTH];
+  snprintf(localIpStr, MAX_IP_STRING_LENGTH - 1, "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
+
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
 
   char statsIntervalStr[3 + 1];
@@ -614,7 +604,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 }
 
 void BootNormal::_onMqttPublish(uint16_t id) {
-  Interface::get().getLogger() << F("Triggering MQTT_PACKET_ACKNOWLEDGED event (packetId ") << id << F(")...") << endl;
   Interface::get().event.type = HomieEventType::MQTT_PACKET_ACKNOWLEDGED;
   Interface::get().event.packetId = id;
   Interface::get().eventHandler(Interface::get().event);
@@ -755,11 +744,11 @@ void BootNormal::loop() {
       Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
       _statsTimer.tick();
     }
-  }
 
-  Interface::get().loopFunction();
+    Interface::get().loopFunction();
 
-  for (HomieNode* iNode : HomieNode::nodes) {
-    iNode->loop();
+    for (HomieNode* iNode : HomieNode::nodes) {
+      iNode->loop();
+    }
   }
 }
