@@ -190,7 +190,7 @@ void BootNormal::_onMqttConnected() {
 
   IPAddress localIp = WiFi.localIP();
   char localIpStr[MAX_IP_STRING_LENGTH];
-  snprintf(localIpStr, MAX_IP_STRING_LENGTH - 1, "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
+  snprintf(localIpStr, MAX_IP_STRING_LENGTH + 1, "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
 
   Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
 
