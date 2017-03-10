@@ -3,16 +3,16 @@
 using namespace HomieInternals;
 
 Uptime::Uptime()
-: _seconds(0)
+: _milliseconds(0)
 , _lastTick(0) {
 }
 
 void Uptime::update() {
   uint32_t now = millis();
-  _seconds += (now - _lastTick) / 1000UL;
+  _milliseconds += (now - _lastTick);
   _lastTick = now;
 }
 
 uint64_t Uptime::getSeconds() const {
-  return _seconds;
+  return (_milliseconds / 1000ULL);
 }
