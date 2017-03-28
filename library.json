@@ -22,21 +22,15 @@
   "dependencies": [
     {
       "name": "ArduinoJson",
-      "version": "^5.0.0",
-      "authors": "Benoit Blanchon",
-      "frameworks": "arduino"
+      "version": "^5.0.0"
     },
     {
       "name": "AsyncMqttClient",
-      "version": "^0.5.0",
-      "authors": "Marvin Roger",
-      "frameworks": "arduino"
+      "version": "^0.5.0"
     },
     {
       "name": "Bounce2",
-      "version": "^2.0.0",
-      "authors": "Thomas O Fredericks",
-      "frameworks": "arduino"
+      "version": "^2.0.0"
     }
   ],
   "export": {
