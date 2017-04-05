@@ -102,42 +102,45 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
 }
 
 void BootNormal::_wifiConnect() {
-  if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
-  Interface::get().getLogger() << F("↕ Attempting to connect to Wi-Fi...") << endl;
+  if (!Interface::get().flaggedForSleep) {
+    if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
+    Interface::get().getLogger() << F("↕ Attempting to connect to Wi-Fi...") << endl;
 
-  if (WiFi.getMode() != WIFI_STA) WiFi.mode(WIFI_STA);
+    if (WiFi.getMode() != WIFI_STA) WiFi.mode(WIFI_STA);
 
-  WiFi.hostname(Interface::get().getConfig().get().deviceId);
-  if (strcmp_P(Interface::get().getConfig().get().wifi.ip, PSTR("")) != 0) {  // on _validateConfigWifi there is a requirement for mask and gateway
-    byte convertedBytes[4];
-    Helpers::stringToBytes(Interface::get().getConfig().get().wifi.ip, '.', convertedBytes, 4, 10);
-    IPAddress convertedIp(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
-    Helpers::stringToBytes(Interface::get().getConfig().get().wifi.mask, '.', convertedBytes, 4, 10);
-    IPAddress convertedMask(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
-    Helpers::stringToBytes(Interface::get().getConfig().get().wifi.gw, '.', convertedBytes, 4, 10);
-    IPAddress convertedGateway(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
-    if (strcmp_P(Interface::get().getConfig().get().wifi.dns1, PSTR("")) != 0) {
-      Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns2, '.', convertedBytes, 4, 10);
-      IPAddress convertedDns1(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
-      if ((strcmp_P(Interface::get().getConfig().get().wifi.dns2, PSTR("")) != 0)) {  // on _validateConfigWifi there is requirement that we need dns1 if we want to define dns2
-        Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns2, '.', convertedBytes, 4, 10);
-        IPAddress convertedDns2(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
-        WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1, convertedDns2);
+    WiFi.hostname(Interface::get().getConfig().get().deviceId);
+    if (strcmp_P(Interface::get().getConfig().get().wifi.ip, PSTR("")) != 0) {  // on _validateConfigWifi there is a requirement for mask and gateway
+      byte convertedBytes[4];
+      Helpers::stringToBytes(Interface::get().getConfig().get().wifi.ip, '.', convertedBytes, 4, 10);
+      IPAddress convertedIp(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+      Helpers::stringToBytes(Interface::get().getConfig().get().wifi.mask, '.', convertedBytes, 4, 10);
+      IPAddress convertedMask(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+      Helpers::stringToBytes(Interface::get().getConfig().get().wifi.gw, '.', convertedBytes, 4, 10);
+      IPAddress convertedGateway(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+
+      if (strcmp_P(Interface::get().getConfig().get().wifi.dns1, PSTR("")) != 0) {
+        Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns1, '.', convertedBytes, 4, 10);
+        IPAddress convertedDns1(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+        if ((strcmp_P(Interface::get().getConfig().get().wifi.dns2, PSTR("")) != 0)) {  // on _validateConfigWifi there is requirement that we need dns1 if we want to define dns2
+          Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns2, '.', convertedBytes, 4, 10);
+          IPAddress convertedDns2(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+          WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1, convertedDns2);
+        } else {
+          WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1);
+        }
       } else {
-        WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1);
+        WiFi.config(convertedIp, convertedGateway, convertedMask);
       }
-    } else {
-      WiFi.config(convertedIp, convertedGateway, convertedMask);
     }
-  }
-  if (strcmp_P(Interface::get().getConfig().get().wifi.bssid, PSTR("")) != 0) {
-    byte bssidBytes[6];
-    Helpers::stringToBytes(Interface::get().getConfig().get().wifi.bssid, ':', bssidBytes, 6, 16);
-    WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password, Interface::get().getConfig().get().wifi.channel, bssidBytes);
-  } else {
-    WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password);
-  }
-  if (WiFi.SSID() != Interface::get().getConfig().get().wifi.ssid || WiFi.psk() != Interface::get().getConfig().get().wifi.password) {
+
+    if (strcmp_P(Interface::get().getConfig().get().wifi.bssid, PSTR("")) != 0) {
+      byte bssidBytes[6];
+      Helpers::stringToBytes(Interface::get().getConfig().get().wifi.bssid, ':', bssidBytes, 6, 16);
+      WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password, Interface::get().getConfig().get().wifi.channel, bssidBytes);
+    } else {
+      WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password);
+    }
+
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
   }
@@ -283,7 +286,6 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 
     if (_mqttOfflineMessageId != 0) {
       _mqttOfflineMessageId = 0;
-      Interface::get().flaggedForSleep = false;
       Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
       Interface::get().event.type = HomieEventType::READY_TO_SLEEP;
       Interface::get().eventHandler(Interface::get().event);
