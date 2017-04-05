@@ -119,7 +119,7 @@ void BootNormal::_wifiConnect() {
     if (strcmp_P(Interface::get().getConfig().get().wifi.dns1, PSTR("")) != 0) {
       Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns2, '.', convertedBytes, 4, 10);
       IPAddress convertedDns1(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
-      if ((strcmp_P(Interface::get().getConfig().get().wifi.dns2, PSTR("")) != 0)) {  //on _validateConfigWifi there is requirement that we need dns1 if we want to define dns2
+      if ((strcmp_P(Interface::get().getConfig().get().wifi.dns2, PSTR("")) != 0)) {  // on _validateConfigWifi there is requirement that we need dns1 if we want to define dns2
         Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns2, '.', convertedBytes, 4, 10);
         IPAddress convertedDns2(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
         WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1, convertedDns2);
