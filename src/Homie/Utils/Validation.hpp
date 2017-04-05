@@ -24,6 +24,5 @@ class Validation {
   static ConfigValidationResult _validateConfigMqtt(const JsonObject& object);
   static ConfigValidationResult _validateConfigOta(const JsonObject& object);
   static ConfigValidationResult _validateConfigSettings(const JsonObject& object);
-  //static bool _validateConfigWifiBssid(const char* mac);
 };
 }  // namespace HomieInternals

@@ -16,7 +16,7 @@ uint8_t Helpers::rssiToPercentage(int32_t rssi) {
 }
 
 void Helpers::stringToBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) {
-  //taken from http://stackoverflow.com/a/35236734
+  // taken from http://stackoverflow.com/a/35236734
   for (int i = 0; i < maxBytes; i++) {
     bytes[i] = strtoul(str, NULL, base);
     str = strchr(str, sep);
@@ -28,19 +28,17 @@ void Helpers::stringToBytes(const char* str, char sep, byte* bytes, int maxBytes
 }
 
 bool Helpers::validateMacAddress(const char *mac) {
-  //taken from http://stackoverflow.com/a/4792211
+  // taken from http://stackoverflow.com/a/4792211
   int i = 0;
   int s = 0;
   while (*mac) {
     if (isxdigit(*mac)) {
       i++;
-    }
-    else if (*mac == ':' || *mac == '-') {
+    } else if (*mac == ':' || *mac == '-') {
       if (i == 0 || i / 2 - 1 != s)
         break;
       ++s;
-    }
-    else {
+    } else {
        s = -1;
     }
     ++mac;
