@@ -108,9 +108,37 @@ void BootNormal::_wifiConnect() {
   if (WiFi.getMode() != WIFI_STA) WiFi.mode(WIFI_STA);
 
   WiFi.hostname(Interface::get().getConfig().get().deviceId);
-
-  if (WiFi.SSID() != Interface::get().getConfig().get().wifi.ssid || WiFi.psk() != Interface::get().getConfig().get().wifi.password) {
+  if (strcmp_P(Interface::get().getConfig().get().wifi.ip, PSTR("")) != 0) {// on _validateConfigWifi there is a requirement for mask and gateway
+    byte convertedBytes[4];
+    Interface::get().getLogger() << F("↕ Still atempting...") << endl;
+    Helpers::stringToBytes(Interface::get().getConfig().get().wifi.ip, '.', convertedBytes, 4, 10);
+    IPAddress convertedIp(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+    Helpers::stringToBytes(Interface::get().getConfig().get().wifi.mask, '.', convertedBytes, 4, 10);
+    IPAddress convertedMask(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+    Helpers::stringToBytes(Interface::get().getConfig().get().wifi.gw, '.', convertedBytes, 4, 10);
+    IPAddress convertedGateway(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+    if (strcmp_P(Interface::get().getConfig().get().wifi.dns1, PSTR("")) != 0) {
+      Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns2, '.', convertedBytes, 4, 10);
+      IPAddress convertedDns1(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+      if ((strcmp_P(Interface::get().getConfig().get().wifi.dns2, PSTR("")) != 0)) { //on _validateConfigWifi there is requirement that we need dns1 if we want to define dns2
+        Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns2, '.', convertedBytes, 4, 10);
+        IPAddress convertedDns2(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
+        WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1, convertedDns2);
+      } else {
+        WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1);
+      }
+    } else {
+      WiFi.config(convertedIp, convertedGateway, convertedMask);
+    }
+  }
+  if (strcmp_P(Interface::get().getConfig().get().wifi.bssid, PSTR("")) != 0) {
+    byte bssidBytes[6];
+    Helpers::stringToBytes(Interface::get().getConfig().get().wifi.bssid, ':', bssidBytes, 6, 16);
+    WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password, Interface::get().getConfig().get().wifi.channel, bssidBytes);
+  } else {
     WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password);
+  }
+  if (WiFi.SSID() != Interface::get().getConfig().get().wifi.ssid || WiFi.psk() != Interface::get().getConfig().get().wifi.password) {
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
   }

@@ -67,6 +67,36 @@ bool Config::load() {
   if (parsedJson.containsKey("device_id")) {
     reqDeviceId = parsedJson["device_id"];
   }
+
+  const char* reqWifiBssid = "";
+  if (parsedJson["wifi"].as<JsonObject&>().containsKey("bssid")) {
+    reqWifiBssid = parsedJson["wifi"]["bssid"];
+  }
+  uint16_t reqWifiChannel = 0;
+  if (parsedJson["wifi"].as<JsonObject&>().containsKey("channel")) {
+    reqWifiChannel = parsedJson["wifi"]["channel"];
+  }
+  const char* reqWifiIp = "";
+  if (parsedJson["wifi"].as<JsonObject&>().containsKey("ip")) {
+    reqWifiIp = parsedJson["wifi"]["ip"];
+  }
+  const char* reqWifiMask = "";
+  if (parsedJson["wifi"].as<JsonObject&>().containsKey("mask")) {
+    reqWifiMask = parsedJson["wifi"]["mask"];
+  }
+  const char* reqWifiGw = "";
+  if (parsedJson["wifi"].as<JsonObject&>().containsKey("gw")) {
+    reqWifiGw = parsedJson["wifi"]["gw"];
+  }
+  const char* reqWifiDns1 = "";
+  if (parsedJson["wifi"].as<JsonObject&>().containsKey("dns1")) {
+    reqWifiDns1 = parsedJson["wifi"]["dns1"];
+  }
+  const char* reqWifiDns2 = "";
+  if (parsedJson["wifi"].as<JsonObject&>().containsKey("dns2")) {
+    reqWifiDns2 = parsedJson["wifi"]["dns2"];
+  }
+
   uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
@@ -94,9 +124,16 @@ bool Config::load() {
   }
 
   strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
+  strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
   strlcpy(_configStruct.wifi.ssid, reqWifiSsid, MAX_WIFI_SSID_LENGTH);
   if (reqWifiPassword) strlcpy(_configStruct.wifi.password, reqWifiPassword, MAX_WIFI_PASSWORD_LENGTH);
-  strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
+  strlcpy(_configStruct.wifi.bssid, reqWifiBssid, MAX_MAC_STRING_LENGTH + 6);
+  _configStruct.wifi.channel = reqWifiChannel;
+  strlcpy(_configStruct.wifi.ip, reqWifiIp, MAX_IP_STRING_LENGTH);
+  strlcpy(_configStruct.wifi.gw, reqWifiGw, MAX_IP_STRING_LENGTH);
+  strlcpy(_configStruct.wifi.mask, reqWifiMask, MAX_IP_STRING_LENGTH);
+  strlcpy(_configStruct.wifi.dns1, reqWifiDns1, MAX_IP_STRING_LENGTH);
+  strlcpy(_configStruct.wifi.dns2, reqWifiDns2, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.mqtt.server.host, reqMqttHost, MAX_HOSTNAME_LENGTH);
   _configStruct.mqtt.server.port = reqMqttPort;
   strlcpy(_configStruct.mqtt.baseTopic, reqMqttBaseTopic, MAX_MQTT_BASE_TOPIC_LENGTH);
@@ -286,7 +323,11 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • Wi-Fi: ") << endl;
   Interface::get().getLogger() << F("    ◦ SSID: ") << _configStruct.wifi.ssid << endl;
   Interface::get().getLogger() << F("    ◦ Password not shown") << endl;
-
+  if (strcmp_P(_configStruct.wifi.ip, PSTR("")) != 0) {
+    Interface::get().getLogger() << F("    ◦ IP: ") << _configStruct.wifi.ip << endl;
+    Interface::get().getLogger() << F("    ◦ Mask: ") << _configStruct.wifi.mask << endl;
+    Interface::get().getLogger() << F("    ◦ Gateway: ") << _configStruct.wifi.gw << endl;
+  }
   Interface::get().getLogger() << F("  • MQTT: ") << endl;
   Interface::get().getLogger() << F("    ◦ Host: ") << _configStruct.mqtt.server.host << endl;
   Interface::get().getLogger() << F("    ◦ Port: ") << _configStruct.mqtt.server.port << endl;

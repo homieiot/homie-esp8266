@@ -76,6 +76,95 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.password is too long");
     return result;
   }
+  // by benzino
+  if (object["wifi"].as<JsonObject&>().containsKey("bssid") && !object["wifi"]["bssid"].is<const char*>()) {
+    result.reason = F("wifi.bssid is not a string");
+    return result;
+  }
+  if ( (object["wifi"].as<JsonObject&>().containsKey("bssid") && !object["wifi"].as<JsonObject&>().containsKey("channel")) ||
+       (!object["wifi"].as<JsonObject&>().containsKey("bssid") && object["wifi"].as<JsonObject&>().containsKey("channel")) ) {
+    result.reason = F("wifi.channel_bssid channel and BSSID is required");
+    return result;
+  }
+  if (object["wifi"].as<JsonObject&>().containsKey("bssid") && !Helpers::validateMacAddress(object["wifi"].as<JsonObject&>().get<const char*>("bssid"))) {
+    result.reason = F("wifi.bssid is not valid mac");
+    return result;
+  }
+  if (object["wifi"].as<JsonObject&>().containsKey("channel") && !object["wifi"]["channel"].is<uint16_t>()) {
+    result.reason = F("wifi.channel is not an integer");
+    return result;
+  }
+  IPAddress ipAddress;
+  if (object["wifi"].as<JsonObject&>().containsKey("ip") && !object["wifi"]["ip"].is<const char*>()) {
+    result.reason = F("wifi.ip is not a string");
+    return result;
+  }
+  if (object["wifi"]["ip"] && strlen(object["wifi"]["ip"]) + 1 > MAX_IP_STRING_LENGTH) {
+    result.reason = F("wifi.ip is too long");
+    return result;
+  }
+  if (object["wifi"]["ip"] && !ipAddress.fromString(object["wifi"].as<JsonObject&>().get<const char*>("ip"))) {
+    result.reason = F("wifi.ip is not valid ip address");
+    return result;
+  }
+  if (object["wifi"].as<JsonObject&>().containsKey("mask") && !object["wifi"]["mask"].is<const char*>()) {
+    result.reason = F("wifi.mask is not a string");
+    return result;
+  }
+  if (object["wifi"]["mask"] && strlen(object["wifi"]["mask"]) + 1 > MAX_IP_STRING_LENGTH) {
+    result.reason = F("wifi.mask is too long");
+    return result;
+  }
+  if (object["wifi"]["mask"] && !ipAddress.fromString(object["wifi"].as<JsonObject&>().get<const char*>("mask"))) {
+    result.reason = F("wifi.mask is not valid mask");
+    return result;
+  }
+  if (object["wifi"].as<JsonObject&>().containsKey("gw") && !object["wifi"]["gw"].is<const char*>()) {
+    result.reason = F("wifi.gw is not a string");
+    return result;
+  }
+  if (object["wifi"]["gw"] && strlen(object["wifi"]["gw"]) + 1 > MAX_IP_STRING_LENGTH) {
+    result.reason = F("wifi.gw is too long");
+    return result;
+  }
+  if (object["wifi"]["gw"] && !ipAddress.fromString(object["wifi"].as<JsonObject&>().get<const char*>("gw"))) {
+    result.reason = F("wifi.gw is not valid gateway address");
+    return result;
+  }
+  if ( (object["wifi"].as<JsonObject&>().containsKey("ip") && (!object["wifi"].as<JsonObject&>().containsKey("mask") || !object["wifi"].as<JsonObject&>().containsKey("gw"))) ||
+    (object["wifi"].as<JsonObject&>().containsKey("gw") && (!object["wifi"].as<JsonObject&>().containsKey("mask") || !object["wifi"].as<JsonObject&>().containsKey("ip"))) ||
+    (object["wifi"].as<JsonObject&>().containsKey("mask") && (!object["wifi"].as<JsonObject&>().containsKey("ip") || !object["wifi"].as<JsonObject&>().containsKey("gw")))) {
+    result.reason = F("wifi.staticip ip, gw and mask is required");
+    return result;
+  }
+  if (object["wifi"].as<JsonObject&>().containsKey("dns1") && !object["wifi"]["dns1"].is<const char*>()) {
+    result.reason = F("wifi.dns1 is not a string");
+    return result;
+  }
+  if (object["wifi"]["dns1"] && strlen(object["wifi"]["dns1"]) + 1 > MAX_IP_STRING_LENGTH) {
+    result.reason = F("wifi.dns1 is too long");
+    return result;
+  }
+  if (object["wifi"]["dns1"] && !ipAddress.fromString(object["wifi"].as<JsonObject&>().get<const char*>("dns1"))) {
+    result.reason = F("wifi.dns1 is not valid dns address");
+    return result;
+  }
+  if (object["wifi"].as<JsonObject&>().containsKey("dns2") && !object["wifi"].as<JsonObject&>().containsKey("dns1")) {
+    result.reason = F("wifi.dns2 no dns1 defined");
+    return result;
+  }
+  if (object["wifi"].as<JsonObject&>().containsKey("dns2") && !object["wifi"]["dns2"].is<const char*>()) {
+    result.reason = F("wifi.dns2 is not a string");
+    return result;
+  }
+  if (object["wifi"]["dns2"] && strlen(object["wifi"]["dns2"]) + 1 > MAX_IP_STRING_LENGTH) {
+    result.reason = F("wifi.dns2 is too long");
+    return result;
+  }
+  if (object["wifi"]["dns2"] && !ipAddress.fromString(object["wifi"].as<JsonObject&>().get<const char*>("dns2"))) {
+    result.reason = F("wifi.dns2 is not valid dns address");
+    return result;
+  }
 
   const char* wifiSsid = object["wifi"]["ssid"];
   if (strcmp_P(wifiSsid, PSTR("")) == 0) {
@@ -262,3 +351,23 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
   result.valid = true;
   return result;
 }
+
+// bool Validation::_validateConfigWifiBssid(const char *mac) {
+//   int i = 0;
+//   int s = 0;
+//   while (*mac) {
+//    if (isxdigit(*mac)) {
+//       i++;
+//    }
+//    else if (*mac == ':' || *mac == '-') {
+//       if (i == 0 || i / 2 - 1 != s)
+//         break;
+//       ++s;
+//    }
+//    else {
+//        s = -1;
+//    }
+//    ++mac;
+//   }
+//   return (i == MAX_MAC_STRING_LENGTH && s == 5);
+// }
