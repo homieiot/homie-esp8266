@@ -9,7 +9,7 @@ PropertyInterface::PropertyInterface()
 : _property(nullptr) {
 }
 
-void PropertyInterface::settable(PropertyInputHandler inputHandler) {
+void PropertyInterface::settable(const PropertyInputHandler& inputHandler) {
   _property->settable(inputHandler);
 }
 
@@ -18,7 +18,7 @@ PropertyInterface& PropertyInterface::setProperty(Property* property) {
   return *this;
 }
 
-HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
+HomieNode::HomieNode(const char* id, const char* type, const NodeInputHandler& inputHandler)
 : _id(id)
 , _type(type)
 , _properties()

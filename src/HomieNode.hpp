@@ -24,7 +24,7 @@ class PropertyInterface {
  public:
   PropertyInterface();
 
-  void settable(PropertyInputHandler inputHandler = [](const HomieRange& range, const String& value) { return false; });
+  void settable(const PropertyInputHandler& inputHandler = [](const HomieRange& range, const String& value) { return false; });
 
  private:
   PropertyInterface& setProperty(Property* property);
@@ -37,7 +37,7 @@ class Property {
 
  public:
   explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; _settable = false; }
-  void settable(PropertyInputHandler inputHandler) { _settable = true;  _inputHandler = inputHandler; }
+  void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
   const char* getProperty() const { return _id; }
@@ -61,7 +61,7 @@ class HomieNode {
   friend HomieInternals::BootConfig;
 
  public:
-  HomieNode(const char* id, const char* type, HomieInternals::NodeInputHandler nodeInputHandler = [](const String& property, const HomieRange& range, const String& value) { return false; });
+  HomieNode(const char* id, const char* type, const HomieInternals::NodeInputHandler& nodeInputHandler = [](const String& property, const HomieRange& range, const String& value) { return false; });
   virtual ~HomieNode();
 
   const char* getId() const { return _id; }

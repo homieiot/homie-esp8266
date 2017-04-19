@@ -44,13 +44,13 @@ class HomieClass {
   HomieClass& disableLedFeedback();
   HomieClass& setLedPin(uint8_t pin, uint8_t on);
   HomieClass& setConfigurationApPassword(const char* password);
-  HomieClass& setGlobalInputHandler(GlobalInputHandler globalInputHandler);
-  HomieClass& setBroadcastHandler(BroadcastHandler broadcastHandler);
-  HomieClass& onEvent(EventHandler handler);
+  HomieClass& setGlobalInputHandler(const GlobalInputHandler& globalInputHandler);
+  HomieClass& setBroadcastHandler(const BroadcastHandler& broadcastHandler);
+  HomieClass& onEvent(const EventHandler& handler);
   HomieClass& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
   HomieClass& disableResetTrigger();
-  HomieClass& setSetupFunction(OperationFunction function);
-  HomieClass& setLoopFunction(OperationFunction function);
+  HomieClass& setSetupFunction(const OperationFunction& function);
+  HomieClass& setLoopFunction(const OperationFunction& function);
   HomieClass& setHomieBootMode(HomieBootMode bootMode);
   HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
 

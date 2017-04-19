@@ -199,7 +199,7 @@ void HomieClass::setIdle(bool idle) {
   Interface::get().reset.idle = idle;
 }
 
-HomieClass& HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
+HomieClass& HomieClass::setGlobalInputHandler(const GlobalInputHandler& inputHandler) {
   _checkBeforeSetup(F("setGlobalInputHandler"));
 
   Interface::get().globalInputHandler = inputHandler;
@@ -207,7 +207,7 @@ HomieClass& HomieClass::setGlobalInputHandler(GlobalInputHandler inputHandler) {
   return *this;
 }
 
-HomieClass& HomieClass::setBroadcastHandler(BroadcastHandler broadcastHandler) {
+HomieClass& HomieClass::setBroadcastHandler(const BroadcastHandler& broadcastHandler) {
   _checkBeforeSetup(F("setBroadcastHandler"));
 
   Interface::get().broadcastHandler = broadcastHandler;
@@ -215,7 +215,7 @@ HomieClass& HomieClass::setBroadcastHandler(BroadcastHandler broadcastHandler) {
   return *this;
 }
 
-HomieClass& HomieClass::setSetupFunction(OperationFunction function) {
+HomieClass& HomieClass::setSetupFunction(const OperationFunction& function) {
   _checkBeforeSetup(F("setSetupFunction"));
 
   Interface::get().setupFunction = function;
@@ -223,7 +223,7 @@ HomieClass& HomieClass::setSetupFunction(OperationFunction function) {
   return *this;
 }
 
-HomieClass& HomieClass::setLoopFunction(OperationFunction function) {
+HomieClass& HomieClass::setLoopFunction(const OperationFunction& function) {
   _checkBeforeSetup(F("setLoopFunction"));
 
   Interface::get().loopFunction = function;
@@ -250,7 +250,7 @@ bool HomieClass::isConnected() {
   return Interface::get().connected;
 }
 
-HomieClass& HomieClass::onEvent(EventHandler handler) {
+HomieClass& HomieClass::onEvent(const EventHandler& handler) {
   _checkBeforeSetup(F("onEvent"));
 
   Interface::get().eventHandler = handler;

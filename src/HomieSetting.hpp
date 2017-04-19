@@ -4,6 +4,8 @@
 #include <functional>
 #include "Arduino.h"
 
+#include "./Homie/Datatypes/Callbacks.hpp"
+
 namespace HomieInternals {
 class Config;
 class Validation;
@@ -33,7 +35,7 @@ class HomieSetting : public HomieInternals::IHomieSetting {
   T get() const;
   bool wasProvided() const;
   HomieSetting<T>& setDefaultValue(T defaultValue);
-  HomieSetting<T>& setValidator(std::function<bool(T candidate)> validator);
+  HomieSetting<T>& setValidator(const std::function<bool(T candidate)>& validator);
 
  private:
   const char* _name;

@@ -33,7 +33,7 @@ HomieSetting<T>& HomieSetting<T>::setDefaultValue(T defaultValue) {
 }
 
 template <class T>
-HomieSetting<T>& HomieSetting<T>::setValidator(std::function<bool(T candidate)> validator) {
+HomieSetting<T>& HomieSetting<T>::setValidator(const std::function<bool(T candidate)>& validator) {
   _validator = validator;
   return *this;
 }

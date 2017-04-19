@@ -12,6 +12,7 @@ InterfaceData::InterfaceData()
 , led { .enabled = false, .pin = 0, .on = 0 }
 , reset { .enabled = false, .idle = false, .triggerPin = 0, .triggerState = 0, .triggerTime = 0, .flaggedBySketch = false }
 , flaggedForSleep{false}
+, event{}
 , connected{false}
 , _logger{nullptr}
 , _blinker{nullptr}
