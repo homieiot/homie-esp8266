@@ -199,10 +199,10 @@ void HomieClass::setIdle(bool idle) {
   Interface::get().reset.idle = idle;
 }
 
-HomieClass& HomieClass::setGlobalInputHandler(const GlobalInputHandler& inputHandler) {
+HomieClass& HomieClass::setGlobalInputHandler(const GlobalInputHandler& globalInputHandler) {
   _checkBeforeSetup(F("setGlobalInputHandler"));
 
-  Interface::get().globalInputHandler = inputHandler;
+  Interface::get().globalInputHandler = globalInputHandler;
 
   return *this;
 }
