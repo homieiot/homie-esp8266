@@ -340,4 +340,27 @@ void Config::log() const {
 
   Interface::get().getLogger() << F("  • OTA: ") << endl;
   Interface::get().getLogger() << F("    ◦ Enabled? ") << (_configStruct.ota.enabled ? F("yes") : F("no")) << endl;
+
+  if (IHomieSetting::settings.size() > 0) {
+    Interface::get().getLogger() << F("  • Custom settings: ") << endl;
+    for (IHomieSetting* iSetting : IHomieSetting::settings) {
+      Interface::get().getLogger() << F("    ◦ ");
+
+      if (iSetting->isBool()) {
+        HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+        Interface::get().getLogger() << setting->getName() << F(": ") << setting->get() << F(" (") << (setting->wasProvided() ? F("set") : F("default")) << F(")");
+      } else if (iSetting->isLong()) {
+        HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+        Interface::get().getLogger() << setting->getName() << F(": ") << setting->get() << F(" (") << (setting->wasProvided() ? F("set") : F("default")) << F(")");
+      } else if (iSetting->isDouble()) {
+        HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+        Interface::get().getLogger() << setting->getName() << F(": ") << setting->get() << F(" (") << (setting->wasProvided() ? F("set") : F("default")) << F(")");
+      } else if (iSetting->isConstChar()) {
+        HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+        Interface::get().getLogger() << setting->getName() << F(": ") << setting->get() << F(" (") << (setting->wasProvided() ? F("set") : F("default")) << F(")");
+      }
+
+      Interface::get().getLogger() << endl;
+    }
+  }
 }
