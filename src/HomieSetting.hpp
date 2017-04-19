@@ -7,6 +7,7 @@
 #include "./Homie/Datatypes/Callbacks.hpp"
 
 namespace HomieInternals {
+class HomieClass;
 class Config;
 class Validation;
 class BootConfig;
@@ -26,6 +27,7 @@ class IHomieSetting {
 
 template <class T>
 class HomieSetting : public HomieInternals::IHomieSetting {
+  friend HomieInternals::HomieClass;
   friend HomieInternals::Config;
   friend HomieInternals::Validation;
   friend HomieInternals::BootConfig;

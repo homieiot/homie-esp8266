@@ -48,8 +48,47 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) cons
 void HomieClass::setup() {
   _setupCalled = true;
 
+  // Check if firmware is set
+
   if (!_firmwareSet) {
     Interface::get().getLogger() << F("✖ Firmware name must be set before calling setup()") << endl;
+    Serial.flush();
+    abort();
+  }
+
+  // Check if default settings values are valid
+
+  bool defaultSettingsValuesValid = true;
+  for (IHomieSetting* iSetting : IHomieSetting::settings) {
+    if (iSetting->isBool()) {
+      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+      if (!setting->isRequired() && !setting->validate(setting->get())) {
+        defaultSettingsValuesValid = false;
+        break;
+      }
+    } else if (iSetting->isLong()) {
+      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+      if (!setting->isRequired() && !setting->validate(setting->get())) {
+        defaultSettingsValuesValid = false;
+        break;
+      }
+    } else if (iSetting->isDouble()) {
+      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+      if (!setting->isRequired() && !setting->validate(setting->get())) {
+        defaultSettingsValuesValid = false;
+        break;
+      }
+    } else if (iSetting->isConstChar()) {
+      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+      if (!setting->isRequired() && !setting->validate(setting->get())) {
+        defaultSettingsValuesValid = false;
+        break;
+      }
+    }
+  }
+
+  if (!defaultSettingsValuesValid) {
+    Interface::get().getLogger() << F("✖ Default setting value does not pass validator test") << endl;
     Serial.flush();
     abort();
   }
