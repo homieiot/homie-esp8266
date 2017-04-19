@@ -9,7 +9,7 @@ class TimedRetry {
   void activate();
   bool check();
   void deactivate();
-  bool isActive();
+  bool isActive() const;
 
  private:
   uint32_t _currentStep;

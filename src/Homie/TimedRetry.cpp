@@ -42,6 +42,6 @@ void TimedRetry::deactivate() {
   _timer.reset();
 }
 
-bool TimedRetry::isActive() {
+bool TimedRetry::isActive() const {
   return _timer.isActive();
 }
