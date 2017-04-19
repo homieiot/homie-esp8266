@@ -4,7 +4,8 @@
 
 namespace HomieInternals {
   const uint16_t MAX_JSON_CONFIG_FILE_SIZE = 1000;
-  const uint16_t MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE = JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(10);  // Max 5 elements at root, 2 elements in nested, etc... the last 10 means 10 custom settings max
+  // 6 elements at root, 9 elements at wifi, 6 elements at mqtt, 1 element at ota, max 10 elements at settings
+  const uint16_t MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE = JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(9) + JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(10);
 
   const uint8_t MAX_WIFI_SSID_LENGTH = 32 + 1;
   const uint8_t MAX_WIFI_PASSWORD_LENGTH = 64 + 1;

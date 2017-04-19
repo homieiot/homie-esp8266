@@ -68,5 +68,6 @@ class BootNormal : public Boot {
   uint16_t _publishOtaStatus(int status, const char* info = nullptr);
   uint16_t _publishOtaStatus_P(int status, PGM_P info);
   void _endOtaUpdate(bool success, uint8_t update_error = UPDATE_ERROR_OK);
+  void _stringToBytes(const char* str, char sep, byte* bytes, int maxBytes, int base);
 };
 }  // namespace HomieInternals
