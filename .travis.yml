@@ -23,6 +23,7 @@ script:
   - set -eo pipefail
   - |
     if [[ "${CPPLINT}" ]]; then
+      pip install cpplint
       make cpplint
     elif [[ "${DOCS}" ]]; then
       openssl aes-256-cbc -d -in ./ci/id_rsa.enc -k "${PRIVATE_KEY_ENCRYPT_KEY}" >> /tmp/deploy_rsa
@@ -41,7 +42,6 @@ script:
       popd
     else
       pip install -U platformio
-      pip install cpplint
       # install current build as a library with all dependencies
       platformio lib -g install file://.
       platformio ci --board=esp01 --board=nodemcuv2

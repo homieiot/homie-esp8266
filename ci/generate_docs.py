@@ -11,6 +11,7 @@ import subprocess
 import getopt
 import sys
 import shutil
+import os
 
 FIRST_RELEASE_ID=3084382
 
