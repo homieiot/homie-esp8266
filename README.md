@@ -21,7 +21,7 @@ The Git repository contains the development version of Homie for ESP8266. Stable
 * [JSON configuration file](http://marvinroger.github.io/homie-esp8266/develop/configuration/json-configuration-file) to configure the device
 * [Cute HTTP API / Web UI / App](http://marvinroger.github.io/homie-esp8266/develop/configuration/http-json-api) to remotely send the configuration to the device and get information about it
 * [Custom settings](http://marvinroger.github.io/homie-esp8266/develop/advanced-usage/custom-settings)
-* [OTA over MQTT](http://marvinroger.github.io/homie-esp8266/develop/advanced-usage/ota-configuration-updates)
+* [OTA over MQTT](http://marvinroger.github.io/homie-esp8266/develop/others/ota-configuration-updates)
 * [Magic bytes](http://marvinroger.github.io/homie-esp8266/develop/advanced-usage/magic-bytes)
 * Available in the [PlatformIO registry](http://platformio.org/#!/lib/show/555/Homie)
 * Pretty straightforward sketches, a simple light for example:
