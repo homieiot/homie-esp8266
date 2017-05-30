@@ -16,15 +16,15 @@ import string
 
 FIRST_RELEASE_ID=3084382
 VERSIONS = [
-  ('master', 'stable')
+  ('master', 'branch master (stable)', 'stable')
 ]
 
 current_dir = os.path.dirname(__file__)
 output_dir = getopt.getopt(sys.argv[1:], 'o:')[0][0][1]
 github_releases = json.load(urllib2.urlopen('https://api.github.com/repos/marvinroger/homie-esp8266/releases'))
 
-def generate_docs(tag_name, destination_folder):
-  print('Generating docs for ' + tag_name + ' at /' + destination_folder + '...')
+def generate_docs(tag_name, description, destination_folder):
+  print('Generating docs for ' + tag_name + ' (' + description  + ') at /' + destination_folder + '...')
   zip_url = 'https://github.com/marvinroger/homie-esp8266/archive/' + tag_name + '.zip'
   zip_path = tempfile.mkstemp()[1]
   urllib.urlretrieve(zip_url, zip_path)
@@ -43,7 +43,7 @@ def generate_docs(tag_name, destination_folder):
 # Generate docs for branches
 
 for version in VERSIONS:
-  generate_docs(version[0], version[1])
+  generate_docs(version[0], version[1], version[2])
 
 # Generate docs for releases
 
@@ -52,15 +52,16 @@ for release in github_releases:
 
   tag_name = release['tag_name']
   version = tag_name[1:]
+  description = 'release ' + version
 
-  VERSIONS.append((tag_name, version))
-  generate_docs(tag_name, version)
+  VERSIONS.append((tag_name, description, version))
+  generate_docs(tag_name, description, version)
 
 # Generate index
 
 versions_html = '<ul>'
 for version in VERSIONS:
-  versions_html += '<li><a href="' + version[1] + '">' + version[0] + '</a></li>'
+  versions_html += '<li><a href="' + version[2] + '"># ' + version[0] + ' <span class="description">' + version[1] + '</span></a></li>'
 versions_html += '</ul>'
 
 docs_index_template_file = open(current_dir + '/docs_index_template.html')
