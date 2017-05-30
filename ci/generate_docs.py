@@ -15,6 +15,7 @@ import os
 
 FIRST_RELEASE_ID=3084382
 
+current_dir = os.path.dirname(__file__)
 output_dir = getopt.getopt(sys.argv[1:], 'o:')[0][0][1]
 github_releases = json.load(urllib2.urlopen('https://api.github.com/repos/marvinroger/homie-esp8266/releases'))
 
@@ -32,7 +33,7 @@ for release in github_releases:
   zip_file.extractall(unzip_path)
   src_path = glob.glob(unzip_path + '/*')[0]
 
-  if not os.path.isfile(src_path + '/mkdocs.yml'): shutil.copy('./mkdocs.default.yml', src_path + '/mkdocs.yml')
+  if not os.path.isfile(src_path + '/mkdocs.yml'): shutil.copy(current_dir + '/mkdocs.default.yml', src_path + '/mkdocs.yml')
 
   subprocess.call(['docker', 'run', '--rm', '-it', '-p', '8000:8000', '-v', src_path + ':/docs', 'squidfunk/mkdocs-material', 'build'])
   shutil.copytree(src_path + '/site', output_dir + '/' + version)
