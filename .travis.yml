@@ -1,6 +1,7 @@
+sudo: required
 language: python
-python:
-  - "2.7"
+services:
+  - docker
 
 env:
   - PLATFORMIO_CI_SRC=examples/CustomSettings
@@ -13,6 +14,7 @@ env:
   - PLATFORMIO_CI_SRC=examples/Broadcast
   - PLATFORMIO_CI_SRC=examples/GlobalInputHandler
   - CPPLINT=true
+  - DOCS=true
 
 install:
   - pip install -U platformio
@@ -21,4 +23,25 @@ install:
   - platformio lib -g install file://.
 
 script:
-  - if [[ "$CPPLINT" ]]; then make cpplint; else platformio ci --board=esp01 --board=nodemcuv2; fi
+  - set -eo pipefail
+  - |
+    if [[ "${CPPLINT}" ]]; then
+      make cpplint
+    elif [[ "${DOCS}" ]]; then
+      openssl aes-256-cbc -d -in ./ci/id_rsa.enc -k "${PRIVATE_KEY_ENCRYPT_KEY}" >> /tmp/deploy_rsa
+      eval "$(ssh-agent -s)"
+      chmod 600 /tmp/deploy_rsa
+      ssh-add /tmp/deploy_rsa
+
+      ./ci/generate_docs.py -o /tmp/docs_site
+      pushd /tmp/docs_site
+      git init
+      git config --global user.name "github"
+      git config --global user.email "support@github.com"
+      git remote add origin git@github.com:marvinroger/homie-esp8266.git
+      git add .
+      git push -f origin master:gh-pages
+      popd
+    else
+      platformio ci --board=esp01 --board=nodemcuv2
+    fi
