@@ -1,7 +1,7 @@
-Welcome to the homie-esp8266 docs. This is also available at http://homie-esp8266.readthedocs.io/en/:version
+Docs
+====
 
-Replace `:version` by:
+Docs are available:
 
-* `latest` to access the latest development branch docs
-* `stable` to access the latest stable docs
-* `vx.x.x` to access specific version docs
+* Locally at [index.md](index.md)
+* Online at http://marvinroger.github.io/homie-esp8266/

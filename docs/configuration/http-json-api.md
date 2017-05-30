@@ -126,7 +126,7 @@ Save the config to the device.
 
 (application/json)
 
-See [JSON configuration file](https://homie-esp8266.readme.io/docs/json-configuration-file).
+See [JSON configuration file](json-configuration-file.md).
 
 ## Response
 

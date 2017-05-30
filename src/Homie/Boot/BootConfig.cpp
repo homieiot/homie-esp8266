@@ -207,7 +207,7 @@ void BootConfig::_onCaptivePortal() {
     }
   } else if (_http.uri() != "/" || !SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
     Interface::get().getLogger() << F("Received not found request") << endl;
-    _http.send(404, F("text/plain"), F("UI bundle not loaded. See Configuration API usage: https://homie-esp8266.readme.io/docs/http-json-api"));
+    _http.send(404, F("text/plain"), F("UI bundle not loaded. See Configuration API usage: http://marvinroger.github.io/homie-esp8266/"));
   } else {
     Interface::get().getLogger() << F("Received UI request") << endl;
     File file = SPIFFS.open(CONFIG_UI_BUNDLE_PATH, "r");

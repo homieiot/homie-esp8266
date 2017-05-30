@@ -16,6 +16,7 @@ import string
 
 FIRST_RELEASE_ID=3084382
 VERSIONS = [
+  ('develop', 'develop branch (development)', 'develop'),
   ('master', 'branch master (stable)', 'stable')
 ]
 

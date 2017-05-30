@@ -9,10 +9,7 @@ An Arduino for ESP8266 implementation of [Homie](https://github.com/marvinroger/
 
 ## Note for v1.x users
 
-The new documentation and Web configurator are only for the v2.
-
-* The docs for the v1.5 is available at https://github.com/marvinroger/homie-esp8266/blob/528a4f77c6371366847ebf4def6aba942dfd0c4c/docs/index.md
-* The Web configurator for v1.5 is available at http://marvinroger.github.io/homie-esp8266/
+The old configurator is not available online anymore. You can download it [here](https://github.com/marvinroger/homie-esp8266/releases/download/v1.5.0/homie-esp8266-v1-setup.zip).
 
 ## Download
 
@@ -21,11 +18,11 @@ The Git repository contains the development version of Homie for ESP8266. Stable
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
-* [JSON configuration file](https://homie-esp8266.readme.io/v2.0.0/docs/json-configuration-file) to configure the device
-* [Cute HTTP API / Web UI / App](https://homie-esp8266.readme.io/v2.0.0/docs/http-json-api) to remotely send the configuration to the device and get information about it
-* [Custom settings](https://homie-esp8266.readme.io/v2.0.0/docs/custom-settings)
-* [OTA over MQTT](https://homie-esp8266.readme.io/v2.0.0/docs/ota-configuration-updates)
-* [Magic bytes](https://homie-esp8266.readme.io/v2.0.0/docs/magic-bytes)
+* [JSON configuration file](http://marvinroger.github.io/homie-esp8266/develop/configuration/json-configuration-file) to configure the device
+* [Cute HTTP API / Web UI / App](http://marvinroger.github.io/homie-esp8266/develop/configuration/http-json-api) to remotely send the configuration to the device and get information about it
+* [Custom settings](http://marvinroger.github.io/homie-esp8266/develop/advanced-usage/custom-settings)
+* [OTA over MQTT](http://marvinroger.github.io/homie-esp8266/develop/advanced-usage/ota-configuration-updates)
+* [Magic bytes](http://marvinroger.github.io/homie-esp8266/develop/advanced-usage/magic-bytes)
 * Available in the [PlatformIO registry](http://platformio.org/#!/lib/show/555/Homie)
 * Pretty straightforward sketches, a simple light for example:
 
@@ -67,7 +64,7 @@ void loop() {
 
 ## Requirements, installation and usage
 
-The project is documented on https://homie-esp8266.readme.io with a *Getting started* guide and every piece of information you will need.
+The project is documented on http://marvinroger.github.io/homie-esp8266/ with a *Getting started* guide and every piece of information you will need.
 
 ## Donate
 
