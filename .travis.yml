@@ -17,10 +17,7 @@ env:
   - DOCS=true
 
 install:
-  - pip install -U platformio
-  - pip install cpplint
-  # install current build as a library with all dependencies
-  - platformio lib -g install file://.
+  - chmod +x ./ci/generate_docs.py
 
 script:
   - set -eo pipefail
@@ -43,5 +40,9 @@ script:
       git push -f origin master:gh-pages
       popd
     else
+      pip install -U platformio
+      pip install cpplint
+      # install current build as a library with all dependencies
+      platformio lib -g install file://.
       platformio ci --board=esp01 --board=nodemcuv2
     fi
