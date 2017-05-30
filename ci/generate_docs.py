@@ -24,6 +24,10 @@ for release in github_releases:
 
   tag_name = release['tag_name']
   version = tag_name[1:]
+
+  generate_docs(tag_name, version)
+
+def generate_docs(tag_name, destination_folder):
   zip_url = 'https://github.com/marvinroger/homie-esp8266/archive/' + tag_name + '.zip'
   zip_path = tempfile.mkstemp()[1]
   urllib.urlretrieve(zip_url, zip_path)
@@ -36,4 +40,4 @@ for release in github_releases:
   if not os.path.isfile(src_path + '/mkdocs.yml'): shutil.copy(current_dir + '/mkdocs.default.yml', src_path + '/mkdocs.yml')
 
   subprocess.call(['docker', 'run', '--rm', '-it', '-p', '8000:8000', '-v', src_path + ':/docs', 'squidfunk/mkdocs-material', 'build'])
-  shutil.copytree(src_path + '/site', output_dir + '/' + version)
+  shutil.copytree(src_path + '/site', output_dir + '/' + destination_folder)

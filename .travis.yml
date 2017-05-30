@@ -38,6 +38,7 @@ script:
       git config --global user.email "support@github.com"
       git remote add origin git@github.com:marvinroger/homie-esp8266.git
       git add .
+      git commit -m ":package: Result of Travis build ${TRAVIS_BUILD_NUMBER}"
       git push -f origin master:gh-pages
       popd
     else
