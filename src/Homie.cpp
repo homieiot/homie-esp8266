@@ -39,9 +39,11 @@ HomieClass::~HomieClass() {
 
 void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) const {
   if (_setupCalled) {
-    Interface::get().getLogger() << F("✖ ") << functionName << F("(): has to be called before setup()") << endl;
-    Serial.flush();
-    abort();
+    String message;
+    message.concat(F("✖ "));
+    message.concat(functionName);
+    message.concat(F("(): has to be called before setup()"));
+    Helpers::abort(message);
   }
 }
 
@@ -51,9 +53,8 @@ void HomieClass::setup() {
   // Check if firmware is set
 
   if (!_firmwareSet) {
-    Interface::get().getLogger() << F("✖ Firmware name must be set before calling setup()") << endl;
-    Serial.flush();
-    abort();
+    Helpers::abort(F("✖ Firmware name must be set before calling setup()"));
+    return; // never reached, here for clarity
   }
 
   // Check if default settings values are valid
@@ -88,9 +89,8 @@ void HomieClass::setup() {
   }
 
   if (!defaultSettingsValuesValid) {
-    Interface::get().getLogger() << F("✖ Default setting value does not pass validator test") << endl;
-    Serial.flush();
-    abort();
+    Helpers::abort(F("✖ Default setting value does not pass validator test"));
+    return; // never reached, here for clarity
   }
 
   // boot mode set during this boot by application before Homie.setup()
@@ -136,9 +136,8 @@ void HomieClass::setup() {
     Interface::get().eventHandler(Interface::get().event);
 
   } else {
-    Interface::get().getLogger() << F("✖ Boot mode invalid") << endl;
-    Serial.flush();
-    abort();
+    Helpers::abort(F("✖ Boot mode invalid"));
+    return; // never reached, here for clarity
   }
 
   _boot->setup();
@@ -202,9 +201,8 @@ HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
 void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
   if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
-    Interface::get().getLogger() << F("✖ setFirmware(): either the name or version string is too long") << endl;
-    Serial.flush();
-    abort();
+    Helpers::abort(F("✖ setFirmware(): either the name or version string is too long"));
+    return; // never reached, here for clarity
   }
 
   strncpy(Interface::get().firmware.name, name + 5, strlen(name) - 10);
@@ -217,9 +215,8 @@ void HomieClass::__setFirmware(const char* name, const char* version) {
 void HomieClass::__setBrand(const char* brand) const {
   _checkBeforeSetup(F("setBrand"));
   if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
-    Interface::get().getLogger() << F("✖ setBrand(): the brand string is too long") << endl;
-    Serial.flush();
-    abort();
+    Helpers::abort(F("✖ setBrand(): the brand string is too long"));
+    return; // never reached, here for clarity
   }
 
   strncpy(Interface::get().brand, brand + 5, strlen(brand) - 10);

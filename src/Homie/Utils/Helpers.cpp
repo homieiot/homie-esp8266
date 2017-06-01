@@ -2,6 +2,13 @@
 
 using namespace HomieInternals;
 
+void Helpers::abort(const String& message) {
+  Serial.begin(115200);
+  Serial << message << endl;
+  Serial.flush();
+  ::abort();
+}
+
 uint8_t Helpers::rssiToPercentage(int32_t rssi) {
   uint8_t quality;
   if (rssi <= -100) {
