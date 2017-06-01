@@ -17,10 +17,11 @@ void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
 }
 
 bool Timer::check() const {
-  if (_active) {
-    if (_tickAtBeginning && _initialTime == 0) return true;
-    if (millis() - _initialTime >= _interval) return true;
-  }
+  if (!_active) return false;
+
+  if (_tickAtBeginning && _initialTime == 0) return true;
+  if (millis() - _initialTime >= _interval) return true;
+
   return false;
 }
 

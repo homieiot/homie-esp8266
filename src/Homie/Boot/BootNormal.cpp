@@ -4,7 +4,7 @@ using namespace HomieInternals;
 
 BootNormal::BootNormal()
 : Boot("normal")
-, _mqttTimedRetry(MQTT_RECONNECT_STEP_INTERVAL, MQTT_RECONNECT_MAX_INTERVAL)
+, _mqttReconnectTimer(MQTT_RECONNECT_INITIAL_INTERVAL, MQTT_RECONNECT_MAX_BACKOFF)
 , _setupFunctionCalled(false)
 , _mqttDisconnectNotified(true)
 , _flaggedForOta(false)
@@ -39,16 +39,16 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
   return _mqttTopic.get();
 }
 
-uint16_t BootNormal::_publishOtaStatus(int status, const char* info) {
+bool BootNormal::_publishOtaStatus(int status, const char* info) {
   String payload(status);
   if (info) {
     payload += ' ';
     payload += info;
   }
-  return Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 1, true, payload.c_str());
+  return Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 0, true, payload.c_str()) != 0;
 }
 
-uint16_t BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
+bool BootNormal::_publishOtaStatus_P(int status, PGM_P info) {
   return _publishOtaStatus(status, String(info).c_str());
 }
 
@@ -181,7 +181,7 @@ void BootNormal::_mqttConnect() {
 
 void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
-  _mqttTimedRetry.deactivate();
+  _mqttReconnectTimer.deactivate();
 
   Interface::get().getLogger() << F("Sending initial information...") << endl;
 
@@ -296,7 +296,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     _mqttConnect();
 
   } else {
-    _mqttTimedRetry.activate();
+    _mqttReconnectTimer.activate();
   }
 }
 
@@ -704,7 +704,6 @@ void BootNormal::setup() {
 
   if (Interface::get().getConfig().get().mqtt.auth) Interface::get().getMqttClient().setCredentials(Interface::get().getConfig().get().mqtt.username, Interface::get().getConfig().get().mqtt.password);
 
-
   if (Interface::get().reset.enabled) {
     pinMode(Interface::get().reset.triggerPin, INPUT_PULLUP);
 
@@ -725,10 +724,6 @@ void BootNormal::loop() {
   Boot::loop();
 
   _handleReset();
-
-  if (_mqttTimedRetry.check()) {
-    _mqttConnect();
-  }
 
   if (_flaggedForReset && Interface::get().reset.idle) {
     Interface::get().getLogger() << F("Device is idle") << endl;
@@ -752,6 +747,10 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
+  if (_mqttReconnectTimer.check()) {
+    _mqttConnect();
+  }
+
   if (Interface::get().connected) {
     if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
       Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
@@ -764,14 +763,15 @@ void BootNormal::loop() {
       itoa(quality, qualityStr, 10);
       Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
       Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
-      Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
+      uint16_t signalPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
 
       _uptime.update();
       char uptimeStr[20 + 1];
       itoa(_uptime.getSeconds(), uptimeStr, 10);
       Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
-      Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
-      _statsTimer.tick();
+      uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
+
+      if (signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
     }
 
     Interface::get().loopFunction();
