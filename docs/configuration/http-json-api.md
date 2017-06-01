@@ -1,6 +1,7 @@
 When in `configuration` mode, the device exposes a HTTP JSON API to send the configuration to it. When you send a valid configuration to the `/config` endpoint, the configuration file is stored in the filesystem at `/homie/config.json`.
 
 If you don't want to mess with JSON, you have a Web UI / app available:
+
 * At http://setup.homie-esp8266.marvinroger.fr/
 * As an [Android app](https://build.phonegap.com/apps/1906578/share)
 
