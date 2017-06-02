@@ -56,6 +56,7 @@ jobs:
       - image: circleci/python:2.7
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: generate and publish docs
           command: |
@@ -64,9 +65,13 @@ jobs:
             chmod 600 /tmp/deploy_rsa
             ssh-add /tmp/deploy_rsa
 
+            docker create -v /assets -v /site --name shared alpine:3.4 /bin/true
+            docker cp ./.circleci/assets/docs_index_template.html shared:/assets
+            docker cp ./.circleci/assets/mkdocs.default.yml shared:/assets
             chmod +x ./.circleci/assets/generate_docs.py
-            sudo ./.circleci/assets/generate_docs.py -o /tmp/docs_site
-            pushd /tmp/docs_site
+            ./.circleci/assets/generate_docs.py -o /site
+            docker cp shared:/site ./
+            pushd ./site
             git init
             git config --global user.name "circleci"
             git config --global user.email "sayhi@circleci.com"
