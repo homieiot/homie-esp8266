@@ -59,12 +59,12 @@ jobs:
       - run:
           name: generate and publish docs
           command: |
-            openssl aes-256-cbc -d -in ./circleci/assets/id_rsa.enc -k "${PRIVATE_KEY_ENCRYPT_KEY}" >> /tmp/deploy_rsa
+            openssl aes-256-cbc -d -in ./.circleci/assets/id_rsa.enc -k "${PRIVATE_KEY_ENCRYPT_KEY}" >> /tmp/deploy_rsa
             eval "$(ssh-agent -s)"
             chmod 600 /tmp/deploy_rsa
             ssh-add /tmp/deploy_rsa
 
-            ./circleci/assets/generate_docs.py -o /tmp/docs_site
+            ./.circleci/assets/generate_docs.py -o /tmp/docs_site
             pushd /tmp/docs_site
             git init
             git config --global user.name "circleci"
