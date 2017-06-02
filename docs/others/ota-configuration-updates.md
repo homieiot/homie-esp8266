@@ -2,6 +2,10 @@
 
 Homie for ESP8266 supports OTA, if enabled in the configuration, and if a compatible OTA entity is set up.
 
+There's a script that does just that:
+
+[![GitHub logo](../assets/github.png) ota_updater.py](https://github.com/marvinroger/homie-esp8266/blob/develop/scripts/ota_updater)
+
 It works this way:
 
 1. During startup of the Homie for ESP8266 device, it reports the current firmware's MD5 to `$fw/checksum` (in addition to `$fw/name` and `$fw/version`). The OTA entity may or may not use this information to automatically schedule OTA updates
