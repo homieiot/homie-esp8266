@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: install PlatformIO
-          command: pip install -U platformio
+          command: sudo pip install platformio
       - run:
           name: install current code as a PlatformIO library with all dependencies
           command: platformio lib -g install file://.
@@ -37,5 +37,5 @@ jobs:
       - checkout
       - run:
           name: install cpplint
-          command: pip install cpplint
+          command: sudo pip install cpplint
       - run: make cpplint
