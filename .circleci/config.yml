@@ -1,0 +1,33 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - checkout
+      - run: pip install -U platformio
+      - run: platformio lib -g install file://.
+      - run: platformio ci ./examples/CustomSettings --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/DoorSensor --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/HookToEvents --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/IteadSonoff --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/LightOnOff --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/TemperatureSensor --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/LedStrip --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/Broadcast --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/GlobalInputHandler --board=esp01 --board=nodemcuv2
+      - run: |
+        curl --user ${CIRCLE_API_TOKEN}: \
+          --data build_parameters[CIRCLE_JOB]=lint \
+          --data revision=$CIRCLE_SHA1 \
+          https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
+
+  lint:
+    working_directory: ~
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - checkout
+      - run: pip install cpplint
+      - run: make cpplint
