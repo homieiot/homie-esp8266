@@ -37,7 +37,7 @@ def generate_docs(tag_name, description, destination_folder):
 
   if not os.path.isfile(src_path + '/mkdocs.yml'): shutil.copy(current_dir + '/mkdocs.default.yml', src_path + '/mkdocs.yml')
 
-  subprocess.call(['docker', 'run', '--rm', '-it', '-p', '8000:8000', '-v', src_path + ':/docs', 'squidfunk/mkdocs-material', 'build'])
+  subprocess.call(['mkdocs', 'build'], cwd=src_path)
   shutil.copytree(src_path + '/site', output_dir + '/' + destination_folder)
   print('Done.')
 
