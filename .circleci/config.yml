@@ -56,7 +56,9 @@ jobs:
       - image: circleci/python:2.7
     steps:
       - checkout
-      - setup_remote_docker
+      - run:
+          name: install dependencies
+          command: pip install mkdocs==0.16.3 mkdocs-material==1.7.1 pygments==2.2.0 pymdown-extensions==3.4
       - run:
           name: generate and publish docs
           command: |
@@ -65,13 +67,10 @@ jobs:
             chmod 600 /tmp/deploy_rsa
             ssh-add /tmp/deploy_rsa
 
-            docker create -v /assets -v /site --name shared alpine:3.4 /bin/true
-            docker cp ./.circleci/assets/docs_index_template.html shared:/assets
-            docker cp ./.circleci/assets/mkdocs.default.yml shared:/assets
             chmod +x ./.circleci/assets/generate_docs.py
-            ./.circleci/assets/generate_docs.py -o /site
-            docker cp shared:/site ./
-            pushd ./site
+            ./.circleci/assets/generate_docs.py -o /tmp_site
+
+            pushd /tmp_site
             git init
             git config --global user.name "circleci"
             git config --global user.email "sayhi@circleci.com"

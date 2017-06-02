@@ -20,6 +20,7 @@ VERSIONS = [
   ('master', 'branch master (stable)', 'stable')
 ]
 
+current_dir = os.path.dirname(__file__)
 output_dir = getopt.getopt(sys.argv[1:], 'o:')[0][0][1]
 github_releases = json.load(urllib2.urlopen('https://api.github.com/repos/marvinroger/homie-esp8266/releases'))
 
@@ -34,9 +35,9 @@ def generate_docs(tag_name, description, destination_folder):
   zip_file.extractall(unzip_path)
   src_path = glob.glob(unzip_path + '/*')[0]
 
-  if not os.path.isfile(src_path + '/mkdocs.yml'): shutil.copy('/assets/mkdocs.default.yml', src_path + '/mkdocs.yml')
+  if not os.path.isfile(src_path + '/mkdocs.yml'): shutil.copy(current_dir + '/mkdocs.default.yml', src_path + '/mkdocs.yml')
 
-  subprocess.call(['docker', 'run', '--rm', '-it', '--volumes-from', 'shared', '-v', src_path + ':/docs', 'squidfunk/mkdocs-material', 'build'])
+  subprocess.call(['mkdocs', 'build'], cwd=src_path)
   shutil.copytree(src_path + '/site', output_dir + '/' + destination_folder)
   print('Done.')
 
@@ -64,7 +65,7 @@ for version in VERSIONS:
   versions_html += '<li><a href="' + version[2] + '"># ' + version[0] + ' <span class="description">' + version[1] + '</span></a></li>'
 versions_html += '</ul>'
 
-docs_index_template_file = open('/assets/docs_index_template.html')
+docs_index_template_file = open(current_dir + '/docs_index_template.html')
 docs_index_template_html = docs_index_template_file.read()
 docs_index_template = string.Template(docs_index_template_html)
 docs_index = docs_index_template.substitute(versions_html=versions_html)
