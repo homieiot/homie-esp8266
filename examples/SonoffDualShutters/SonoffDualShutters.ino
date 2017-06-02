@@ -4,6 +4,8 @@
 
 Requires the Shutters library:
 https://github.com/marvinroger/arduino-shutters
+and the SonoffDual library:
+https://github.com/marvinroger/arduino-sonoff-dual
 
 ## Features
 
