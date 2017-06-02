@@ -4,8 +4,25 @@ jobs:
     working_directory: ~/code
     docker:
       - image: circleci/python:2.7
+    branches:
+      ignore:
+        - gh-pages
     steps:
       - checkout
+      - run:
+          name: trigger lint
+          command: |
+            curl --user ${CIRCLE_API_TOKEN}: \
+              --data build_parameters[CIRCLE_JOB]=lint \
+              --data revision=$CIRCLE_SHA1 \
+              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
+      - run:
+          name: trigger generate_docs
+          command: |
+            curl --user ${CIRCLE_API_TOKEN}: \
+              --data build_parameters[CIRCLE_JOB]=generate_docs \
+              --data revision=$CIRCLE_SHA1 \
+              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
       - run:
           name: install PlatformIO
           command: sudo pip install platformio
@@ -21,13 +38,6 @@ jobs:
       - run: platformio ci ./examples/LedStrip --board=esp01 --board=nodemcuv2
       - run: platformio ci ./examples/Broadcast --board=esp01 --board=nodemcuv2
       - run: platformio ci ./examples/GlobalInputHandler --board=esp01 --board=nodemcuv2
-      - run:
-          name: trigger lint
-          command: |
-            curl --user ${CIRCLE_API_TOKEN}: \
-              --data build_parameters[CIRCLE_JOB]=lint \
-              --data revision=$CIRCLE_SHA1 \
-              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
 
   lint:
     working_directory: ~/code
@@ -39,3 +49,28 @@ jobs:
           name: install cpplint
           command: sudo pip install cpplint
       - run: make cpplint
+
+  generate_docs:
+    working_directory: ~/code
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - checkout
+      - run:
+          name: generate and publish docs
+          command: |
+            openssl aes-256-cbc -d -in ./circleci/assets/id_rsa.enc -k "${PRIVATE_KEY_ENCRYPT_KEY}" >> /tmp/deploy_rsa
+            eval "$(ssh-agent -s)"
+            chmod 600 /tmp/deploy_rsa
+            ssh-add /tmp/deploy_rsa
+
+            ./circleci/assets/generate_docs.py -o /tmp/docs_site
+            pushd /tmp/docs_site
+            git init
+            git config --global user.name "circleci"
+            git config --global user.email "sayhi@circleci.com"
+            git remote add origin git@github.com:marvinroger/homie-esp8266.git
+            git add .
+            git commit -m ":package: Result of CircleCI build ${CIRCLE_BUILD_URL}"
+            git push -f origin master:gh-pages
+            popd
