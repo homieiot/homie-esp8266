@@ -54,7 +54,7 @@ void HomieClass::setup() {
 
   if (!_firmwareSet) {
     Helpers::abort(F("✖ Firmware name must be set before calling setup()"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   // Check if default settings values are valid
@@ -90,7 +90,7 @@ void HomieClass::setup() {
 
   if (!defaultSettingsValuesValid) {
     Helpers::abort(F("✖ Default setting value does not pass validator test"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   // boot mode set during this boot by application before Homie.setup()
@@ -137,7 +137,7 @@ void HomieClass::setup() {
 
   } else {
     Helpers::abort(F("✖ Boot mode invalid"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   _boot->setup();
@@ -202,7 +202,7 @@ void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
   if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
     Helpers::abort(F("✖ setFirmware(): either the name or version string is too long"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   strncpy(Interface::get().firmware.name, name + 5, strlen(name) - 10);
@@ -216,7 +216,7 @@ void HomieClass::__setBrand(const char* brand) const {
   _checkBeforeSetup(F("setBrand"));
   if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
     Helpers::abort(F("✖ setBrand(): the brand string is too long"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   strncpy(Interface::get().brand, brand + 5, strlen(brand) - 10);
