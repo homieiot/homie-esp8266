@@ -68,9 +68,9 @@ jobs:
             ssh-add /tmp/deploy_rsa
 
             chmod +x ./.circleci/assets/generate_docs.py
-            ./.circleci/assets/generate_docs.py -o /tmp_site
+            ./.circleci/assets/generate_docs.py -o /tmp/site
 
-            pushd /tmp_site
+            pushd /tmp/site
             git init
             git config --global user.name "circleci"
             git config --global user.email "sayhi@circleci.com"
