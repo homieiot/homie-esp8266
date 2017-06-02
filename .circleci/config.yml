@@ -64,6 +64,7 @@ jobs:
             chmod 600 /tmp/deploy_rsa
             ssh-add /tmp/deploy_rsa
 
+            chmod +x ./.circleci/assets/generate_docs.py
             ./.circleci/assets/generate_docs.py -o /tmp/docs_site
             pushd /tmp/docs_site
             git init
