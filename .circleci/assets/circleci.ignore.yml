@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/code
+    docker:
+      - image: circleci/python:2.7
+    branches:
+      ignore:
+        - gh-pages
+    steps:
+      - checkout

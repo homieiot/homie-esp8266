@@ -74,6 +74,10 @@ jobs:
             chmod +x ./.circleci/assets/generate_docs.py
             ./.circleci/assets/generate_docs.py -o /tmp/site
 
+            # make sure we ignore the gh-pages branch
+            mkdir /tmp/site/.circleci
+            cp ./.circleci/assets/circleci.ignore.yml /tmp/site/.circleci/config.yml
+
             pushd /tmp/site
             git init
             git config --global user.name "circleci"
