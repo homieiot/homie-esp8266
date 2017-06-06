@@ -40,7 +40,7 @@ SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
 }
 
 uint16_t SendingPromise::send(const String& value) {
-  if (!Interface::get().connected) {
+  if (!Interface::get().ready) {
     Interface::get().getLogger() << F("✖ setNodeProperty(): impossible now") << endl;
     return 0;
   }

@@ -6,6 +6,7 @@ BootNormal::BootNormal()
 : Boot("normal")
 , _mqttReconnectTimer(MQTT_RECONNECT_INITIAL_INTERVAL, MQTT_RECONNECT_MAX_BACKOFF)
 , _setupFunctionCalled(false)
+, _mqttConnectNotified(false)
 , _mqttDisconnectNotified(true)
 , _flaggedForOta(false)
 , _flaggedForReset(false)
@@ -161,7 +162,7 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
 }
 
 void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event) {
-  Interface::get().connected = false;
+  Interface::get().ready = false;
   if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
   _statsTimer.reset();
   Interface::get().getLogger() << F("✖ Wi-Fi disconnected") << endl;
@@ -179,101 +180,161 @@ void BootNormal::_mqttConnect() {
   Interface::get().getMqttClient().connect();
 }
 
+void BootNormal::_advertise() {
+  uint16_t packetId;
+  switch (_advertisementProgress.globalStep) {
+    case AdvertisementProgress::GlobalStep::PUB_HOMIE:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_MAC;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_MAC:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$mac")), 1, true, WiFi.macAddress().c_str());
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NAME;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_NAME:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$name")), 1, true, Interface::get().getConfig().get().name);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_LOCALIP;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_LOCALIP: {
+      IPAddress localIp = WiFi.localIP();
+      char localIpStr[MAX_IP_STRING_LENGTH];
+      snprintf(localIpStr, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
+
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL;
+      break;
+    }
+    case AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL:
+      char statsIntervalStr[3 + 1];
+      itoa(STATS_SEND_INTERVAL / 1000, statsIntervalStr, 10);
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/interval")), 1, true, statsIntervalStr);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_FW_NAME;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_FW_NAME:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/name")), 1, true, Interface::get().firmware.name);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_FW_VERSION;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_FW_VERSION:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/version")), 1, true, Interface::get().firmware.version);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_FW_CHECKSUM;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_FW_CHECKSUM:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/checksum")), 1, true, _fwChecksum);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_CONFIG;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_CONFIG: {
+      char* safeConfigFile = Interface::get().getConfig().getSafeConfigFile();
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config")), 1, true, safeConfigFile);
+      free(safeConfigFile);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_VERSION;
+      break;
+    }
+    case AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_VERSION:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/version")), 1, true, HOMIE_ESP8266_VERSION);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_OTA_ENABLED;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_OTA_ENABLED:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/enabled")), 1, true, Interface::get().getConfig().get().ota.enabled ? "true" : "false");
+      if (packetId != 0) {
+        _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES;
+        _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+        _advertisementProgress.currentNodeIndex = 0;
+      }
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_NODES: {
+      HomieNode* node = HomieNode::nodes[_advertisementProgress.currentNodeIndex];
+      std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(node->getId()) + 12 + 1]);  // /id/$properties
+      switch (_advertisementProgress.nodeStep) {
+        case AdvertisementProgress::NodeStep::PUB_TYPE:
+          strcpy_P(subtopic.get(), PSTR("/"));
+          strcat(subtopic.get(), node->getId());
+          strcat_P(subtopic.get(), PSTR("/$type"));
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, node->getType());
+          if (packetId != 0) _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES;
+          break;
+        case AdvertisementProgress::NodeStep::PUB_PROPERTIES:
+          strcpy_P(subtopic.get(), PSTR("/"));
+          strcat(subtopic.get(), node->getId());
+          strcat_P(subtopic.get(), PSTR("/$properties"));
+          String properties;
+          for (Property* iProperty : node->getProperties()) {
+            properties.concat(iProperty->getProperty());
+            if (iProperty->isRange()) {
+              properties.concat("[");
+              properties.concat(iProperty->getLower());
+              properties.concat("-");
+              properties.concat(iProperty->getUpper());
+              properties.concat("]");
+            }
+            if (iProperty->isSettable()) properties.concat(":settable");
+            properties.concat(",");
+          }
+          if (node->getProperties().size() >= 1) properties.remove(properties.length() - 1);
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, properties.c_str());
+          if (packetId != 0) {
+            if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
+              _advertisementProgress.currentNodeIndex++;
+              _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+            } else _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA_FIRMWARE;
+          }
+          break;
+      }
+      break;
+    }
+    case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA_FIRMWARE:
+      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")), 1);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA_CHECKSUM;
+      break;
+    case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA_CHECKSUM:
+      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/checksum")), 1);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESET;
+      break;
+    case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESET:
+      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/reset")), 1);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_CONFIG_SET;
+      break;
+    case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_CONFIG_SET:
+      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/config/set")), 1);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_SET;
+      break;
+    case AdvertisementProgress::GlobalStep::SUB_SET:
+      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/+/+/set")), 2);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_BROADCAST;
+      break;
+    case AdvertisementProgress::GlobalStep::SUB_BROADCAST: {
+      String broadcast_topic(Interface::get().getConfig().get().mqtt.baseTopic);
+      broadcast_topic.concat("$broadcast/+");
+      packetId = Interface::get().getMqttClient().subscribe(broadcast_topic.c_str(), 2);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_ONLINE;
+      break;
+    }
+    case AdvertisementProgress::GlobalStep::PUB_ONLINE:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
+      if (packetId != 0) _advertisementProgress.done = true;
+      break;
+  }
+}
+
 void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
   _mqttReconnectTimer.deactivate();
 
   Interface::get().getLogger() << F("Sending initial information...") << endl;
 
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$mac")), 1, true, WiFi.macAddress().c_str());
-
-  for (HomieNode* iNode : HomieNode::nodes) {
-    std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(iNode->getId()) + 12 + 1]);  // /id/$properties
-    strcpy_P(subtopic.get(), PSTR("/"));
-    strcat(subtopic.get(), iNode->getId());
-    strcat_P(subtopic.get(), PSTR("/$type"));
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iNode->getType());
-
-    strcpy_P(subtopic.get(), PSTR("/"));
-    strcat(subtopic.get(), iNode->getId());
-    strcat_P(subtopic.get(), PSTR("/$properties"));
-    String properties;
-    for (Property* iProperty : iNode->getProperties()) {
-      properties.concat(iProperty->getProperty());
-      if (iProperty->isRange()) {
-        properties.concat("[");
-        properties.concat(iProperty->getLower());
-        properties.concat("-");
-        properties.concat(iProperty->getUpper());
-        properties.concat("]");
-      }
-      if (iProperty->isSettable()) properties.concat(":settable");
-      properties.concat(",");
-    }
-    if (iNode->getProperties().size() >= 1) properties.remove(properties.length() - 1);
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, properties.c_str());
-  }
-
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$name")), 1, true, Interface::get().getConfig().get().name);
-
-  IPAddress localIp = WiFi.localIP();
-  char localIpStr[MAX_IP_STRING_LENGTH];
-  snprintf(localIpStr, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
-
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
-
-  char statsIntervalStr[3 + 1];
-  itoa(STATS_SEND_INTERVAL / 1000, statsIntervalStr, 10);
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/interval")), 1, true, statsIntervalStr);
-
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/name")), 1, true, Interface::get().firmware.name);
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/version")), 1, true, Interface::get().firmware.version);
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$fw/checksum")), 1, true, _fwChecksum);
-
-  Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/+/+/set")), 2);
-
-  /* Implementation specific */
-
-  char* safeConfigFile = Interface::get().getConfig().getSafeConfigFile();
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config")), 1, true, safeConfigFile);
-  free(safeConfigFile);
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/version")), 1, true, HOMIE_ESP8266_VERSION);
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/enabled")), 1, true, Interface::get().getConfig().get().ota.enabled ? "true" : "false");
-  Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")), 0);
-  Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/checksum")), 0);
-  Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/reset")), 2);
-  Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/config/set")), 2);
-
-  /** Euphi: TODO #142: Homie $broadcast */
-  String broadcast_topic(Interface::get().getConfig().get().mqtt.baseTopic);
-  broadcast_topic.concat("$broadcast/+");
-  Interface::get().getMqttClient().subscribe(broadcast_topic.c_str(), 2);
-
-  Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
-
-  Interface::get().connected = true;
-  if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
-
-  Interface::get().getLogger() << F("✔ MQTT ready") << endl;
-  Interface::get().getLogger() << F("Triggering MQTT_CONNECTED event...") << endl;
-  Interface::get().event.type = HomieEventType::MQTT_CONNECTED;
-  Interface::get().eventHandler(Interface::get().event);
-
-  for (HomieNode* iNode : HomieNode::nodes) {
-    iNode->onReadyToOperate();
-  }
-
-  if (!_setupFunctionCalled) {
-    Interface::get().getLogger() << F("Calling setup function...") << endl;
-    Interface::get().setupFunction();
-    _setupFunctionCalled = true;
-  }
+  _advertise();
 }
 
 void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
-  Interface::get().connected = false;
+  Interface::get().ready = false;
+  _mqttConnectNotified = false;
+  _advertisementProgress.done = false;
+  _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_HOMIE;
+  _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+  _advertisementProgress.currentNodeIndex = 0;
   if (!_mqttDisconnectNotified) {
     _statsTimer.reset();
     Interface::get().getLogger() << F("✖ MQTT disconnected") << endl;
@@ -309,7 +370,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
   // Check for Broadcast first (it does not contain device-id)
   char* broadcast_topic = topic + strlen(Interface::get().getConfig().get().mqtt.baseTopic);
-  // Skip devices/${id}/ --- +1 for /
+  // Skip homie/${id}/ --- +1 for /
   char* device_topic = broadcast_topic + strlen(Interface::get().getConfig().get().deviceId) + 1;
 
   // 1. Handle OTA firmware (not copied to payload buffer)
@@ -477,20 +538,9 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     } else if (strcmp(_mqttPayloadBuffer.get(), _fwChecksum) == 0) {
       _publishOtaStatus(304);  // 304 Not Modified
     } else {
-      // 32 hex characters?
-      if (strlen(_mqttPayloadBuffer.get()) != 32) {
-        // Invalid MD5 number => 400 BAD_CHECKSUM
+      if (!Helpers::validateMd5(_mqttPayloadBuffer.get())) {
         _endOtaUpdate(false, UPDATE_ERROR_MD5);
         return;
-      }
-
-      for (uint8_t i = 0; i < 32; i++) {
-        char c = _mqttPayloadBuffer.get()[i];
-        bool valid = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-        if (!valid) {
-          _endOtaUpdate(false, UPDATE_ERROR_MD5);
-          return;
-        }
       }
 
       _flaggedForOta = true;
@@ -749,35 +799,70 @@ void BootNormal::loop() {
 
   if (_mqttReconnectTimer.check()) {
     _mqttConnect();
+    return;
   }
 
-  if (Interface::get().connected) {
-    if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
-      Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
-      _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
-    }
+  if (!Interface::get().getMqttClient().connected()) return;
 
-    if (_statsTimer.check()) {
-      uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
-      char qualityStr[3 + 1];
-      itoa(quality, qualityStr, 10);
-      Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
-      Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
-      uint16_t signalPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
+  // here, we are connected to the broker
 
-      _uptime.update();
-      char uptimeStr[20 + 1];
-      itoa(_uptime.getSeconds(), uptimeStr, 10);
-      Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
-      uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
+  if (!_advertisementProgress.done) {
+    _advertise();
+    return;
+  }
 
-      if (signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
-    }
+  // here, we finished the advertisement
 
-    Interface::get().loopFunction();
+  if (!_mqttConnectNotified) {
+    Interface::get().ready = true;
+    if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
+
+    Interface::get().getLogger() << F("✔ MQTT ready") << endl;
+    Interface::get().getLogger() << F("Triggering MQTT_READY event...") << endl;
+    Interface::get().event.type = HomieEventType::MQTT_READY;
+    Interface::get().eventHandler(Interface::get().event);
 
     for (HomieNode* iNode : HomieNode::nodes) {
-      iNode->loop();
+      iNode->onReadyToOperate();
     }
+
+    if (!_setupFunctionCalled) {
+      Interface::get().getLogger() << F("Calling setup function...") << endl;
+      Interface::get().setupFunction();
+      _setupFunctionCalled = true;
+    }
+
+    _mqttConnectNotified = true;
+    return;
+  }
+
+  // here, we have notified the sketch we are ready
+
+  if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
+    Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
+    _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
+  }
+
+  if (_statsTimer.check()) {
+    uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
+    char qualityStr[3 + 1];
+    itoa(quality, qualityStr, 10);
+    Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
+    Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
+    uint16_t signalPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
+
+    _uptime.update();
+    char uptimeStr[20 + 1];
+    itoa(_uptime.getSeconds(), uptimeStr, 10);
+    Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
+    uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
+
+    if (signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+  }
+
+  Interface::get().loopFunction();
+
+  for (HomieNode* iNode : HomieNode::nodes) {
+    iNode->loop();
   }
 }

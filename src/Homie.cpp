@@ -24,7 +24,7 @@ HomieClass::HomieClass()
   Interface::get().setupFunction = []() {};
   Interface::get().loopFunction = []() {};
   Interface::get().eventHandler = [](const HomieEvent& event) {};
-  Interface::get().connected = false;
+  Interface::get().ready = false;
   Interface::get()._mqttClient = &_mqttClient;
   Interface::get()._sendingPromise = &_sendingPromise;
   Interface::get()._blinker = &_blinker;
@@ -283,7 +283,7 @@ bool HomieClass::isConfigured() {
 }
 
 bool HomieClass::isConnected() {
-  return Interface::get().connected;
+  return Interface::get().ready;
 }
 
 HomieClass& HomieClass::onEvent(const EventHandler& handler) {
@@ -326,7 +326,7 @@ Logger& HomieClass::getLogger() {
 }
 
 void HomieClass::prepareToSleep() {
-  if (Interface::get().connected) {
+  if (Interface::get().ready) {
     Interface::get().flaggedForSleep = true;
   } else {
     Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;

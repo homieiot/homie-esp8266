@@ -29,12 +29,45 @@ class BootNormal : public Boot {
   void loop();
 
  private:
+  struct AdvertisementProgress {
+    bool done = false;
+    enum class GlobalStep {
+      PUB_HOMIE,
+      PUB_MAC,
+      PUB_NAME,
+      PUB_LOCALIP,
+      PUB_STATS_INTERVAL,
+      PUB_FW_NAME,
+      PUB_FW_VERSION,
+      PUB_FW_CHECKSUM,
+      PUB_IMPLEMENTATION,
+      PUB_IMPLEMENTATION_CONFIG,
+      PUB_IMPLEMENTATION_VERSION,
+      PUB_IMPLEMENTATION_OTA_ENABLED,
+      PUB_NODES,
+      SUB_IMPLEMENTATION_OTA_FIRMWARE,
+      SUB_IMPLEMENTATION_OTA_CHECKSUM,
+      SUB_IMPLEMENTATION_RESET,
+      SUB_IMPLEMENTATION_CONFIG_SET,
+      SUB_SET,
+      SUB_BROADCAST,
+      PUB_ONLINE
+    } globalStep;
+
+    enum class NodeStep {
+      PUB_TYPE,
+      PUB_PROPERTIES
+    } nodeStep;
+
+    size_t currentNodeIndex;
+  } _advertisementProgress;
   Uptime _uptime;
   Timer _statsTimer;
   ExponentialBackoffTimer _mqttReconnectTimer;
   bool _setupFunctionCalled;
   WiFiEventHandler _wifiGotIpHandler;
   WiFiEventHandler _wifiDisconnectedHandler;
+  bool _mqttConnectNotified;
   bool _mqttDisconnectNotified;
   bool _flaggedForOta;
   bool _flaggedForReset;
@@ -59,6 +92,7 @@ class BootNormal : public Boot {
   void _onWifiGotIp(const WiFiEventStationModeGotIP& event);
   void _onWifiDisconnected(const WiFiEventStationModeDisconnected& event);
   void _mqttConnect();
+  void _advertise();
   void _onMqttConnected();
   void _onMqttDisconnected(AsyncMqttClientDisconnectReason reason);
   void _onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);

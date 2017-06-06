@@ -13,7 +13,7 @@ InterfaceData::InterfaceData()
 , reset { .enabled = false, .idle = false, .triggerPin = 0, .triggerState = 0, .triggerTime = 0, .flaggedBySketch = false }
 , flaggedForSleep{false}
 , event{}
-, connected{false}
+, ready{false}
 , _logger{nullptr}
 , _blinker{nullptr}
 , _config{nullptr}

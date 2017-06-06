@@ -34,7 +34,7 @@ void Helpers::stringToBytes(const char* str, char sep, byte* bytes, int maxBytes
   }
 }
 
-bool Helpers::validateMacAddress(const char *mac) {
+bool Helpers::validateMacAddress(const char* mac) {
   // taken from http://stackoverflow.com/a/4792211
   int i = 0;
   int s = 0;
@@ -51,6 +51,18 @@ bool Helpers::validateMacAddress(const char *mac) {
     ++mac;
   }
   return (i == MAX_MAC_STRING_LENGTH && s == 5);
+}
+
+bool Helpers::validateMd5(const char* md5) {
+  if (strlen(md5) != 32) return false;
+
+  for (uint8_t i = 0; i < 32; i++) {
+    char c = md5[i];
+    bool valid = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+    if (!valid) return false;
+  }
+
+  return true;
 }
 
 std::unique_ptr<char[]> Helpers::cloneString(const String& string) {

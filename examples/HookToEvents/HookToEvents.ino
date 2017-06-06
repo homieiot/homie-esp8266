@@ -29,7 +29,7 @@ void onHomieEvent(const HomieEvent& event) {
     case HomieEventType::WIFI_DISCONNECTED:
       Serial << "Wi-Fi disconnected, reason: " << (int8_t)event.wifiReason << endl;
       break;
-    case HomieEventType::MQTT_CONNECTED:
+    case HomieEventType::MQTT_READY:
       Serial << "MQTT connected" << endl;
       break;
     case HomieEventType::MQTT_DISCONNECTED:

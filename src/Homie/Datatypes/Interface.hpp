@@ -64,7 +64,7 @@ class InterfaceData {
 
   /***** Runtime data *****/
   HomieEvent event;
-  bool connected;
+  bool ready;
   Logger& getLogger() { return *_logger; }
   Blinker& getBlinker() { return *_blinker; }
   Config& getConfig() { return *_config; }

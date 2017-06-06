@@ -5,7 +5,7 @@ Before deep sleeping, you will want to ensure that all messages are sent, includ
 
 void onHomieEvent(const HomieEvent& event) {
   switch(event.type) {
-    case HomieEventType::MQTT_CONNECTED:
+    case HomieEventType::MQTT_READY:
       Homie.getLogger() << "MQTT connected, preparing for deep sleep..." << endl;
       Homie.prepareToSleep();
       break;

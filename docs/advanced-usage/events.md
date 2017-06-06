@@ -34,7 +34,7 @@ void onHomieEvent(const HomieEvent& event) {
 
       // You can use event.wifiReason
       break;
-    case HomieEventType::MQTT_CONNECTED:
+    case HomieEventType::MQTT_READY:
       // Do whatever you want when MQTT is connected in normal mode
       break;
     case HomieEventType::MQTT_DISCONNECTED:
