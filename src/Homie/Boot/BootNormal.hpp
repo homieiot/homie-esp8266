@@ -45,8 +45,7 @@ class BootNormal : public Boot {
       PUB_IMPLEMENTATION_VERSION,
       PUB_IMPLEMENTATION_OTA_ENABLED,
       PUB_NODES,
-      SUB_IMPLEMENTATION_OTA_FIRMWARE,
-      SUB_IMPLEMENTATION_OTA_CHECKSUM,
+      SUB_IMPLEMENTATION_OTA,
       SUB_IMPLEMENTATION_RESET,
       SUB_IMPLEMENTATION_CONFIG_SET,
       SUB_SET,
@@ -69,7 +68,7 @@ class BootNormal : public Boot {
   WiFiEventHandler _wifiDisconnectedHandler;
   bool _mqttConnectNotified;
   bool _mqttDisconnectNotified;
-  bool _flaggedForOta;
+  bool _otaOngoing;
   bool _flaggedForReset;
   bool _flaggedForReboot;
   Bounce _resetDebouncer;
@@ -86,6 +85,8 @@ class BootNormal : public Boot {
   std::unique_ptr<char[]> _mqttClientId;
   std::unique_ptr<char[]> _mqttWillTopic;
   std::unique_ptr<char[]> _mqttPayloadBuffer;
+  std::unique_ptr<char*[]> _mqttTopicLevels;
+  uint8_t _mqttTopicLevelsCount;
 
   void _handleReset();
   void _wifiConnect();

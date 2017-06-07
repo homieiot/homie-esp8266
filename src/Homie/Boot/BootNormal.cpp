@@ -8,7 +8,7 @@ BootNormal::BootNormal()
 , _setupFunctionCalled(false)
 , _mqttConnectNotified(false)
 , _mqttDisconnectNotified(true)
-, _flaggedForOta(false)
+, _otaOngoing(false)
 , _flaggedForReset(false)
 , _flaggedForReboot(false)
 , _mqttOfflineMessageId(0)
@@ -19,7 +19,9 @@ BootNormal::BootNormal()
 , _mqttTopic(nullptr)
 , _mqttClientId(nullptr)
 , _mqttWillTopic(nullptr)
-, _mqttPayloadBuffer(nullptr) {
+, _mqttPayloadBuffer(nullptr)
+, _mqttTopicLevels(nullptr)
+, _mqttTopicLevelsCount(0) {
   _statsTimer.setInterval(STATS_SEND_INTERVAL);
   strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
   _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
@@ -43,9 +45,10 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
 bool BootNormal::_publishOtaStatus(int status, const char* info) {
   String payload(status);
   if (info) {
-    payload += ' ';
-    payload += info;
+    payload.concat(F(" "));
+    payload.concat(info);
   }
+
   return Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 0, true, payload.c_str()) != 0;
 }
 
@@ -70,25 +73,26 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
       case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
       case UPDATE_ERROR_NEW_FLASH_CONFIG:   // bad new flash config (does not match flash ID)
         code = 400;  // 400 Bad Request
-        info = PSTR("BAD_FIRMWARE");
+        info.concat(F("BAD_FIRMWARE"));
         break;
       case UPDATE_ERROR_MD5:
         code = 400;  // 400 Bad Request
-        info = PSTR("BAD_CHECKSUM");
+        info.concat(F("BAD_CHECKSUM"));
         break;
       case UPDATE_ERROR_SPACE:
         code = 400;  // 400 Bad Request
-        info = PSTR("NOT_ENOUGH_SPACE");
+        info.concat(F("NOT_ENOUGH_SPACE"));
         break;
       case UPDATE_ERROR_WRITE:
       case UPDATE_ERROR_ERASE:
       case UPDATE_ERROR_READ:
         code = 500;  // 500 Internal Server Error
-        info = PSTR("FLASH_ERROR");
+        info.concat(F("FLASH_ERROR"));
         break;
       default:
         code = 500;  // 500 Internal Server Error
-        info = PSTR("INTERNAL_ERROR ") + update_error;
+        info.concat(F("INTERNAL_ERROR "));
+        info.concat(update_error);
         break;
     }
     _publishOtaStatus(code, info.c_str());
@@ -99,7 +103,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     Interface::get().event.type = HomieEventType::OTA_FAILED;
     Interface::get().eventHandler(Interface::get().event);
   }
-  _flaggedForOta = false;
+  _otaOngoing = false;
 }
 
 void BootNormal::_wifiConnect() {
@@ -279,18 +283,14 @@ void BootNormal::_advertise() {
             if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
               _advertisementProgress.currentNodeIndex++;
               _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
-            } else _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA_FIRMWARE;
+            } else _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
           }
           break;
       }
       break;
     }
-    case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA_FIRMWARE:
-      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware")), 1);
-      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA_CHECKSUM;
-      break;
-    case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA_CHECKSUM:
-      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/checksum")), 1);
+    case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA:
+      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmwares/+")), 1);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESET;
       break;
     case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESET:
@@ -364,155 +364,197 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
   if (total == 0) return;  // no empty message possible
 
+  // split topic on each "/"
+  if (index == 0) {
+    char* afterBaseTopic = topic + strlen(Interface::get().getConfig().get().mqtt.baseTopic);
+
+    uint8_t topicLevelsCount = 1;
+    for (uint8_t i = 0; i < strlen(afterBaseTopic); i++) {
+      if (afterBaseTopic[i] == '/') topicLevelsCount++;
+    }
+
+    _mqttTopicLevels = std::unique_ptr<char*[]>(new char*[topicLevelsCount]);
+    _mqttTopicLevelsCount = topicLevelsCount;
+
+    const char* delimiter = "/";
+    uint8_t topicLevelIndex = 0;
+
+    char* token = strtok(afterBaseTopic, delimiter);
+    while (token != nullptr) {
+      _mqttTopicLevels.get()[topicLevelIndex++] = token;
+
+      token = strtok(nullptr, delimiter);
+    }
+  }
+
+  // initialize HomieRange
   HomieRange range;
   range.isRange = false;
   range.index = 0;
 
-  // Check for Broadcast first (it does not contain device-id)
-  char* broadcast_topic = topic + strlen(Interface::get().getConfig().get().mqtt.baseTopic);
-  // Skip homie/${id}/ --- +1 for /
-  char* device_topic = broadcast_topic + strlen(Interface::get().getConfig().get().deviceId) + 1;
-
   // 1. Handle OTA firmware (not copied to payload buffer)
-  if (strcmp_P(device_topic, PSTR("$implementation/ota/firmware")) == 0) {  // If this is the OTA firmware
-    if (!Interface::get().getConfig().get().ota.enabled) {
-      if (index == 0) {
+  if (
+    _mqttTopicLevelsCount == 5
+    && strcmp(_mqttTopicLevels.get()[0], Interface::get().getConfig().get().deviceId) == 0
+    && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
+    && strcmp_P(_mqttTopicLevels.get()[2], PSTR("ota")) == 0
+    && strcmp_P(_mqttTopicLevels.get()[3], PSTR("firmwares")) == 0
+  ) {
+    if (index == 0) {
+      Interface::get().getLogger() << F("Receiving OTA payload") << endl;
+      if (!Interface::get().getConfig().get().ota.enabled) {
         _publishOtaStatus(403);  // 403 Forbidden
+        Interface::get().getLogger() << F("✖ Aborting, OTA not enabled") << endl;
+        return;
       }
-    } else if (!_flaggedForOta) {
-      if (index == 0) {
-        Interface::get().getLogger() << F("Receiving OTA firmware but not requested, skipping...") << endl;
-        _publishOtaStatus(400, PSTR("NOT_REQUESTED"));
-      }
-    } else {
-      if (index == 0) {
+
+      char* firmwareMd5 = _mqttTopicLevels.get()[4];
+      if (!Helpers::validateMd5(firmwareMd5)) {
+        _endOtaUpdate(false, UPDATE_ERROR_MD5);
+        Interface::get().getLogger() << F("✖ Aborting, invalid MD5") << endl;
+        return;
+      } else if (strcmp(firmwareMd5, _fwChecksum) == 0) {
+        _publishOtaStatus(304);  // 304 Not Modified
+        Interface::get().getLogger() << F("✖ Aborting, firmware is the same") << endl;
+        return;
+      } else {
+        Update.setMD5(firmwareMd5);
+        _publishOtaStatus(202);
+        _otaOngoing = true;
+
         Interface::get().getLogger() << F("↕ OTA started") << endl;
         Interface::get().getLogger() << F("Triggering OTA_STARTED event...") << endl;
         Interface::get().event.type = HomieEventType::OTA_STARTED;
         Interface::get().eventHandler(Interface::get().event);
+      }
+    } else if (!_otaOngoing) {
+      return; // we've not validated the checksum
+    }
 
-        // Autodetect if firmware is binary or base64-encoded. ESP firmware always has a magic first byte 0xE9.
-        if (*payload == 0xE9) {
-          _otaIsBase64 = false;
-          Interface::get().getLogger() << F("Firmware is binary") << endl;
-        } else {
-          // Base64-decode first two bytes. Compare decoded value against magic byte.
-          char plain[2];  // need 12 bits
-          base64_init_decodestate(&_otaBase64State);
-          int l = base64_decode_block(payload, 2, plain, &_otaBase64State);
-          if ((l == 1) && (plain[0] == 0xE9)) {
-            _otaIsBase64 = true;
-            _otaBase64Pads = 0;
-            Interface::get().getLogger() << F("Firmware is base64-encoded") << endl;
-            if (total % 4) {
-              // Base64 encoded length not a multiple of 4 bytes
-              _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
-              return;
-            }
+    // here, we need to flash the payload
 
-            // Restart base64-decoder
-            base64_init_decodestate(&_otaBase64State);
-          } else {
-            // Bad firmware format
+    if (index == 0) {
+      // Autodetect if firmware is binary or base64-encoded. ESP firmware always has a magic first byte 0xE9.
+      if (*payload == 0xE9) {
+        _otaIsBase64 = false;
+        Interface::get().getLogger() << F("Firmware is binary") << endl;
+      } else {
+        // Base64-decode first two bytes. Compare decoded value against magic byte.
+        char plain[2];  // need 12 bits
+        base64_init_decodestate(&_otaBase64State);
+        int l = base64_decode_block(payload, 2, plain, &_otaBase64State);
+        if ((l == 1) && (plain[0] == 0xE9)) {
+          _otaIsBase64 = true;
+          _otaBase64Pads = 0;
+          Interface::get().getLogger() << F("Firmware is base64-encoded") << endl;
+          if (total % 4) {
+            // Base64 encoded length not a multiple of 4 bytes
             _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
             return;
           }
-        }
-        _otaSizeDone = 0;
-        _otaSizeTotal = _otaIsBase64 ? base64_decode_expected_len(total) : total;
-        bool success = Update.begin(_otaSizeTotal);
-        if (!success) {
-          // Detected error during begin (e.g. size == 0 or size > space)
-          _endOtaUpdate(false, Update.getError());
+
+          // Restart base64-decoder
+          base64_init_decodestate(&_otaBase64State);
+        } else {
+          // Bad firmware format
+          _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
           return;
         }
       }
+      _otaSizeDone = 0;
+      _otaSizeTotal = _otaIsBase64 ? base64_decode_expected_len(total) : total;
+      bool success = Update.begin(_otaSizeTotal);
+      if (!success) {
+        // Detected error during begin (e.g. size == 0 or size > space)
+        _endOtaUpdate(false, Update.getError());
+        return;
+      }
+    }
 
-      size_t write_len;
-      if (_otaIsBase64) {
-        // Base64-firmware: Make sure there are no non-base64 characters in the payload.
-        // libb64/cdecode.c doesn't ignore such characters if the compiler treats `char`
-        // as `unsigned char`.
-        size_t bin_len = 0;
-        char* p = payload;
-        for (size_t i = 0; i < len; i ++) {
-          char c = *p++;
-          bool b64 = ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '+') || (c == '/');
-          if (b64) {
-            bin_len++;
-          } else if (c == '=') {
-            // Ignore "=" padding (but only at the end and only up to 2)
-            if (index + i < total - 2) {
-              _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
-              return;
-            }
-            // Note the number of pad characters at the end
-            _otaBase64Pads++;
-          } else {
-            // Non-base64 character in firmware
+    size_t write_len;
+    if (_otaIsBase64) {
+      // Base64-firmware: Make sure there are no non-base64 characters in the payload.
+      // libb64/cdecode.c doesn't ignore such characters if the compiler treats `char`
+      // as `unsigned char`.
+      size_t bin_len = 0;
+      char* p = payload;
+      for (size_t i = 0; i < len; i ++) {
+        char c = *p++;
+        bool b64 = ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '+') || (c == '/');
+        if (b64) {
+          bin_len++;
+        } else if (c == '=') {
+          // Ignore "=" padding (but only at the end and only up to 2)
+          if (index + i < total - 2) {
             _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
             return;
           }
-        }
-        if (bin_len > 0) {
-          // Decode base64 payload in-place. base64_decode_block() can decode in-place,
-          // except for the first two base64-characters which make one binary byte plus
-          // 4 extra bits (saved in _otaBase64State). So we "manually" decode the first
-          // two characters into a temporary buffer and manually merge that back into
-          // the payload. This one is a little tricky, but it saves us from having to
-          // dynamically allocate some 800 bytes of memory for every payload chunk.
-          size_t dec_len = bin_len > 1 ? 2 : 1;
-          char c;
-          write_len = (size_t) base64_decode_block(payload, dec_len, &c, &_otaBase64State);
-          *payload = c;
-
-          if (bin_len > 1) {
-            write_len += (size_t) base64_decode_block((const char*) payload + dec_len, bin_len - dec_len, payload + write_len, &_otaBase64State);
-          }
+          // Note the number of pad characters at the end
+          _otaBase64Pads++;
         } else {
-          write_len = 0;
+          // Non-base64 character in firmware
+          _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
+          return;
+        }
+      }
+      if (bin_len > 0) {
+        // Decode base64 payload in-place. base64_decode_block() can decode in-place,
+        // except for the first two base64-characters which make one binary byte plus
+        // 4 extra bits (saved in _otaBase64State). So we "manually" decode the first
+        // two characters into a temporary buffer and manually merge that back into
+        // the payload. This one is a little tricky, but it saves us from having to
+        // dynamically allocate some 800 bytes of memory for every payload chunk.
+        size_t dec_len = bin_len > 1 ? 2 : 1;
+        char c;
+        write_len = (size_t) base64_decode_block(payload, dec_len, &c, &_otaBase64State);
+        *payload = c;
+
+        if (bin_len > 1) {
+          write_len += (size_t) base64_decode_block((const char*) payload + dec_len, bin_len - dec_len, payload + write_len, &_otaBase64State);
         }
       } else {
-        // Binary firmware
-        write_len = len;
+        write_len = 0;
       }
-      if (write_len > 0) {
-        bool success = Update.write(reinterpret_cast<uint8_t*>(payload), write_len) > 0;
-        if (success) {
-          // Flash write successful.
-          _otaSizeDone += write_len;
-          if (_otaIsBase64 && (index + len == total)) {
-            // Having received the last chunk of base64 encoded firmware, we can now determine
-            // the real size of the binary firmware from the number of padding character ("="):
-            // If we have received 1 pad character, real firmware size modulo 3 was 2.
-            // If we have received 2 pad characters, real firmware size modulo 3 was 1.
-            // Correct the total firmware length accordingly.
-            _otaSizeTotal -= _otaBase64Pads;
-          }
-
-          String progress(_otaSizeDone);
-          progress += F("/");
-          progress += _otaSizeTotal;
-          Interface::get().getLogger() << F("Receiving OTA firmware (") << progress << F(")...") << endl;
-          _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
-
-          //  Done with the update?
-          if (index + len == total) {
-            // With base64-coded firmware, we may have provided a length off by one or two
-            // to Update.begin() because the base64-coded firmware may use padding (one or
-            // two "=") at the end. In case of base64, total length was adjusted above.
-            // Check the real length here and ask Update::end() to skip this test.
-            if ((_otaIsBase64) && (_otaSizeDone != _otaSizeTotal)) {
-              _endOtaUpdate(false, UPDATE_ERROR_SIZE);
-              return;
-            }
-            success = Update.end(_otaIsBase64);
-            _endOtaUpdate(success, Update.getError());
-          }
-        } else {
-          // Error erasing or writing flash
-          _endOtaUpdate(false, Update.getError());
+    } else {
+      // Binary firmware
+      write_len = len;
+    }
+    if (write_len > 0) {
+      bool success = Update.write(reinterpret_cast<uint8_t*>(payload), write_len) > 0;
+      if (success) {
+        // Flash write successful.
+        _otaSizeDone += write_len;
+        if (_otaIsBase64 && (index + len == total)) {
+          // Having received the last chunk of base64 encoded firmware, we can now determine
+          // the real size of the binary firmware from the number of padding character ("="):
+          // If we have received 1 pad character, real firmware size modulo 3 was 2.
+          // If we have received 2 pad characters, real firmware size modulo 3 was 1.
+          // Correct the total firmware length accordingly.
+          _otaSizeTotal -= _otaBase64Pads;
         }
+
+        String progress(_otaSizeDone);
+        progress.concat(F("/"));
+        progress.concat(_otaSizeTotal);
+        Interface::get().getLogger() << F("Receiving OTA firmware (") << progress << F(")...") << endl;
+        _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
+
+        //  Done with the update?
+        if (index + len == total) {
+          // With base64-coded firmware, we may have provided a length off by one or two
+          // to Update.begin() because the base64-coded firmware may use padding (one or
+          // two "=") at the end. In case of base64, total length was adjusted above.
+          // Check the real length here and ask Update::end() to skip this test.
+          if ((_otaIsBase64) && (_otaSizeDone != _otaSizeTotal)) {
+            _endOtaUpdate(false, UPDATE_ERROR_SIZE);
+            return;
+          }
+          success = Update.end(_otaIsBase64);
+          _endOtaUpdate(success, Update.getError());
+        }
+      } else {
+        // Error erasing or writing flash
+        _endOtaUpdate(false, Update.getError());
       }
     }
     return;
@@ -523,7 +565,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   // Reallocate Buffer everytime a new message is received
   if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
 
-  // TODO(euphi): Check if buffer size matches payload length
   memcpy(_mqttPayloadBuffer.get() + index, payload, len);
 
   if (index + len != total) return;  // return if payload buffer is not complete
@@ -531,30 +572,12 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
   /* Arrived here, the payload is complete */
 
-  if (strcmp_P(device_topic, PSTR("$implementation/ota/checksum")) == 0) {  // If this is the MD5 OTA checksum (32 hex characters)
-    Interface::get().getLogger() << F("✴ OTA available (checksum ") << _mqttPayloadBuffer.get() << F(")") << endl;
-    if (!Interface::get().getConfig().get().ota.enabled) {
-      _publishOtaStatus(403);  // 403 Forbidden
-    } else if (strcmp(_mqttPayloadBuffer.get(), _fwChecksum) == 0) {
-      _publishOtaStatus(304);  // 304 Not Modified
-    } else {
-      if (!Helpers::validateMd5(_mqttPayloadBuffer.get())) {
-        _endOtaUpdate(false, UPDATE_ERROR_MD5);
-        return;
-      }
-
-      _flaggedForOta = true;
-      Update.setMD5(_mqttPayloadBuffer.get());
-      _publishOtaStatus(202);
-    }
-    return;
-  }
-
-  // 3. Special Functions: $broadcast
-  /** TODO(euphi): Homie $broadcast */
-  if (strncmp(broadcast_topic, "$broadcast", 10) == 0) {
-    broadcast_topic += sizeof("$broadcast");  // move pointer to second char after $broadcast (sizeof counts the \0)
-    String broadcastLevel(broadcast_topic);
+  // handle broadcasts
+  if (
+    _mqttTopicLevelsCount == 2
+    && strcmp_P(_mqttTopicLevels.get()[0], PSTR("$broadcast")) == 0
+  ) {
+    String broadcastLevel(_mqttTopicLevels.get()[1]);
     Interface::get().getLogger() << F("📢 Calling broadcast handler...") << endl;
     bool handled = Interface::get().broadcastHandler(broadcastLevel, _mqttPayloadBuffer.get());
     if (!handled) {
@@ -565,16 +588,29 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
-  // 4. Special Functions: $reset
-  if (strcmp_P(device_topic, PSTR("$implementation/reset")) == 0 && strcmp(_mqttPayloadBuffer.get(), "true") == 0) {
+  // all following messages are only for this deviceId
+  if (strcmp(_mqttTopicLevels.get()[0], Interface::get().getConfig().get().deviceId) != 0) return;
+
+  // handle reset
+  if (
+    _mqttTopicLevelsCount == 3
+    && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
+    && strcmp_P(_mqttTopicLevels.get()[2], PSTR("reset")) == 0
+    && strcmp_P(_mqttPayloadBuffer.get(), PSTR("true")) == 0
+  ) {
     Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
     _flaggedForReset = true;
     Interface::get().getLogger() << F("Flagged for reset by network") << endl;
     return;
   }
 
-  // 5. Special Functions set $config
-  if (strcmp_P(device_topic, PSTR("$implementation/config/set")) == 0) {
+  // handle config set
+  if (
+    _mqttTopicLevelsCount == 4
+    && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
+    && strcmp_P(_mqttTopicLevels.get()[2], PSTR("config")) == 0
+    && strcmp_P(_mqttTopicLevels.get()[3], PSTR("set")) == 0
+  ) {
     Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config/set")), 1, true, "");
     if (Interface::get().getConfig().patch(_mqttPayloadBuffer.get())) {
       Interface::get().getLogger() << F("✔ Configuration updated") << endl;
@@ -586,27 +622,10 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
   }
 
-  // 6. Determine specific Node
-  // Determine if message for our deviceid // [Issue #243]
-  const char* messageDeviceId = Interface::get().getConfig().get().deviceId;
-  for (uint16_t i = 0; i < strlen(messageDeviceId); i++) {
-    if ((broadcast_topic[i] != messageDeviceId[i]) || (broadcast_topic[i] == '/' && messageDeviceId[i] != '\0')) {
-      return;
-    }
-  }
+  // here, we're sure we have a node property
 
-  // Implicit node properties
-  device_topic[strlen(device_topic) - 4] = '\0';  // Remove /set
-  uint16_t separator = 0;
-  for (uint16_t i = 0; i < strlen(device_topic); i++) {
-    if (device_topic[i] == '/') {
-      separator = i;
-      break;
-    }
-  }
-  char* node = device_topic;
-  node[separator] = '\0';
-  char* property = device_topic + separator + 1;
+  char* node = _mqttTopicLevels.get()[1];
+  char* property = _mqttTopicLevels.get()[2];
   HomieNode* homieNode = HomieNode::find(node);
   if (!homieNode) {
     Interface::get().getLogger() << F("Node ") << node << F(" not registered") << endl;
