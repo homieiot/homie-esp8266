@@ -17,27 +17,25 @@ bool Config::_spiffsBegin() {
   return _spiffsBegan;
 }
 
-bool Config::load() {
-  if (!_spiffsBegin()) { return false; }
-
-  _valid = false;
+JsonObject& Config::loadJSONObject() {
+  if (!_spiffsBegin()) { return JsonObject::invalid(); }
 
   if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
     Interface::get().getLogger() << F("✖ ") << CONFIG_FILE_PATH << F(" doesn't exist") << endl;
-    return false;
+    return JsonObject::invalid();
   }
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
-    return false;
+    return JsonObject::invalid();
   }
 
   size_t configSize = configFile.size();
 
   if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
     Interface::get().getLogger() << F("✖ Config file too big") << endl;
-    return false;
+    return JsonObject::invalid();
   }
 
   char buf[MAX_JSON_CONFIG_FILE_SIZE];
@@ -49,6 +47,17 @@ bool Config::load() {
   JsonObject& parsedJson = jsonBuffer.parseObject(buf);
   if (!parsedJson.success()) {
     Interface::get().getLogger() << F("✖ Invalid JSON in the config file") << endl;
+    return JsonObject::invalid();
+  }
+  return parsedJson;
+}
+
+
+bool Config::load() {
+  _valid = false;
+  JsonObject& parsedJson = Config::loadJSONObject();
+  if (!parsedJson.success()) {
+    // Config::loadJSONObject would already log a specific error so we don't need to here
     return false;
   }
 
