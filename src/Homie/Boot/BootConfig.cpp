@@ -66,7 +66,7 @@ void BootConfig::setup() {
 }
 
 void BootConfig::_generateNetworksJson() {
-  DynamicJsonBuffer generatedJsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(this->_ssidCount) + (this->_ssidCount * JSON_OBJECT_SIZE(3))); // 1 at root, 3 in childrend
+  DynamicJsonBuffer generatedJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(this->_ssidCount) + (this->_ssidCount * JSON_OBJECT_SIZE(3))); // 1 at root, 3 in childrend
   JsonObject& json = generatedJsonBuffer.createObject();
 
   int jsonLength = 15; // {"networks":[]}
@@ -110,7 +110,7 @@ void BootConfig::_generateNetworksJson() {
 void BootConfig::_onDeviceInfoRequest() {
   this->_interface->logger->logln(F("Received device info request"));
 
-  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(this->_interface->registeredNodesCount) + (this->_interface->registeredNodesCount * JSON_OBJECT_SIZE(2)));
+  DynamicJsonBuffer jsonBuffer(JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(this->_interface->registeredNodesCount) + (this->_interface->registeredNodesCount * JSON_OBJECT_SIZE(2)));
   int jsonLength = 82; // {"device_id":"","homie_version":"","firmware":{"name":"","version":""},"nodes":[]}
   JsonObject& json = jsonBuffer.createObject();
   jsonLength += strlen(Helpers::getDeviceId());
