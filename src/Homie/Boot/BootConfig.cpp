@@ -153,7 +153,7 @@ void BootConfig::_onProxyControlRequest() {
 }
 
 void BootConfig::_generateNetworksJson() {
-  DynamicJsonBuffer generatedJsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3)));  // 1 at root, 3 in childrend
+  DynamicJsonBuffer generatedJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3)));  // 1 at root, 3 in childrend
   JsonObject& json = generatedJsonBuffer.createObject();
 
   JsonArray& networks = json.createNestedArray("networks");
@@ -259,7 +259,7 @@ void BootConfig::_onDeviceInfoRequest() {
   Interface::get().getLogger() << F("Received device information request") << endl;
   auto numSettings = IHomieSetting::settings.size();
   auto numNodes = HomieNode::nodes.size();
-  DynamicJsonBuffer jsonBuffer = DynamicJsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
+  DynamicJsonBuffer jsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
   JsonObject& json = jsonBuffer.createObject();
   json["hardware_device_id"] = DeviceId::get();
   json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
