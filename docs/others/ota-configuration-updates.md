@@ -9,12 +9,11 @@ There's a script that does just that:
 It works this way:
 
 1. During startup of the Homie for ESP8266 device, it reports the current firmware's MD5 to `$fw/checksum` (in addition to `$fw/name` and `$fw/version`). The OTA entity may or may not use this information to automatically schedule OTA updates
-2. The OTA entity publishes the latest available firmware MD5 to `$implementation/ota/checksum`
+2. The OTA entity publishes the latest available firmware payload to `$implementation/ota/firmware/<md5 checksum>`, either as binary or as a Base64 encoded string
   * If OTA is disabled, Homie for ESP8266 reports `403` to `$implementation/ota/status` and aborts the OTA
   * If OTA is enabled and the latest available checksum is the same as what is currently running, Homie for ESP8266 reports `304` and aborts the OTA
   * If the checksum is not a valid MD5, Homie for ESP8266 reports `400 BAD_CHECKSUM` to `$implementation/ota/status` and aborts the OTA
-  * Otherwise, Homie for ESP8266 reports `202` and subscribes to `$implementation/ota/firmware`
-3. The OTA entity publishes the firmware to `$implementation/ota/firmware`. It can do so as a binary or as a Base64 encoded string
+3. Homie starts to flash the firmware
   * The firmware is updating. Homie for ESP8266 reports progress with `206 <bytes written>/<bytes total>`
   * When all bytes are flashed, the firmware is verified (including the MD5 if one was set)
     * Homie for ESP8266 either reports `200` on success, `400` if the firmware in invalid or `500` if there's an internal error
