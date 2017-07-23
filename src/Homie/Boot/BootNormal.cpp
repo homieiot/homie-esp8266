@@ -283,7 +283,9 @@ void BootNormal::_advertise() {
             if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
               _advertisementProgress.currentNodeIndex++;
               _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
-            } else _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
+            } else {
+              _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
+            }
           }
           break;
       }
