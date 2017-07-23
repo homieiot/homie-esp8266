@@ -10,20 +10,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: trigger lint
-          command: |
-            curl --user ${CIRCLE_API_TOKEN}: \
-              --data build_parameters[CIRCLE_JOB]=lint \
-              --data revision=$CIRCLE_SHA1 \
-              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
-      - run:
-          name: trigger generate_docs
-          command: |
-            curl --user ${CIRCLE_API_TOKEN}: \
-              --data build_parameters[CIRCLE_JOB]=generate_docs \
-              --data revision=$CIRCLE_SHA1 \
-              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
-      - run:
           name: install PlatformIO
           command: sudo pip install platformio
       - run:
@@ -87,3 +73,11 @@ jobs:
             git commit -m ":package: Result of CircleCI build ${CIRCLE_BUILD_URL}"
             git push -f origin master:gh-pages
             popd
+
+workflows:
+  version: 2
+  lint_build_generatedocs:
+    jobs:
+      - lint
+      - build
+      - generate_docs
