@@ -4,9 +4,6 @@ jobs:
     working_directory: ~/code
     docker:
       - image: circleci/python:2.7
-    branches:
-      ignore:
-        - gh-pages
     steps:
       - checkout
       - run:
@@ -78,6 +75,18 @@ workflows:
   version: 2
   lint_build_generatedocs:
     jobs:
-      - lint
-      - build
-      - generate_docs
+      - lint:
+          filters:
+            branches:
+              ignore:
+                - gh-pages
+      - build:
+          filters:
+            branches:
+              ignore:
+                - gh-pages
+      - generate_docs:
+          filters:
+            branches:
+              ignore:
+                - gh-pages
