@@ -8,6 +8,7 @@ enum class HomieEventType : uint8_t {
   CONFIGURATION_MODE,
   NORMAL_MODE,
   OTA_STARTED,
+  OTA_PROGRESS,
   OTA_SUCCESSFUL,
   OTA_FAILED,
   ABOUT_TO_RESET,
@@ -31,4 +32,7 @@ struct HomieEvent {
   AsyncMqttClientDisconnectReason mqttReason;
   /* MQTT_PACKET_ACKNOWLEDGED */
   uint16_t packetId;
+  /* OTA_PROGRESS */
+  size_t sizeDone;
+  size_t sizeTotal;
 };

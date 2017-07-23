@@ -539,6 +539,12 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         progress.concat(F("/"));
         progress.concat(_otaSizeTotal);
         Interface::get().getLogger() << F("Receiving OTA firmware (") << progress << F(")...") << endl;
+
+        Interface::get().event.type = HomieEventType::OTA_PROGRESS;
+        Interface::get().event.sizeDone = _otaSizeDone;
+        Interface::get().event.sizeTotal = _otaSizeTotal;
+        Interface::get().eventHandler(Interface::get().event);
+
         _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
 
         //  Done with the update?

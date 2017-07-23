@@ -15,6 +15,11 @@ void onHomieEvent(const HomieEvent& event) {
     case HomieEventType::OTA_STARTED:
       // Do whatever you want when OTA is started
       break;
+    case HomieEventType::OTA_PROGRESS:
+      // Do whatever you want when OTA is in progress
+
+      // You can use event.sizeDone and event.sizeTotal
+      break;
     case HomieEventType::OTA_FAILED:
       // Do whatever you want when OTA is failed
       break;
