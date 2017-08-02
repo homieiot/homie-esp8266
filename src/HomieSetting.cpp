@@ -2,7 +2,7 @@
 
 using namespace HomieInternals;
 
-std::vector<IHomieSetting*> IHomieSetting::settings;
+std::vector<IHomieSetting*> __attribute__((init_priority(101))) IHomieSetting::settings;
 
 template <class T>
 HomieSetting<T>::HomieSetting(const char* name, const char* description)
