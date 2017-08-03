@@ -196,6 +196,7 @@ HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
 
   Interface::get().configurationAp.secured = true;
   strlcpy(Interface::get().configurationAp.password, password, MAX_WIFI_PASSWORD_LENGTH);
+  return *this;
 }
 
 void HomieClass::__setFirmware(const char* name, const char* version) {
