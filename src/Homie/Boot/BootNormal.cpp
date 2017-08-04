@@ -296,7 +296,7 @@ void BootNormal::_advertise() {
       break;
     }
     case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA:
-      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmwares/+")), 1);
+      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/ota/firmware/+")), 1);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESET;
       break;
     case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESET:
