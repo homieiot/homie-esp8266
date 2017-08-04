@@ -385,6 +385,7 @@ void BootConfig::loop() {
   if (_flaggedForReboot) {
     if (millis() - _flaggedForRebootAt >= 3000UL) {
       Interface::get().getLogger() << F("↻ Rebooting into normal mode...") << endl;
+      Interface::get().flaggedForSleep = true;
       Serial.flush();
       ESP.restart();
     }

@@ -816,6 +816,7 @@ void BootNormal::loop() {
     Interface::get().eventHandler(Interface::get().event);
 
     Interface::get().getLogger() << F("↻ Rebooting into config mode...") << endl;
+    Interface::get().flaggedForSleep = true;
     Serial.flush();
     ESP.restart();
   }
@@ -824,6 +825,7 @@ void BootNormal::loop() {
     Interface::get().getLogger() << F("Device is idle") << endl;
 
     Interface::get().getLogger() << F("↻ Rebooting...") << endl;
+    Interface::get().flaggedForSleep = true;
     Serial.flush();
     ESP.restart();
   }
