@@ -404,7 +404,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     && strcmp(_mqttTopicLevels.get()[0], Interface::get().getConfig().get().deviceId) == 0
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
     && strcmp_P(_mqttTopicLevels.get()[2], PSTR("ota")) == 0
-    && strcmp_P(_mqttTopicLevels.get()[3], PSTR("firmwares")) == 0
+    && strcmp_P(_mqttTopicLevels.get()[3], PSTR("firmware")) == 0
   ) {
     if (index == 0) {
       Interface::get().getLogger() << F("Receiving OTA payload") << endl;
