@@ -13,6 +13,7 @@ def on_connect(client, userdata, flags, rc):
     else:
         print("Connected with result code {}".format(rc))
 
+    # calcluate firmware md5
     firmware_md5 = md5(userdata['firmware']).hexdigest()
     userdata.update({'md5': firmware_md5})
 
@@ -22,16 +23,20 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("{base_topic}{device_id}/$implementation/ota/enabled".format(**userdata))
     client.subscribe("{base_topic}{device_id}/$fw/#".format(**userdata))
 
+    # Wait for device info to come in and invoke the on_message callback where update will continue
     print("Waiting for device info...")
+
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
+    # decode string for python2/3 compatiblity
     msg.payload = msg.payload.decode()
+
     if msg.topic.endswith('$implementation/ota/status'):
         status = int(msg.payload.split()[0])
 
         if userdata.get("published"):
-            if status == 206:
+            if status == 206: # in progress
                 # state in progress, print progress bar
                 progress, total = [int(x) for x in msg.payload.split()[1].split('/')]
                 bar_width = 30
@@ -40,10 +45,10 @@ def on_message(client, userdata, msg):
                 if (progress == total):
                     print()
                 sys.stdout.flush()
-            elif status == 304:
+            elif status == 304: # not modified
                 print("Device firmware already up to date with md5 checksum: {}".format(userdata.get('md5')))
                 client.disconnect()
-            elif status == 403:
+            elif status == 403: # forbidden
                 print("Device ota disabled, aborting...")
                 client.disconnect()
 
@@ -57,7 +62,7 @@ def on_message(client, userdata, msg):
                 print("Expecting checksum {}, got {}, update failed!".format(userdata.get('md5'), checksum))
             client.disconnect()
         else:
-            if checksum != userdata.get('md5'):
+            if checksum != userdata.get('md5'): # save old md5 for comparison with new firmware
                 userdata.update({'old_md5': checksum})
             else:
                 print("Device firmware already up to date with md5 checksum: {}".format(checksum))
@@ -70,51 +75,47 @@ def on_message(client, userdata, msg):
             print("Device ota disabled, aborting...")
             client.disconnect()
 
-    if 'old_md5' in userdata.keys() and \
-       userdata.get('md5') != userdata.get('old_md5') and \
-       userdata.get('ota_enabled') and \
-       not userdata.get("published"):
+    if ( not userdata.get("published") ) and ( userdata.get('ota_enabled') ) and \
+       ( 'old_md5' in userdata.keys() ) and ( userdata.get('md5') != userdata.get('old_md5') ):
+        # push the firmware binary
         userdata.update({"published": True})
         topic = "{base_topic}{device_id}/$implementation/ota/firmware/{md5}".format(**userdata)
         print("Publishing new firmware with checksum {}".format(userdata.get('md5')))
         client.publish(topic, userdata['firmware'])
 
+
 def main(broker_host, broker_port, broker_username, broker_password, base_topic, device_id, firmware):
+    # initialise mqtt client and register callbacks
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
 
+    # set username and password if given
     if broker_username and broker_password:
         client.username_pw_set(broker_username, broker_password)
 
+    # save data to be used in the callbacks
     client.user_data_set({
             "base_topic": base_topic,
             "device_id": device_id,
             "firmware": firmware
         })
 
+    # start connection
     print("Connecting to mqtt broker {} on port {}".format(broker_host, broker_port))
     client.connect(broker_host, broker_port, 60)
 
-    # Blocking call that processes network traffic, dispatches callbacks and
-    # handles reconnecting.
+    # Blocking call that processes network traffic, dispatches callbacks and handles reconnecting.
     client.loop_forever()
 
-# Usage
-# python ./ota_update.py \
-#       --broker-host "127.0.0.1" \
-#       --broker-port "1883" \
-#       --broker-username "" \
-#       --broker-password "" \
-#       --base-topic "homie/" \
-#       --device-id "my-device-id" \
-#       ~/my_firmware.bin
+
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(
         description='ota firmware update scirpt for ESP8226 implemenation of the Homie mqtt IoT convention.')
 
+    # ensure base topic always ends with a '/'
     def base_topic_arg(s):
         s = str(s)
         if not s.endswith('/'):
@@ -143,9 +144,10 @@ if __name__ == '__main__':
     # get and validate arguments
     args = parser.parse_args()
 
-    # read the contents of firmware into buffers
+    # read the contents of firmware into buffer
     firmware = args.firmware.read()
     args.firmware.close()
 
+    # Invoke the business logic
     main(args.broker_host, args.broker_port, args.broker_username,
          args.broker_password, args.base_topic, args.device_id, firmware)
