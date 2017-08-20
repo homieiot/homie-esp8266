@@ -123,10 +123,10 @@ if __name__ == '__main__':
         return s
 
     # specify arguments
-    parser.add_argument('-l', '--broker-host',     type=str,            required=True,
-                        help='host name or ip address of the mqtt broker')
-    parser.add_argument('-p', '--broker-port',     type=int,            required=True,
-                        help='port of the mqtt broker')
+    parser.add_argument('-l', '--broker-host',     type=str,            required=False,
+                        help='host name or ip address of the mqtt broker', default="127.0.0.1")
+    parser.add_argument('-p', '--broker-port',     type=int,            required=False,
+                        help='port of the mqtt broker', default=1883)
     parser.add_argument('-u', '--broker-username', type=str,            required=False,
                         help='username used to authenticate with the mqtt broker')
     parser.add_argument('-d', '--broker-password', type=str,            required=False,

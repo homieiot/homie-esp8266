@@ -37,5 +37,6 @@ arguments:
                         homie device id
 ```
 
+* `BROKER_HOST` and `BROKER_PORT` defaults to 127.0.0.1 and 1883 respectively if not set.
 * `BROKER_USERNAME` and `BROKER_PASSWORD` are optional.
 * `BASE_TOPIC` defaults to `homie/` if not set
