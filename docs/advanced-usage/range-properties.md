@@ -16,6 +16,12 @@ void setup() {
 }
 ```
 
+When publishing to this property, specify the range index in the topic like this:
+
+```
+devices/led-strip/strip/led_22/set
+```
+
 See the following example for a concrete use case:
 
 [![GitHub logo](../assets/github.png) LedStrip](https://github.com/marvinroger/homie-esp8266/blob/develop/examples/LedStrip/LedStrip.ino)
