@@ -16,6 +16,16 @@ void setup() {
 }
 ```
 
+On the mqtt broker you will see the following message show up:
+```
+topic                               message
+--------------------------------------------------------
+homie/<device id>/strip/$type	      strip
+homie/<device id>/strip/$properties	led[1-100]:settable
+```
+
+You can then publish the value `on` to topic `homie/<device id>/strip/led_1/set` to turn on led number 1.
+
 See the following example for a concrete use case:
 
 [![GitHub logo](../assets/github.png) LedStrip](https://github.com/marvinroger/homie-esp8266/blob/develop/examples/LedStrip/LedStrip.ino)
