@@ -57,3 +57,6 @@ void setup() {
 You can see that input handlers return a boolean. An input handler can decide whether or not it handled the message and want to propagate it down to other input handlers. If an input handler returns `true`, the propagation is stopped, if it returns `false`, the propagation continues. The order of propagation is global handler → node handler → property handler.
 
 For example, imagine you defined three input handlers: the global one, the node one, and the property one. If the global input handler returns `false`, the node input handler will be called. If the node input handler returns `true`, the propagation is stopped and the property input handler won't be called. You can think of it as middlewares.
+
+
+!!! warning Homie uses [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) for network communication that make uses of asynchronous from the ESP8266 framework for incoming network packets. Thus the input handler runs in a different task than the `loopHandler()`. So keep in mind that the network task may interrupt your loop at any time.
