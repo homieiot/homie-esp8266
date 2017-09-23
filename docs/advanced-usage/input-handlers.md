@@ -60,4 +60,4 @@ For example, imagine you defined three input handlers: the global one, the node 
 
 
 !!! warning
-    Homie uses [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) for network communication that make uses of asynchronous from the ESP8266 framework for incoming network packets. Thus the input handler runs in a different task than the `loopHandler()`. So keep in mind that the network task may interrupt your loop at any time.
+    Homie uses [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) for network communication that make uses of asynchronous callback from the ESP8266 framework for incoming network packets. Thus the input handler runs in a different task than the `loopHandler()`. So keep in mind that the network task may interrupt your loop at any time.
