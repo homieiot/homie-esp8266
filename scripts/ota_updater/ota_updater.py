@@ -145,8 +145,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # read the contents of firmware into buffer
-    firmware = args.firmware.read()
+    fw_buffer = args.firmware.read()
     args.firmware.close()
+    firmware = bytearray()
+    firmware.extend(fw_buffer)
 
     # Invoke the business logic
     main(args.broker_host, args.broker_port, args.broker_username,
