@@ -177,7 +177,6 @@ void BootConfig::_onConfigRequest() {
   }
 
   ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
-  free(bodyCharArray);
   if (!configValidationResult.valid) {
     this->_interface->logger->log(F("✖ Config file is not valid, reason: "));
     this->_interface->logger->logln(configValidationResult.reason);
