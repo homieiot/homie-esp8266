@@ -58,18 +58,18 @@ void BootConfig::setup() {
   });
   _http.on("/device-info", HTTP_GET, [this](AsyncWebServerRequest *request) { _onDeviceInfoRequest(request); });
   _http.on("/networks", HTTP_GET, [this](AsyncWebServerRequest *request) { _onNetworksRequest(request); });
-  _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); });
+  _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); }).onBody(BootConfig::_parsePost);
   _http.on("/config", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
     Interface::get().getLogger() << F("Received CORS request for /config") << endl;
     _sendCROS(request);
   });
-  _http.on("/wifi/connect", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); });
+  _http.on("/wifi/connect", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); }).onBody(BootConfig::_parsePost);
   _http.on("/wifi/connect", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
     Interface::get().getLogger() << F("Received CORS request for /wifi/connect") << endl;
     _sendCROS(request);
   });
   _http.on("/wifi/status", HTTP_GET, [this](AsyncWebServerRequest *request) { _onWifiStatusRequest(request); });
-  _http.on("/proxy/control", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onProxyControlRequest(request); });
+  _http.on("/proxy/control", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onProxyControlRequest(request); }).onBody(BootConfig::_parsePost);
   _http.onNotFound([this](AsyncWebServerRequest *request) { _onCaptivePortal(request); });
   _http.begin();
 }
@@ -77,8 +77,8 @@ void BootConfig::setup() {
 void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received Wi-Fi connect request") << endl;
   StaticJsonBuffer<JSON_OBJECT_SIZE(2)> parseJsonBuffer;
-  std::unique_ptr<char[]> bodyString = Helpers::cloneString(request->arg("plain"));
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyString.get());
+  const char* body = (const char*)(request->_tempObject);
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
   if (!parsedJson.success()) {
     Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -133,8 +133,8 @@ void BootConfig::_onWifiStatusRequest(AsyncWebServerRequest *request) {
 void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received proxy control request") << endl;
   StaticJsonBuffer<JSON_OBJECT_SIZE(1)> parseJsonBuffer;
-  std::unique_ptr<char[]> bodyString = Helpers::cloneString(request->arg("plain"));
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyString.get());  // do not use plain String, else fails
+  const char* body = (const char*)(request->_tempObject);
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);  // do not use plain String, else fails
   if (!parsedJson.success()) {
     Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -220,15 +220,9 @@ void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
   else if (request->url() == "/" && SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
     // Respond with UI
     Interface::get().getLogger() << F("UI bundle found") << endl;
-    File file = SPIFFS.open(CONFIG_UI_BUNDLE_PATH, "r");
-
-    Interface::get().getLogger() << "File Size:" << file.size() << endl;
-    Interface::get().getLogger() << "File Conetent :" << file.readString() << endl;
-
-    AsyncWebServerResponse *response = request->beginResponse(file, F("text/html"), file.size());
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, CONFIG_UI_BUNDLE_PATH, F("text/html"));
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
-    file.close();
   }
   else {
     // Faild to find request
@@ -264,7 +258,8 @@ void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
   }
 
   Interface::get().getLogger() << F("Proxy sent request to destination") << endl;
-  int _httpCode = _httpClient.sendRequest(method.c_str(), request->arg("plain"));
+  const char* body = (const char*)(request->_tempObject);
+  int _httpCode = _httpClient.sendRequest(method.c_str(), body);
   Interface::get().getLogger() << F("Destination response code = ") << _httpCode << endl;
 
   // bridge response to browser
@@ -372,8 +367,8 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   }
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
-  std::unique_ptr<char[]> bodyString = Helpers::cloneString(request->arg("plain"));
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyString.get());  // workaround, cannot pass raw String otherwise JSON parsing fails randomly
+  const char* body = (const char*)(request->_tempObject);
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
   if (!parsedJson.success()) {
     Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -454,4 +449,19 @@ void BootConfig::_sendCROS(AsyncWebServerRequest *request) {
   response->addHeader(F("Access-Control-Allow-Methods"), F("PUT"));
   response->addHeader(F("Access-Control-Allow-Headers"), F("Content-Type, Origin, Referer, User-Agent"));
   request->send(response);
+}
+
+void BootConfig::_parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+  if (!index && total > MAXPost) {
+    Interface::get().getLogger() << "Request is to large to be proccessed." << endl;
+  }
+  else if (!index && total <= MAXPost) {
+    char* buff = new char[total + 1];
+    strcpy(buff, (const char*)data);
+    request->_tempObject = buff;
+  }
+  else if (total <= MAXPost) {
+    char* buff = (char*)(request->_tempObject);
+    strcat(buff, (const char*)data);
+  }
 }

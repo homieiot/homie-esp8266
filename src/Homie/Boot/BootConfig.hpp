@@ -23,37 +23,39 @@
 #include "../../StreamingOperator.hpp"
 
 namespace HomieInternals {
-class BootConfig : public Boot {
- public:
-  BootConfig();
-  ~BootConfig();
-  void setup();
-  void loop();
+  class BootConfig : public Boot {
+  public:
+    BootConfig();
+    ~BootConfig();
+    void setup();
+    void loop();
 
- private:
-  AsyncWebServer _http;
-  HTTPClient _httpClient;
-  DNSServer _dns;
-  uint8_t _ssidCount;
-  bool _wifiScanAvailable;
-  Timer _wifiScanTimer;
-  bool _lastWifiScanEnded;
-  char* _jsonWifiNetworks;
-  bool _flaggedForReboot;
-  uint32_t _flaggedForRebootAt;
-  bool _proxyEnabled;
-  char _apIpStr[MAX_IP_STRING_LENGTH];
+  private:
+    AsyncWebServer _http;
+    HTTPClient _httpClient;
+    DNSServer _dns;
+    uint8_t _ssidCount;
+    bool _wifiScanAvailable;
+    Timer _wifiScanTimer;
+    bool _lastWifiScanEnded;
+    char* _jsonWifiNetworks;
+    bool _flaggedForReboot;
+    uint32_t _flaggedForRebootAt;
+    bool _proxyEnabled;
+    char _apIpStr[MAX_IP_STRING_LENGTH];
 
-  void _onCaptivePortal(AsyncWebServerRequest *request);
-  void _onDeviceInfoRequest(AsyncWebServerRequest *request);
-  void _onNetworksRequest(AsyncWebServerRequest *request);
-  void _onConfigRequest(AsyncWebServerRequest *request);
-  void _generateNetworksJson();
-  void _onWifiConnectRequest(AsyncWebServerRequest *request);
-  void _onProxyControlRequest(AsyncWebServerRequest *request);
-  void _proxyHttpRequest(AsyncWebServerRequest *request);
-  void _onWifiStatusRequest(AsyncWebServerRequest *request);
+    void _onCaptivePortal(AsyncWebServerRequest *request);
+    void _onDeviceInfoRequest(AsyncWebServerRequest *request);
+    void _onNetworksRequest(AsyncWebServerRequest *request);
+    void _onConfigRequest(AsyncWebServerRequest *request);
+    void _generateNetworksJson();
+    void _onWifiConnectRequest(AsyncWebServerRequest *request);
+    void _onProxyControlRequest(AsyncWebServerRequest *request);
+    void _proxyHttpRequest(AsyncWebServerRequest *request);
+    void _onWifiStatusRequest(AsyncWebServerRequest *request);
 
-  void _sendCROS(AsyncWebServerRequest *request);
-};
+    void _sendCROS(AsyncWebServerRequest *request);
+    static const int MAXPost = 1500;
+    static void _parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+  };
 }  // namespace HomieInternals
