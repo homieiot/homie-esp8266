@@ -21,12 +21,13 @@ There is a YouTube video with instructions:
 
 2. Load the `.zip` with **Sketch → Include Library → Add .ZIP Library**
 
-Homie for ESP8266 has 4 dependencies:
+Homie for ESP8266 has 5 dependencies:
 
 * [ArduinoJson](https://github.com/bblanchon/ArduinoJson) >= 5.0.8
 * [Bounce2](https://github.com/thomasfredericks/Bounce2)
 * [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) >= [c8ed544](https://github.com/me-no-dev/ESPAsyncTCP)
 * [AsyncMqttClient](https://github.com/marvinroger/async-mqtt-client)
+* [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
 
 Some of them are available through the Arduino IDE, with **Sketch → Include Library → Manage Libraries**. For the others, install it by downloading the `.zip` on GitHub.
 

@@ -61,12 +61,12 @@ void BootConfig::setup() {
   _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); }).onBody(BootConfig::_parsePost);
   _http.on("/config", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
     Interface::get().getLogger() << F("Received CORS request for /config") << endl;
-    _sendCROS(request);
+    _sendCORS(request);
   });
   _http.on("/wifi/connect", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); }).onBody(BootConfig::_parsePost);
   _http.on("/wifi/connect", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
     Interface::get().getLogger() << F("Received CORS request for /wifi/connect") << endl;
-    _sendCROS(request);
+    _sendCORS(request);
   });
   _http.on("/wifi/status", HTTP_GET, [this](AsyncWebServerRequest *request) { _onWifiStatusRequest(request); });
   _http.on("/proxy/control", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onProxyControlRequest(request); }).onBody(BootConfig::_parsePost);
@@ -443,7 +443,7 @@ void BootConfig::loop() {
   }
 }
 
-void BootConfig::_sendCROS(AsyncWebServerRequest *request) {
+void BootConfig::_sendCORS(AsyncWebServerRequest *request) {
   AsyncWebServerResponse *response = request->beginResponse(204);
   response->addHeader(F("Access-Control-Allow-Origin"), F("*"));
   response->addHeader(F("Access-Control-Allow-Methods"), F("PUT"));
@@ -452,15 +452,15 @@ void BootConfig::_sendCROS(AsyncWebServerRequest *request) {
 }
 
 void BootConfig::_parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-  if (!index && total > MAXPost) {
+  if (!index && total > MAX_POST_SIZE) {
     Interface::get().getLogger() << "Request is to large to be proccessed." << endl;
   }
-  else if (!index && total <= MAXPost) {
+  else if (!index && total <= MAX_POST_SIZE) {
     char* buff = new char[total + 1];
     strcpy(buff, (const char*)data);
     request->_tempObject = buff;
   }
-  else if (total <= MAXPost) {
+  else if (total <= MAX_POST_SIZE) {
     char* buff = (char*)(request->_tempObject);
     strcat(buff, (const char*)data);
   }
