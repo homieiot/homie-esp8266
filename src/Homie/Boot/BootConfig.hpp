@@ -4,8 +4,9 @@
 
 #include <functional>
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
 #include <ArduinoJson.h>
 #include "Boot.hpp"
@@ -30,8 +31,8 @@ class BootConfig : public Boot {
   void loop();
 
  private:
+  AsyncWebServer _http;
   HTTPClient _httpClient;
-  ESP8266WebServer _http;
   DNSServer _dns;
   uint8_t _ssidCount;
   bool _wifiScanAvailable;
@@ -43,14 +44,16 @@ class BootConfig : public Boot {
   bool _proxyEnabled;
   char _apIpStr[MAX_IP_STRING_LENGTH];
 
-  void _onCaptivePortal();
-  void _onDeviceInfoRequest();
-  void _onNetworksRequest();
-  void _onConfigRequest();
+  void _onCaptivePortal(AsyncWebServerRequest *request);
+  void _onDeviceInfoRequest(AsyncWebServerRequest *request);
+  void _onNetworksRequest(AsyncWebServerRequest *request);
+  void _onConfigRequest(AsyncWebServerRequest *request);
   void _generateNetworksJson();
-  void _onWifiConnectRequest();
-  void _onProxyControlRequest();
-  void _proxyHttpRequest();
-  void _onWifiStatusRequest();
+  void _onWifiConnectRequest(AsyncWebServerRequest *request);
+  void _onProxyControlRequest(AsyncWebServerRequest *request);
+  void _proxyHttpRequest(AsyncWebServerRequest *request);
+  void _onWifiStatusRequest(AsyncWebServerRequest *request);
+
+  void _sendCROS(AsyncWebServerRequest *request);
 };
 }  // namespace HomieInternals
