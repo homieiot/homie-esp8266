@@ -163,8 +163,11 @@ void BootConfig::_onConfigRequest() {
   }
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
-  char* bodyCharArray = strdup(this->_http.arg("plain").c_str());
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyCharArray); // do not use plain String, else fails
+  size_t bodyLength = _http.arg("plain").length();
+  std::unique_ptr<char[]> bodyString(new char[bodyLength + 1]);
+  memcpy(bodyString.get(), _http.arg("plain").c_str(), bodyLength);
+  bodyString.get()[bodyLength] = '\0';
+  JsonObject& parsedJson = parseJsonBuffer.parseObject(bodyString.get());  // workaround, cannot pass raw String otherwise JSON parsing fails randomly
   if (!parsedJson.success()) {
     this->_interface->logger->logln(F("✖ Invalid or too big JSON"));
     String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
@@ -174,7 +177,6 @@ void BootConfig::_onConfigRequest() {
   }
 
   ConfigValidationResult configValidationResult = Helpers::validateConfig(parsedJson);
-  free(bodyCharArray);
   if (!configValidationResult.valid) {
     this->_interface->logger->log(F("✖ Config file is not valid, reason: "));
     this->_interface->logger->logln(configValidationResult.reason);
