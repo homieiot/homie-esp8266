@@ -2,22 +2,16 @@
 
 #include "Arduino.h"
 
-#include <Bounce2.h>
-#include "../../StreamingOperator.hpp"
 #include "Boot.hpp"
+#include "../../StreamingOperator.hpp"
+#include "../Utils/ResetButton.hpp"
 
 namespace HomieInternals {
-class BootStandalone : public Boot {
- public:
-  BootStandalone();
-  ~BootStandalone();
-  void setup();
-  void loop();
-
- private:
-  bool _flaggedForConfig;
-  Bounce _resetDebouncer;
-
-  void _handleReset();
-};
+  class BootStandalone : public Boot, public ResetButton {
+  public:
+    BootStandalone();
+    ~BootStandalone();
+    void setup();
+    void loop();
+  };
 }  // namespace HomieInternals

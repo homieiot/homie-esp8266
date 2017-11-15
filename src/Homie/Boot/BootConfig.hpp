@@ -38,11 +38,11 @@ namespace HomieInternals {
     bool _wifiScanAvailable;
     Timer _wifiScanTimer;
     bool _lastWifiScanEnded;
-    char* _jsonWifiNetworks;
+    String _jsonWifiNetworks;
     bool _flaggedForReboot;
     uint32_t _flaggedForRebootAt;
     bool _proxyEnabled;
-    char _apIpStr[MAX_IP_STRING_LENGTH];
+    String _apIpStr;
 
     void _onCaptivePortal(AsyncWebServerRequest *request);
     void _onDeviceInfoRequest(AsyncWebServerRequest *request);
@@ -57,5 +57,6 @@ namespace HomieInternals {
     void _sendCORS(AsyncWebServerRequest *request);
     static const int MAX_POST_SIZE = 1500;
     static void _parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+    static void _SendJSONError(AsyncWebServerRequest *request, String msg, int16_t code = 400);
   };
 }  // namespace HomieInternals

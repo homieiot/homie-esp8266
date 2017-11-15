@@ -3,27 +3,11 @@
 using namespace HomieInternals;
 
 BootStandalone::BootStandalone()
-: Boot("standalone")
-, _flaggedForConfig(false) {
+  : Boot("standalone")
+  , ResetButton() {
 }
 
 BootStandalone::~BootStandalone() {
-}
-
-void BootStandalone::_handleReset() {
-  if (Interface::get().reset.enabled) {
-    _resetDebouncer.update();
-
-    if (_resetDebouncer.read() == Interface::get().reset.triggerState) {
-      _flaggedForConfig = true;
-      Interface::get().getLogger() << F("Flagged for configuration mode by pin") << endl;
-    }
-  }
-
-  if (Interface::get().reset.flaggedBySketch) {
-    _flaggedForConfig = true;
-    Interface::get().getLogger() << F("Flagged for configuration mode by sketch") << endl;
-  }
 }
 
 void BootStandalone::setup() {
@@ -31,20 +15,15 @@ void BootStandalone::setup() {
 
   WiFi.mode(WIFI_OFF);
 
-  if (Interface::get().reset.enabled) {
-    pinMode(Interface::get().reset.triggerPin, INPUT_PULLUP);
-
-    _resetDebouncer.attach(Interface::get().reset.triggerPin);
-    _resetDebouncer.interval(Interface::get().reset.triggerTime);
-  }
+  ResetButton::Attach();
 }
 
 void BootStandalone::loop() {
   Boot::loop();
 
-  _handleReset();
+  ResetButton::_handleReset();
 
-  if (_flaggedForConfig && Interface::get().reset.idle) {
+  if (ResetButton::_flaggedForReset && Interface::get().reset.idle) {
     Interface::get().getLogger() << F("Device is idle") << endl;
     Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::CONFIGURATION);
 

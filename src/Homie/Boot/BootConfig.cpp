@@ -45,7 +45,7 @@ void BootConfig::setup() {
     WiFi.softAP(apName);
   }
 
-  snprintf(_apIpStr, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", ACCESS_POINT_IP[0], ACCESS_POINT_IP[1], ACCESS_POINT_IP[2], ACCESS_POINT_IP[3]);
+  _apIpStr = ACCESS_POINT_IP.toString();
 
   Interface::get().getLogger() << F("AP started as ") << apName << F(" with IP ") << _apIpStr << endl;
   _dns.setTTL(30);
@@ -76,83 +76,83 @@ void BootConfig::setup() {
 
 void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received Wi-Fi connect request") << endl;
-  StaticJsonBuffer<JSON_OBJECT_SIZE(2)> parseJsonBuffer;
+  DynamicJsonBuffer parseJsonBuffer(JSON_OBJECT_SIZE(2));
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
   if (!parsedJson.success()) {
-    Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
-    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-    errorJson.concat(F("Invalid or too big JSON\"}"));
-    request->send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    _SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
   if (!parsedJson.containsKey("ssid") || !parsedJson["ssid"].is<const char*>() || !parsedJson.containsKey("password") || !parsedJson["password"].is<const char*>()) {
-    Interface::get().getLogger() << F("✖ SSID and password required") << endl;
-    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-    errorJson.concat(F("SSID and password required\"}"));
-    request->send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    _SendJSONError(request, F("✖ SSID and password required"));
     return;
   }
 
   Interface::get().getLogger() << F("Connecting to Wi-Fi") << endl;
   WiFi.begin(parsedJson["ssid"].as<const char*>(), parsedJson["password"].as<const char*>());
-  request->send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
+
+  request->send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 }
 
 void BootConfig::_onWifiStatusRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received Wi-Fi status request") << endl;
-  String json = "";
+
+  DynamicJsonBuffer generatedJsonBuffer(JSON_OBJECT_SIZE(2));
+  JsonObject& json = generatedJsonBuffer.createObject();
+  String status;
+
+  //String json = "";
   switch (WiFi.status()) {
   case WL_IDLE_STATUS:
-    json = F("{\"status\":\"idle\"}");
+    status = F("idle");
     break;
   case WL_CONNECT_FAILED:
-    json = F("{\"status\":\"connect_failed\"}");
+    status = F("connect_failed");
     break;
   case WL_CONNECTION_LOST:
-    json = F("{\"status\":\"connection_lost\"}");
+    status = F("connection_lost");
     break;
   case WL_NO_SSID_AVAIL:
-    json = F("{\"status\":\"no_ssid_available\"}");
+    status = F("no_ssid_available");
     break;
   case WL_CONNECTED:
-    json = "{\"status\":\"connected\",\"local_ip\":\"" + WiFi.localIP().toString() + "\"}";
+    status = F("connected");
+    json["local_ip"] = WiFi.localIP().toString();
     break;
   case WL_DISCONNECTED:
-    json = F("{\"status\":\"disconnected\"}");
+    status = F("disconnected");
     break;
   default:
-    json = F("{\"status\":\"other\"}");
+    status = F("other");
     break;
   }
 
-  request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), json);
+  json["status"] = status;
+  String output;
+  json.printTo(output);
+
+  request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), output);
 }
 
 void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received proxy control request") << endl;
-  StaticJsonBuffer<JSON_OBJECT_SIZE(1)> parseJsonBuffer;
+  DynamicJsonBuffer parseJsonBuffer(JSON_OBJECT_SIZE(1));
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);  // do not use plain String, else fails
   if (!parsedJson.success()) {
-    Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
-    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-    errorJson.concat(F("Invalid or too big JSON\"}"));
-    request->send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    _SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
   if (!parsedJson.containsKey("enable") || !parsedJson["enable"].is<bool>()) {
-    Interface::get().getLogger() << F("✖ enable parameter is required") << endl;
-    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-    errorJson.concat(F("enable parameter is required\"}"));
-    request->send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    _SendJSONError(request, F("✖ enable parameter is required"));
     return;
   }
 
   _proxyEnabled = parsedJson["enable"];
-  request->send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
+
+  request->send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 }
 
 void BootConfig::_generateNetworksJson() {
@@ -185,10 +185,9 @@ void BootConfig::_generateNetworksJson() {
     networks.add(jsonNetwork);
   }
 
-  delete[] _jsonWifiNetworks;
-  size_t jsonBufferLength = json.measureLength() + 1;
-  _jsonWifiNetworks = new char[jsonBufferLength];
-  json.printTo(_jsonWifiNetworks, jsonBufferLength);
+  String output;
+  json.printTo(output);
+  _jsonWifiNetworks = output;
 }
 
 void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
@@ -296,54 +295,41 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   JsonArray& settings = json.createNestedArray("settings");
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
     JsonObject& jsonSetting = jsonBuffer.createObject();
-    if (iSetting->isBool()) {
-      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
-      jsonSetting["name"] = setting->getName();
-      jsonSetting["description"] = setting->getDescription();
-      jsonSetting["type"] = "bool";
-      jsonSetting["required"] = setting->isRequired();
-      if (!setting->isRequired()) {
-        jsonSetting["default"] = setting->get();
-      }
-    }
-    else if (iSetting->isLong()) {
-      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-      jsonSetting["name"] = setting->getName();
-      jsonSetting["description"] = setting->getDescription();
-      jsonSetting["type"] = "long";
-      jsonSetting["required"] = setting->isRequired();
-      if (!setting->isRequired()) {
-        jsonSetting["default"] = setting->get();
-      }
-    }
-    else if (iSetting->isDouble()) {
-      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-      jsonSetting["name"] = setting->getName();
-      jsonSetting["description"] = setting->getDescription();
-      jsonSetting["type"] = "double";
-      jsonSetting["required"] = setting->isRequired();
-      if (!setting->isRequired()) {
-        jsonSetting["default"] = setting->get();
-      }
-    }
-    else if (iSetting->isConstChar()) {
-      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-      jsonSetting["name"] = setting->getName();
-      jsonSetting["description"] = setting->getDescription();
-      jsonSetting["type"] = "string";
-      jsonSetting["required"] = setting->isRequired();
-      if (!setting->isRequired()) {
-        jsonSetting["default"] = setting->get();
+
+    if (iSetting->type() != "unknown") {
+      jsonSetting["name"] = iSetting->getName();
+      jsonSetting["description"] = iSetting->getDescription();
+      jsonSetting["type"] = iSetting->type();
+      jsonSetting["required"] = iSetting->isRequired();
+
+      if (!iSetting->isRequired()) {
+        if (iSetting->isBool()) {
+          HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+          jsonSetting["default"] = setting->get();
+
+        }
+        else if (iSetting->isLong()) {
+          HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+          jsonSetting["default"] = setting->get();
+        }
+        else if (iSetting->isDouble()) {
+          HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+          jsonSetting["default"] = setting->get();
+        }
+        else if (iSetting->isConstChar()) {
+          HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+          jsonSetting["default"] = setting->get();
+        }
       }
     }
 
     settings.add(jsonSetting);
   }
 
-  size_t jsonBufferLength = json.measureLength() + 1;
-  std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
-  json.printTo(jsonString.get(), jsonBufferLength);
-  request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), jsonString.get());
+  String output;
+  json.printTo(output);
+
+  request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), output);
 }
 
 void BootConfig::_onNetworksRequest(AsyncWebServerRequest *request) {
@@ -352,39 +338,28 @@ void BootConfig::_onNetworksRequest(AsyncWebServerRequest *request) {
     request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), _jsonWifiNetworks);
   }
   else {
-    request->send(503, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_NETWORKS_FAILURE));
+    _SendJSONError(request, F("Initial Wi-Fi scan not finished yet"), 503);
   }
 }
 
 void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received config request") << endl;
   if (_flaggedForReboot) {
-    Interface::get().getLogger() << F("✖ Device already configured") << endl;
-    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-    errorJson.concat(F("Device already configured\"}"));
-    request->send(403, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    _SendJSONError(request, F("✖ Device already configured"), 403);
     return;
   }
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> parseJsonBuffer;
+  DynamicJsonBuffer parseJsonBuffer(MAX_POST_SIZE);
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
   if (!parsedJson.success()) {
-    Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
-    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-    errorJson.concat(F("Invalid or too big JSON\"}"));
-    request->send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    _SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
   ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
-    Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
-    String errorJson = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-    errorJson.concat(F("Config file is not valid, reason: "));
-    errorJson.concat(configValidationResult.reason);
-    errorJson.concat(F("\"}"));
-    request->send(400, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
+    _SendJSONError(request, String(F("✖ Config file is not valid, reason: ")) + configValidationResult.reason);
     return;
   }
 
@@ -392,7 +367,7 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
 
   Interface::get().getLogger() << F("✔ Configured") << endl;
 
-  request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), F("{\"success\":true}"));
+  request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 
   _flaggedForReboot = true;  // We don't reboot immediately, otherwise the response above is not sent
   _flaggedForRebootAt = millis();
@@ -464,4 +439,18 @@ void BootConfig::_parsePost(AsyncWebServerRequest *request, uint8_t *data, size_
     char* buff = (char*)(request->_tempObject);
     strcat(buff, (const char*)data);
   }
+}
+static const String ConfigJSONError(const String error) {
+  const String BEGINNING = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+  const String END = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_END));
+  return BEGINNING + error + END;
+}
+
+void HomieInternals::BootConfig::_SendJSONError(AsyncWebServerRequest * request, String msg, int16_t code)
+{
+  Interface::get().getLogger() << msg << endl;
+  const String BEGINNING = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
+  const String END = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_END));
+  String errorJson = BEGINNING + msg + END;
+  request->send(code, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
 }
