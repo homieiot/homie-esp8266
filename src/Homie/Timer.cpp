@@ -16,6 +16,11 @@ void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
   this->reset();
 }
 
+uint32_t HomieInternals::Timer::getInterval()
+{
+  _interval;
+}
+
 bool Timer::check() const {
   if (!_active) return false;
 
