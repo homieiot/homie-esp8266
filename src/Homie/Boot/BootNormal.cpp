@@ -65,8 +65,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
 
     _publishOtaStatus(200);  // 200 OK
     _flaggedForReboot = true;
-  }
-  else {
+  } else {
     int code;
     String info;
     switch (update_error) {
@@ -131,12 +130,10 @@ void BootNormal::_wifiConnect() {
           Helpers::stringToBytes(Interface::get().getConfig().get().wifi.dns2, '.', convertedBytes, 4, 10);
           IPAddress convertedDns2(convertedBytes[0], convertedBytes[1], convertedBytes[2], convertedBytes[3]);
           WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1, convertedDns2);
-        }
-        else {
+        } else {
           WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1);
         }
-      }
-      else {
+      } else {
         WiFi.config(convertedIp, convertedGateway, convertedMask);
       }
     }
@@ -145,8 +142,7 @@ void BootNormal::_wifiConnect() {
       byte bssidBytes[6];
       Helpers::stringToBytes(Interface::get().getConfig().get().wifi.bssid, ':', bssidBytes, 6, 16);
       WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password, Interface::get().getConfig().get().wifi.channel, bssidBytes);
-    }
-    else {
+    } else {
       WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password);
     }
 
@@ -252,8 +248,7 @@ void BootNormal::_advertise() {
         _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES;
         _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
         _advertisementProgress.currentNodeIndex = 0;
-      }
-      else {
+      } else {
         _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
       }
     }
@@ -292,8 +287,7 @@ void BootNormal::_advertise() {
         if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
           _advertisementProgress.currentNodeIndex++;
           _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
-        }
-        else {
+        } else {
           _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
         }
       }
@@ -368,8 +362,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 
     _mqttConnect();
 
-  }
-  else {
+  } else {
     _mqttReconnectTimer.activate();
   }
 }
@@ -426,13 +419,11 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         _endOtaUpdate(false, UPDATE_ERROR_MD5);
         Interface::get().getLogger() << F("✖ Aborting, invalid MD5") << endl;
         return;
-      }
-      else if (strcmp(firmwareMd5, _fwChecksum) == 0) {
+      } else if (strcmp(firmwareMd5, _fwChecksum) == 0) {
         _publishOtaStatus(304);  // 304 Not Modified
         Interface::get().getLogger() << F("✖ Aborting, firmware is the same") << endl;
         return;
-      }
-      else {
+      } else {
         Update.setMD5(firmwareMd5);
         _publishOtaStatus(202);
         _otaOngoing = true;
@@ -442,8 +433,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         Interface::get().event.type = HomieEventType::OTA_STARTED;
         Interface::get().eventHandler(Interface::get().event);
       }
-    }
-    else if (!_otaOngoing) {
+    } else if (!_otaOngoing) {
       return; // we've not validated the checksum
     }
 
@@ -454,8 +444,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       if (*payload == 0xE9) {
         _otaIsBase64 = false;
         Interface::get().getLogger() << F("Firmware is binary") << endl;
-      }
-      else {
+      } else {
         // Base64-decode first two bytes. Compare decoded value against magic byte.
         char plain[2];  // need 12 bits
         base64_init_decodestate(&_otaBase64State);
@@ -472,8 +461,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
 
           // Restart base64-decoder
           base64_init_decodestate(&_otaBase64State);
-        }
-        else {
+        } else {
           // Bad firmware format
           _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
           return;
@@ -501,8 +489,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         bool b64 = ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '+') || (c == '/');
         if (b64) {
           bin_len++;
-        }
-        else if (c == '=') {
+        } else if (c == '=') {
           // Ignore "=" padding (but only at the end and only up to 2)
           if (index + i < total - 2) {
             _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
@@ -510,8 +497,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           }
           // Note the number of pad characters at the end
           _otaBase64Pads++;
-        }
-        else {
+        } else {
           // Non-base64 character in firmware
           _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
           return;
@@ -532,12 +518,10 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         if (bin_len > 1) {
           write_len += (size_t)base64_decode_block((const char*)payload + dec_len, bin_len - dec_len, payload + write_len, &_otaBase64State);
         }
-      }
-      else {
+      } else {
         write_len = 0;
       }
-    }
-    else {
+    } else {
       // Binary firmware
       write_len = len;
     }
@@ -580,8 +564,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
           success = Update.end(_otaIsBase64);
           _endOtaUpdate(success, Update.getError());
         }
-      }
-      else {
+      } else {
         // Error erasing or writing flash
         _endOtaUpdate(false, Update.getError());
       }
@@ -645,8 +628,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
       Interface::get().getLogger() << F("✔ Configuration updated") << endl;
       _flaggedForReboot = true;
       Interface::get().getLogger() << F("Flagged for reboot") << endl;
-    }
-    else {
+    } else {
       Interface::get().getLogger() << F("✖ Configuration not updated") << endl;
     }
     return;
@@ -690,14 +672,12 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
         if (range.index >= iProperty->getLower() && range.index <= iProperty->getUpper()) {
           propertyObject = iProperty;
           break;
-        }
-        else {
+        } else {
           Interface::get().getLogger() << F("Range index ") << range.index << F(" is not within the bounds of ") << property << endl;
           return;
         }
       }
-    }
-    else if (strcmp(property, iProperty->getProperty()) == 0) {
+    } else if (strcmp(property, iProperty->getProperty()) == 0) {
       propertyObject = iProperty;
       break;
     }
@@ -726,8 +706,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     Interface::get().getLogger() << F("  • Is range? ");
     if (range.isRange) {
       Interface::get().getLogger() << F("yes (") << range.index << F(")") << endl;
-    }
-    else {
+    } else {
       Interface::get().getLogger() << F("no") << endl;
     }
     Interface::get().getLogger() << F("  • Value: ") << _mqttPayloadBuffer.get() << endl;
