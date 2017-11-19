@@ -280,6 +280,8 @@ bool Config::patch(const char* patch) {
     StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
     JsonObject& configObject = configJsonBuffer.parseObject(configJson);
 
+    // To do alow object that dont currently exist to be added like settings.
+    // if settings wasnt there origionally then it should be allowed to be added by incremental.
     for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
       if (patchObject[it->key].is<JsonObject&>()) {
         JsonObject& subObject = patchObject[it->key].as<JsonObject&>();

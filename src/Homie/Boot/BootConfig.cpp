@@ -45,7 +45,7 @@ void BootConfig::setup() {
     WiFi.softAP(apName);
   }
 
-  _apIpStr = ACCESS_POINT_IP.toString();
+  Helpers::ipToString(ACCESS_POINT_IP, _apIpStr);
 
   Interface::get().getLogger() << F("AP started as ") << apName << F(" with IP ") << _apIpStr << endl;
   _dns.setTTL(30);
@@ -296,17 +296,16 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
     JsonObject& jsonSetting = jsonBuffer.createObject();
 
-    if (iSetting->type() != "unknown") {
+    if (iSetting->getType() != "unknown") {
       jsonSetting["name"] = iSetting->getName();
       jsonSetting["description"] = iSetting->getDescription();
-      jsonSetting["type"] = iSetting->type();
+      jsonSetting["type"] = iSetting->getType();
       jsonSetting["required"] = iSetting->isRequired();
 
       if (!iSetting->isRequired()) {
         if (iSetting->isBool()) {
           HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
           jsonSetting["default"] = setting->get();
-
         }
         else if (iSetting->isLong()) {
           HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
@@ -349,7 +348,7 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
     return;
   }
 
-  DynamicJsonBuffer parseJsonBuffer(MAX_POST_SIZE);
+  DynamicJsonBuffer parseJsonBuffer(MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE);
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
   if (!parsedJson.success()) {

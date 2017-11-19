@@ -7,7 +7,7 @@
 #include "../Utils/ResetButton.hpp"
 
 namespace HomieInternals {
-  class BootStandalone : public Boot, public ResetButton {
+  class BootStandalone : public Boot {
   public:
     BootStandalone();
     ~BootStandalone();

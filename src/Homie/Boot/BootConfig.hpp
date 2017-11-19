@@ -42,7 +42,7 @@ namespace HomieInternals {
     bool _flaggedForReboot;
     uint32_t _flaggedForRebootAt;
     bool _proxyEnabled;
-    String _apIpStr;
+    char _apIpStr[MAX_IP_STRING_LENGTH];
 
     void _onCaptivePortal(AsyncWebServerRequest *request);
     void _onDeviceInfoRequest(AsyncWebServerRequest *request);
