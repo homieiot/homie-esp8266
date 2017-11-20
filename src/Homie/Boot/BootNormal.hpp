@@ -18,7 +18,7 @@
 #include "../Timer.hpp"
 #include "../ExponentialBackoffTimer.hpp"
 #include "Boot.hpp"
-#include "../Utils/ResetButton.hpp"
+#include "../Utils/ResetHandler.hpp"
 
 namespace HomieInternals {
   class BootNormal : public Boot {
@@ -102,6 +102,7 @@ namespace HomieInternals {
 
     //Helpers
     void __splitTopic(char* topic);
+    bool __fillPayloadBuffer(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
     bool __handleOTAUpdates(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
     bool __handleBroadcasts(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
     bool __handleResets(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);

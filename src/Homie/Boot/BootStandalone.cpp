@@ -14,7 +14,7 @@ void BootStandalone::setup() {
 
   WiFi.mode(WIFI_OFF);
 
-  ResetButton::Attach();
+  ResetHandler::Attach();
 }
 
 void BootStandalone::loop() {

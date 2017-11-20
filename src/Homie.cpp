@@ -17,7 +17,7 @@ HomieClass::HomieClass()
   Interface::get().reset.triggerPin = DEFAULT_RESET_PIN;
   Interface::get().reset.triggerState = DEFAULT_RESET_STATE;
   Interface::get().reset.triggerTime = DEFAULT_RESET_TIME;
-  Interface::get().reset.flaggedBySketch = false;
+  Interface::get().reset.resetFlag = false;
   Interface::get().flaggedForSleep = false;
   Interface::get().globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
   Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
@@ -237,7 +237,8 @@ void HomieClass::__setBrand(const char* brand) const {
 }
 
 void HomieClass::reset() {
-  Interface::get().reset.flaggedBySketch = true;
+  Interface::get().getLogger() << F("Flagged for reset by sketch") << endl;
+  Interface::get().reset.resetFlag = true;
 }
 
 void HomieClass::reboot() {

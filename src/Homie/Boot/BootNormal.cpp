@@ -74,7 +74,7 @@ void BootNormal::setup() {
 
   if (Interface::get().getConfig().get().mqtt.auth) Interface::get().getMqttClient().setCredentials(Interface::get().getConfig().get().mqtt.username, Interface::get().getConfig().get().mqtt.password);
 
-  ResetButton::Attach();
+  ResetHandler::Attach();
 
   Interface::get().getConfig().log();
 
@@ -517,38 +517,28 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
 
   // 2. Fill Payload Buffer
-
-  // Reallocate Buffer everytime a new message is received
-  if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
-
-  // copy payload into buffer
-  memcpy(_mqttPayloadBuffer.get() + index, payload, len);
-
-  // return if payload buffer is not complete
-  if (index + len != total)
+  if (__fillPayloadBuffer(topic, payload, properties, len, index, total))
     return;
-  // terminate buffer
-  _mqttPayloadBuffer.get()[total] = '\0';
 
   /* Arrived here, the payload is complete */
 
-  // handle broadcasts
+  // 3. handle broadcasts
   if (__handleBroadcasts(topic, payload, properties, len, index, total))
     return;
 
-  // all following messages are only for this deviceId
+  // 4.all following messages are only for this deviceId
   if (strcmp(_mqttTopicLevels.get()[0], Interface::get().getConfig().get().deviceId) != 0)
     return;
 
-  // handle reset
+  // 5. handle reset
   if (__handleResets(topic, payload, properties, len, index, total))
     return;
 
-  // handle config set
+  // 6. handle config set
   if (__handleConfig(topic, payload, properties, len, index, total))
     return;
 
-  // here, we're sure we have a node property
+  // 7. here, we're sure we have a node property
   if (__handleNodeProperty(topic, payload, properties, len, index, total))
     return;
 
@@ -589,6 +579,22 @@ void BootNormal::__splitTopic(char* topic)
 
     token = strtok(nullptr, delimiter);
   }
+}
+
+bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total)
+{
+  // Reallocate Buffer everytime a new message is received
+  if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
+
+  // copy payload into buffer
+  memcpy(_mqttPayloadBuffer.get() + index, payload, len);
+
+  // return if payload buffer is not complete
+  if (index + len != total)
+    return true;
+  // terminate buffer
+  _mqttPayloadBuffer.get()[total] = '\0';
+  return false;
 }
 
 bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total)
@@ -806,8 +812,8 @@ bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, As
     && strcmp_P(_mqttPayloadBuffer.get(), PSTR("true")) == 0
     ) {
     Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
-    ResetButton::_flaggedForReset = true;
     Interface::get().getLogger() << F("Flagged for reset by network") << endl;
+    Interface::get().reset.resetFlag = true;
     return true;
   }
   return false;
@@ -850,6 +856,10 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
     Interface::get().getLogger() << F("Node ") << node << F(" not registered") << endl;
     return true;
   }
+
+#ifdef DEBUG
+  Interface::get().getLogger() << F("Recived network message for ") << homieNode->getId() << endl;
+#endif // DEBUG
 
   int16_t rangeSeparator = -1;
   for (uint16_t i = 0; i < strlen(property); i++) {
@@ -897,15 +907,21 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
     return true;
   }
 
+#ifdef DEBUG
   Interface::get().getLogger() << F("Calling global input handler...") << endl;
+#endif // DEBUG
   bool handled = Interface::get().globalInputHandler(*homieNode, String(property), range, String(_mqttPayloadBuffer.get()));
   if (handled) return true;
 
+#ifdef DEBUG
   Interface::get().getLogger() << F("Calling node input handler...") << endl;
+#endif // DEBUG
   handled = homieNode->handleInput(String(property), range, String(_mqttPayloadBuffer.get()));
   if (handled) return true;
 
+#ifdef DEBUG
   Interface::get().getLogger() << F("Calling property input handler...") << endl;
+#endif // DEBUG
   handled = propertyObject->getInputHandler()(range, String(_mqttPayloadBuffer.get()));
 
   if (!handled) {
