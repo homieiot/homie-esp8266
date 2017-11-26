@@ -45,7 +45,7 @@ platform = ...
 board = ...
 framework = arduino
 
-; the latest deveopment branch
+; the latest development branch
 lib_deps = https://github.com/marvinroger/homie-esp8266.git
 
 ; or tagged version
