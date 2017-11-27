@@ -240,7 +240,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
 }
 
 void BootNormal::_wifiConnect() {
-  if (!Interface::get().flaggedForSleep) {
+  if (!Interface::get().disable) {
     if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
     Interface::get().getLogger() << F("↕ Attempting to connect to Wi-Fi...") << endl;
 
@@ -314,9 +314,11 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
 }
 
 void BootNormal::_mqttConnect() {
-  if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_MQTT_DELAY);
-  Interface::get().getLogger() << F("↕ Attempting to connect to MQTT...") << endl;
-  Interface::get().getMqttClient().connect();
+  if (!Interface::get().disable) {
+    if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_MQTT_DELAY);
+    Interface::get().getLogger() << F("↕ Attempting to connect to MQTT...") << endl;
+    Interface::get().getMqttClient().connect();
+  }
 }
 
 void BootNormal::_advertise() {
@@ -813,6 +815,7 @@ bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, As
     ) {
     Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
     Interface::get().getLogger() << F("Flagged for reset by network") << endl;
+    Interface::get().disable = true;
     Interface::get().reset.resetFlag = true;
     return true;
   }

@@ -19,6 +19,7 @@ HomieClass::HomieClass()
   Interface::get().reset.triggerTime = DEFAULT_RESET_TIME;
   Interface::get().reset.resetFlag = false;
   Interface::get().flaggedForSleep = false;
+  Interface::get().flaggedForSleep = false;
   Interface::get().globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
   Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
   Interface::get().setupFunction = []() {};
@@ -238,10 +239,13 @@ void HomieClass::__setBrand(const char* brand) const {
 
 void HomieClass::reset() {
   Interface::get().getLogger() << F("Flagged for reset by sketch") << endl;
+  Interface::get().disable = true;
   Interface::get().reset.resetFlag = true;
 }
 
 void HomieClass::reboot() {
+  Interface::get().getLogger() << F("Flagged for reboot by sketch") << endl;
+  Interface::get().disable = true;
   _flaggedForReboot = true;
 }
 
@@ -340,14 +344,23 @@ Logger& HomieClass::getLogger() {
 }
 
 void HomieClass::prepareToSleep() {
+  Interface::get().getLogger() << F("Flagged for sleep by sketch") << endl;
   if (Interface::get().ready) {
+    Interface::get().disable = true;
     Interface::get().flaggedForSleep = true;
   }
   else {
+    Interface::get().disable = true;
     Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
     Interface::get().event.type = HomieEventType::READY_TO_SLEEP;
     Interface::get().eventHandler(Interface::get().event);
   }
+}
+
+void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode){
+  Interface::get().getLogger() << F("💤 Device deep sleeping...") << endl;
+  Serial.flush();
+  ESP.deepSleep(time_us, mode);
 }
 
 HomieClass Homie;

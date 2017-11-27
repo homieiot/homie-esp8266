@@ -368,6 +368,7 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
 
   request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 
+  Interface::get().disable = true;
   _flaggedForReboot = true;  // We don't reboot immediately, otherwise the response above is not sent
   _flaggedForRebootAt = millis();
 }

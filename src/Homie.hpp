@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Arduino.h"
+#include "ESP.h"
 
-#include <AsyncMqttClient.h>
+#include "AsyncMqttClient.h"
 #include "Homie/Datatypes/Interface.hpp"
 #include "Homie/Constants.hpp"
 #include "Homie/Limits.hpp"
@@ -65,6 +66,7 @@ namespace HomieInternals {
     AsyncMqttClient& getMqttClient();
     Logger& getLogger();
     static void prepareToSleep();
+    static void doDeepSleep(uint32_t time_us = 0, RFMode mode = RF_DEFAULT);
 
   private:
     bool _setupCalled;

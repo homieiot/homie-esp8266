@@ -25,6 +25,7 @@ void ResetHandler::_tick()
     _resetBTNDebouncer.update();
     if (_resetBTNDebouncer.read() == Interface::get().reset.triggerState) {
       Interface::get().getLogger() << F("Flagged for reset by pin") << endl;
+      Interface::get().disable = true;
       Interface::get().reset.resetFlag = true;
     }
   }

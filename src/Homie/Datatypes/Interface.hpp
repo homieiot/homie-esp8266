@@ -55,6 +55,7 @@ namespace HomieInternals {
       bool resetFlag;
     } reset;
 
+    bool disable;
     bool flaggedForSleep;
 
     GlobalInputHandler globalInputHandler;

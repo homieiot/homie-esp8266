@@ -11,6 +11,7 @@ InterfaceData::InterfaceData()
   , firmware{ .name = {'\0'},.version = {'\0'} }
   , led{ .enabled = false,.pin = 0,.on = 0 }
   , reset{ .enabled = false,.idle = false,.triggerPin = 0,.triggerState = 0,.triggerTime = 0,.resetFlag = false }
+  , disable{ false }
   , flaggedForSleep{ false }
   , event{}
   , ready{ false }

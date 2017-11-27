@@ -41,6 +41,7 @@ getConfiguration	KEYWORD2
 getMqttClient	KEYWORD2
 getLogger	KEYWORD2
 prepareToSleep	KEYWORD2
+doDeepSleep	KEYWORD2
 
 # HomieNode
 
