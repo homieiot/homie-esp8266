@@ -18,7 +18,7 @@ HomieClass::HomieClass()
   Interface::get().reset.triggerState = DEFAULT_RESET_STATE;
   Interface::get().reset.triggerTime = DEFAULT_RESET_TIME;
   Interface::get().reset.resetFlag = false;
-  Interface::get().flaggedForSleep = false;
+  Interface::get().disable = false;
   Interface::get().flaggedForSleep = false;
   Interface::get().globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
   Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
@@ -358,7 +358,7 @@ void HomieClass::prepareToSleep() {
 }
 
 void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode){
-  Interface::get().getLogger() << F("💤 Device deep sleeping...") << endl;
+  Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
   Serial.flush();
   ESP.deepSleep(time_us, mode);
 }
