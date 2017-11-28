@@ -49,7 +49,7 @@ framework = arduino
 lib_deps = https://github.com/marvinroger/homie-esp8266.git
 
 ; or tagged version
-lib_deps = https://github.com/marvinroger/homie-esp8266.git#v2.0.0-beta.1
+lib_deps = https://github.com/marvinroger/homie-esp8266.git#v2.0.0-beta.2
 ```
 
 -----
