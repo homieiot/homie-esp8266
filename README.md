@@ -15,6 +15,46 @@ The old configurator is not available online anymore. You can download it [here]
 
 The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/marvinroger/homie-esp8266/releases).
 
+## Using with PlatformIO
+
+[PlatformIO](http://platformio.org) is an open source ecosystem for IoT development with cross platform build system, library manager and full support for Espressif ESP8266 development. It works on the popular host OS: Mac OS X, Windows, Linux 32/64, Linux ARM (like Raspberry Pi, BeagleBone, CubieBoard).
+
+1. Install [PlatformIO IDE](http://platformio.org/platformio-ide)
+2. Create new project using "PlatformIO Home > New Project"
+3. Open [Project Configuration File `platformio.ini`](http://docs.platformio.org/page/projectconf.html) 
+
+### Stable version
+
+4. Add "Homie" to project using `platformio.ini` and [lib_deps](http://docs.platformio.org/page/projectconf/section_env_library.html#lib-deps) option:
+```ini
+[env:myboard]
+platform = espressif8266
+board = ...
+framework = arduino
+lib_deps = Homie
+```
+
+### Development version
+
+4. Update dev/platform to staging version:
+   - [Instruction for Espressif 8266](http://docs.platformio.org/en/latest/platforms/espressif8266.html#using-arduino-framework-with-staging-version)
+5. Add development version of "Homie" to project using `platformio.ini` and [lib_deps](http://docs.platformio.org/page/projectconf/section_env_library.html#lib-deps) option:
+```ini
+[env:myboard]
+platform = ...
+board = ...
+framework = arduino
+
+; the latest development branch
+lib_deps = https://github.com/marvinroger/homie-esp8266.git
+
+; or tagged version
+lib_deps = https://github.com/marvinroger/homie-esp8266.git#v2.0.0-beta.1
+```
+
+-----
+Happy coding with PlatformIO!
+
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
