@@ -100,7 +100,7 @@ namespace HomieInternals {
     bool _publishOtaStatus(int status, const char* info = nullptr);
     void _endOtaUpdate(bool success, uint8_t update_error = UPDATE_ERROR_OK);
 
-    //Helpers
+    // _onMqttMessage Helpers
     void __splitTopic(char* topic);
     bool __fillPayloadBuffer(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
     bool __handleOTAUpdates(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);

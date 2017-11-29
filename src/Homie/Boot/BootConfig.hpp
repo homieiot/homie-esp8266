@@ -54,9 +54,10 @@ namespace HomieInternals {
     void _proxyHttpRequest(AsyncWebServerRequest *request);
     void _onWifiStatusRequest(AsyncWebServerRequest *request);
 
-    void _sendCORS(AsyncWebServerRequest *request);
+    // Helpers
+    static void __sendCORS(AsyncWebServerRequest *request);
     static const int MAX_POST_SIZE = 1500;
-    static void _parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
-    static void _SendJSONError(AsyncWebServerRequest *request, String msg, int16_t code = 400);
+    static void __parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+    static void __SendJSONError(AsyncWebServerRequest *request, String msg, int16_t code = 400);
   };
 }  // namespace HomieInternals

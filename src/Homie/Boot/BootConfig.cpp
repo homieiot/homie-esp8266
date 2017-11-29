@@ -58,20 +58,65 @@ void BootConfig::setup() {
   });
   _http.on("/device-info", HTTP_GET, [this](AsyncWebServerRequest *request) { _onDeviceInfoRequest(request); });
   _http.on("/networks", HTTP_GET, [this](AsyncWebServerRequest *request) { _onNetworksRequest(request); });
-  _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); }).onBody(BootConfig::_parsePost);
+  _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); }).onBody(BootConfig::__parsePost);
   _http.on("/config", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
     Interface::get().getLogger() << F("Received CORS request for /config") << endl;
-    _sendCORS(request);
+    __sendCORS(request);
   });
-  _http.on("/wifi/connect", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); }).onBody(BootConfig::_parsePost);
+  _http.on("/wifi/connect", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); }).onBody(BootConfig::__parsePost);
   _http.on("/wifi/connect", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
     Interface::get().getLogger() << F("Received CORS request for /wifi/connect") << endl;
-    _sendCORS(request);
+    __sendCORS(request);
   });
   _http.on("/wifi/status", HTTP_GET, [this](AsyncWebServerRequest *request) { _onWifiStatusRequest(request); });
-  _http.on("/proxy/control", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onProxyControlRequest(request); }).onBody(BootConfig::_parsePost);
+  _http.on("/proxy/control", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onProxyControlRequest(request); }).onBody(BootConfig::__parsePost);
   _http.onNotFound([this](AsyncWebServerRequest *request) { _onCaptivePortal(request); });
   _http.begin();
+}
+
+void BootConfig::loop() {
+  Boot::loop();
+
+  _dns.processNextRequest();
+
+  if (_flaggedForReboot) {
+    if (millis() - _flaggedForRebootAt >= 3000UL) {
+      Interface::get().getLogger() << F("↻ Rebooting into normal mode...") << endl;
+      Serial.flush();
+      ESP.restart();
+    }
+
+    return;
+  }
+
+  if (!_lastWifiScanEnded) {
+    int8_t scanResult = WiFi.scanComplete();
+
+    switch (scanResult) {
+    case WIFI_SCAN_RUNNING:
+      return;
+    case WIFI_SCAN_FAILED:
+      Interface::get().getLogger() << F("✖ Wi-Fi scan failed") << endl;
+      _ssidCount = 0;
+      _wifiScanTimer.reset();
+      break;
+    default:
+      Interface::get().getLogger() << F("✔ Wi-Fi scan completed") << endl;
+      _ssidCount = scanResult;
+      _generateNetworksJson();
+      _wifiScanAvailable = true;
+      break;
+    }
+
+    _lastWifiScanEnded = true;
+  }
+
+  if (_lastWifiScanEnded && _wifiScanTimer.check()) {
+    Interface::get().getLogger() << F("Triggering Wi-Fi scan...") << endl;
+    WiFi.scanNetworks(true);
+    _wifiScanTimer.tick();
+    _lastWifiScanEnded = false;
+  }
 }
 
 void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
@@ -80,12 +125,12 @@ void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
   if (!parsedJson.success()) {
-    _SendJSONError(request, F("✖ Invalid or too big JSON"));
+    __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
   if (!parsedJson.containsKey("ssid") || !parsedJson["ssid"].is<const char*>() || !parsedJson.containsKey("password") || !parsedJson["password"].is<const char*>()) {
-    _SendJSONError(request, F("✖ SSID and password required"));
+    __SendJSONError(request, F("✖ SSID and password required"));
     return;
   }
 
@@ -141,12 +186,12 @@ void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request) {
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);  // do not use plain String, else fails
   if (!parsedJson.success()) {
-    _SendJSONError(request, F("✖ Invalid or too big JSON"));
+    __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
   if (!parsedJson.containsKey("enable") || !parsedJson["enable"].is<bool>()) {
-    _SendJSONError(request, F("✖ enable parameter is required"));
+    __SendJSONError(request, F("✖ enable parameter is required"));
     return;
   }
 
@@ -337,14 +382,14 @@ void BootConfig::_onNetworksRequest(AsyncWebServerRequest *request) {
     request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), _jsonWifiNetworks);
   }
   else {
-    _SendJSONError(request, F("Initial Wi-Fi scan not finished yet"), 503);
+    __SendJSONError(request, F("Initial Wi-Fi scan not finished yet"), 503);
   }
 }
 
 void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received config request") << endl;
   if (_flaggedForReboot) {
-    _SendJSONError(request, F("✖ Device already configured"), 403);
+    __SendJSONError(request, F("✖ Device already configured"), 403);
     return;
   }
 
@@ -352,13 +397,13 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
   if (!parsedJson.success()) {
-    _SendJSONError(request, F("✖ Invalid or too big JSON"));
+    __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
   ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
-    _SendJSONError(request, String(F("✖ Config file is not valid, reason: ")) + configValidationResult.reason);
+    __SendJSONError(request, String(F("✖ Config file is not valid, reason: ")) + configValidationResult.reason);
     return;
   }
 
@@ -373,52 +418,7 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   _flaggedForRebootAt = millis();
 }
 
-void BootConfig::loop() {
-  Boot::loop();
-
-  _dns.processNextRequest();
-
-  if (_flaggedForReboot) {
-    if (millis() - _flaggedForRebootAt >= 3000UL) {
-      Interface::get().getLogger() << F("↻ Rebooting into normal mode...") << endl;
-      Serial.flush();
-      ESP.restart();
-    }
-
-    return;
-  }
-
-  if (!_lastWifiScanEnded) {
-    int8_t scanResult = WiFi.scanComplete();
-
-    switch (scanResult) {
-    case WIFI_SCAN_RUNNING:
-      return;
-    case WIFI_SCAN_FAILED:
-      Interface::get().getLogger() << F("✖ Wi-Fi scan failed") << endl;
-      _ssidCount = 0;
-      _wifiScanTimer.reset();
-      break;
-    default:
-      Interface::get().getLogger() << F("✔ Wi-Fi scan completed") << endl;
-      _ssidCount = scanResult;
-      _generateNetworksJson();
-      _wifiScanAvailable = true;
-      break;
-    }
-
-    _lastWifiScanEnded = true;
-  }
-
-  if (_lastWifiScanEnded && _wifiScanTimer.check()) {
-    Interface::get().getLogger() << F("Triggering Wi-Fi scan...") << endl;
-    WiFi.scanNetworks(true);
-    _wifiScanTimer.tick();
-    _lastWifiScanEnded = false;
-  }
-}
-
-void BootConfig::_sendCORS(AsyncWebServerRequest *request) {
+void BootConfig::__sendCORS(AsyncWebServerRequest *request) {
   AsyncWebServerResponse *response = request->beginResponse(204);
   response->addHeader(F("Access-Control-Allow-Origin"), F("*"));
   response->addHeader(F("Access-Control-Allow-Methods"), F("PUT"));
@@ -426,7 +426,7 @@ void BootConfig::_sendCORS(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
-void BootConfig::_parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
   if (!index && total > MAX_POST_SIZE) {
     Interface::get().getLogger() << "Request is to large to be proccessed." << endl;
   }
@@ -446,7 +446,7 @@ static const String ConfigJSONError(const String error) {
   return BEGINNING + error + END;
 }
 
-void HomieInternals::BootConfig::_SendJSONError(AsyncWebServerRequest * request, String msg, int16_t code)
+void HomieInternals::BootConfig::__SendJSONError(AsyncWebServerRequest * request, String msg, int16_t code)
 {
   Interface::get().getLogger() << msg << endl;
   const String BEGINNING = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
