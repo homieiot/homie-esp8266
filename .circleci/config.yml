@@ -13,6 +13,9 @@ jobs:
           name: install current code as a PlatformIO library with all dependencies
           command: platformio lib -g install file://.
       - run:
+          name: install staging version of Arduino Core for ESP8266
+          command: platformio platform install https://github.com/platformio/platform-espressif8266.git#feature/stage          
+      - run:
           name: install exemples dependencies
           command: platformio lib -g install Shutters@^2.1.1 SonoffDual@1.1.0
       - run: platformio ci ./examples/CustomSettings --board=esp01 --board=nodemcuv2
