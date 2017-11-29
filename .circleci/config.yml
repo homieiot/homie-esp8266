@@ -17,7 +17,7 @@ jobs:
           command: platformio platform install https://github.com/platformio/platform-espressif8266.git#feature/stage          
       - run:
           name: install exemples dependencies
-          command: platformio lib -g install Shutters@^2.1.1 SonoffDual@1.1.0
+          command: platformio lib -g install Shutters@2.1.1 SonoffDual@1.1.0
       - run: platformio ci ./examples/CustomSettings --board=esp01 --board=nodemcuv2
       - run: platformio ci ./examples/DoorSensor --board=esp01 --board=nodemcuv2
       - run: platformio ci ./examples/HookToEvents --board=esp01 --board=nodemcuv2
