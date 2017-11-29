@@ -32,6 +32,7 @@ void BootStandalone::loop() {
     Interface::get().eventHandler(Interface::get().event);
 
     Interface::get().getLogger() << F("↻ Rebooting into config mode...") << endl;
+    Interface::get().flaggedForSleep = true;
     Serial.flush();
     ESP.restart();
   }
