@@ -32,9 +32,9 @@
       "name": "Bounce2",
       "version": "^2.1.0"
     },
-	{
-	  "name": "ESPAsyncWebServer"
-	}
+    {
+      "name": "ESP Async WebServer"
+    }
   ],
   "export": {
     "include": [
@@ -43,6 +43,5 @@
       "src/*",
       "examples/*"
     ]
-  },
-  "examples": "examples/*.ino"
+  }
 }
