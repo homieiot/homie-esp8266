@@ -574,7 +574,7 @@ void BootNormal::__splitTopic(char* topic) {
   }
 }
 
-bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
+bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   // Reallocate Buffer everytime a new message is received
   if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
 
@@ -589,7 +589,7 @@ bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payloa
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
+bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 5
     && strcmp(_mqttTopicLevels.get()[0], Interface::get().getConfig().get().deviceId) == 0
@@ -765,7 +765,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
+bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload, const AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 2
     && strcmp_P(_mqttTopicLevels.get()[0], PSTR("$broadcast")) == 0
@@ -783,7 +783,7 @@ bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
+bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 3
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
@@ -799,7 +799,7 @@ bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, As
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
+bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 4
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
@@ -819,8 +819,7 @@ bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, As
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
-
+bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   // initialize HomieRange
   HomieRange range;
   range.isRange = false;

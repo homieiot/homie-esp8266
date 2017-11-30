@@ -40,8 +40,7 @@ void BootConfig::setup() {
   WiFi.softAPConfig(ACCESS_POINT_IP, ACCESS_POINT_IP, IPAddress(255, 255, 255, 0));
   if (Interface::get().configurationAp.secured) {
     WiFi.softAP(apName, Interface::get().configurationAp.password);
-  }
-  else {
+  } else {
     WiFi.softAP(apName);
   }
 
@@ -248,27 +247,23 @@ void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
       redirectUrl.concat(_apIpStr);
       Interface::get().getLogger() << F("Redirect: ") << redirectUrl << endl;
       request->redirect(redirectUrl);
-    }
-    else {
+    } else {
       // perform transparent proxy to Internet if connected
       Interface::get().getLogger() << F("Proxy") << endl;
       _proxyHttpRequest(request);
     }
-  }
-  else if (request->url() == "/" && !SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
+  } else if (request->url() == "/" && !SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
     // UI File not found
     String msg = String(F("UI bundle not loaded. See Configuration API usage: http://marvinroger.github.io/homie-esp8266/"));
     Interface::get().getLogger() << msg << endl;
     request->send(404, F("text/plain"), msg);
-  }
-  else if (request->url() == "/" && SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
+  } else if (request->url() == "/" && SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
     // Respond with UI
     Interface::get().getLogger() << F("UI bundle found") << endl;
     AsyncWebServerResponse *response = request->beginResponse(SPIFFS, CONFIG_UI_BUNDLE_PATH, F("text/html"));
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
-  }
-  else {
+  } else {
     // Faild to find request
     String msg = String(F("Request NOT found for url: ")) + request->url();
     Interface::get().getLogger() << msg << endl;
@@ -351,16 +346,13 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
         if (iSetting->isBool()) {
           HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
           jsonSetting["default"] = setting->get();
-        }
-        else if (iSetting->isLong()) {
+        } else if (iSetting->isLong()) {
           HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
           jsonSetting["default"] = setting->get();
-        }
-        else if (iSetting->isDouble()) {
+        } else if (iSetting->isDouble()) {
           HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
           jsonSetting["default"] = setting->get();
-        }
-        else if (iSetting->isConstChar()) {
+        } else if (iSetting->isConstChar()) {
           HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
           jsonSetting["default"] = setting->get();
         }
@@ -380,8 +372,7 @@ void BootConfig::_onNetworksRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received networks request") << endl;
   if (_wifiScanAvailable) {
     request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), _jsonWifiNetworks);
-  }
-  else {
+  } else {
     __SendJSONError(request, F("Initial Wi-Fi scan not finished yet"), 503);
   }
 }
@@ -428,14 +419,12 @@ void BootConfig::__sendCORS(AsyncWebServerRequest *request) {
 
 void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
   if (!index && total > MAX_POST_SIZE) {
-    Interface::get().getLogger() << "Request is to large to be proccessed." << endl;
-  }
-  else if (!index && total <= MAX_POST_SIZE) {
+    Interface::get().getLogger() << "Request is to large to be processed." << endl;
+  } else if (!index && total <= MAX_POST_SIZE) {
     char* buff = new char[total + 1];
     strcpy(buff, (const char*)data);
     request->_tempObject = buff;
-  }
-  else if (total <= MAX_POST_SIZE) {
+  } else if (total <= MAX_POST_SIZE) {
     char* buff = (char*)(request->_tempObject);
     strcat(buff, (const char*)data);
   }
@@ -446,8 +435,7 @@ static const String ConfigJSONError(const String error) {
   return BEGINNING + error + END;
 }
 
-void HomieInternals::BootConfig::__SendJSONError(AsyncWebServerRequest * request, String msg, int16_t code)
-{
+void HomieInternals::BootConfig::__SendJSONError(AsyncWebServerRequest * request, String msg, int16_t code) {
   Interface::get().getLogger() << msg << endl;
   const String BEGINNING = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
   const String END = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_END));

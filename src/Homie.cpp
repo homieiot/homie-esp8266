@@ -337,8 +337,7 @@ void HomieClass::prepareToSleep() {
   if (Interface::get().ready) {
     Interface::get().disable = true;
     Interface::get().flaggedForSleep = true;
-  }
-  else {
+  } else {
     Interface::get().disable = true;
     Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
     Interface::get().event.type = HomieEventType::READY_TO_SLEEP;

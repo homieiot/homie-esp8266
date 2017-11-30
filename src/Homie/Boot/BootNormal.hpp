@@ -102,11 +102,11 @@ class BootNormal : public Boot {
 
   // _onMqttMessage Helpers
   void __splitTopic(char* topic);
-  bool __fillPayloadBuffer(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
-  bool __handleOTAUpdates(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
-  bool __handleBroadcasts(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
-  bool __handleResets(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
-  bool __handleConfig(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
-  bool __handleNodeProperty(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+  bool __fillPayloadBuffer(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+  bool __handleOTAUpdates(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+  bool __handleBroadcasts(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+  bool __handleResets(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+  bool __handleConfig(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+  bool __handleNodeProperty(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
 };
 }  // namespace HomieInternals
