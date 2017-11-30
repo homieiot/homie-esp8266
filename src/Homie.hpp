@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Arduino.h"
-#include "ESP.h"
 
 #include "AsyncMqttClient.h"
 #include "Homie/Datatypes/Interface.hpp"
