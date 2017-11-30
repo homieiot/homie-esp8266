@@ -3,7 +3,6 @@
 #include "Arduino.h"
 
 #include <ArduinoJson.h>
-#include <IPAddress.h>
 #include "Helpers.hpp"
 #include "../Limits.hpp"
 #include "../../HomieSetting.hpp"

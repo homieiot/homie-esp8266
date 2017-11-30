@@ -25,7 +25,7 @@ namespace HomieInternals {
     virtual bool isDouble() const { return false; }
     virtual bool isConstChar() const { return false; }
 
-    virtual const char* type() const { return "unknown"; }
+    virtual const char* getType() const { return "unknown"; }
 
   protected:
     explicit IHomieSetting(const char* name, const char* description);
@@ -63,5 +63,5 @@ private:
   bool isDouble() const;
   bool isConstChar() const;
 
-  const char* type() const;
+  const char* getType() const;
 };

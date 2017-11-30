@@ -18,10 +18,10 @@
 #include "../Timer.hpp"
 #include "../ExponentialBackoffTimer.hpp"
 #include "Boot.hpp"
-#include "../Utils/ResetButton.hpp"
+#include "../Utils/ResetHandler.hpp"
 
 namespace HomieInternals {
-  class BootNormal : public Boot, public ResetButton {
+  class BootNormal : public Boot {
   public:
     BootNormal();
     ~BootNormal();
@@ -98,7 +98,15 @@ namespace HomieInternals {
     void _prefixMqttTopic();
     char* _prefixMqttTopic(PGM_P topic);
     bool _publishOtaStatus(int status, const char* info = nullptr);
-    bool _publishOtaStatus_P(int status, PGM_P info);
     void _endOtaUpdate(bool success, uint8_t update_error = UPDATE_ERROR_OK);
+
+    // _onMqttMessage Helpers
+    void __splitTopic(char* topic);
+    bool __fillPayloadBuffer(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+    bool __handleOTAUpdates(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+    bool __handleBroadcasts(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+    bool __handleResets(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+    bool __handleConfig(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+    bool __handleNodeProperty(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
   };
 }  // namespace HomieInternals

@@ -176,6 +176,12 @@ void prepareToSleep();
 Prepare the device for deep sleep. It ensures messages are sent and disconnects cleanly from the MQTT broker, triggering a `READY_TO_SLEEP` event when done.
 
 ```c++
+void doDeepSleep(uint32_t time_us = 0, RFMode mode = RF_DEFAULT);
+```
+
+Puth the device into deep sleep. It ensures the Serial is flushed.
+
+```c++
 bool isConfigured() const;
 ```
 

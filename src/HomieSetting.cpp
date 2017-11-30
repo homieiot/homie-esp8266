@@ -82,22 +82,22 @@ bool HomieSetting<T>::isConstChar() const { return false; }
 template<>
 bool HomieSetting<bool>::isBool() const { return true; }
 template<>
-const char* HomieSetting<bool>::type() const { return "bool"; }
+const char* HomieSetting<bool>::getType() const { return "bool"; }
 
 template<>
 bool HomieSetting<long>::isLong() const { return true; }
 template<>
-const char* HomieSetting<long>::type() const { return "long"; }
+const char* HomieSetting<long>::getType() const { return "long"; }
 
 template<>
 bool HomieSetting<double>::isDouble() const { return true; }
 template<>
-const char* HomieSetting<double>::type() const { return "double"; }
+const char* HomieSetting<double>::getType() const { return "double"; }
 
 template<>
 bool HomieSetting<const char*>::isConstChar() const { return true; }
 template<>
-const char* HomieSetting<const char*>::type() const { return "string"; }
+const char* HomieSetting<const char*>::getType() const { return "string"; }
 
 // Needed because otherwise undefined reference to
 template class HomieSetting<bool>;

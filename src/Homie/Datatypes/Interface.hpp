@@ -13,77 +13,79 @@
 #include "../../HomieEvent.hpp"
 
 namespace HomieInternals {
-class Logger;
-class Blinker;
-class Config;
-class SendingPromise;
-class HomieClass;
-class InterfaceData {
-  friend HomieClass;
+  class Logger;
+  class Blinker;
+  class Config;
+  class SendingPromise;
+  class HomieClass;
 
- public:
-  InterfaceData();
+  class InterfaceData {
+    friend HomieClass;
 
-  /***** User configurable data *****/
-  char brand[MAX_BRAND_LENGTH];
+  public:
+    InterfaceData();
 
-  HomieBootMode bootMode;
+    /***** User configurable data *****/
+    char brand[MAX_BRAND_LENGTH];
 
-  struct ConfigurationAP {
-    bool secured;
-    char password[MAX_WIFI_PASSWORD_LENGTH];
-  } configurationAp;
+    HomieBootMode bootMode;
 
-  struct Firmware {
-    char name[MAX_FIRMWARE_NAME_LENGTH];
-    char version[MAX_FIRMWARE_VERSION_LENGTH];
-  } firmware;
+    struct ConfigurationAP {
+      bool secured;
+      char password[MAX_WIFI_PASSWORD_LENGTH];
+    } configurationAp;
 
-  struct LED {
-    bool enabled;
-    uint8_t pin;
-    uint8_t on;
-  } led;
+    struct Firmware {
+      char name[MAX_FIRMWARE_NAME_LENGTH];
+      char version[MAX_FIRMWARE_VERSION_LENGTH];
+    } firmware;
 
-  struct Reset {
-    bool enabled;
-    bool idle;
-    uint8_t triggerPin;
-    uint8_t triggerState;
-    uint16_t triggerTime;
-    bool flaggedBySketch;
-  } reset;
+    struct LED {
+      bool enabled;
+      uint8_t pin;
+      uint8_t on;
+    } led;
 
-  bool flaggedForSleep;
+    struct Reset {
+      bool enabled;
+      bool idle;
+      uint8_t triggerPin;
+      uint8_t triggerState;
+      uint16_t triggerTime;
+      bool resetFlag;
+    } reset;
 
-  GlobalInputHandler globalInputHandler;
-  BroadcastHandler broadcastHandler;
-  OperationFunction setupFunction;
-  OperationFunction loopFunction;
-  EventHandler eventHandler;
+    bool disable;
+    bool flaggedForSleep;
 
-  /***** Runtime data *****/
-  HomieEvent event;
-  bool ready;
-  Logger& getLogger() { return *_logger; }
-  Blinker& getBlinker() { return *_blinker; }
-  Config& getConfig() { return *_config; }
-  AsyncMqttClient& getMqttClient() { return *_mqttClient; }
-  SendingPromise& getSendingPromise() { return *_sendingPromise; }
+    GlobalInputHandler globalInputHandler;
+    BroadcastHandler broadcastHandler;
+    OperationFunction setupFunction;
+    OperationFunction loopFunction;
+    EventHandler eventHandler;
 
- private:
-  Logger* _logger;
-  Blinker* _blinker;
-  Config* _config;
-  AsyncMqttClient* _mqttClient;
-  SendingPromise* _sendingPromise;
-};
+    /***** Runtime data *****/
+    HomieEvent event;
+    bool ready;
+    Logger& getLogger() { return *_logger; }
+    Blinker& getBlinker() { return *_blinker; }
+    Config& getConfig() { return *_config; }
+    AsyncMqttClient& getMqttClient() { return *_mqttClient; }
+    SendingPromise& getSendingPromise() { return *_sendingPromise; }
 
-class Interface {
- public:
-  static InterfaceData& get();
+  private:
+    Logger* _logger;
+    Blinker* _blinker;
+    Config* _config;
+    AsyncMqttClient* _mqttClient;
+    SendingPromise* _sendingPromise;
+  };
 
- private:
-  static InterfaceData _interface;
-};
+  class Interface {
+  public:
+    static InterfaceData& get();
+
+  private:
+    static InterfaceData _interface;
+  };
 }  // namespace HomieInternals

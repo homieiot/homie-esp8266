@@ -2,3 +2,5 @@
 /site/
 
 /config.json
+*.filters
+*.vcxitems

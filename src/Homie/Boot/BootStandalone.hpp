@@ -4,10 +4,10 @@
 
 #include "Boot.hpp"
 #include "../../StreamingOperator.hpp"
-#include "../Utils/ResetButton.hpp"
+#include "../Utils/ResetHandler.hpp"
 
 namespace HomieInternals {
-  class BootStandalone : public Boot, public ResetButton {
+  class BootStandalone : public Boot {
   public:
     BootStandalone();
     ~BootStandalone();
