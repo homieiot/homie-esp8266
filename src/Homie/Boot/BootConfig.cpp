@@ -425,7 +425,7 @@ void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size
     strcpy(buff, (const char*)data);
     request->_tempObject = buff;
   } else if (total <= MAX_POST_SIZE) {
-    char* buff = (char*)(request->_tempObject);
+    char* buff = reinterpret_cast<char*>(request->_tempObject);
     strcat(buff, (const char*)data);
   }
 }
