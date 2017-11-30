@@ -8,18 +8,18 @@
 #include "../Datatypes/Interface.hpp"
 
 namespace HomieInternals {
-  class ResetHandler {
-  public:
-    static void Attach();
+class ResetHandler {
+ public:
+  static void Attach();
 
-  private:
-    // Disallow creating an instance of this object
-    ResetHandler() {}
-    static Ticker _resetBTNTicker;
-    static Bounce _resetBTNDebouncer;
-    static void _tick();
-    static Ticker _resetTicker;
-    static bool _sentReset;
-    static void _handleReset();
-  };
+ private:
+  // Disallow creating an instance of this object
+  ResetHandler() {}
+  static Ticker _resetBTNTicker;
+  static Bounce _resetBTNDebouncer;
+  static void _tick();
+  static Ticker _resetTicker;
+  static bool _sentReset;
+  static void _handleReset();
+};
 }  // namespace HomieInternals

@@ -72,22 +72,19 @@ void HomieClass::setup() {
         defaultSettingsValuesValid = false;
         break;
       }
-    }
-    else if (iSetting->isLong()) {
+    } else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
       if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
         break;
       }
-    }
-    else if (iSetting->isDouble()) {
+    } else if (iSetting->isDouble()) {
       HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
       if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
         break;
       }
-    }
-    else if (iSetting->isConstChar()) {
+    } else if (iSetting->isConstChar()) {
       HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
       if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
@@ -115,11 +112,9 @@ void HomieClass::setup() {
   // select boot mode source
   if (_applicationHomieBootMode != HomieBootMode::UNDEFINED) {
     _selectedHomieBootMode = _applicationHomieBootMode;
-  }
-  else if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
+  } else if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
     _selectedHomieBootMode = _nextHomieBootMode;
-  }
-  else {
+  } else {
     _selectedHomieBootMode = HomieBootMode::NORMAL;
   }
 
@@ -134,21 +129,15 @@ void HomieClass::setup() {
     _boot = &_bootNormal;
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
-
-  }
-  else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION) {
+  } else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
-
-  }
-  else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
+  } else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
     _boot = &_bootStandalone;
     Interface::get().event.type = HomieEventType::STANDALONE_MODE;
     Interface::get().eventHandler(Interface::get().event);
-
-  }
-  else {
+  } else {
     Helpers::abort(F("✖ Boot mode invalid"));
     return;  // never reached, here for clarity
   }
@@ -357,7 +346,7 @@ void HomieClass::prepareToSleep() {
   }
 }
 
-void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode){
+void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode) {
   Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
   Serial.flush();
   ESP.deepSleep(time_us, mode);

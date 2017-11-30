@@ -7,11 +7,11 @@
 #include "../Utils/ResetHandler.hpp"
 
 namespace HomieInternals {
-  class BootStandalone : public Boot {
-  public:
-    BootStandalone();
-    ~BootStandalone();
-    void setup();
-    void loop();
-  };
+class BootStandalone : public Boot {
+ public:
+  BootStandalone();
+  ~BootStandalone();
+  void setup();
+  void loop();
+};
 }  // namespace HomieInternals

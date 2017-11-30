@@ -13,11 +13,9 @@ uint8_t Helpers::rssiToPercentage(int32_t rssi) {
   uint8_t quality;
   if (rssi <= -100) {
     quality = 0;
-  }
-  else if (rssi >= -50) {
+  } else if (rssi >= -50) {
     quality = 100;
-  }
-  else {
+  } else {
     quality = 2 * (rssi + 100);
   }
 
@@ -36,8 +34,7 @@ void Helpers::stringToBytes(const char* str, char sep, byte* bytes, int maxBytes
   }
 }
 
-bool Helpers::validateIP(const char* ip)
-{
+bool Helpers::validateIP(const char* ip) {
   IPAddress test;
   return test.fromString(ip);
 }
@@ -49,13 +46,11 @@ bool Helpers::validateMacAddress(const char* mac) {
   while (*mac) {
     if (isxdigit(*mac)) {
       i++;
-    }
-    else if (*mac == ':' || *mac == '-') {
+    } else if (*mac == ':' || *mac == '-') {
       if (i == 0 || i / 2 - 1 != s)
         break;
       ++s;
-    }
-    else {
+    } else {
       s = -1;
     }
     ++mac;
@@ -84,7 +79,6 @@ std::unique_ptr<char[]> Helpers::cloneString(const String& string) {
   return copy;
 }
 
-void Helpers::ipToString(const IPAddress& ip, char * str)
-{
+void Helpers::ipToString(const IPAddress& ip, char * str) {
   snprintf(str, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 }

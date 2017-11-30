@@ -7,8 +7,7 @@ Bounce ResetHandler::_resetBTNDebouncer;
 Ticker ResetHandler::_resetTicker;
 bool ResetHandler::_sentReset = false;
 
-void ResetHandler::Attach()
-{
+void ResetHandler::Attach() {
   if (Interface::get().reset.enabled) {
     pinMode(Interface::get().reset.triggerPin, INPUT_PULLUP);
     _resetBTNDebouncer.attach(Interface::get().reset.triggerPin);
@@ -19,8 +18,7 @@ void ResetHandler::Attach()
   }
 }
 
-void ResetHandler::_tick()
-{
+void ResetHandler::_tick() {
   if (!Interface::get().reset.resetFlag && Interface::get().reset.enabled) {
     _resetBTNDebouncer.update();
     if (_resetBTNDebouncer.read() == Interface::get().reset.triggerState) {

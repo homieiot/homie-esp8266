@@ -197,8 +197,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
 
     _publishOtaStatus(200);  // 200 OK
     _flaggedForReboot = true;
-  }
-  else {
+  } else {
     int code;
     String info;
     switch (update_error) {
@@ -262,12 +261,10 @@ void BootNormal::_wifiConnect() {
           IPAddress convertedDns2;
           convertedDns2.fromString(Interface::get().getConfig().get().wifi.dns2);
           WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1, convertedDns2);
-        }
-        else {
+        } else {
           WiFi.config(convertedIp, convertedGateway, convertedMask, convertedDns1);
         }
-      }
-      else {
+      } else {
         WiFi.config(convertedIp, convertedGateway, convertedMask);
       }
     }
@@ -276,8 +273,7 @@ void BootNormal::_wifiConnect() {
       byte bssidBytes[6];
       Helpers::stringToBytes(Interface::get().getConfig().get().wifi.bssid, ':', bssidBytes, 6, 16);
       WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password, Interface::get().getConfig().get().wifi.channel, bssidBytes);
-    }
-    else {
+    } else {
       WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password);
     }
 
@@ -384,8 +380,7 @@ void BootNormal::_advertise() {
         _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES;
         _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
         _advertisementProgress.currentNodeIndex = 0;
-      }
-      else {
+      } else {
         _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
       }
     }
@@ -424,8 +419,7 @@ void BootNormal::_advertise() {
         if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
           _advertisementProgress.currentNodeIndex++;
           _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
-        }
-        else {
+        } else {
           _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
         }
       }
@@ -500,8 +494,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 
     _mqttConnect();
 
-  }
-  else {
+  } else {
     _mqttReconnectTimer.activate();
   }
 }
@@ -543,7 +536,6 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   // 7. here, we're sure we have a node property
   if (__handleNodeProperty(topic, payload, properties, len, index, total))
     return;
-
 }
 
 void BootNormal::_onMqttPublish(uint16_t id) {
@@ -559,8 +551,7 @@ void BootNormal::_onMqttPublish(uint16_t id) {
 
 // _onMqttMessage Helpers
 
-void BootNormal::__splitTopic(char* topic)
-{
+void BootNormal::__splitTopic(char* topic) {
   // split topic on each "/"
   char* afterBaseTopic = topic + strlen(Interface::get().getConfig().get().mqtt.baseTopic);
 
@@ -583,8 +574,7 @@ void BootNormal::__splitTopic(char* topic)
   }
 }
 
-bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total)
-{
+bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
   // Reallocate Buffer everytime a new message is received
   if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
 
@@ -599,8 +589,7 @@ bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payloa
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total)
-{
+bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 5
     && strcmp(_mqttTopicLevels.get()[0], Interface::get().getConfig().get().deviceId) == 0
@@ -621,13 +610,11 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
         _endOtaUpdate(false, UPDATE_ERROR_MD5);
         Interface::get().getLogger() << F("✖ Aborting, invalid MD5") << endl;
         return true;
-      }
-      else if (strcmp(firmwareMd5, _fwChecksum) == 0) {
+      } else if (strcmp(firmwareMd5, _fwChecksum) == 0) {
         _publishOtaStatus(304);  // 304 Not Modified
         Interface::get().getLogger() << F("✖ Aborting, firmware is the same") << endl;
         return true;
-      }
-      else {
+      } else {
         Update.setMD5(firmwareMd5);
         _publishOtaStatus(202);
         _otaOngoing = true;
@@ -637,8 +624,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
         Interface::get().event.type = HomieEventType::OTA_STARTED;
         Interface::get().eventHandler(Interface::get().event);
       }
-    }
-    else if (!_otaOngoing) {
+    } else if (!_otaOngoing) {
       return true; // we've not validated the checksum
     }
 
@@ -649,8 +635,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
       if (*payload == 0xE9) {
         _otaIsBase64 = false;
         Interface::get().getLogger() << F("Firmware is binary") << endl;
-      }
-      else {
+      } else {
         // Base64-decode first two bytes. Compare decoded value against magic byte.
         char plain[2];  // need 12 bits
         base64_init_decodestate(&_otaBase64State);
@@ -667,8 +652,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
 
           // Restart base64-decoder
           base64_init_decodestate(&_otaBase64State);
-        }
-        else {
+        } else {
           // Bad firmware format
           _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
           return true;
@@ -696,8 +680,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
         bool b64 = ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '+') || (c == '/');
         if (b64) {
           bin_len++;
-        }
-        else if (c == '=') {
+        } else if (c == '=') {
           // Ignore "=" padding (but only at the end and only up to 2)
           if (index + i < total - 2) {
             _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
@@ -705,8 +688,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
           }
           // Note the number of pad characters at the end
           _otaBase64Pads++;
-        }
-        else {
+        } else {
           // Non-base64 character in firmware
           _endOtaUpdate(false, UPDATE_ERROR_MAGIC_BYTE);
           return true;
@@ -727,12 +709,10 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
         if (bin_len > 1) {
           write_len += (size_t)base64_decode_block((const char*)payload + dec_len, bin_len - dec_len, payload + write_len, &_otaBase64State);
         }
-      }
-      else {
+      } else {
         write_len = 0;
       }
-    }
-    else {
+    } else {
       // Binary firmware
       write_len = len;
     }
@@ -775,8 +755,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
           success = Update.end(_otaIsBase64);
           _endOtaUpdate(success, Update.getError());
         }
-      }
-      else {
+      } else {
         // Error erasing or writing flash
         _endOtaUpdate(false, Update.getError());
       }
@@ -786,8 +765,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total)
-{
+bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 2
     && strcmp_P(_mqttTopicLevels.get()[0], PSTR("$broadcast")) == 0
@@ -805,8 +783,7 @@ bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total)
-{
+bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 3
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
@@ -822,8 +799,7 @@ bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, As
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total)
-{
+bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 4
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
@@ -835,8 +811,7 @@ bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, As
       Interface::get().getLogger() << F("✔ Configuration updated") << endl;
       _flaggedForReboot = true;
       Interface::get().getLogger() << F("Flagged for reboot") << endl;
-    }
-    else {
+    } else {
       Interface::get().getLogger() << F("✖ Configuration not updated") << endl;
     }
     return true;
@@ -844,8 +819,7 @@ bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, As
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total)
-{
+bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * payload, AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
 
   // initialize HomieRange
   HomieRange range;
@@ -892,14 +866,12 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
         if (range.index >= iProperty->getLower() && range.index <= iProperty->getUpper()) {
           propertyObject = iProperty;
           break;
-        }
-        else {
+        } else {
           Interface::get().getLogger() << F("Range index ") << range.index << F(" is not within the bounds of ") << property << endl;
           return true;
         }
       }
-    }
-    else if (strcmp(property, iProperty->getProperty()) == 0) {
+    } else if (strcmp(property, iProperty->getProperty()) == 0) {
       propertyObject = iProperty;
       break;
     }
@@ -934,8 +906,7 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
     Interface::get().getLogger() << F("  • Is range? ");
     if (range.isRange) {
       Interface::get().getLogger() << F("yes (") << range.index << F(")") << endl;
-    }
-    else {
+    } else {
       Interface::get().getLogger() << F("no") << endl;
     }
     Interface::get().getLogger() << F("  • Value: ") << _mqttPayloadBuffer.get() << endl;
