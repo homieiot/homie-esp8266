@@ -52,6 +52,12 @@ jobs:
       - run:
           name: generate and publish docs
           command: |
+            if [ -z ${PRIVATE_KEY_ENCRYPT_KEY+x} ]
+            then
+              echo "Fork detected. Ignoring..."
+              exit 0
+            fi
+
             openssl aes-256-cbc -d -in ./.circleci/assets/id_rsa.enc -k "${PRIVATE_KEY_ENCRYPT_KEY}" >> /tmp/deploy_rsa
             eval "$(ssh-agent -s)"
             chmod 600 /tmp/deploy_rsa
