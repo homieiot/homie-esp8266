@@ -557,7 +557,7 @@ void BootNormal::_onMqttPublish(uint16_t id) {
   }
 }
 
-//Hellpers
+// _onMqttMessage Helpers
 
 void BootNormal::__splitTopic(char* topic)
 {
