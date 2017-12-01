@@ -14,7 +14,7 @@ jobs:
           command: platformio lib -g install file://.
       - run:
           name: install staging version of Arduino Core for ESP8266
-          command: platformio platform install https://github.com/platformio/platform-espressif8266.git#feature/stage          
+          command: platformio platform install https://github.com/platformio/platform-espressif8266.git#feature/stage
       - run:
           name: install exemples dependencies
           command: platformio lib -g install Shutters@2.1.1 SonoffDual@1.1.0
@@ -48,7 +48,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: sudo pip install mkdocs==0.16.3 mkdocs-material==1.7.1 pygments==2.2.0 pymdown-extensions==3.4
+          command: sudo pip install mkdocs==0.17.2 mkdocs-material==2.2.0 pygments==2.2.0 pymdown-extensions==4.5.1
       - run:
           name: generate and publish docs
           command: |
