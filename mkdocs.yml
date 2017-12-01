@@ -1,6 +1,10 @@
 site_name: Homie for ESP8266
+site_description: The Homie for ESP8266 documentation.
+site_author: Marvin ROGER
+
 repo_name: 'marvinroger/homie-esp8266'
 repo_url: 'https://github.com/marvinroger/homie-esp8266'
+
 edit_uri: edit/develop/docs
 
 pages:
@@ -36,14 +40,16 @@ pages:
     - Upgrade guide from v1 to v2: others/upgrade-guide-from-v1-to-v2.md
     - Community projects: others/community-projects.md
 
-theme: material
-extra:
-  logo: assets/logo.png
+theme:
+  name: material
   palette:
     primary: red
     accent: red
+  logo: assets/logo.png
   feature:
     tabs: true
+
+extra:
   social:
     - type: cog
       link: http://setup.homie-esp8266.marvinroger.fr
