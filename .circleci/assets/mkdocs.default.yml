@@ -2,8 +2,8 @@ site_name: Homie for ESP8266
 repo_name: 'marvinroger/homie-esp8266'
 repo_url: 'https://github.com/marvinroger/homie-esp8266'
 
-theme: material
-extra:
+theme:
+  name: material
   palette:
     primary: red
     accent: red
