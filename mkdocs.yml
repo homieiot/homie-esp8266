@@ -52,7 +52,7 @@ theme:
 extra:
   social:
     - type: cog
-      link: http://setup.homie-esp8266.marvinroger.fr
+      link: http://marvinroger.github.io/homie-esp8266/configurators/v2/
 
 markdown_extensions:
   - meta
