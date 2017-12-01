@@ -30,249 +30,235 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
 
 **API base address:** `http://192.168.123.1`
 
-!!! summary "GET `/heart`"
+??? summary "GET `/heart`"
+    This is useful to ensure we are connected to the device AP.
 
-This is useful to ensure we are connected to the device AP.
+    ## Response
 
-## Response
-
-204 No Content
+    `204 No Content`
 
 --------------
 
-!!! summary "GET `/device-info`"
+??? summary "GET `/device-info`"
+    Get some information on the device.
 
+    ## Response
 
-Get some information on the device.
+    `200 OK (application/json)`
 
-## Response
-
-200 OK (application/json)
-
-```json
-{
-  "hardware_device_id": "52a8fa5d",
-  "homie_esp8266_version": "2.0.0",
-  "firmware": {
-    "name": "awesome-device",
-    "version": "1.0.0"
-  },
-  "nodes": [
+    ```json
     {
-      "id": "light",
-      "type": "light"
+      "hardware_device_id": "52a8fa5d",
+      "homie_esp8266_version": "2.0.0",
+      "firmware": {
+        "name": "awesome-device",
+        "version": "1.0.0"
+      },
+      "nodes": [
+        {
+          "id": "light",
+          "type": "light"
+        }
+      ],
+      "settings": [
+        {
+          "name": "timeout",
+          "description": "Timeout in seconds",
+          "type": "ulong",
+          "required": false,
+          "default": 10
+        }
+      ]
     }
-  ],
-  "settings": [
+    ```
+
+    `type` can be one of the following:
+
+    * `bool`: a boolean
+    * `ulong`: an unsigned long
+    * `long`: a long
+    * `double`: a double
+    * `string`: a string
+
+    !!! note "Note about settings"
+        If a setting is not required, the `default` field will always be set.
+
+--------------
+
+??? summary "GET `/networks`"
+    Retrieve the Wi-Fi networks the device can see.
+
+    ## Response
+
+    !!! success "In case of success"
+        `200 OK (application/json)`
+
+        ```json
+        {
+          "networks": [
+            { "ssid": "Network_2", "rssi": -82, "encryption": "wep" },
+            { "ssid": "Network_1", "rssi": -57, "encryption": "wpa" },
+            { "ssid": "Network_3", "rssi": -65, "encryption": "wpa2" },
+            { "ssid": "Network_5", "rssi": -94, "encryption": "none" },
+            { "ssid": "Network_4", "rssi": -89, "encryption": "auto" }
+          ]
+        }
+        ```
+
+    !!! failure "In case the initial Wi-Fi scan is not finished on the device"
+        `503 Service Unavailable (application/json)`
+
+        ```json
+        {
+          "error": "Initial Wi-Fi scan not finished yet"
+        }
+        ```
+
+--------------
+
+??? summary "PUT `/config`"
+    Save the config to the device.
+
+    ## Request body
+
+    `(application/json)`
+
+    See [JSON configuration file](json-configuration-file.md).
+
+    ## Response
+
+    !!! success "In case of success"
+        `200 OK (application/json)`
+
+        ```json
+        {
+          "success": true
+        }
+        ```
+
+    !!! failure "In case of error in the payload"
+        `400 Bad Request (application/json)`
+
+        ```json
+        {
+          "success": false,
+          "error": "Reason why the payload is invalid"
+        }
+        ```
+
+    !!! failure "In case the device already received a valid configuration and is waiting for reboot"
+        `403 Forbidden (application/json)`
+
+        ```json
+        {
+          "success": false,
+          "error": "Device already configured"
+        }
+        ```
+
+--------------
+
+??? summary "GET `/wifi/connect`"
+    Initiates the connection of the device to the Wi-Fi network while in configuation mode. This request is not synchronous and the result (Wi-Fi connected or not) must be obtained by with `GET /wifi/status`.
+
+    ## Request body
+
+    `(application/json)`
+
+    ```json
     {
-      "name": "timeout",
-      "description": "Timeout in seconds",
-      "type": "ulong",
-      "required": false,
-      "default": 10
+      "ssid": "My_SSID",
+      "password": "my-passw0rd"
     }
-  ]
-}
-```
+    ```
 
-**Note about settings:** If a setting is no required, the `default` field is always present. `type` can be one of the following:
+    ## Response
 
-* `bool`: a boolean
-* `ulong`: an unsigned long
-* `long`: a long
-* `double`: a double
-* `string`: a string
+    !!! success "In case of success"
+        `202 Accepted (application/json)`
 
---------------
+        ```json
+        {
+          "success": true
+        }
+        ```
 
-!!! summary "GET `/networks`"
+    !!! failure "In case of error in the payload"
+        `400 Bad Request (application/json)`
 
-Retrieve the Wi-Fi networks the device can see.
-
-## Response
-
-!!! success "In case of success"
-
-200 OK (application/json)
-
-```json
-{
-  "networks": [
-    { "ssid": "Network_2", "rssi": -82, "encryption": "wep" },
-    { "ssid": "Network_1", "rssi": -57, "encryption": "wpa" },
-    { "ssid": "Network_3", "rssi": -65, "encryption": "wpa2" },
-    { "ssid": "Network_5", "rssi": -94, "encryption": "none" },
-    { "ssid": "Network_4", "rssi": -89, "encryption": "auto" }
-  ]
-}
-```
-
-!!! failure "In case the initial Wi-Fi scan is not finished on the device"
-
-503 Service Unavailable (application/json)
-
-```json
-{
-  "error": "Initial Wi-Fi scan not finished yet"
-}
-```
+        ```json
+        {
+          "success": false,
+          "error": "Reason why the payload is invalid"
+        }
+        ```
 
 --------------
 
-!!! summary "PUT `/config`"
+??? summary "GET `/wifi/status`"
+    Returns the current Wi-Fi connection status.
 
-Save the config to the device.
+    Helpful when monitoring Wi-Fi connectivity after `PUT /wifi/connect`.
 
-## Request body
+    ## Response
 
-(application/json)
+    `200 OK (application/json)`
 
-See [JSON configuration file](json-configuration-file.md).
+    ```json
+    {
+      "status": "connected"
+    }
+    ```
 
-## Response
+    `status` might be one of the following:
 
-!!! success "In case of success"
-
-200 OK (application/json)
-
-```json
-{
-  "success": true
-}
-```
-
-!!! failure "In case of error in the payload"
-
-400 Bad Request (application/json)
-
-```json
-{
-  "success": false,
-  "error": "Reason why the payload is invalid"
-}
-```
-
-!!! failure "In case the device already received a valid configuration and is waiting for reboot"
-
-403 Forbidden (application/json)
-
-```json
-{
-  "success": false,
-  "error": "Device already configured"
-}
-```
+    * `idle`
+    * `connect_failed`
+    * `connection_lost`
+    * `no_ssid_available`
+    * `connected` along with a `local_ip` field
+    * `disconnected`
 
 --------------
 
-!!! summary "GET `/wifi/connect`"
+??? summary "PUT `/proxy/control`"
+    Enable/disable the device to act as a transparent proxy between AP and Station networks.
 
-Initiates the connection of the device to the Wi-Fi network while in configuation mode. This request is not synchronous and the result (Wi-Fi connected or not) must be obtained by with `GET /wifi/status`.
+    All requests that don't collide with existing API paths will be bridged to the destination according to the `Host` HTTP header. The destination host is called using the existing Wi-Fi connection (established after a `PUT /wifi/connect`) and all contents are bridged back to the connection made to the AP side.
 
-## Request body
+    This feature can be used to help captive portals to perform cloud API calls during device enrollment using the ESP8266 Wi-Fi AP connection without having to patch the Homie firmware. By using the transparent proxy, all operations can be performed by the custom JavaScript running on the browser (in SPIFFS location `/data/homie/ui_bundle.gz`).
 
-(application/json)
+    HTTPS is not supported.
 
-```json
-{
-  "ssid": "My_SSID",
-  "password": "my-passw0rd"
-}
-```
+    **Important**: The HTTP requests and responses must be kept as small as possible because all contents are transported using RAM memory, which is very limited.
 
-## Response
+    ## Request body
 
-!!! success "In case of success"
+    `(application/json)`
 
-202 Accepted (application/json)
+    ```json
+    {
+      "enable": true
+    }
+    ```
 
-```json
-{
-  "success": true
-}
-```
+    ## Response
 
-!!! failure "In case of error in the payload"
+    ??? success "In case of success"
+        `200 OK (application/json)`
 
-400 Bad Request (application/json)
+        ```json
+        {
+          "success": true
+        }
+        ```
 
-```json
-{
-  "success": false,
-  "error": "Reason why the payload is invalid"
-}
-```
+    ??? failure "In case of error in the payload"
+        `400 Bad Request (application/json)`
 
---------------
-
-!!! summary "GET `/wifi/status`"
-
-Returns the current Wi-Fi connection status.
-
-Helpful when monitoring Wi-Fi connectivity after `PUT /wifi/connect`.
-
-## Response
-
-200 OK (application/json)
-
-```json
-{
-  "status": "connected"
-}
-```
-
-`status` might be one of the following:
-
-* `idle`
-* `connect_failed`
-* `connection_lost`
-* `no_ssid_available`
-* `connected` along with a `local_ip` field
-* `disconnected`
-
---------------
-
-!!! summary "PUT `/proxy/control`"
-
-Enable/disable the device to act as a transparent proxy between AP and Station networks.
-
-All requests that don't collide with existing API paths will be bridged to the destination according to the `Host` HTTP header. The destination host is called using the existing Wi-Fi connection (established after a `PUT /wifi/connect`) and all contents are bridged back to the connection made to the AP side.
-
-This feature can be used to help captive portals to perform cloud API calls during device enrollment using the ESP8266 Wi-Fi AP connection without having to patch the Homie firmware. By using the transparent proxy, all operations can be performed by the custom JavaScript running on the browser (in SPIFFS location `/data/homie/ui_bundle.gz`).
-
-HTTPS is not supported.
-
-**Important**: The HTTP requests and responses must be kept as small as possible because all contents are transported using RAM memory, which is very limited.
-
-## Request body
-
-(application/json)
-
-```json
-{
-  "enable": true
-}
-```
-
-## Response
-
-!!! success "In case of success"
-
-200 OK (application/json)
-
-```json
-{
-  "success": true
-}
-```
-
-!!! failure "In case of error in the payload"
-
-400 Bad Request (application/json)
-
-```json
-{
-  "success": false,
-  "error": "Reason why the payload is invalid"
-}
-```
+        ```json
+        {
+          "success": false,
+          "error": "Reason why the payload is invalid"
+        }
+        ```
