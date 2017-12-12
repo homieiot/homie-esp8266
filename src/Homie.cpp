@@ -6,7 +6,7 @@ HomieClass::HomieClass()
   : _setupCalled(false)
   , _firmwareSet(false)
   , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
-  strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_LENGTH);
+  strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_STRING_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
   Interface::get().led.enabled = true;
@@ -72,19 +72,22 @@ void HomieClass::setup() {
         defaultSettingsValuesValid = false;
         break;
       }
-    } else if (iSetting->isLong()) {
+    }
+    else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
       if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
         break;
       }
-    } else if (iSetting->isDouble()) {
+    }
+    else if (iSetting->isDouble()) {
       HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
       if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
         break;
       }
-    } else if (iSetting->isConstChar()) {
+    }
+    else if (iSetting->isConstChar()) {
       HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
       if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
@@ -112,9 +115,11 @@ void HomieClass::setup() {
   // select boot mode source
   if (_applicationHomieBootMode != HomieBootMode::UNDEFINED) {
     _selectedHomieBootMode = _applicationHomieBootMode;
-  } else if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
+  }
+  else if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
     _selectedHomieBootMode = _nextHomieBootMode;
-  } else {
+  }
+  else {
     _selectedHomieBootMode = HomieBootMode::NORMAL;
   }
 
@@ -129,15 +134,18 @@ void HomieClass::setup() {
     _boot = &_bootNormal;
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
-  } else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION) {
+  }
+  else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
-  } else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
+  }
+  else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
     _boot = &_bootStandalone;
     Interface::get().event.type = HomieEventType::STANDALONE_MODE;
     Interface::get().eventHandler(Interface::get().event);
-  } else {
+  }
+  else {
     Helpers::abort(F("✖ Boot mode invalid"));
     return;  // never reached, here for clarity
   }
@@ -203,27 +211,27 @@ HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
 
 void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
-  if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
+  if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
     Helpers::abort(F("✖ setFirmware(): either the name or version string is too long"));
     return;  // never reached, here for clarity
   }
 
-  strncpy(Interface::get().firmware.name, name + 5, strlen(name) - 10);
-  Interface::get().firmware.name[strlen(name) - 10] = '\0';
-  strncpy(Interface::get().firmware.version, version + 5, strlen(version) - 10);
-  Interface::get().firmware.version[strlen(version) - 10] = '\0';
+  strncpy(Interface::get().firmware.name, name, MAX_FIRMWARE_NAME_LENGTH);
+  Interface::get().firmware.name[strlen(name)] = '\0';
+  strncpy(Interface::get().firmware.version, version, MAX_FIRMWARE_VERSION_LENGTH);
+  Interface::get().firmware.version[strlen(version)] = '\0';
   _firmwareSet = true;
 }
 
 void HomieClass::__setBrand(const char* brand) const {
   _checkBeforeSetup(F("setBrand"));
-  if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
+  if (strlen(brand) + 1 > MAX_BRAND_STRING_LENGTH) {
     Helpers::abort(F("✖ setBrand(): the brand string is too long"));
     return;  // never reached, here for clarity
   }
 
-  strncpy(Interface::get().brand, brand + 5, strlen(brand) - 10);
-  Interface::get().brand[strlen(brand) - 10] = '\0';
+  strncpy(Interface::get().brand, brand, MAX_BRAND_STRING_LENGTH);
+  Interface::get().brand[strlen(brand)] = '\0';
 }
 
 void HomieClass::reset() {
@@ -337,7 +345,8 @@ void HomieClass::prepareToSleep() {
   if (Interface::get().ready) {
     Interface::get().disable = true;
     Interface::get().flaggedForSleep = true;
-  } else {
+  }
+  else {
     Interface::get().disable = true;
     Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
     Interface::get().event.type = HomieEventType::READY_TO_SLEEP;
