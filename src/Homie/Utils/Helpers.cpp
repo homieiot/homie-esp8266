@@ -13,11 +13,9 @@ uint8_t Helpers::rssiToPercentage(int32_t rssi) {
   uint8_t quality;
   if (rssi <= -100) {
     quality = 0;
-  }
-  else if (rssi >= -50) {
+  } else if (rssi >= -50) {
     quality = 100;
-  }
-  else {
+  } else {
     quality = 2 * (rssi + 100);
   }
 
@@ -48,13 +46,11 @@ bool Helpers::validateMacAddress(const char* mac) {
   while (*mac) {
     if (isxdigit(*mac)) {
       i++;
-    }
-    else if (*mac == ':' || *mac == '-') {
+    } else if (*mac == ':' || *mac == '-') {
       if (i == 0 || i / 2 - 1 != s)
         break;
       ++s;
-    }
-    else {
+    } else {
       s = -1;
     }
     ++mac;
@@ -87,12 +83,10 @@ void Helpers::ipToString(const IPAddress& ip, char * str) {
   snprintf(str, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 }
 
-void HomieInternals::Helpers::macToString(const uint8_t mac[MAX_MAC_LENGTH], char * str)
-{
+void HomieInternals::Helpers::macToString(const uint8_t mac[MAX_MAC_LENGTH], char * str) {
   snprintf(str, MAX_MAC_STRING_LENGTH, "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
-void HomieInternals::Helpers::macToFormattedString(const uint8_t mac[MAX_MAC_LENGTH], char * str)
-{
+void HomieInternals::Helpers::macToFormattedString(const uint8_t mac[MAX_MAC_LENGTH], char * str) {
   snprintf(str, MAX_MAC_FORMATTED_STRING_LENGTH, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
