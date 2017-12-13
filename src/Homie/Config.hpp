@@ -13,21 +13,24 @@
 #include "../HomieBootMode.hpp"
 #include "../HomieSetting.hpp"
 #include "../StreamingOperator.hpp"
+#include "Strings.hpp"
 
 namespace HomieInternals {
 class Config {
  public:
   Config();
   bool load();
-  inline const ConfigStruct& get() const;
+  const ConfigStruct& get() const;
   char* getSafeConfigFile() const;
   void erase();
   void setHomieBootModeOnNextBoot(HomieBootMode bootMode);
   HomieBootMode getHomieBootModeOnNextBoot();
-  void write(const JsonObject& config);
-  bool patch(const char* patch);
+  ConfigValidationResult write(const JsonObject& config);
+  ConfigValidationResult patch(const char* patch);
   void log() const;  // print the current config to log output
   bool isValid() const;
+
+  static ConfigValidationResult validateConfig(const JsonObject& parsedJson);
 
  private:
   ConfigStruct _configStruct;
@@ -35,9 +38,6 @@ class Config {
   bool _valid;
 
   bool _spiffsBegin();
+  ConfigValidationResultOBJ _loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE>* buf);
 };
-
-const ConfigStruct& Config::get() const {
-  return _configStruct;
-}
 }  // namespace HomieInternals

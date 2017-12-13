@@ -12,6 +12,9 @@ struct ConfigValidationResult {
   bool valid;
   String reason;
 };
+struct ConfigValidationResultOBJ :ConfigValidationResult {
+  JsonObject* config;
+};
 
 class Validation {
  public:

@@ -13,8 +13,7 @@ BootConfig::BootConfig()
   , _flaggedForReboot(false)
   , _flaggedForRebootAt(0)
   , _proxyEnabled(false)
-  , _apIpStr{ '\0' }
-{
+  , _apIpStr{ '\0' } {
   _wifiScanTimer.setInterval(CONFIG_SCAN_INTERVAL);
 }
 
@@ -92,19 +91,19 @@ void BootConfig::loop() {
     int8_t scanResult = WiFi.scanComplete();
 
     switch (scanResult) {
-    case WIFI_SCAN_RUNNING:
-      return;
-    case WIFI_SCAN_FAILED:
-      Interface::get().getLogger() << F("✖ Wi-Fi scan failed") << endl;
-      _ssidCount = 0;
-      _wifiScanTimer.reset();
-      break;
-    default:
-      Interface::get().getLogger() << F("✔ Wi-Fi scan completed") << endl;
-      _ssidCount = scanResult;
-      _generateNetworksJson();
-      _wifiScanAvailable = true;
-      break;
+      case WIFI_SCAN_RUNNING:
+        return;
+      case WIFI_SCAN_FAILED:
+        Interface::get().getLogger() << F("✖ Wi-Fi scan failed") << endl;
+        _ssidCount = 0;
+        _wifiScanTimer.reset();
+        break;
+      default:
+        Interface::get().getLogger() << F("✔ Wi-Fi scan completed") << endl;
+        _ssidCount = scanResult;
+        _generateNetworksJson();
+        _wifiScanAvailable = true;
+        break;
     }
 
     _lastWifiScanEnded = true;
@@ -148,28 +147,28 @@ void BootConfig::_onWifiStatusRequest(AsyncWebServerRequest *request) {
 
   //String json = "";
   switch (WiFi.status()) {
-  case WL_IDLE_STATUS:
-    status = F("idle");
-    break;
-  case WL_CONNECT_FAILED:
-    status = F("connect_failed");
-    break;
-  case WL_CONNECTION_LOST:
-    status = F("connection_lost");
-    break;
-  case WL_NO_SSID_AVAIL:
-    status = F("no_ssid_available");
-    break;
-  case WL_CONNECTED:
-    status = F("connected");
-    json["local_ip"] = WiFi.localIP().toString();
-    break;
-  case WL_DISCONNECTED:
-    status = F("disconnected");
-    break;
-  default:
-    status = F("other");
-    break;
+    case WL_IDLE_STATUS:
+      status = F("idle");
+      break;
+    case WL_CONNECT_FAILED:
+      status = F("connect_failed");
+      break;
+    case WL_CONNECTION_LOST:
+      status = F("connection_lost");
+      break;
+    case WL_NO_SSID_AVAIL:
+      status = F("no_ssid_available");
+      break;
+    case WL_CONNECTED:
+      status = F("connected");
+      json["local_ip"] = WiFi.localIP().toString();
+      break;
+    case WL_DISCONNECTED:
+      status = F("disconnected");
+      break;
+    default:
+      status = F("other");
+      break;
   }
 
   json["status"] = status;
@@ -209,21 +208,21 @@ void BootConfig::_generateNetworksJson() {
     jsonNetwork["ssid"] = WiFi.SSID(network);
     jsonNetwork["rssi"] = WiFi.RSSI(network);
     switch (WiFi.encryptionType(network)) {
-    case ENC_TYPE_WEP:
-      jsonNetwork["encryption"] = "wep";
-      break;
-    case ENC_TYPE_TKIP:
-      jsonNetwork["encryption"] = "wpa";
-      break;
-    case ENC_TYPE_CCMP:
-      jsonNetwork["encryption"] = "wpa2";
-      break;
-    case ENC_TYPE_NONE:
-      jsonNetwork["encryption"] = "none";
-      break;
-    case ENC_TYPE_AUTO:
-      jsonNetwork["encryption"] = "auto";
-      break;
+      case ENC_TYPE_WEP:
+        jsonNetwork["encryption"] = "wep";
+        break;
+      case ENC_TYPE_TKIP:
+        jsonNetwork["encryption"] = "wpa";
+        break;
+      case ENC_TYPE_CCMP:
+        jsonNetwork["encryption"] = "wpa2";
+        break;
+      case ENC_TYPE_NONE:
+        jsonNetwork["encryption"] = "none";
+        break;
+      case ENC_TYPE_AUTO:
+        jsonNetwork["encryption"] = "auto";
+        break;
     }
 
     networks.add(jsonNetwork);
@@ -288,12 +287,12 @@ void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
 
   String method = "";
   switch (request->method()) {
-  case HTTP_GET: method = F("GET"); break;
-  case HTTP_PUT: method = F("PUT"); break;
-  case HTTP_POST: method = F("POST"); break;
-  case HTTP_DELETE: method = F("DELETE"); break;
-  case HTTP_OPTIONS: method = F("OPTIONS"); break;
-  default: break;
+    case HTTP_GET: method = F("GET"); break;
+    case HTTP_PUT: method = F("PUT"); break;
+    case HTTP_POST: method = F("POST"); break;
+    case HTTP_DELETE: method = F("DELETE"); break;
+    case HTTP_OPTIONS: method = F("OPTIONS"); break;
+    default: break;
   }
 
   Interface::get().getLogger() << F("Proxy sent request to destination") << endl;
@@ -387,18 +386,12 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   DynamicJsonBuffer parseJsonBuffer(MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE);
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
-  if (!parsedJson.success()) {
-    __SendJSONError(request, F("✖ Invalid or too big JSON"));
-    return;
-  }
 
-  ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
+  ConfigValidationResult configValidationResult = Interface::get().getConfig().write(parsedJson);
   if (!configValidationResult.valid) {
-    __SendJSONError(request, String(F("✖ Config file is not valid, reason: ")) + configValidationResult.reason);
+    __SendJSONError(request, configValidationResult.reason);
     return;
   }
-
-  Interface::get().getConfig().write(parsedJson);
 
   Interface::get().getLogger() << F("✔ Configured") << endl;
 
