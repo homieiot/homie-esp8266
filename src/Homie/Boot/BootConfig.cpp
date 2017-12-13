@@ -387,9 +387,9 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
 
-  ConfigValidationResult configValidationResult = Interface::get().getConfig().write(parsedJson);
-  if (!configValidationResult.valid) {
-    __SendJSONError(request, configValidationResult.reason);
+  ConfigValidationResult configWriteResult = Interface::get().getConfig().write(parsedJson);
+  if (!configWriteResult.valid) {
+    __SendJSONError(request, configWriteResult.reason);
     return;
   }
 
