@@ -31,7 +31,9 @@ The Git repository contains the development version of Homie for ESP8266. Stable
 platform = espressif8266
 board = ...
 framework = arduino
-lib_deps = Homie
+lib_deps =
+  ArduinoJson@<5.11.0
+  Homie
 ```
 
 ### Development version
@@ -46,10 +48,14 @@ board = ...
 framework = arduino
 
 ; the latest development branch
-lib_deps = https://github.com/marvinroger/homie-esp8266.git
+lib_deps =
+  ArduinoJson@<5.11.0
+  https://github.com/marvinroger/homie-esp8266.git
 
 ; or tagged version
-lib_deps = https://github.com/marvinroger/homie-esp8266.git#v2.0.0-beta.2
+lib_deps = 
+  ArduinoJson@<5.11.0
+  https://github.com/marvinroger/homie-esp8266.git#v2.0.0-beta.2
 ```
 
 -----
