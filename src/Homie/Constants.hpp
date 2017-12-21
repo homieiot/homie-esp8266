@@ -18,7 +18,7 @@ namespace HomieInternals {
   const char DEFAULT_BRAND[] = "Homie";
 
   const uint16_t CONFIG_SCAN_INTERVAL = 20 * 1000;
-  const uint32_t STATS_SEND_INTERVAL = 1 * 60 * 1000;
+  const uint32_t STATS_SEND_INTERVAL_SEC = 1 * 60;
   const uint16_t MQTT_RECONNECT_INITIAL_INTERVAL = 1000;
   const uint8_t MQTT_RECONNECT_MAX_BACKOFF = 6;
 
