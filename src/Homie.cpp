@@ -276,6 +276,7 @@ HomieClass& HomieClass::setLoopFunction(const OperationFunction& function) {
 
 HomieClass& HomieClass::setHomieBootMode(HomieBootMode bootMode) {
   _checkBeforeSetup(F("setHomieBootMode"));
+
   Interface::get().bootMode = bootMode;
   return *this;
 }
@@ -286,7 +287,7 @@ HomieClass& HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
 }
 
 bool HomieClass::isConfigured() {
-  return Interface::get().getConfig().load();
+  return Interface::get().getConfig().isValid();
 }
 
 bool HomieClass::isConnected() {

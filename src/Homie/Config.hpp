@@ -21,7 +21,7 @@ class Config {
   Config();
   bool load();
   const ConfigStruct& get() const;
-  char* getSafeConfigFile() const;
+  char* getSafeConfigFile();
   void erase();
   void setHomieBootModeOnNextBoot(HomieBootMode bootMode);
   HomieBootMode getHomieBootModeOnNextBoot();
@@ -30,7 +30,7 @@ class Config {
   void log() const;  // print the current config to log output
   bool isValid() const;
 
-  static ConfigValidationResult validateConfig(const JsonObject& parsedJson);
+  static ConfigValidationResult validateConfig(const JsonObject& parsedJson, bool skipValidation = false);
 
  private:
   ConfigStruct _configStruct;

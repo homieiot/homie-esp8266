@@ -271,9 +271,16 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
     settingsObject = &(object["settings"].as<JsonObject&>());
   }
 
-  if (settingsObject->size() > MAX_CONFIG_SETTING_SIZE) {//max settings here and in isettings
+  if (settingsObject->size() > MAX_CONFIG_SETTING_SIZE) {
     result.reason = F("settings contains more elements than the set limit");
     return result;
+  }
+
+  // Remove nulls in settings
+  for (JsonPair kv : *settingsObject) {
+    if (kv.value.asString() == nullptr) {
+      settingsObject->remove(kv.key);
+    }
   }
 
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
@@ -284,15 +291,15 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
     };
     auto setReason = [&result, &iSetting](Issue issue) {
       switch (issue) {
-      case Issue::Type:
-        result.reason = String(iSetting->getName()) + F(" setting is not a ") + String(iSetting->getType());
-        break;
-      case Issue::Validator:
-        result.reason = String(iSetting->getName()) + F(" setting does not pass the validator function");
-        break;
-      case Issue::Missing:
-        result.reason = String(iSetting->getName()) + F(" setting is missing");
-        break;
+        case Issue::Type:
+          result.reason = String(iSetting->getName()) + F(" setting is not a ") + String(iSetting->getType());
+          break;
+        case Issue::Validator:
+          result.reason = String(iSetting->getName()) + F(" setting does not pass the validator function");
+          break;
+        case Issue::Missing:
+          result.reason = String(iSetting->getName()) + F(" setting is missing");
+          break;
       }
     };
 
