@@ -3,9 +3,9 @@
 using namespace HomieInternals;
 
 Config::Config()
-: _configStruct()
-, _spiffsBegan(false)
-, _valid(false) {
+  : _configStruct()
+  , _spiffsBegan(false)
+  , _valid(false) {
 }
 
 bool Config::_spiffsBegin() {
@@ -67,6 +67,10 @@ bool Config::load() {
   if (parsedJson.containsKey("device_id")) {
     reqDeviceId = parsedJson["device_id"];
   }
+  uint16_t regDeviceStatsInterval = STATS_SEND_INTERVAL_SEC; //device_stats_interval
+  if (parsedJson.containsKey(F("device_stats_interval"))) {
+    regDeviceStatsInterval = parsedJson[F("device_stats_interval")];
+  }
 
   const char* reqWifiBssid = "";
   if (parsedJson["wifi"].as<JsonObject&>().containsKey("bssid")) {
@@ -125,6 +129,7 @@ bool Config::load() {
 
   strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
   strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
+  _configStruct.deviceStatsInterval = regDeviceStatsInterval;
   strlcpy(_configStruct.wifi.ssid, reqWifiSsid, MAX_WIFI_SSID_LENGTH);
   if (reqWifiPassword) strlcpy(_configStruct.wifi.password, reqWifiPassword, MAX_WIFI_PASSWORD_LENGTH);
   strlcpy(_configStruct.wifi.bssid, reqWifiBssid, MAX_MAC_STRING_LENGTH + 6);
@@ -254,62 +259,62 @@ void Config::write(const JsonObject& config) {
 }
 
 bool Config::patch(const char* patch) {
-    if (!_spiffsBegin()) { return false; }
+  if (!_spiffsBegin()) { return false; }
 
-    StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonBuffer;
-    JsonObject& patchObject = patchJsonBuffer.parseObject(patch);
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonBuffer;
+  JsonObject& patchObject = patchJsonBuffer.parseObject(patch);
 
-    if (!patchObject.success()) {
-      Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
-      return false;
-    }
+  if (!patchObject.success()) {
+    Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
+    return false;
+  }
 
-    File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
-    if (!configFile) {
-      Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
-      return false;
-    }
+  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  if (!configFile) {
+    Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
+    return false;
+  }
 
-    size_t configSize = configFile.size();
+  size_t configSize = configFile.size();
 
-    char configJson[MAX_JSON_CONFIG_FILE_SIZE];
-    configFile.readBytes(configJson, configSize);
-    configFile.close();
-    configJson[configSize] = '\0';
+  char configJson[MAX_JSON_CONFIG_FILE_SIZE];
+  configFile.readBytes(configJson, configSize);
+  configFile.close();
+  configJson[configSize] = '\0';
 
-    StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
-    JsonObject& configObject = configJsonBuffer.parseObject(configJson);
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
+  JsonObject& configObject = configJsonBuffer.parseObject(configJson);
 
-    // To do alow object that dont currently exist to be added like settings.
-    // if settings wasnt there origionally then it should be allowed to be added by incremental.
-    for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
-      if (patchObject[it->key].is<JsonObject&>()) {
-        JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
-        for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
-          if (!configObject.containsKey(it->key) || !configObject[it->key].is<JsonObject&>()) {
-            String error = "✖ Config does not contain a ";
-            error.concat(it->key);
-            error.concat(" object");
-            Interface::get().getLogger() << error << endl;
-            return false;
-          }
-          JsonObject& subConfigObject = configObject[it->key].as<JsonObject&>();
-          subConfigObject[it2->key] = it2->value;
+  // To do alow object that dont currently exist to be added like settings.
+  // if settings wasnt there origionally then it should be allowed to be added by incremental.
+  for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
+    if (patchObject[it->key].is<JsonObject&>()) {
+      JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
+      for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
+        if (!configObject.containsKey(it->key) || !configObject[it->key].is<JsonObject&>()) {
+          String error = "✖ Config does not contain a ";
+          error.concat(it->key);
+          error.concat(" object");
+          Interface::get().getLogger() << error << endl;
+          return false;
         }
-      } else {
-        configObject[it->key] = it->value;
+        JsonObject& subConfigObject = configObject[it->key].as<JsonObject&>();
+        subConfigObject[it2->key] = it2->value;
       }
+    } else {
+      configObject[it->key] = it->value;
     }
+  }
 
-    ConfigValidationResult configValidationResult = Validation::validateConfig(configObject);
-    if (!configValidationResult.valid) {
-      Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
-      return false;
-    }
+  ConfigValidationResult configValidationResult = Validation::validateConfig(configObject);
+  if (!configValidationResult.valid) {
+    Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
+    return false;
+  }
 
-    write(configObject);
+  write(configObject);
 
-    return true;
+  return true;
 }
 
 bool Config::isValid() const {
@@ -321,6 +326,7 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • Hardware device ID: ") << DeviceId::get() << endl;
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
   Interface::get().getLogger() << F("  • Name: ") << _configStruct.name << endl;
+  Interface::get().getLogger() << F("  • Device Stats Interval: ") << _configStruct.deviceStatsInterval << F(" sec") << endl;
 
   Interface::get().getLogger() << F("  • Wi-Fi: ") << endl;
   Interface::get().getLogger() << F("    ◦ SSID: ") << _configStruct.wifi.ssid << endl;

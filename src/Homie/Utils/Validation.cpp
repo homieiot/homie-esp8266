@@ -48,6 +48,11 @@ ConfigValidationResult Validation::_validateConfigRoot(const JsonObject& object)
     return result;
   }
 
+  if (object.containsKey(F("device_stats_interval")) && !object[F("device_stats_interval")].is<uint16_t>()) {
+    result.reason = F("device_stats_interval is not an integer");
+    return result;
+  }
+
   result.valid = true;
   return result;
 }

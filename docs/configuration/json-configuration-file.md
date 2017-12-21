@@ -6,6 +6,7 @@ Below is the format of the JSON configuration you will have to provide:
 {
   "name": "The kitchen light",
   "device_id": "kitchen-light",
+  "device_stats_interval": 60,
   "wifi": {
     "ssid": "Network_1",
     "password": "I'm a Wi-Fi password!",
@@ -50,6 +51,7 @@ Here are the rules:
 Default values if not provided:
 
 * `device_id`: the hardware device ID (eg. `1a2b3c4d5e6f`)
+* `device_stats_interval`: 60 seconds
 * `mqtt.port`: `1883`
 * `mqtt.base_topic`: `homie/`
 * `mqtt.auth`: `false`
