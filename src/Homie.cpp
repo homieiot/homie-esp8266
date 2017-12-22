@@ -6,7 +6,7 @@ HomieClass::HomieClass()
   : _setupCalled(false)
   , _firmwareSet(false)
   , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
-  strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_LENGTH);
+  strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_STRING_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
   Interface::get().led.enabled = true;
@@ -203,27 +203,27 @@ HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
 
 void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
-  if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
+  if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
     Helpers::abort(F("✖ setFirmware(): either the name or version string is too long"));
     return;  // never reached, here for clarity
   }
 
-  strncpy(Interface::get().firmware.name, name + 5, strlen(name) - 10);
-  Interface::get().firmware.name[strlen(name) - 10] = '\0';
-  strncpy(Interface::get().firmware.version, version + 5, strlen(version) - 10);
-  Interface::get().firmware.version[strlen(version) - 10] = '\0';
+  strncpy(Interface::get().firmware.name, name, MAX_FIRMWARE_NAME_LENGTH);
+  Interface::get().firmware.name[strlen(name)] = '\0';
+  strncpy(Interface::get().firmware.version, version, MAX_FIRMWARE_VERSION_LENGTH);
+  Interface::get().firmware.version[strlen(version)] = '\0';
   _firmwareSet = true;
 }
 
 void HomieClass::__setBrand(const char* brand) const {
   _checkBeforeSetup(F("setBrand"));
-  if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
+  if (strlen(brand) + 1 > MAX_BRAND_STRING_LENGTH) {
     Helpers::abort(F("✖ setBrand(): the brand string is too long"));
     return;  // never reached, here for clarity
   }
 
-  strncpy(Interface::get().brand, brand + 5, strlen(brand) - 10);
-  Interface::get().brand[strlen(brand) - 10] = '\0';
+  strncpy(Interface::get().brand, brand, MAX_BRAND_STRING_LENGTH);
+  Interface::get().brand[strlen(brand)] = '\0';
 }
 
 void HomieClass::reset() {
@@ -276,6 +276,7 @@ HomieClass& HomieClass::setLoopFunction(const OperationFunction& function) {
 
 HomieClass& HomieClass::setHomieBootMode(HomieBootMode bootMode) {
   _checkBeforeSetup(F("setHomieBootMode"));
+
   Interface::get().bootMode = bootMode;
   return *this;
 }
@@ -286,7 +287,7 @@ HomieClass& HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
 }
 
 bool HomieClass::isConfigured() {
-  return Interface::get().getConfig().load();
+  return Interface::get().getConfig().isValid();
 }
 
 bool HomieClass::isConnected() {
