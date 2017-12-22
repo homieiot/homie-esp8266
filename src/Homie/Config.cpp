@@ -8,55 +8,38 @@ Config::Config()
   , _valid(false) {
 }
 
+const ConfigStruct& Config::get() const {
+  return _configStruct;
+}
+
 bool Config::_spiffsBegin() {
   if (!_spiffsBegan) {
     _spiffsBegan = SPIFFS.begin();
-    if (!_spiffsBegan) Interface::get().getLogger() << F("✖ Cannot mount filesystem") << endl;
+    if (!_spiffsBegan) Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_SPIFFS_NOT_FOUND) << endl;
   }
 
   return _spiffsBegan;
 }
 
 bool Config::load() {
-  if (!_spiffsBegin()) { return false; }
-
   _valid = false;
 
-  if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
-    Interface::get().getLogger() << F("✖ ") << CONFIG_FILE_PATH << F(" doesn't exist") << endl;
-    return false;
-  }
-
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
-  if (!configFile) {
-    Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
-    return false;
-  }
-
-  size_t configSize = configFile.size();
-
-  if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
-    Interface::get().getLogger() << F("✖ Config file too big") << endl;
-    return false;
-  }
-
-  char buf[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(buf, configSize);
-  configFile.close();
-  buf[configSize] = '\0';
+  Interface::get().getLogger() << F("↻ Config file loading") << endl;
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
-  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
-  if (!parsedJson.success()) {
-    Interface::get().getLogger() << F("✖ Invalid JSON in the config file") << endl;
+  ConfigValidationResultOBJ loadResult = _loadConfigFile(&jsonBuffer);
+  if (!loadResult.valid) {
+    //Interface::get().getLogger() << loadResult.reason << endl;
+    return false;
+  }
+  JsonObject& parsedJson = *loadResult.config;
+  ConfigValidationResult validResult = validateConfig(parsedJson);
+  if (!validResult.valid) {
+    //Interface::get().getLogger() << validResult.reason << endl;
     return false;
   }
 
-  ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
-  if (!configValidationResult.valid) {
-    Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
-    return false;
-  }
+  Interface::get().getLogger() << F("✔ Config file loaded and validated") << endl;
 
   const char* reqName = parsedJson["name"];
   const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
@@ -132,7 +115,7 @@ bool Config::load() {
   _configStruct.deviceStatsInterval = regDeviceStatsInterval;
   strlcpy(_configStruct.wifi.ssid, reqWifiSsid, MAX_WIFI_SSID_LENGTH);
   if (reqWifiPassword) strlcpy(_configStruct.wifi.password, reqWifiPassword, MAX_WIFI_PASSWORD_LENGTH);
-  strlcpy(_configStruct.wifi.bssid, reqWifiBssid, MAX_MAC_STRING_LENGTH + 6);
+  strlcpy(_configStruct.wifi.bssid, reqWifiBssid, MAX_MAC_STRING_LENGTH);
   _configStruct.wifi.channel = reqWifiChannel;
   strlcpy(_configStruct.wifi.ip, reqWifiIp, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.wifi.gw, reqWifiGw, MAX_IP_STRING_LENGTH);
@@ -183,24 +166,25 @@ bool Config::load() {
   return true;
 }
 
-char* Config::getSafeConfigFile() const {
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
-  size_t configSize = configFile.size();
-
-  char buf[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(buf, configSize);
-  configFile.close();
-  buf[configSize] = '\0';
-
+char* Config::getSafeConfigFile() {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
-  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
-  parsedJson["wifi"].as<JsonObject&>().remove("password");
-  parsedJson["mqtt"].as<JsonObject&>().remove("username");
-  parsedJson["mqtt"].as<JsonObject&>().remove("password");
+  ConfigValidationResultOBJ configLoadResult = _loadConfigFile(&jsonBuffer);
+  if (!configLoadResult.valid) {
+    return nullptr;
+  }
+  JsonObject& configObject = *configLoadResult.config;
+  ConfigValidationResult configValidResult = validateConfig(configObject);
+  if (!configValidResult.valid) {
+    return nullptr;
+  }
 
-  size_t jsonBufferLength = parsedJson.measureLength() + 1;
+  configObject["wifi"].as<JsonObject&>().remove("password");
+  configObject["mqtt"].as<JsonObject&>().remove("username");
+  configObject["mqtt"].as<JsonObject&>().remove("password");
+
+  size_t jsonBufferLength = configObject.measureLength() + 1;
   std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
-  parsedJson.printTo(jsonString.get(), jsonBufferLength);
+  configObject.printTo(jsonString.get(), jsonBufferLength);
 
   return strdup(jsonString.get());
 }
@@ -243,47 +227,140 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
   }
 }
 
-void Config::write(const JsonObject& config) {
-  if (!_spiffsBegin()) { return; }
+ConfigValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE>* jsonBuffer) {
+  ConfigValidationResultOBJ result;
+  result.valid = false;
+
+  if (!_spiffsBegin()) {
+    result.reason = FPSTR(PROGMEM_CONFIG_SPIFFS_NOT_FOUND);
+    return result;
+  }
+
+  if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
+    String error = F("✖ ");
+    error.concat(CONFIG_FILE_PATH);
+    error.concat(F(" doesn't exist"));
+    Interface::get().getLogger() << error << endl;
+    result.reason = error;
+    return result;
+  }
+
+  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  if (!configFile) {
+    Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_FILE_NOT_FOUND) << endl;
+    result.reason = FPSTR(PROGMEM_CONFIG_FILE_NOT_FOUND);
+    return result;
+  }
+
+  size_t configSize = configFile.size();
+  if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
+    configFile.close();
+    Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_FILE_TOO_BIG) << endl;
+    result.reason = FPSTR(PROGMEM_CONFIG_FILE_TOO_BIG);
+    return result;
+  }
+
+  char buf[MAX_JSON_CONFIG_FILE_SIZE];
+  configFile.readBytes(buf, configSize);
+  configFile.close();
+  buf[configSize] = '\0';
+
+  result.valid = true;
+  result.config = &jsonBuffer->parseObject(buf);
+
+  return result;
+}
+
+ConfigValidationResult Config::validateConfig(const JsonObject& parsedJson, bool skipValidation) {
+  ConfigValidationResult result;
+  result.valid = false;
+
+  if (!parsedJson.success()) {
+    result.reason = F("✖ Invalid or too big JSON");
+    return result;
+  }
+
+  if (!skipValidation) {
+    ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
+    if (!configValidationResult.valid) {
+      result.reason = String(F("✖ Config file is not valid, reason: ")) + configValidationResult.reason;
+      return result;
+    }
+  }
+
+  result.valid = true;
+  return result;
+}
+
+ConfigValidationResult Config::write(const JsonObject& newConfig) {
+  ConfigValidationResult result;
+  result.valid = false;
+
+  ConfigValidationResult validResult = validateConfig(newConfig);
+  if (!validResult.valid) {
+    result.reason = validResult.reason;
+    return result;
+  }
+
+  size_t configSize = newConfig.measureLength();
+  if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
+    Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_FILE_TOO_BIG) << " Size: " << String(configSize) << endl;
+    result.reason = FPSTR(PROGMEM_CONFIG_FILE_TOO_BIG);
+    return result;
+  }
+
+  if (!_spiffsBegin()) {
+    result.reason = FPSTR(PROGMEM_CONFIG_SPIFFS_NOT_FOUND);
+    return result;
+  }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
   if (!configFile) {
-    Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
-    return;
+    Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_FILE_NOT_FOUND) << endl;
+    result.reason = FPSTR(PROGMEM_CONFIG_FILE_NOT_FOUND);
+    return result;
   }
 
-  config.printTo(configFile);
+  // Write new config
+  newConfig.printTo(configFile);
   configFile.close();
+
+  result.valid = true;
+  return result;
 }
 
-bool Config::patch(const char* patch) {
-  if (!_spiffsBegin()) { return false; }
+ConfigValidationResult Config::patch(const char* patch) {
+  ConfigValidationResult result;
+  result.valid = false;
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonBuffer;
   JsonObject& patchObject = patchJsonBuffer.parseObject(patch);
 
-  if (!patchObject.success()) {
-    Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
-    return false;
+  // Validate Patch config
+  ConfigValidationResult patchValidResult = validateConfig(patchObject, true);
+  if (!patchValidResult.valid) {
+    String error = F("Patch JSON: ");
+    error.concat(patchValidResult.reason);
+    Interface::get().getLogger() << error << endl;
+    result.reason = error;
+    return result;
   }
 
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
-  if (!configFile) {
-    Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
-    return false;
+  // Validate current config
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> currentJsonBuffer;
+  ConfigValidationResultOBJ configLoadResult = _loadConfigFile(&currentJsonBuffer);
+  if (!configLoadResult.valid) {
+    result.reason = configLoadResult.reason;
+    return result;
   }
-
-  size_t configSize = configFile.size();
-
-  char configJson[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(configJson, configSize);
-  configFile.close();
-  configJson[configSize] = '\0';
-
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
-  JsonObject& configObject = configJsonBuffer.parseObject(configJson);
+  JsonObject& configObject = *configLoadResult.config;
+  ConfigValidationResult configValidResult = validateConfig(configObject);
+  if (!configValidResult.valid) {
+    result.reason = configValidResult.reason;
+    return result;
+  }
 
   // To do alow object that dont currently exist to be added like settings.
   // if settings wasnt there origionally then it should be allowed to be added by incremental.
@@ -292,11 +369,12 @@ bool Config::patch(const char* patch) {
       JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
       for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
         if (!configObject.containsKey(it->key) || !configObject[it->key].is<JsonObject&>()) {
-          String error = "✖ Config does not contain a ";
+          String error = F("✖ Config does not contain a ");
           error.concat(it->key);
-          error.concat(" object");
+          error.concat(F(" object"));
           Interface::get().getLogger() << error << endl;
-          return false;
+          result.reason = error;
+          return result;
         }
         JsonObject& subConfigObject = configObject[it->key].as<JsonObject&>();
         subConfigObject[it2->key] = it2->value;
@@ -306,15 +384,17 @@ bool Config::patch(const char* patch) {
     }
   }
 
-  ConfigValidationResult configValidationResult = Validation::validateConfig(configObject);
-  if (!configValidationResult.valid) {
-    Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
-    return false;
+  ConfigValidationResult configWriteResult = write(configObject);
+  if (!configWriteResult.valid) {
+    String error = F("✖ Config file is not valid, reason: ");
+    error.concat(configWriteResult.reason);
+    Interface::get().getLogger() << error << endl;
+    result.reason = error;
+    return result;
   }
 
-  write(configObject);
-
-  return true;
+  result.valid = true;
+  return result;
 }
 
 bool Config::isValid() const {

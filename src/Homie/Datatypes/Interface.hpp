@@ -26,7 +26,7 @@ class InterfaceData {
   InterfaceData();
 
   /***** User configurable data *****/
-  char brand[MAX_BRAND_LENGTH];
+  char brand[MAX_BRAND_STRING_LENGTH];
 
   HomieBootMode bootMode;
 
