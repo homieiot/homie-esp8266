@@ -50,6 +50,10 @@ bool Config::load() {
   if (parsedJson.containsKey("device_id")) {
     reqDeviceId = parsedJson["device_id"];
   }
+  uint16_t regDeviceStatsInterval = STATS_SEND_INTERVAL_SEC; //device_stats_interval
+  if (parsedJson.containsKey(F("device_stats_interval"))) {
+    regDeviceStatsInterval = parsedJson[F("device_stats_interval")];
+  }
 
   const char* reqWifiBssid = "";
   if (parsedJson["wifi"].as<JsonObject&>().containsKey("bssid")) {
@@ -108,6 +112,7 @@ bool Config::load() {
 
   strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
   strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
+  _configStruct.deviceStatsInterval = regDeviceStatsInterval;
   strlcpy(_configStruct.wifi.ssid, reqWifiSsid, MAX_WIFI_SSID_LENGTH);
   if (reqWifiPassword) strlcpy(_configStruct.wifi.password, reqWifiPassword, MAX_WIFI_PASSWORD_LENGTH);
   strlcpy(_configStruct.wifi.bssid, reqWifiBssid, MAX_MAC_STRING_LENGTH);
@@ -401,6 +406,7 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • Hardware device ID: ") << DeviceId::get() << endl;
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
   Interface::get().getLogger() << F("  • Name: ") << _configStruct.name << endl;
+  Interface::get().getLogger() << F("  • Device Stats Interval: ") << _configStruct.deviceStatsInterval << F(" sec") << endl;
 
   Interface::get().getLogger() << F("  • Wi-Fi: ") << endl;
   Interface::get().getLogger() << F("    ◦ SSID: ") << _configStruct.wifi.ssid << endl;
