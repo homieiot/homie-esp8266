@@ -3,6 +3,7 @@
 #include "Arduino.h"
 
 #include <ArduinoJson.h>
+#define FS_NO_GLOBALS
 #include "FS.h"
 #include "Datatypes/Interface.hpp"
 #include "Datatypes/ConfigStruct.hpp"
