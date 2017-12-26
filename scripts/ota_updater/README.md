@@ -1,7 +1,7 @@
 Script: OTA updater
 ===================
 
-This will allow you to send an OTA update to your device.
+This script will allow you to send an OTA update to your device.
 
 ## Installation
 
@@ -9,8 +9,7 @@ This will allow you to send an OTA update to your device.
 
 ## Usage
 
-```bash
-> scripts/ota_updater/ota_updater.py -h
+```text
 usage: ota_updater.py [-h] -l BROKER_HOST -p BROKER_PORT [-u BROKER_USERNAME]
                       [-d BROKER_PASSWORD] [-t BASE_TOPIC] -i DEVICE_ID
                       firmware
@@ -39,4 +38,11 @@ arguments:
 
 * `BROKER_HOST` and `BROKER_PORT` defaults to 127.0.0.1 and 1883 respectively if not set.
 * `BROKER_USERNAME` and `BROKER_PASSWORD` are optional.
-* `BASE_TOPIC` defaults to `homie/` if not set
+* `BASE_TOPIC` has to end with a slash, defaults to `homie/` if not set.
+
+### Example:
+
+```bash
+python ota_updater.py -l localhost -u admin -d secure -t "homie/" -i "device-id" /path/to/firmware.bin
+```
+
