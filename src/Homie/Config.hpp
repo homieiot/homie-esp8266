@@ -18,6 +18,7 @@ namespace HomieInternals {
 class Config {
  public:
   Config();
+  JsonObject& loadJSONObject();
   bool load();
   inline const ConfigStruct& get() const;
   char* getSafeConfigFile() const;
