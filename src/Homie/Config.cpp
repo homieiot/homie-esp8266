@@ -29,15 +29,11 @@ bool Config::load() {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
   ConfigValidationResultOBJ loadResult = _loadConfigFile(&jsonBuffer);
   if (!loadResult.valid) {
-    //Interface::get().getLogger() << loadResult.reason << endl;
+    Interface::get().getLogger() << loadResult.reason << endl;
+    loadResult.config->prettyPrintTo(Interface::get().getLogger());
     return false;
   }
   JsonObject& parsedJson = *loadResult.config;
-  ConfigValidationResult validResult = validateConfig(parsedJson);
-  if (!validResult.valid) {
-    //Interface::get().getLogger() << validResult.reason << endl;
-    return false;
-  }
 
   Interface::get().getLogger() << F("✔ Config file loaded and validated") << endl;
 
@@ -227,7 +223,7 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
   }
 }
 
-ConfigValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE>* jsonBuffer) {
+ConfigValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE>* jsonBuffer, bool skipValidation) {
   ConfigValidationResultOBJ result;
   result.valid = false;
 
@@ -237,17 +233,14 @@ ConfigValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONF
   }
 
   if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
-    String error = F("✖ ");
-    error.concat(CONFIG_FILE_PATH);
-    error.concat(F(" doesn't exist"));
-    Interface::get().getLogger() << error << endl;
-    result.reason = error;
+    result.reason = F("✖ ");
+    result.reason.concat(CONFIG_FILE_PATH);
+    result.reason.concat(F(" doesn't exist"));
     return result;
   }
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
-    Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_FILE_NOT_FOUND) << endl;
     result.reason = FPSTR(PROGMEM_CONFIG_FILE_NOT_FOUND);
     return result;
   }
@@ -255,18 +248,21 @@ ConfigValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONF
   size_t configSize = configFile.size();
   if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
     configFile.close();
-    Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_FILE_TOO_BIG) << endl;
     result.reason = FPSTR(PROGMEM_CONFIG_FILE_TOO_BIG);
     return result;
   }
 
-  char buf[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(buf, configSize);
-  configFile.close();
-  buf[configSize] = '\0';
+  JsonObject& config = jsonBuffer->parseObject(configFile);
+
+  ConfigValidationResult configValidationResult = validateConfig(config, skipValidation);
+
+  if (!configValidationResult.valid) {
+    result.reason = configValidationResult.reason;
+    return result;
+  }
 
   result.valid = true;
-  result.config = &jsonBuffer->parseObject(buf);
+  result.config = &config;
 
   return result;
 }
@@ -283,7 +279,8 @@ ConfigValidationResult Config::validateConfig(const JsonObject& parsedJson, bool
   if (!skipValidation) {
     ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
     if (!configValidationResult.valid) {
-      result.reason = String(F("✖ Config file is not valid, reason: ")) + configValidationResult.reason;
+      result.reason = F("✖ Config file is not valid, reason: ");
+      result.reason.concat(configValidationResult.reason);
       return result;
     }
   }
@@ -304,8 +301,9 @@ ConfigValidationResult Config::write(const JsonObject& newConfig) {
 
   size_t configSize = newConfig.measureLength();
   if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
-    Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_FILE_TOO_BIG) << " Size: " << String(configSize) << endl;
     result.reason = FPSTR(PROGMEM_CONFIG_FILE_TOO_BIG);
+    result.reason.concat(F(" Size: "));
+    result.reason.concat(configSize);
     return result;
   }
 
@@ -318,7 +316,6 @@ ConfigValidationResult Config::write(const JsonObject& newConfig) {
 
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
   if (!configFile) {
-    Interface::get().getLogger() << FPSTR(PROGMEM_CONFIG_FILE_NOT_FOUND) << endl;
     result.reason = FPSTR(PROGMEM_CONFIG_FILE_NOT_FOUND);
     return result;
   }
@@ -341,7 +338,7 @@ ConfigValidationResult Config::patch(const char* patch) {
   // Validate Patch config
   ConfigValidationResult patchValidResult = validateConfig(patchObject, true);
   if (!patchValidResult.valid) {
-    String error = F("Patch JSON: ");
+    String error = F("✖ Patch Config file is not valid, reason: ");
     error.concat(patchValidResult.reason);
     Interface::get().getLogger() << error << endl;
     result.reason = error;
@@ -352,41 +349,40 @@ ConfigValidationResult Config::patch(const char* patch) {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> currentJsonBuffer;
   ConfigValidationResultOBJ configLoadResult = _loadConfigFile(&currentJsonBuffer);
   if (!configLoadResult.valid) {
-    result.reason = configLoadResult.reason;
+    String error = F("✖ Old Config file is not valid, reason: ");
+    error.concat(patchValidResult.reason);
+    Interface::get().getLogger() << error << endl;
+    result.reason = error;
     return result;
   }
   JsonObject& configObject = *configLoadResult.config;
-  ConfigValidationResult configValidResult = validateConfig(configObject);
-  if (!configValidResult.valid) {
-    result.reason = configValidResult.reason;
-    return result;
-  }
 
-  // To do alow object that dont currently exist to be added like settings.
-  // if settings wasnt there origionally then it should be allowed to be added by incremental.
-  for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
-    if (patchObject[it->key].is<JsonObject&>()) {
-      JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
-      for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
-        if (!configObject.containsKey(it->key) || !configObject[it->key].is<JsonObject&>()) {
-          String error = F("✖ Config does not contain a ");
-          error.concat(it->key);
-          error.concat(F(" object"));
-          Interface::get().getLogger() << error << endl;
-          result.reason = error;
-          return result;
-        }
-        JsonObject& subConfigObject = configObject[it->key].as<JsonObject&>();
-        subConfigObject[it2->key] = it2->value;
+  for (const JsonPair& patchPair : patchObject) {
+    if (patchPair.value.is<JsonObject>() && patchPair.value.size() > 0) {
+      if (!configObject.containsKey(patchPair.key)) {
+        configObject.createNestedObject(patchPair.key);
       }
+      if (!configObject[patchPair.key].is<JsonObject>()) {
+        configObject.remove(patchPair.key);
+        configObject.createNestedObject(patchPair.key);
+      }
+      JsonObject& patchSubObject = patchPair.value.as<JsonObject>();
+      JsonObject& configSubObject = configObject[patchPair.key].as<JsonObject>();
+
+      for (const JsonPair& subPatchPair : patchSubObject) {
+        configSubObject[subPatchPair.key] = subPatchPair.value;
+      }
+    } else if (patchPair.value.is<JsonArray>()) {
+      // Not you handled
+      configObject[patchPair.key] = patchPair.value;
     } else {
-      configObject[it->key] = it->value;
+      configObject[patchPair.key] = patchPair.value;
     }
   }
 
   ConfigValidationResult configWriteResult = write(configObject);
   if (!configWriteResult.valid) {
-    String error = F("✖ Config file is not valid, reason: ");
+    String error = F("✖ New Config file is not valid, reason: ");
     error.concat(configWriteResult.reason);
     Interface::get().getLogger() << error << endl;
     result.reason = error;

@@ -389,6 +389,7 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
 
   ConfigValidationResult configWriteResult = Interface::get().getConfig().write(parsedJson);
   if (!configWriteResult.valid) {
+    Interface::get().getLogger() << F("✖ Error: ") << configWriteResult.reason << endl;
     __SendJSONError(request, configWriteResult.reason);
     return;
   }

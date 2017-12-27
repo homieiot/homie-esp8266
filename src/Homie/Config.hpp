@@ -38,6 +38,6 @@ class Config {
   bool _valid;
 
   bool _spiffsBegin();
-  ConfigValidationResultOBJ _loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE>* buf);
+  ConfigValidationResultOBJ _loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE>* buf, bool skipValidation = false);
 };
 }  // namespace HomieInternals

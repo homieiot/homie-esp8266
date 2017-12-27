@@ -61,7 +61,7 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject&>()) {
+  if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject>()) {
     result.reason = F("wifi is not an object");
     return result;
   }
@@ -184,7 +184,7 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject& object)
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject&>()) {
+  if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject>()) {
     result.reason = F("mqtt is not an object");
     return result;
   }
@@ -251,7 +251,7 @@ ConfigValidationResult Validation::_validateConfigOta(const JsonObject& object) 
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("ota") || !object["ota"].is<JsonObject&>()) {
+  if (!object.containsKey("ota") || !object["ota"].is<JsonObject>()) {
     result.reason = F("ota is not an object");
     return result;
   }
@@ -272,7 +272,7 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
 
   JsonObject* settingsObject = &(emptySettingsBuffer.createObject());
 
-  if (object.containsKey("settings") && object["settings"].is<JsonObject&>()) {
+  if (object.containsKey("settings") && object["settings"].is<JsonObject>()) {
     settingsObject = &(object["settings"].as<JsonObject&>());
   }
 
