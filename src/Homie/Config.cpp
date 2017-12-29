@@ -27,7 +27,7 @@ bool Config::load() {
   Interface::get().getLogger() << F("↻ Config file loading") << endl;
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
-  ValidationResultOBJ loadResult = _loadConfigFile(jsonBuffer);
+  ValidationResultOBJ loadResult = _loadConfigFile(&jsonBuffer);
   if (!loadResult.valid) {
     Interface::get().getLogger() << loadResult.reason << endl;
     loadResult.config->prettyPrintTo(Interface::get().getLogger());
@@ -164,7 +164,7 @@ bool Config::load() {
 
 char* Config::getSafeConfigFile() {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
-  ValidationResultOBJ configLoadResult = _loadConfigFile(jsonBuffer);
+  ValidationResultOBJ configLoadResult = _loadConfigFile(&jsonBuffer);
   if (!configLoadResult.valid) {
     return nullptr;
   }
@@ -223,7 +223,7 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
   }
 }
 
-ValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>& jsonBuffer, bool skipValidation) {
+ValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>* jsonBuffer, bool skipValidation) {
   ValidationResultOBJ result;
   result.valid = false;
 
@@ -252,7 +252,7 @@ ValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARD
     return result;
   }
 
-  JsonObject& config = jsonBuffer.parseObject(configFile);
+  JsonObject& config = jsonBuffer->parseObject(configFile);
 
   ValidationResult configValidationResult = validateConfig(config, skipValidation);
 
@@ -345,7 +345,7 @@ ValidationResult Config::patch(const char* patch) {
 
   // Validate current config
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> currentJsonBuffer;
-  ValidationResultOBJ configLoadResult = _loadConfigFile(currentJsonBuffer);
+  ValidationResultOBJ configLoadResult = _loadConfigFile(&currentJsonBuffer);
   if (!configLoadResult.valid) {
     result.reason = F("✖ Old Config file is not valid, reason: ");
     result.reason.concat(configLoadResult.reason);

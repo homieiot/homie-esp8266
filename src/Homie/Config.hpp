@@ -4,21 +4,21 @@
 
 #include <ArduinoJson.h>
 #include "FS.h"
-#include "Datatypes/Interface.hpp"
-#include "Datatypes/ConfigStruct.hpp"
-#include "Utils/DeviceId.hpp"
-#include "Utils/Validation.hpp"
-#include "Constants.hpp"
-#include "Limits.hpp"
+#include "./Datatypes/Interface.hpp"
+#include "./Datatypes/ConfigStruct.hpp"
+#include "./Utils/DeviceId.hpp"
+#include "./Utils/Validation.hpp"
+#include "./Constants.hpp"
+#include "./Limits.hpp"
 #include "../HomieBootMode.hpp"
 #include "../HomieSetting.hpp"
 #include "../StreamingOperator.hpp"
-#include "Strings.hpp"
-#include "./DataTypes/Result.hpp"
+#include "./Strings.hpp"
+#include "./Datatypes/Result.hpp"
 
 namespace HomieInternals {
 class Config {
-public:
+ public:
   Config();
   bool load();
   const ConfigStruct& get() const;
@@ -35,13 +35,13 @@ public:
 
   static ValidationResult validateConfig(const JsonObject& parsedJson, bool skipValidation = false);
 
-private:
+ private:
   ConfigStruct _configStruct;
   bool _spiffsBegan;
   bool _valid;
 
   bool _spiffsBegin();
-  ValidationResultOBJ _loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>& jsonBuffer, bool skipValidation = false);
+  ValidationResultOBJ _loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>* jsonBuffer, bool skipValidation = false);
 };
 
 }  // namespace HomieInternals
@@ -55,7 +55,7 @@ ValidationResult Config::saveSetting(const char* name, T value) {
   result.valid = false;
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> currentJsonBuffer;
-  ValidationResultOBJ configLoadResult = _loadConfigFile(currentJsonBuffer, true);
+  ValidationResultOBJ configLoadResult = _loadConfigFile(&currentJsonBuffer, true);
   if (!configLoadResult.valid) {
     result.reason = F("✖ Old Config file is not valid, reason: ");
     result.reason.concat(configLoadResult.reason);

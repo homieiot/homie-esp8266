@@ -12,4 +12,4 @@ struct ValidationResult {
 struct ValidationResultOBJ : ValidationResult {
   JsonObject* config;
 };
-}
+}// namespace HomieInternals

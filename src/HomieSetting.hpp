@@ -19,7 +19,7 @@ class IHomieSetting {
   friend HomieInternals::Validation;
   friend HomieInternals::BootConfig;
 
-public:
+ public:
   bool isRequired() const;
   const char* getName() const;
   const char* getDescription() const;
@@ -31,7 +31,7 @@ public:
 
   virtual const char* getType() const { return "unknown"; }
 
-protected:
+ protected:
   static std::vector<std::reference_wrapper<IHomieSetting>> settings;
 
   explicit IHomieSetting(const char* name, const char* description);
@@ -49,7 +49,7 @@ class HomieSetting : public HomieInternals::IHomieSetting {
   friend HomieInternals::Validation;
   friend HomieInternals::BootConfig;
 
-public:
+ public:
   HomieSetting(const char* name, const char* description);
   T get() const;
   bool set(T value, bool saveToConfig = false);
@@ -57,7 +57,7 @@ public:
   HomieSetting<T>& setDefaultValue(T defaultValue);
   HomieSetting<T>& setValidator(const std::function<bool(T candidate)>& validator);
 
-private:
+ private:
   T _value;
   std::function<bool(T candidate)> _validator;
 

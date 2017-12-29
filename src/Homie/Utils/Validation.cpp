@@ -302,7 +302,6 @@ ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
   };
 
   for (IHomieSetting& iSetting : IHomieSetting::settings) {
-
     Issue issue = Issue::None;
 
     if (iSetting.isBool()) {
