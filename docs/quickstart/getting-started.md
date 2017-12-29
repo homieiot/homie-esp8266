@@ -23,7 +23,7 @@ There is a YouTube video with instructions:
 
 Homie for ESP8266 has 5 dependencies:
 
-* [ArduinoJson](https://github.com/bblanchon/ArduinoJson) >= 5.0.8
+* [ArduinoJson](https://github.com/bblanchon/ArduinoJson) >= 5.10.0
 * [Bounce2](https://github.com/thomasfredericks/Bounce2)
 * [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) >= [c8ed544](https://github.com/me-no-dev/ESPAsyncTCP)
 * [AsyncMqttClient](https://github.com/marvinroger/async-mqtt-client)

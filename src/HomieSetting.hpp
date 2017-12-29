@@ -3,8 +3,9 @@
 #include <vector>
 #include <functional>
 #include "Arduino.h"
-
 #include "./Homie/Datatypes/Callbacks.hpp"
+#include "./Homie/Datatypes/Interface.hpp"
+#include "./Homie/Datatypes/Result.hpp"
 
 namespace HomieInternals {
 class HomieClass;
@@ -13,9 +14,12 @@ class Validation;
 class BootConfig;
 
 class IHomieSetting {
- public:
-  static std::vector<IHomieSetting*> settings;
+  friend HomieInternals::HomieClass;
+  friend HomieInternals::Config;
+  friend HomieInternals::Validation;
+  friend HomieInternals::BootConfig;
 
+public:
   bool isRequired() const;
   const char* getName() const;
   const char* getDescription() const;
@@ -27,7 +31,9 @@ class IHomieSetting {
 
   virtual const char* getType() const { return "unknown"; }
 
- protected:
+protected:
+  static std::vector<std::reference_wrapper<IHomieSetting>> settings;
+
   explicit IHomieSetting(const char* name, const char* description);
   const char* _name;
   const char* _description;
@@ -43,24 +49,25 @@ class HomieSetting : public HomieInternals::IHomieSetting {
   friend HomieInternals::Validation;
   friend HomieInternals::BootConfig;
 
- public:
+public:
   HomieSetting(const char* name, const char* description);
   T get() const;
+  bool set(T value, bool saveToConfig = false);
   bool wasProvided() const;
   HomieSetting<T>& setDefaultValue(T defaultValue);
   HomieSetting<T>& setValidator(const std::function<bool(T candidate)>& validator);
 
- private:
+private:
   T _value;
   std::function<bool(T candidate)> _validator;
 
-  bool validate(T candidate) const;
-  void set(T value);
+  bool _validate(T candidate) const;
+  void _set(T value);
 
-  bool isBool() const;
-  bool isLong() const;
-  bool isDouble() const;
-  bool isConstChar() const;
+  bool _isBool() const;
+  bool _isLong() const;
+  bool _isDouble() const;
+  bool _isConstChar() const;
 
-  const char* getType() const;
+  const char* _getType() const;
 };

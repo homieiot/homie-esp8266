@@ -36,3 +36,11 @@ For this example, if you want to provide the `percentage` setting, you will have
 See the following example for a concrete use case:
 
 [![GitHub logo](../assets/github.png) CustomSettings.ino](https://github.com/marvinroger/homie-esp8266/blob/develop/examples/CustomSettings/CustomSettings.ino)
+
+
+You can also change the value of the setting at any time via updates to the config file or via code using:
+```c++
+percentageSetting.set(50, true);
+```
+
+See the [API](http://marvinroger.github.io/homie-esp8266/docs/develop/others/cpp-api-reference/#homiesetting) for more information.

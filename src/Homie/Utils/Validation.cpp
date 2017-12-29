@@ -2,8 +2,8 @@
 
 using namespace HomieInternals;
 
-ConfigValidationResult Validation::validateConfig(const JsonObject& object) {
-  ConfigValidationResult result;
+ValidationResult Validation::validateConfig(const JsonObject& object) {
+  ValidationResult result;
   result = _validateConfigRoot(object);
   if (!result.valid) return result;
   result = _validateConfigWifi(object);
@@ -19,8 +19,8 @@ ConfigValidationResult Validation::validateConfig(const JsonObject& object) {
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigRoot(const JsonObject& object) {
-  ConfigValidationResult result;
+ValidationResult Validation::_validateConfigRoot(const JsonObject& object) {
+  ValidationResult result;
   result.valid = false;
   if (!object.containsKey("name") || !object["name"].is<const char*>()) {
     result.reason = F("name is not a string");
@@ -57,8 +57,8 @@ ConfigValidationResult Validation::_validateConfigRoot(const JsonObject& object)
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object) {
-  ConfigValidationResult result;
+ValidationResult Validation::_validateConfigWifi(const JsonObject& object) {
+  ValidationResult result;
   result.valid = false;
 
   if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject>()) {
@@ -180,8 +180,8 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
-  ConfigValidationResult result;
+ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
+  ValidationResult result;
   result.valid = false;
 
   if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject>()) {
@@ -247,8 +247,8 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject& object)
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigOta(const JsonObject& object) {
-  ConfigValidationResult result;
+ValidationResult Validation::_validateConfigOta(const JsonObject& object) {
+  ValidationResult result;
   result.valid = false;
 
   if (!object.containsKey("ota") || !object["ota"].is<JsonObject>()) {
@@ -264,110 +264,110 @@ ConfigValidationResult Validation::_validateConfigOta(const JsonObject& object) 
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
-  ConfigValidationResult result;
+ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
+  ValidationResult result;
   result.valid = false;
 
-  StaticJsonBuffer<0> emptySettingsBuffer;
-
-  JsonObject* settingsObject = &(emptySettingsBuffer.createObject());
-
-  if (object.containsKey("settings") && object["settings"].is<JsonObject>()) {
-    settingsObject = &(object["settings"].as<JsonObject&>());
+  if (!object.containsKey("settings")) {
+    result.valid = true;
+    return result;
   }
 
-  if (settingsObject->size() > MAX_CONFIG_SETTING_SIZE) {
+  if (!object["settings"].is<JsonObject>()) {
+    result.reason = F("settings is not an object");
+    return result;
+  }
+
+  JsonObject& settingsObject = object["settings"].as<JsonObject&>();
+
+  if (settingsObject.size() > MAX_CONFIG_SETTING_SIZE) {
     result.reason = F("settings contains more elements than the set limit");
     return result;
   }
 
   // Remove nulls in settings
-  for (JsonPair kv : *settingsObject) {
-    if (kv.value.asString() == nullptr) {
-      settingsObject->remove(kv.key);
+  for (JsonPair kv : settingsObject) {
+    bool hasValue = kv.value.is<bool>() || kv.value.is<int>() || kv.value.is<float>() || kv.value.as<const char*>() != nullptr;
+    if (!hasValue) {
+      Interface::get().getLogger() << F("Removed ") << kv.key << F(" from settings") << endl;
+      settingsObject.remove(kv.key);
     }
   }
 
-  for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    enum class Issue {
-      Type,
-      Validator,
-      Missing
-    };
-    auto setReason = [&result, &iSetting](Issue issue) {
+  enum class Issue {
+    None,
+    Type,
+    Validator,
+    Missing
+  };
+
+  for (IHomieSetting& iSetting : IHomieSetting::settings) {
+
+    Issue issue = Issue::None;
+
+    if (iSetting.isBool()) {
+      HomieSetting<bool>& setting = static_cast<HomieSetting<bool>&>(iSetting);
+
+      if (settingsObject.containsKey(setting.getName())) {
+        if (!settingsObject[setting.getName()].is<bool>()) {
+          issue = Issue::Type;
+        } else if (!setting._validate(settingsObject[setting.getName()].as<bool>())) {
+          issue = Issue::Validator;
+        }
+      } else if (setting.isRequired()) {
+        issue = Issue::Missing;
+      }
+    } else if (iSetting.isLong()) {
+      HomieSetting<long>& setting = static_cast<HomieSetting<long>&>(iSetting);
+
+      if (settingsObject.containsKey(setting.getName())) {
+        if (!settingsObject[setting.getName()].is<long>()) {
+          issue = Issue::Type;
+        } else if (!setting._validate(settingsObject[setting.getName()].as<long>())) {
+          issue = Issue::Validator;
+        }
+      } else if (setting.isRequired()) {
+        issue = Issue::Missing;
+      }
+    } else if (iSetting.isDouble()) {
+      HomieSetting<double>& setting = static_cast<HomieSetting<double>&>(iSetting);
+
+      if (settingsObject.containsKey(setting.getName())) {
+        if (!settingsObject[setting.getName()].is<double>()) {
+          issue = Issue::Type;
+        } else if (!setting._validate(settingsObject[setting.getName()].as<double>())) {
+          issue = Issue::Validator;
+        }
+      } else if (setting.isRequired()) {
+        issue = Issue::Missing;
+      }
+    } else if (iSetting.isConstChar()) {
+      HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
+
+      if (settingsObject.containsKey(setting.getName())) {
+        if (!settingsObject[setting.getName()].is<const char*>()) {
+          issue = Issue::Type;
+
+        } else if (!setting._validate(settingsObject[setting.getName()].as<const char*>())) {
+          issue = Issue::Validator;
+        }
+      } else if (setting.isRequired()) {
+        issue = Issue::Missing;
+      }
+    }
+    if (issue != Issue::None) {
       switch (issue) {
         case Issue::Type:
-          result.reason = String(iSetting->getName()) + F(" setting is not a ") + String(iSetting->getType());
+          result.reason = String(iSetting.getName()) + F(" setting is not a ") + String(iSetting.getType());
           break;
         case Issue::Validator:
-          result.reason = String(iSetting->getName()) + F(" setting does not pass the validator function");
+          result.reason = String(iSetting.getName()) + F(" setting does not pass the validator function");
           break;
         case Issue::Missing:
-          result.reason = String(iSetting->getName()) + F(" setting is missing");
+          result.reason = String(iSetting.getName()) + F(" setting is missing");
           break;
       }
-    };
-
-    if (iSetting->isBool()) {
-      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<bool>()) {
-          setReason(Issue::Type);
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<bool>())) {
-          setReason(Issue::Validator);
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        setReason(Issue::Missing);
-        return result;
-      }
-    } else if (iSetting->isLong()) {
-      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<long>()) {
-          setReason(Issue::Type);
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<long>())) {
-          setReason(Issue::Validator);
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        setReason(Issue::Missing);
-        return result;
-      }
-    } else if (iSetting->isDouble()) {
-      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<double>()) {
-          setReason(Issue::Type);
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<double>())) {
-          setReason(Issue::Validator);
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        setReason(Issue::Missing);
-        return result;
-      }
-    } else if (iSetting->isConstChar()) {
-      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<const char*>()) {
-          setReason(Issue::Type);
-          return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<const char*>())) {
-          setReason(Issue::Validator);
-          return result;
-        }
-      } else if (setting->isRequired()) {
-        setReason(Issue::Missing);
-        return result;
-      }
+      return result;
     }
   }
 

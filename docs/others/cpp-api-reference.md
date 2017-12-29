@@ -1,4 +1,5 @@
 # Homie
+## Main
 
 You don't have to instantiate an `Homie` instance, it is done internally.
 
@@ -20,7 +21,7 @@ Handle Homie work.
 !!! warning "Mandatory!"
     Must be called once in `loop()`.
 
-## Functions to call *before* `Homie.setup()`
+### Functions to call *before* `Homie.setup()`
 
 ```c++
 void Homie_setFirmware(const char* name, const char* version);
@@ -153,7 +154,7 @@ Homie& setStandalone();
 
 This will mark the Homie firmware as standalone, meaning it will first boot in `standalone` mode. To configure it and boot to `configuration` mode, the device has to be resetted.
 
-## Functions to call *after* `Homie.setup()`
+### Functions to call *after* `Homie.setup()`
 
 ```c++
 void reset();
@@ -179,7 +180,7 @@ Prepare the device for deep sleep. It ensures messages are sent and disconnects 
 void doDeepSleep(uint32_t time_us = 0, RFMode mode = RF_DEFAULT);
 ```
 
-Puth the device into deep sleep. It ensures the Serial is flushed.
+Puts the device into deep sleep. It ensures the Serial is flushed.
 
 ```c++
 bool isConfigured() const;
@@ -216,7 +217,7 @@ Get the underlying `Logger` object, which is only a wrapper around `Serial` by d
 
 -------
 
-# HomieNode
+## HomieNode
 
 ```c++
 HomieNode(const char* id, const char* type, std::function<bool(const String& property, const HomieRange& range, const String& value)> handler = );
@@ -282,7 +283,7 @@ uint16_t send(const String& value);  // finally send the property, return the pa
 
 Method names should be self-explanatory.
 
-# HomieSetting
+## HomieSetting
 
 ```c++
 HomieSetting<T>(const char* name, const char* description);
@@ -299,6 +300,12 @@ T get() const;
 ```
 
 Get the default value if the setting is optional and not provided, or the provided value if the setting is required or optional but provided.
+
+```c++
+bool set(T value, bool saveToConfig = false);
+```
+
+Sets the setting to a new value. Use `saveToConfig` to eaither save this new value to the config file or just use it in memory.
 
 ```c++
 bool wasProvided() const;

@@ -332,28 +332,28 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   }
 
   JsonArray& settings = json.createNestedArray("settings");
-  for (IHomieSetting* iSetting : IHomieSetting::settings) {
+  for (IHomieSetting& iSetting : IHomieSetting::settings) {
     JsonObject& jsonSetting = jsonBuffer.createObject();
 
-    if (iSetting->getType() != "unknown") {
-      jsonSetting["name"] = iSetting->getName();
-      jsonSetting["description"] = iSetting->getDescription();
-      jsonSetting["type"] = iSetting->getType();
-      jsonSetting["required"] = iSetting->isRequired();
+    if (iSetting.getType() != "unknown") {
+      jsonSetting["name"] = iSetting.getName();
+      jsonSetting["description"] = iSetting.getDescription();
+      jsonSetting["type"] = iSetting.getType();
+      jsonSetting["required"] = iSetting.isRequired();
 
-      if (!iSetting->isRequired()) {
-        if (iSetting->isBool()) {
-          HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
-          jsonSetting["default"] = setting->get();
-        } else if (iSetting->isLong()) {
-          HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-          jsonSetting["default"] = setting->get();
-        } else if (iSetting->isDouble()) {
-          HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-          jsonSetting["default"] = setting->get();
-        } else if (iSetting->isConstChar()) {
-          HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-          jsonSetting["default"] = setting->get();
+      if (!iSetting.isRequired()) {
+        if (iSetting.isBool()) {
+          HomieSetting<bool>& setting = static_cast<HomieSetting<bool>&>(iSetting);
+          jsonSetting["default"] = setting.get();
+        } else if (iSetting.isLong()) {
+          HomieSetting<long>& setting = static_cast<HomieSetting<long>&>(iSetting);
+          jsonSetting["default"] = setting.get();
+        } else if (iSetting.isDouble()) {
+          HomieSetting<double>& setting = static_cast<HomieSetting<double>&>(iSetting);
+          jsonSetting["default"] = setting.get();
+        } else if (iSetting.isConstChar()) {
+          HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
+          jsonSetting["default"] = setting.get();
         }
       }
     }
@@ -387,7 +387,7 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   const char* body = (const char*)(request->_tempObject);
   JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
 
-  ConfigValidationResult configWriteResult = Interface::get().getConfig().write(parsedJson);
+  ValidationResult configWriteResult = Interface::get().getConfig().write(parsedJson);
   if (!configWriteResult.valid) {
     Interface::get().getLogger() << F("✖ Error: ") << configWriteResult.reason << endl;
     __SendJSONError(request, configWriteResult.reason);

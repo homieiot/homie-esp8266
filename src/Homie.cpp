@@ -64,38 +64,38 @@ void HomieClass::setup() {
   }
 
   // Check if default settings values are valid
-  bool defaultSettingsValuesValid = true;
-  for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    if (iSetting->isBool()) {
-      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
-      if (!setting->isRequired() && !setting->validate(setting->get())) {
+
+
+  for (IHomieSetting& iSetting : IHomieSetting::settings) {
+    bool defaultSettingsValuesValid = true;
+    if (iSetting.isBool()) {
+      HomieSetting<bool>& setting = static_cast<HomieSetting<bool>&>(iSetting);
+      if (!setting.isRequired() && !setting._validate(setting.get())) {
         defaultSettingsValuesValid = false;
-        break;
       }
-    } else if (iSetting->isLong()) {
-      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-      if (!setting->isRequired() && !setting->validate(setting->get())) {
+    } else if (iSetting.isLong()) {
+      HomieSetting<long>& setting = static_cast<HomieSetting<long>&>(iSetting);
+      if (!setting.isRequired() && !setting._validate(setting.get())) {
         defaultSettingsValuesValid = false;
-        break;
       }
-    } else if (iSetting->isDouble()) {
-      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-      if (!setting->isRequired() && !setting->validate(setting->get())) {
+    } else if (iSetting.isDouble()) {
+      HomieSetting<double>& setting = static_cast<HomieSetting<double>&>(iSetting);
+      if (!setting.isRequired() && !setting._validate(setting.get())) {
         defaultSettingsValuesValid = false;
-        break;
       }
-    } else if (iSetting->isConstChar()) {
-      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-      if (!setting->isRequired() && !setting->validate(setting->get())) {
+    } else if (iSetting.isConstChar()) {
+      HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
+      if (!setting.isRequired() && !setting._validate(setting.get())) {
         defaultSettingsValuesValid = false;
-        break;
       }
     }
-  }
-
-  if (!defaultSettingsValuesValid) {
-    Helpers::abort(F("✖ Default setting value does not pass validator test"));
-    return;  // never reached, here for clarity
+    if (!defaultSettingsValuesValid) {
+      String error = F("✖ Default setting value does not pass validator test for ");
+      error.concat(iSetting.getName());
+      error.concat(F(" setting"));
+      Helpers::abort(error);
+      return;  // never reached, here for clarity
+    }
   }
 
   // boot mode set during this boot by application before Homie.setup()

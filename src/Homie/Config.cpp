@@ -26,8 +26,8 @@ bool Config::load() {
 
   Interface::get().getLogger() << F("↻ Config file loading") << endl;
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
-  ConfigValidationResultOBJ loadResult = _loadConfigFile(&jsonBuffer);
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
+  ValidationResultOBJ loadResult = _loadConfigFile(jsonBuffer);
   if (!loadResult.valid) {
     Interface::get().getLogger() << loadResult.reason << endl;
     loadResult.config->prettyPrintTo(Interface::get().getLogger());
@@ -130,30 +130,30 @@ bool Config::load() {
 
   JsonObject& settingsObject = parsedJson["settings"].as<JsonObject&>();
 
-  for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    if (iSetting->isBool()) {
-      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+  for (IHomieSetting& iSetting : IHomieSetting::settings) {
+    if (iSetting.isBool()) {
+      HomieSetting<bool>& setting = static_cast<HomieSetting<bool>&>(iSetting);
 
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<bool>());
+      if (settingsObject.containsKey(setting.getName())) {
+        setting._set(settingsObject[setting.getName()].as<bool>());
       }
-    } else if (iSetting->isLong()) {
-      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+    } else if (iSetting.isLong()) {
+      HomieSetting<long>& setting = static_cast<HomieSetting<long>&>(iSetting);
 
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<long>());
+      if (settingsObject.containsKey(setting.getName())) {
+        setting._set(settingsObject[setting.getName()].as<long>());
       }
-    } else if (iSetting->isDouble()) {
-      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+    } else if (iSetting.isDouble()) {
+      HomieSetting<double>& setting = static_cast<HomieSetting<double>&>(iSetting);
 
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<double>());
+      if (settingsObject.containsKey(setting.getName())) {
+        setting._set(settingsObject[setting.getName()].as<double>());
       }
-    } else if (iSetting->isConstChar()) {
-      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+    } else if (iSetting.isConstChar()) {
+      HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
 
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(strdup(settingsObject[setting->getName()].as<const char*>()));
+      if (settingsObject.containsKey(setting.getName())) {
+        setting._set(strdup(settingsObject[setting.getName()].as<const char*>()));
       }
     }
   }
@@ -163,13 +163,13 @@ bool Config::load() {
 }
 
 char* Config::getSafeConfigFile() {
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
-  ConfigValidationResultOBJ configLoadResult = _loadConfigFile(&jsonBuffer);
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
+  ValidationResultOBJ configLoadResult = _loadConfigFile(jsonBuffer);
   if (!configLoadResult.valid) {
     return nullptr;
   }
   JsonObject& configObject = *configLoadResult.config;
-  ConfigValidationResult configValidResult = validateConfig(configObject);
+  ValidationResult configValidResult = validateConfig(configObject);
   if (!configValidResult.valid) {
     return nullptr;
   }
@@ -223,8 +223,8 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
   }
 }
 
-ConfigValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE>* jsonBuffer, bool skipValidation) {
-  ConfigValidationResultOBJ result;
+ValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>& jsonBuffer, bool skipValidation) {
+  ValidationResultOBJ result;
   result.valid = false;
 
   if (!_spiffsBegin()) {
@@ -252,9 +252,9 @@ ConfigValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONF
     return result;
   }
 
-  JsonObject& config = jsonBuffer->parseObject(configFile);
+  JsonObject& config = jsonBuffer.parseObject(configFile);
 
-  ConfigValidationResult configValidationResult = validateConfig(config, skipValidation);
+  ValidationResult configValidationResult = validateConfig(config, skipValidation);
 
   if (!configValidationResult.valid) {
     result.reason = configValidationResult.reason;
@@ -267,8 +267,8 @@ ConfigValidationResultOBJ Config::_loadConfigFile(StaticJsonBuffer<MAX_JSON_CONF
   return result;
 }
 
-ConfigValidationResult Config::validateConfig(const JsonObject& parsedJson, bool skipValidation) {
-  ConfigValidationResult result;
+ValidationResult Config::validateConfig(const JsonObject& parsedJson, bool skipValidation) {
+  ValidationResult result;
   result.valid = false;
 
   if (!parsedJson.success()) {
@@ -277,7 +277,7 @@ ConfigValidationResult Config::validateConfig(const JsonObject& parsedJson, bool
   }
 
   if (!skipValidation) {
-    ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
+    ValidationResult configValidationResult = Validation::validateConfig(parsedJson);
     if (!configValidationResult.valid) {
       result.reason = F("✖ Config file is not valid, reason: ");
       result.reason.concat(configValidationResult.reason);
@@ -289,11 +289,11 @@ ConfigValidationResult Config::validateConfig(const JsonObject& parsedJson, bool
   return result;
 }
 
-ConfigValidationResult Config::write(const JsonObject& newConfig) {
-  ConfigValidationResult result;
+ValidationResult Config::write(const JsonObject& newConfig) {
+  ValidationResult result;
   result.valid = false;
 
-  ConfigValidationResult validResult = validateConfig(newConfig);
+  ValidationResult validResult = validateConfig(newConfig);
   if (!validResult.valid) {
     result.reason = validResult.reason;
     return result;
@@ -328,31 +328,27 @@ ConfigValidationResult Config::write(const JsonObject& newConfig) {
   return result;
 }
 
-ConfigValidationResult Config::patch(const char* patch) {
-  ConfigValidationResult result;
+ValidationResult Config::patch(const char* patch) {
+  ValidationResult result;
   result.valid = false;
 
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonBuffer;
   JsonObject& patchObject = patchJsonBuffer.parseObject(patch);
 
   // Validate Patch config
-  ConfigValidationResult patchValidResult = validateConfig(patchObject, true);
+  ValidationResult patchValidResult = validateConfig(patchObject, true);
   if (!patchValidResult.valid) {
-    String error = F("✖ Patch Config file is not valid, reason: ");
-    error.concat(patchValidResult.reason);
-    Interface::get().getLogger() << error << endl;
-    result.reason = error;
+    result.reason = F("✖ Patch Config file is not valid, reason: ");
+    result.reason.concat(patchValidResult.reason);
     return result;
   }
 
   // Validate current config
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> currentJsonBuffer;
-  ConfigValidationResultOBJ configLoadResult = _loadConfigFile(&currentJsonBuffer);
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> currentJsonBuffer;
+  ValidationResultOBJ configLoadResult = _loadConfigFile(currentJsonBuffer);
   if (!configLoadResult.valid) {
-    String error = F("✖ Old Config file is not valid, reason: ");
-    error.concat(patchValidResult.reason);
-    Interface::get().getLogger() << error << endl;
-    result.reason = error;
+    result.reason = F("✖ Old Config file is not valid, reason: ");
+    result.reason.concat(configLoadResult.reason);
     return result;
   }
   JsonObject& configObject = *configLoadResult.config;
@@ -380,12 +376,10 @@ ConfigValidationResult Config::patch(const char* patch) {
     }
   }
 
-  ConfigValidationResult configWriteResult = write(configObject);
+  ValidationResult configWriteResult = write(configObject);
   if (!configWriteResult.valid) {
-    String error = F("✖ New Config file is not valid, reason: ");
-    error.concat(configWriteResult.reason);
-    Interface::get().getLogger() << error << endl;
-    result.reason = error;
+    result.reason = F("✖ New Config file is not valid, reason: ");
+    result.reason.concat(configWriteResult.reason);
     return result;
   }
 
@@ -427,21 +421,21 @@ void Config::log() const {
 
   if (IHomieSetting::settings.size() > 0) {
     Interface::get().getLogger() << F("  • Custom settings: ") << endl;
-    for (IHomieSetting* iSetting : IHomieSetting::settings) {
+    for (IHomieSetting& iSetting : IHomieSetting::settings) {
       Interface::get().getLogger() << F("    ◦ ");
 
-      if (iSetting->isBool()) {
-        HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
-        Interface::get().getLogger() << setting->getName() << F(": ") << setting->get() << F(" (") << (setting->wasProvided() ? F("set") : F("default")) << F(")");
-      } else if (iSetting->isLong()) {
-        HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-        Interface::get().getLogger() << setting->getName() << F(": ") << setting->get() << F(" (") << (setting->wasProvided() ? F("set") : F("default")) << F(")");
-      } else if (iSetting->isDouble()) {
-        HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-        Interface::get().getLogger() << setting->getName() << F(": ") << setting->get() << F(" (") << (setting->wasProvided() ? F("set") : F("default")) << F(")");
-      } else if (iSetting->isConstChar()) {
-        HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-        Interface::get().getLogger() << setting->getName() << F(": ") << setting->get() << F(" (") << (setting->wasProvided() ? F("set") : F("default")) << F(")");
+      if (iSetting.isBool()) {
+        HomieSetting<bool>& setting = static_cast<HomieSetting<bool>&>(iSetting);
+        Interface::get().getLogger() << setting.getName() << F(": ") << setting.get() << F(" (") << (setting.wasProvided() ? F("set") : F("default")) << F(")");
+      } else if (iSetting.isLong()) {
+        HomieSetting<long>& setting = static_cast<HomieSetting<long>&>(iSetting);
+        Interface::get().getLogger() << setting.getName() << F(": ") << setting.get() << F(" (") << (setting.wasProvided() ? F("set") : F("default")) << F(")");
+      } else if (iSetting.isDouble()) {
+        HomieSetting<double>& setting = static_cast<HomieSetting<double>&>(iSetting);
+        Interface::get().getLogger() << setting.getName() << F(": ") << setting.get() << F(" (") << (setting.wasProvided() ? F("set") : F("default")) << F(")");
+      } else if (iSetting.isConstChar()) {
+        HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
+        Interface::get().getLogger() << setting.getName() << F(": ") << setting.get() << F(" (") << (setting.wasProvided() ? F("set") : F("default")) << F(")");
       }
 
       Interface::get().getLogger() << endl;

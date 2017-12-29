@@ -812,7 +812,7 @@ bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, co
     && strcmp_P(_mqttTopicLevels.get()[3], PSTR("set")) == 0
     ) {
     Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config/set")), 1, true, "");
-    ConfigValidationResult configPatchResult = Interface::get().getConfig().patch(_mqttPayloadBuffer.get());
+    ValidationResult configPatchResult = Interface::get().getConfig().patch(_mqttPayloadBuffer.get());
     if (configPatchResult.valid) {
       Interface::get().getLogger() << F("✔ Configuration updated") << endl;
       _flaggedForReboot = true;
