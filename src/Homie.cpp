@@ -333,6 +333,10 @@ Logger& HomieClass::getLogger() {
   return _logger;
 }
 
+String HomieInternals::HomieClass::getDeviceID() {
+  return String(Interface::get().getConfig().get().deviceId);
+}
+
 void HomieClass::prepareToSleep() {
   Interface::get().getLogger() << F("Flagged for sleep by sketch") << endl;
   if (Interface::get().ready) {

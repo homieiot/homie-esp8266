@@ -64,6 +64,7 @@ class HomieClass {
   static const ConfigStruct& getConfiguration();
   AsyncMqttClient& getMqttClient();
   Logger& getLogger();
+  static String getDeviceID();
   static void prepareToSleep();
   static void doDeepSleep(uint32_t time_us = 0, RFMode mode = RF_DEFAULT);
 

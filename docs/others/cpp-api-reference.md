@@ -215,6 +215,12 @@ Logger& getLogger();
 
 Get the underlying `Logger` object, which is only a wrapper around `Serial` by default.
 
+```c++
+String getDeviceID();
+```
+
+Get the Device ID, which homie is using. Could be the config `device_id` or the inertnal device `mac`.
+
 -------
 
 ## HomieNode
