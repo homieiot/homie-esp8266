@@ -47,6 +47,16 @@ Set the brand of the device, used in the configuration AP, the device hostname a
 * **`name`**: Name of the brand. Default value is `Homie`
 
 ```c++
+bool loadSettings();
+```
+
+Validates settings and loads the config file setting values. Returns true if the config file load was successful and false if it failed.
+
+**Note**, if config file load faild then only default values will be present.
+
+**Note**, since this method loads the config file, you can also use `getConfiguration()` before `setup()`.
+
+```c++
 Homie& disableLogging();
 ```
 

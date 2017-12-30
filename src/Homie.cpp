@@ -5,6 +5,7 @@ using namespace HomieInternals;
 HomieClass::HomieClass()
   : _setupCalled(false)
   , _firmwareSet(false)
+  , _loadedSettings(false)
   , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_STRING_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
@@ -51,52 +52,14 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) cons
 void HomieClass::setup() {
   _setupCalled = true;
 
-  // Check if firmware is set
+  // check if firmware is set
   if (!_firmwareSet) {
     Helpers::abort(F("✖ Firmware name must be set before calling setup()"));
     return;  // never reached, here for clarity
   }
 
-  // Check the max allowed setting elements
-  if (IHomieSetting::settings.size() > MAX_CONFIG_SETTING_SIZE) {
-    Helpers::abort(F("✖ Settings exceed set limit of elelement."));
-    return;  // never reached, here for clarity
-  }
-
-  // Check if default settings values are valid
-
-
-  for (IHomieSetting& iSetting : IHomieSetting::settings) {
-    bool defaultSettingsValuesValid = true;
-    if (iSetting.isBool()) {
-      HomieSetting<bool>& setting = static_cast<HomieSetting<bool>&>(iSetting);
-      if (!setting.isRequired() && !setting._validate(setting.get())) {
-        defaultSettingsValuesValid = false;
-      }
-    } else if (iSetting.isLong()) {
-      HomieSetting<long>& setting = static_cast<HomieSetting<long>&>(iSetting);
-      if (!setting.isRequired() && !setting._validate(setting.get())) {
-        defaultSettingsValuesValid = false;
-      }
-    } else if (iSetting.isDouble()) {
-      HomieSetting<double>& setting = static_cast<HomieSetting<double>&>(iSetting);
-      if (!setting.isRequired() && !setting._validate(setting.get())) {
-        defaultSettingsValuesValid = false;
-      }
-    } else if (iSetting.isConstChar()) {
-      HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
-      if (!setting.isRequired() && !setting._validate(setting.get())) {
-        defaultSettingsValuesValid = false;
-      }
-    }
-    if (!defaultSettingsValuesValid) {
-      String error = F("✖ Default setting value does not pass validator test for ");
-      error.concat(iSetting.getName());
-      error.concat(F(" setting"));
-      Helpers::abort(error);
-      return;  // never reached, here for clarity
-    }
-  }
+  // load settings & load config
+  if (!_loadedSettings) loadSettings();
 
   // boot mode set during this boot by application before Homie.setup()
   HomieBootMode _applicationHomieBootMode = Interface::get().bootMode;
@@ -119,7 +82,7 @@ void HomieClass::setup() {
   }
 
   // validate selected mode and fallback as needed
-  if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load()) {
+  if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().isValid()) {
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
     _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
   }
@@ -158,6 +121,52 @@ void HomieClass::loop() {
     Serial.flush();
     ESP.restart();
   }
+}
+
+bool HomieInternals::HomieClass::loadSettings() {
+  // Check the max allowed setting elements
+  if (IHomieSetting::settings.size() > MAX_CONFIG_SETTING_SIZE) {
+    Helpers::abort(F("✖ Settings exceed set limit of elelement."));
+    return false;  // never reached, here for clarity
+  }
+
+  // Check if default settings values are valid
+  for (IHomieSetting& iSetting : IHomieSetting::settings) {
+    bool defaultSettingsValuesValid = true;
+    if (iSetting.isBool()) {
+      HomieSetting<bool>& setting = static_cast<HomieSetting<bool>&>(iSetting);
+      if (!setting.isRequired() && !setting._validate(setting.get())) {
+        defaultSettingsValuesValid = false;
+      }
+    } else if (iSetting.isLong()) {
+      HomieSetting<long>& setting = static_cast<HomieSetting<long>&>(iSetting);
+      if (!setting.isRequired() && !setting._validate(setting.get())) {
+        defaultSettingsValuesValid = false;
+      }
+    } else if (iSetting.isDouble()) {
+      HomieSetting<double>& setting = static_cast<HomieSetting<double>&>(iSetting);
+      if (!setting.isRequired() && !setting._validate(setting.get())) {
+        defaultSettingsValuesValid = false;
+      }
+    } else if (iSetting.isConstChar()) {
+      HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
+      if (!setting.isRequired() && !setting._validate(setting.get())) {
+        defaultSettingsValuesValid = false;
+      }
+    }
+    if (!defaultSettingsValuesValid) {
+      String error = F("✖ Default setting value does not pass validator test for ");
+      error.concat(iSetting.getName());
+      error.concat(F(" setting"));
+      Helpers::abort(error);
+      return false;  // never reached, here for clarity
+    }
+  }
+
+  _loadedSettings = true;
+
+  // load the config to get the config for settings;
+  return Interface::get().getConfig().load();
 }
 
 HomieClass& HomieClass::disableLogging() {

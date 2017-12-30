@@ -298,7 +298,7 @@ ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
     None,
     Type,
     Validator,
-    Missing
+    Required
   };
 
   for (IHomieSetting& iSetting : IHomieSetting::settings) {
@@ -314,7 +314,7 @@ ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
           issue = Issue::Validator;
         }
       } else if (setting.isRequired()) {
-        issue = Issue::Missing;
+        issue = Issue::Required;
       }
     } else if (iSetting.isLong()) {
       HomieSetting<long>& setting = static_cast<HomieSetting<long>&>(iSetting);
@@ -326,7 +326,7 @@ ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
           issue = Issue::Validator;
         }
       } else if (setting.isRequired()) {
-        issue = Issue::Missing;
+        issue = Issue::Required;
       }
     } else if (iSetting.isDouble()) {
       HomieSetting<double>& setting = static_cast<HomieSetting<double>&>(iSetting);
@@ -338,7 +338,7 @@ ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
           issue = Issue::Validator;
         }
       } else if (setting.isRequired()) {
-        issue = Issue::Missing;
+        issue = Issue::Required;
       }
     } else if (iSetting.isConstChar()) {
       HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
@@ -351,7 +351,7 @@ ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
           issue = Issue::Validator;
         }
       } else if (setting.isRequired()) {
-        issue = Issue::Missing;
+        issue = Issue::Required;
       }
     }
     if (issue != Issue::None) {
@@ -362,8 +362,8 @@ ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
         case Issue::Validator:
           result.reason = String(iSetting.getName()) + F(" setting does not pass the validator function");
           break;
-        case Issue::Missing:
-          result.reason = String(iSetting.getName()) + F(" setting is missing");
+        case Issue::Required:
+          result.reason = String(iSetting.getName()) + F(" setting is missing. Required!");
           break;
       }
       return result;

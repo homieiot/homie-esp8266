@@ -29,8 +29,8 @@ bool Config::load() {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
   ValidationResultOBJ loadResult = _loadConfigFile(&jsonBuffer);
   if (!loadResult.valid) {
+    Interface::get().getLogger() << F("✖ Config file Faild to load") << endl;
     Interface::get().getLogger() << loadResult.reason << endl;
-    loadResult.config->prettyPrintTo(Interface::get().getLogger());
     return false;
   }
   JsonObject& parsedJson = *loadResult.config;
@@ -436,6 +436,8 @@ void Config::log() const {
       } else if (iSetting.isConstChar()) {
         HomieSetting<const char*>& setting = static_cast<HomieSetting<const char*>&>(iSetting);
         Interface::get().getLogger() << setting.getName() << F(": ") << setting.get() << F(" (") << (setting.wasProvided() ? F("set") : F("default")) << F(")");
+      } else {
+        Interface::get().getLogger() << iSetting.getName() << F(": unknown type: ") << iSetting.getType();
       }
 
       Interface::get().getLogger() << endl;

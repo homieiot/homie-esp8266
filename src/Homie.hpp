@@ -38,6 +38,8 @@ class HomieClass {
   void setup();
   void loop();
 
+  bool loadSettings();
+
   void __setFirmware(const char* name, const char* version);
   void __setBrand(const char* brand) const;
 
@@ -71,6 +73,7 @@ class HomieClass {
  private:
   bool _setupCalled;
   bool _firmwareSet;
+  bool _loadedSettings;
   Boot* _boot;
   BootStandalone _bootStandalone;
   BootNormal _bootNormal;
