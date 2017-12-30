@@ -200,6 +200,23 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
     result.reason = F("mqtt.port is not an integer");
     return result;
   }
+  if (object["mqtt"].as<JsonObject&>().containsKey("ssl")) {
+    if (!object["mqtt"]["ssl"].is<bool>()) {
+      result.reason = F("mqtt.ssl is not a bool");
+      return result;
+    }
+  }
+  if (object["mqtt"].as<JsonObject&>().containsKey("ssl_fingerprint")) {
+    if (!object["mqtt"]["ssl_fingerprint"].is<const char*>()) {
+      result.reason = F("mqtt.ssl_fingerprint is not a string");
+      return result;
+    }
+
+    if (strlen(object["mqtt"]["ssl_fingerprint"]) > MAX_FINGERPRINT_SIZE * 2) {
+      result.reason = F("mqtt.ssl_fingerprint is too long");
+      return result;
+    }
+  }
   if (object["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
     if (!object["mqtt"]["base_topic"].is<const char*>()) {
       result.reason = F("mqtt.base_topic is not a string");

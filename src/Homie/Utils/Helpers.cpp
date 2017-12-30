@@ -83,10 +83,25 @@ void Helpers::ipToString(const IPAddress& ip, char * str) {
   snprintf(str, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 }
 
-void HomieInternals::Helpers::macToString(const uint8_t mac[MAX_MAC_LENGTH], char * str) {
+void Helpers::macToString(const uint8_t mac[MAX_MAC_LENGTH], char * str) {
   snprintf(str, MAX_MAC_STRING_LENGTH, "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
-void HomieInternals::Helpers::macToFormattedString(const uint8_t mac[MAX_MAC_LENGTH], char * str) {
+void Helpers::macToFormattedString(const uint8_t mac[MAX_MAC_LENGTH], char * str) {
   snprintf(str, MAX_MAC_FORMATTED_STRING_LENGTH, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+
+void Helpers::hexStringToByteArray(const char* hexStr, uint8_t* hexArray, uint8_t size) {
+  for (uint8_t i = 0; i < size; i++) {
+    char hex[3];
+    strncpy(hex, (hexStr + (i * 2)), 2);
+    hex[2] = '\0';
+    hexArray[i] = (uint8_t)strtol((const char*)&hex, nullptr, 16);
+  }
+}
+
+void Helpers::byteArrayToHexString(const uint8_t * hexArray, char* hexStr, uint8_t size) {
+  for (uint8_t i = 0; i < size; i++) {
+    snprintf((hexStr + (i * 2)), 3, "%02x", hexArray[i]);
+  }
 }
