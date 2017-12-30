@@ -109,6 +109,14 @@ bool Config::load() {
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
   }
+  bool reqMqttSsl = false;
+  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("ssl")) {
+    reqMqttSsl = parsedJson["mqtt"]["ssl"];
+  }
+  const char* reqMqttFingerprint = "";
+  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("ssl_fingerprint")) {
+    reqMqttFingerprint = parsedJson["mqtt"]["ssl_fingerprint"];
+  }
   const char* reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
     reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
@@ -144,6 +152,11 @@ bool Config::load() {
   strlcpy(_configStruct.wifi.dns1, reqWifiDns1, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.wifi.dns2, reqWifiDns2, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.mqtt.server.host, reqMqttHost, MAX_HOSTNAME_LENGTH);
+  _configStruct.mqtt.server.ssl.enabled = reqMqttSsl;
+  if (strcmp_P(reqMqttFingerprint, PSTR("")) != 0) {
+    _configStruct.mqtt.server.ssl.hasFingerprint = true;
+    Helpers::hexStringToByteArray(reqMqttFingerprint, _configStruct.mqtt.server.ssl.fingerprint, MAX_FINGERPRINT_SIZE);
+  }
   _configStruct.mqtt.server.port = reqMqttPort;
   strlcpy(_configStruct.mqtt.baseTopic, reqMqttBaseTopic, MAX_MQTT_BASE_TOPIC_LENGTH);
   _configStruct.mqtt.auth = reqMqttAuth;
@@ -343,6 +356,12 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • MQTT: ") << endl;
   Interface::get().getLogger() << F("    ◦ Host: ") << _configStruct.mqtt.server.host << endl;
   Interface::get().getLogger() << F("    ◦ Port: ") << _configStruct.mqtt.server.port << endl;
+  Interface::get().getLogger() << F("    ◦ SSL enabled: ") << (_configStruct.mqtt.server.ssl.enabled ? "true" : "false") << endl;
+  if (_configStruct.mqtt.server.ssl.enabled && _configStruct.mqtt.server.ssl.hasFingerprint) {
+    char hexBuf[MAX_FINGERPRINT_SIZE * 2 + 1];
+    Helpers::byteArrayToHexString(Interface::get().getConfig().get().mqtt.server.ssl.fingerprint, hexBuf, MAX_FINGERPRINT_SIZE);
+    Interface::get().getLogger() << F("    ◦ Fingerprint: ") << hexBuf << endl;
+  }
   Interface::get().getLogger() << F("    ◦ Base topic: ") << _configStruct.mqtt.baseTopic << endl;
   Interface::get().getLogger() << F("    ◦ Auth? ") << (_configStruct.mqtt.auth ? F("yes") : F("no")) << endl;
   if (_configStruct.mqtt.auth) {
