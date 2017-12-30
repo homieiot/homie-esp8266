@@ -57,17 +57,17 @@ class HomieSetting : public HomieInternals::IHomieSetting {
   HomieSetting<T>& setDefaultValue(T defaultValue);
   HomieSetting<T>& setValidator(const std::function<bool(T candidate)>& validator);
 
+  bool isBool() const;
+  bool isLong() const;
+  bool isDouble() const;
+  bool isConstChar() const;
+
+  const char* getType() const;
+
  private:
   T _value;
   std::function<bool(T candidate)> _validator;
 
   bool _validate(T candidate) const;
   void _set(T value);
-
-  bool _isBool() const;
-  bool _isLong() const;
-  bool _isDouble() const;
-  bool _isConstChar() const;
-
-  const char* _getType() const;
 };

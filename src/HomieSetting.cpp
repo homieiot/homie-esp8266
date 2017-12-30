@@ -86,36 +86,36 @@ void HomieSetting<T>::_set(T value) {
 }
 
 template <class T>
-bool HomieSetting<T>::_isBool() const { return false; }
+bool HomieSetting<T>::isBool() const { return false; }
 
 template <class T>
-bool HomieSetting<T>::_isLong() const { return false; }
+bool HomieSetting<T>::isLong() const { return false; }
 
 template <class T>
-bool HomieSetting<T>::_isDouble() const { return false; }
+bool HomieSetting<T>::isDouble() const { return false; }
 
 template <class T>
-bool HomieSetting<T>::_isConstChar() const { return false; }
+bool HomieSetting<T>::isConstChar() const { return false; }
 
 template<>
-bool HomieSetting<bool>::_isBool() const { return true; }
+bool HomieSetting<bool>::isBool() const { return true; }
 template<>
-const char* HomieSetting<bool>::_getType() const { return "bool"; }
+const char* HomieSetting<bool>::getType() const { return "bool"; }
 
 template<>
-bool HomieSetting<long>::_isLong() const { return true; }
+bool HomieSetting<long>::isLong() const { return true; }
 template<>
-const char* HomieSetting<long>::_getType() const { return "long"; }
+const char* HomieSetting<long>::getType() const { return "long"; }
 
 template<>
-bool HomieSetting<double>::_isDouble() const { return true; }
+bool HomieSetting<double>::isDouble() const { return true; }
 template<>
-const char* HomieSetting<double>::_getType() const { return "double"; }
+const char* HomieSetting<double>::getType() const { return "double"; }
 
 template<>
-bool HomieSetting<const char*>::_isConstChar() const { return true; }
+bool HomieSetting<const char*>::isConstChar() const { return true; }
 template<>
-const char* HomieSetting<const char*>::_getType() const { return "string"; }
+const char* HomieSetting<const char*>::getType() const { return "string"; }
 
 // Needed because otherwise undefined reference to
 template class HomieSetting<bool>;
