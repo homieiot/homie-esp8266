@@ -29,7 +29,7 @@ bool Config::load() {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
   ValidationResultOBJ loadResult = _loadConfigFile(&jsonBuffer);
   if (!loadResult.valid) {
-    Interface::get().getLogger() << F("✖ Config file Faild to load") << endl;
+    Interface::get().getLogger() << F("✖ Config file faild to load") << endl;
     Interface::get().getLogger() << loadResult.reason << endl;
     return false;
   }
@@ -339,6 +339,8 @@ ValidationResult Config::write(const JsonObject& newConfig) {
   newConfig.printTo(configFile);
   configFile.close();
 
+  Interface::get().getLogger() << F("💾 Saved config file.") << endl;
+
   result.valid = true;
   return result;
 }
@@ -408,7 +410,7 @@ bool Config::isValid() const {
 
 void Config::log() const {
   Interface::get().getLogger() << F("{} Stored configuration") << endl;
-  Interface::get().getLogger() << F("  • Hardware device ID: ") << DeviceId::get() << endl;
+  Interface::get().getLogger() << F("  • Hardware Device ID: ") << DeviceId::get() << endl;
   Interface::get().getLogger() << F("  • Device ID: ") << _configStruct.deviceId << endl;
   Interface::get().getLogger() << F("  • Name: ") << _configStruct.name << endl;
   Interface::get().getLogger() << F("  • Device Stats Interval: ") << _configStruct.deviceStatsInterval << F(" sec") << endl;
@@ -425,14 +427,14 @@ void Config::log() const {
   Interface::get().getLogger() << F("    ◦ Host: ") << _configStruct.mqtt.server.host << endl;
   Interface::get().getLogger() << F("    ◦ Port: ") << _configStruct.mqtt.server.port << endl;
 #if ASYNC_TCP_SSL_ENABLED
-  Interface::get().getLogger() << F("    ◦ SSL enabled: ") << (_configStruct.mqtt.server.ssl.enabled ? "true" : "false") << endl;
+  Interface::get().getLogger() << F("    ◦ SSL Enabled?: ") << (_configStruct.mqtt.server.ssl.enabled ? F("yes") : F("no")) << endl;
   if (_configStruct.mqtt.server.ssl.enabled && _configStruct.mqtt.server.ssl.hasFingerprint) {
     char hexBuf[MAX_FINGERPRINT_STRING_LENGTH];
     Helpers::byteArrayToHexString(Interface::get().getConfig().get().mqtt.server.ssl.fingerprint, hexBuf, MAX_FINGERPRINT_SIZE);
     Interface::get().getLogger() << F("    ◦ Fingerprint: ") << hexBuf << endl;
   }
 #endif
-  Interface::get().getLogger() << F("    ◦ Base topic: ") << _configStruct.mqtt.baseTopic << endl;
+  Interface::get().getLogger() << F("    ◦ Base Topic: ") << _configStruct.mqtt.baseTopic << endl;
   Interface::get().getLogger() << F("    ◦ Auth? ") << (_configStruct.mqtt.auth ? F("yes") : F("no")) << endl;
   if (_configStruct.mqtt.auth) {
     Interface::get().getLogger() << F("    ◦ Username: ") << _configStruct.mqtt.username << endl;
@@ -443,7 +445,7 @@ void Config::log() const {
   Interface::get().getLogger() << F("    ◦ Enabled? ") << (_configStruct.ota.enabled ? F("yes") : F("no")) << endl;
 
   if (IHomieSetting::settings.size() > 0) {
-    Interface::get().getLogger() << F("  • Custom settings: ") << endl;
+    Interface::get().getLogger() << F("  • Custom Settings: ") << endl;
     for (IHomieSetting& iSetting : IHomieSetting::settings) {
       Interface::get().getLogger() << F("    ◦ ");
 

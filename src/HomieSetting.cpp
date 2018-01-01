@@ -57,7 +57,7 @@ bool HomieSetting<T>::set(T value, bool saveToConfig) {
       return false;
     }
   }
-  Interface::get().getLogger() << F("✔ Saved ") << _name << F(" setting to config file.") << endl;
+  Interface::get().getLogger() << F("💾 Saved ") << _name << F(" setting to config file.") << endl;
   return true;
 }
 

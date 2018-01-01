@@ -64,13 +64,15 @@ void BootNormal::setup() {
   Interface::get().getMqttClient().setServer(Interface::get().getConfig().get().mqtt.server.host, Interface::get().getConfig().get().mqtt.server.port);
 
 #if ASYNC_TCP_SSL_ENABLED
-  Interface::get().getLogger() << "SSL is: " << Interface::get().getConfig().get().mqtt.server.ssl.enabled << endl;
-  Interface::get().getMqttClient().setSecure(Interface::get().getConfig().get().mqtt.server.ssl.enabled);
-  if (Interface::get().getConfig().get().mqtt.server.ssl.enabled && Interface::get().getConfig().get().mqtt.server.ssl.hasFingerprint) {
+  bool ssl = Interface::get().getConfig().get().mqtt.server.ssl.enabled;
+  Interface::get().getLogger() << (ssl ? F("🔒 ") : F("🔓 ")) << F("SSL is: ") << (ssl ? F("enabled") : F("disabled")) << endl;
+  Interface::get().getMqttClient().setSecure(ssl);
+  if (ssl && Interface::get().getConfig().get().mqtt.server.ssl.hasFingerprint) {
     char hexBuf[MAX_FINGERPRINT_STRING_LENGTH];
-    Helpers::byteArrayToHexString(Interface::get().getConfig().get().mqtt.server.ssl.fingerprint, hexBuf, MAX_FINGERPRINT_SIZE);
-    Interface::get().getLogger() << "Using fingerprint: " << hexBuf << endl;
-    Interface::get().getMqttClient().addServerFingerprint((const uint8_t*)Interface::get().getConfig().get().mqtt.server.ssl.fingerprint);
+    const uint8_t* fingerprint = (const uint8_t*)&Interface::get().getConfig().get().mqtt.server.ssl.fingerprint;
+    Helpers::byteArrayToHexString(fingerprint, hexBuf, MAX_FINGERPRINT_SIZE);
+    Interface::get().getLogger() << F("🔐 Using fingerprint: ") << hexBuf << endl;
+    Interface::get().getMqttClient().addServerFingerprint(fingerprint);
   }
 #endif
 

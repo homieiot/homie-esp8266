@@ -210,8 +210,8 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
       return result;
     }
 
-    if (strlen(object["mqtt"]["ssl_fingerprint"]) + 1 > MAX_FINGERPRINT_STRING_LENGTH) {
-      result.reason = F("mqtt.ssl_fingerprint is too long");
+    if (strlen(object["mqtt"]["ssl_fingerprint"]) + 1 != MAX_FINGERPRINT_STRING_LENGTH) {
+      result.reason = F("mqtt.ssl_fingerprint is not the right length");
       return result;
     }
   }
