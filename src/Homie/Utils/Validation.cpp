@@ -26,7 +26,7 @@ ValidationResult Validation::_validateConfigRoot(const JsonObject& object) {
     result.reason = F("name is not a string");
     return result;
   }
-  if (strlen(object["name"]) + 1 > MAX_FRIENDLY_NAME_LENGTH) {
+  if (strlen(object["name"]) + 1 > MAX_FRIENDLY_NAME_STRING_LENGTH) {
     result.reason = F("name is too long");
     return result;
   }
@@ -35,7 +35,7 @@ ValidationResult Validation::_validateConfigRoot(const JsonObject& object) {
       result.reason = F("device_id is not a string");
       return result;
     }
-    if (strlen(object["device_id"]) + 1 > MAX_DEVICE_ID_LENGTH) {
+    if (strlen(object["device_id"]) + 1 > MAX_DEVICE_ID_STRING_LENGTH) {
       result.reason = F("device_id is too long");
       return result;
     }
@@ -69,7 +69,7 @@ ValidationResult Validation::_validateConfigWifi(const JsonObject& object) {
     result.reason = F("wifi.ssid is not a string");
     return result;
   }
-  if (strlen(object["wifi"]["ssid"]) + 1 > MAX_WIFI_SSID_LENGTH) {
+  if (strlen(object["wifi"]["ssid"]) + 1 > MAX_WIFI_SSID_STRING_LENGTH) {
     result.reason = F("wifi.ssid is too long");
     return result;
   }
@@ -77,7 +77,7 @@ ValidationResult Validation::_validateConfigWifi(const JsonObject& object) {
     result.reason = F("wifi.password is not a string");
     return result;
   }
-  if (object["wifi"]["password"] && strlen(object["wifi"]["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
+  if (object["wifi"]["password"] && strlen(object["wifi"]["password"]) + 1 > MAX_WIFI_PASSWORD_STRING_LENGTH) {
     result.reason = F("wifi.password is too long");
     return result;
   }
@@ -192,7 +192,7 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
     result.reason = F("mqtt.host is not a string");
     return result;
   }
-  if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
+  if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_STRING_LENGTH) {
     result.reason = F("mqtt.host is too long");
     return result;
   }
@@ -200,11 +200,9 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
     result.reason = F("mqtt.port is not an integer");
     return result;
   }
-  if (object["mqtt"].as<JsonObject&>().containsKey("ssl")) {
-    if (!object["mqtt"]["ssl"].is<bool>()) {
-      result.reason = F("mqtt.ssl is not a bool");
-      return result;
-    }
+  if (object["mqtt"].as<JsonObject&>().containsKey("ssl") && !object["mqtt"]["ssl"].is<bool>()) {
+    result.reason = F("mqtt.ssl is not a bool");
+    return result;
   }
   if (object["mqtt"].as<JsonObject&>().containsKey("ssl_fingerprint")) {
     if (!object["mqtt"]["ssl_fingerprint"].is<const char*>()) {
@@ -212,7 +210,7 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
       return result;
     }
 
-    if (strlen(object["mqtt"]["ssl_fingerprint"]) > MAX_FINGERPRINT_SIZE * 2) {
+    if (strlen(object["mqtt"]["ssl_fingerprint"]) + 1 > MAX_FINGERPRINT_STRING_LENGTH) {
       result.reason = F("mqtt.ssl_fingerprint is too long");
       return result;
     }
@@ -223,7 +221,7 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
       return result;
     }
 
-    if (strlen(object["mqtt"]["base_topic"]) + 1 > MAX_MQTT_BASE_TOPIC_LENGTH) {
+    if (strlen(object["mqtt"]["base_topic"]) + 1 > MAX_MQTT_BASE_TOPIC_STRING_LENGTH) {
       result.reason = F("mqtt.base_topic is too long");
       return result;
     }
@@ -239,7 +237,7 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
         result.reason = F("mqtt.username is not a string");
         return result;
       }
-      if (strlen(object["mqtt"]["username"]) + 1 > MAX_MQTT_CREDS_LENGTH) {
+      if (strlen(object["mqtt"]["username"]) + 1 > MAX_MQTT_CREDS_STRING_LENGTH) {
         result.reason = F("mqtt.username is too long");
         return result;
       }
@@ -247,7 +245,7 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
         result.reason = F("mqtt.password is not a string");
         return result;
       }
-      if (strlen(object["mqtt"]["password"]) + 1 > MAX_MQTT_CREDS_LENGTH) {
+      if (strlen(object["mqtt"]["password"]) + 1 > MAX_MQTT_CREDS_STRING_LENGTH) {
         result.reason = F("mqtt.password is too long");
         return result;
       }

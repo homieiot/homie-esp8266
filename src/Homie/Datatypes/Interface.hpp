@@ -32,12 +32,12 @@ class InterfaceData {
 
   struct ConfigurationAP {
     bool secured;
-    char password[MAX_WIFI_PASSWORD_LENGTH];
+    char password[MAX_WIFI_PASSWORD_STRING_LENGTH];
   } configurationAp;
 
   struct Firmware {
-    char name[MAX_FIRMWARE_NAME_LENGTH];
-    char version[MAX_FIRMWARE_VERSION_LENGTH];
+    char name[MAX_FIRMWARE_NAME_STRING_LENGTH];
+    char version[MAX_FIRMWARE_VERSION_STRING_LENGTH];
   } firmware;
 
   struct LED {

@@ -206,20 +206,20 @@ HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
   _checkBeforeSetup(F("setConfigurationApPassword"));
 
   Interface::get().configurationAp.secured = true;
-  strlcpy(Interface::get().configurationAp.password, password, MAX_WIFI_PASSWORD_LENGTH);
+  strlcpy(Interface::get().configurationAp.password, password, MAX_WIFI_PASSWORD_STRING_LENGTH);
   return *this;
 }
 
 void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
-  if (strlen(name) + 1 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_LENGTH) {
+  if (strlen(name) + 1 > MAX_FIRMWARE_NAME_STRING_LENGTH || strlen(version) + 1 > MAX_FIRMWARE_VERSION_STRING_LENGTH) {
     Helpers::abort(F("✖ setFirmware(): either the name or version string is too long"));
     return;  // never reached, here for clarity
   }
 
-  strncpy(Interface::get().firmware.name, name, MAX_FIRMWARE_NAME_LENGTH);
+  strncpy(Interface::get().firmware.name, name, MAX_FIRMWARE_NAME_STRING_LENGTH);
   Interface::get().firmware.name[strlen(name)] = '\0';
-  strncpy(Interface::get().firmware.version, version, MAX_FIRMWARE_VERSION_LENGTH);
+  strncpy(Interface::get().firmware.version, version, MAX_FIRMWARE_VERSION_STRING_LENGTH);
   Interface::get().firmware.version[strlen(version)] = '\0';
   _firmwareSet = true;
 }

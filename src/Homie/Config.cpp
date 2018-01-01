@@ -114,11 +114,11 @@ bool Config::load() {
     reqOtaEnabled = parsedJson["ota"]["enabled"];
   }
 
-  strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
-  strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
+  strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_STRING_LENGTH);
+  strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_STRING_LENGTH);
   _configStruct.deviceStatsInterval = regDeviceStatsInterval;
-  strlcpy(_configStruct.wifi.ssid, reqWifiSsid, MAX_WIFI_SSID_LENGTH);
-  if (reqWifiPassword) strlcpy(_configStruct.wifi.password, reqWifiPassword, MAX_WIFI_PASSWORD_LENGTH);
+  strlcpy(_configStruct.wifi.ssid, reqWifiSsid, MAX_WIFI_SSID_STRING_LENGTH);
+  if (reqWifiPassword) strlcpy(_configStruct.wifi.password, reqWifiPassword, MAX_WIFI_PASSWORD_STRING_LENGTH);
   strlcpy(_configStruct.wifi.bssid, reqWifiBssid, MAX_MAC_STRING_LENGTH);
   _configStruct.wifi.channel = reqWifiChannel;
   strlcpy(_configStruct.wifi.ip, reqWifiIp, MAX_IP_STRING_LENGTH);
@@ -126,17 +126,17 @@ bool Config::load() {
   strlcpy(_configStruct.wifi.mask, reqWifiMask, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.wifi.dns1, reqWifiDns1, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.wifi.dns2, reqWifiDns2, MAX_IP_STRING_LENGTH);
-  strlcpy(_configStruct.mqtt.server.host, reqMqttHost, MAX_HOSTNAME_LENGTH);
+  strlcpy(_configStruct.mqtt.server.host, reqMqttHost, MAX_HOSTNAME_STRING_LENGTH);
   _configStruct.mqtt.server.ssl.enabled = reqMqttSsl;
   if (strcmp_P(reqMqttFingerprint, PSTR("")) != 0) {
     _configStruct.mqtt.server.ssl.hasFingerprint = true;
     Helpers::hexStringToByteArray(reqMqttFingerprint, _configStruct.mqtt.server.ssl.fingerprint, MAX_FINGERPRINT_SIZE);
   }
   _configStruct.mqtt.server.port = reqMqttPort;
-  strlcpy(_configStruct.mqtt.baseTopic, reqMqttBaseTopic, MAX_MQTT_BASE_TOPIC_LENGTH);
+  strlcpy(_configStruct.mqtt.baseTopic, reqMqttBaseTopic, MAX_MQTT_BASE_TOPIC_STRING_LENGTH);
   _configStruct.mqtt.auth = reqMqttAuth;
-  strlcpy(_configStruct.mqtt.username, reqMqttUsername, MAX_MQTT_CREDS_LENGTH);
-  strlcpy(_configStruct.mqtt.password, reqMqttPassword, MAX_MQTT_CREDS_LENGTH);
+  strlcpy(_configStruct.mqtt.username, reqMqttUsername, MAX_MQTT_CREDS_STRING_LENGTH);
+  strlcpy(_configStruct.mqtt.password, reqMqttPassword, MAX_MQTT_CREDS_STRING_LENGTH);
   _configStruct.ota.enabled = reqOtaEnabled;
 
   /* Parse the settings */

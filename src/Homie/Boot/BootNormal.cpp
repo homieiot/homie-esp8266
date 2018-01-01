@@ -74,7 +74,7 @@ void BootNormal::setup() {
   }
 #endif
 
-  Interface::get().getMqttClient().setMaxTopicLength(MAX_MQTT_TOPIC_LENGTH);
+  Interface::get().getMqttClient().setMaxTopicLength(MAX_MQTT_TOPIC_STRING_LENGTH);
   _mqttClientId = std::unique_ptr<char[]>(new char[strlen(Interface::get().brand) + 1 + strlen(Interface::get().getConfig().get().deviceId) + 1]);
   strcpy(_mqttClientId.get(), Interface::get().brand);
   strcat_P(_mqttClientId.get(), PSTR("-"));
