@@ -127,11 +127,13 @@ bool Config::load() {
   strlcpy(_configStruct.wifi.dns1, reqWifiDns1, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.wifi.dns2, reqWifiDns2, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.mqtt.server.host, reqMqttHost, MAX_HOSTNAME_STRING_LENGTH);
+#if ASYNC_TCP_SSL_ENABLED
   _configStruct.mqtt.server.ssl.enabled = reqMqttSsl;
   if (strcmp_P(reqMqttFingerprint, PSTR("")) != 0) {
     _configStruct.mqtt.server.ssl.hasFingerprint = true;
     Helpers::hexStringToByteArray(reqMqttFingerprint, _configStruct.mqtt.server.ssl.fingerprint, MAX_FINGERPRINT_SIZE);
   }
+#endif
   _configStruct.mqtt.server.port = reqMqttPort;
   strlcpy(_configStruct.mqtt.baseTopic, reqMqttBaseTopic, MAX_MQTT_BASE_TOPIC_STRING_LENGTH);
   _configStruct.mqtt.auth = reqMqttAuth;
@@ -422,12 +424,14 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • MQTT: ") << endl;
   Interface::get().getLogger() << F("    ◦ Host: ") << _configStruct.mqtt.server.host << endl;
   Interface::get().getLogger() << F("    ◦ Port: ") << _configStruct.mqtt.server.port << endl;
+#if ASYNC_TCP_SSL_ENABLED
   Interface::get().getLogger() << F("    ◦ SSL enabled: ") << (_configStruct.mqtt.server.ssl.enabled ? "true" : "false") << endl;
   if (_configStruct.mqtt.server.ssl.enabled && _configStruct.mqtt.server.ssl.hasFingerprint) {
-    char hexBuf[MAX_FINGERPRINT_SIZE * 2 + 1];
+    char hexBuf[MAX_FINGERPRINT_STRING_LENGTH];
     Helpers::byteArrayToHexString(Interface::get().getConfig().get().mqtt.server.ssl.fingerprint, hexBuf, MAX_FINGERPRINT_SIZE);
     Interface::get().getLogger() << F("    ◦ Fingerprint: ") << hexBuf << endl;
   }
+#endif
   Interface::get().getLogger() << F("    ◦ Base topic: ") << _configStruct.mqtt.baseTopic << endl;
   Interface::get().getLogger() << F("    ◦ Auth? ") << (_configStruct.mqtt.auth ? F("yes") : F("no")) << endl;
   if (_configStruct.mqtt.auth) {
