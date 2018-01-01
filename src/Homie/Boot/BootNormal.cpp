@@ -77,7 +77,7 @@ void BootNormal::setup() {
   Interface::get().getLogger() << "SSL is: " << Interface::get().getConfig().get().mqtt.server.ssl.enabled << endl;
   Interface::get().getMqttClient().setSecure(Interface::get().getConfig().get().mqtt.server.ssl.enabled);
   if (Interface::get().getConfig().get().mqtt.server.ssl.enabled && Interface::get().getConfig().get().mqtt.server.ssl.hasFingerprint) {
-    char hexBuf[MAX_FINGERPRINT_SIZE * 2 + 1];
+    char hexBuf[MAX_FINGERPRINT_STRING_LENGTH];
     Helpers::byteArrayToHexString(Interface::get().getConfig().get().mqtt.server.ssl.fingerprint, hexBuf, MAX_FINGERPRINT_SIZE);
     Interface::get().getLogger() << "Using fingerprint: " << hexBuf << endl;
     Interface::get().getMqttClient().addServerFingerprint((const uint8_t*)Interface::get().getConfig().get().mqtt.server.ssl.fingerprint);
