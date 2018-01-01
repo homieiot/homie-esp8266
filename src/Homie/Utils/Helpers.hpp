@@ -8,7 +8,7 @@
 
 namespace HomieInternals {
 class Helpers {
-public:
+ public:
   static void abort(const String& message);
   static uint8_t rssiToPercentage(int32_t rssi);
   static void stringToBytes(const char* str, char sep, byte* bytes, int maxBytes, int base);
