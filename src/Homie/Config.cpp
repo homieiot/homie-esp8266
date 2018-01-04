@@ -27,7 +27,7 @@ bool Config::load() {
     return false;
   }
 
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  fs::File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return false;
@@ -184,7 +184,7 @@ bool Config::load() {
 }
 
 char* Config::getSafeConfigFile() const {
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  fs::File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   size_t configSize = configFile.size();
 
   char buf[MAX_JSON_CONFIG_FILE_SIZE];
@@ -218,7 +218,7 @@ void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   if (bootMode == HomieBootMode::UNDEFINED) {
     SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
   } else {
-    File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
+    fs::File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
     if (!bootModeFile) {
       Interface::get().getLogger() << F("✖ Cannot open NEXTMODE file") << endl;
       return;
@@ -233,7 +233,7 @@ void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
 HomieBootMode Config::getHomieBootModeOnNextBoot() {
   if (!_spiffsBegin()) { return HomieBootMode::UNDEFINED; }
 
-  File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
+  fs::File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
   if (bootModeFile) {
     int v = bootModeFile.parseInt();
     bootModeFile.close();
@@ -248,7 +248,7 @@ void Config::write(const JsonObject& config) {
 
   SPIFFS.remove(CONFIG_FILE_PATH);
 
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
+  fs::File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
   if (!configFile) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return;
@@ -269,7 +269,7 @@ bool Config::patch(const char* patch) {
     return false;
   }
 
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  fs::File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return false;
