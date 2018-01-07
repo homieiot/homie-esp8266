@@ -25,6 +25,7 @@ You can get access to the configuration of the device. The representation of the
 struct ConfigStruct {
   char* name;
   char* deviceId;
+  uint16_t deviceStatsInterval;
 
   struct WiFi {
     char* ssid;
@@ -35,6 +36,11 @@ struct ConfigStruct {
     struct Server {
       char* host;
       uint16_t port;
+      struct {
+        bool enabled;
+        bool hasFingerprint;
+        uint8_t fingerprint[MAX_FINGERPRINT_SIZE];
+      } ssl;
     } server;
     char* baseTopic;
     bool auth;

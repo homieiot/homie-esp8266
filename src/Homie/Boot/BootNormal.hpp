@@ -47,6 +47,7 @@ class BootNormal : public Boot {
       PUB_NODES,
       SUB_IMPLEMENTATION_OTA,
       SUB_IMPLEMENTATION_RESET,
+      SUB_IMPLEMENTATION_RESTART,
       SUB_IMPLEMENTATION_CONFIG_SET,
       SUB_SET,
       SUB_BROADCAST,
@@ -106,6 +107,7 @@ class BootNormal : public Boot {
   bool __handleOTAUpdates(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
   bool __handleBroadcasts(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
   bool __handleResets(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
+  bool __handleRestarts(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
   bool __handleConfig(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
   bool __handleNodeProperty(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total);
 };

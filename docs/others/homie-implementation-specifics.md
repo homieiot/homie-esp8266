@@ -8,6 +8,10 @@ The Homie `$implementation` identifier is `esp8266`.
 
 * `$implementation/reset`: You can publish a `true` to this topic to reset the device
 
+# Restart
+
+* `$implementation/restart`: You can publish a `true` to this topic to restart the device
+
 # Configuration
 
 * `$implementation/config`: The `configuration.json` is published there, with `wifi.password`, `mqtt.username` and `mqtt.password` fields stripped

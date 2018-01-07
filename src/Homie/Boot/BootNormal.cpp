@@ -451,6 +451,10 @@ void BootNormal::_advertise() {
       break;
     case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESET:
       packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/reset")), 1);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESTART;
+      break;
+    case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_RESTART:
+      packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$implementation/restart")), 1);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_CONFIG_SET;
       break;
     case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_CONFIG_SET:
@@ -548,11 +552,15 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   if (__handleResets(topic, payload, properties, len, index, total))
     return;
 
-  // 6. handle config set
+  // 6. handle restarts
+  if (__handleRestarts(topic, payload, properties, len, index, total))
+    return;
+
+  // 7. handle config set
   if (__handleConfig(topic, payload, properties, len, index, total))
     return;
 
-  // 7. here, we're sure we have a node property
+  // 8. here, we're sure we have a node property
   if (__handleNodeProperty(topic, payload, properties, len, index, total))
     return;
 }
@@ -593,7 +601,7 @@ void BootNormal::__splitTopic(char* topic) {
   }
 }
 
-bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
+bool BootNormal::__fillPayloadBuffer(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   // Reallocate Buffer everytime a new message is received
   if (_mqttPayloadBuffer == nullptr || index == 0) _mqttPayloadBuffer = std::unique_ptr<char[]>(new char[total + 1]);
 
@@ -608,7 +616,7 @@ bool HomieInternals::BootNormal::__fillPayloadBuffer(char * topic, char * payloa
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
+bool BootNormal::__handleOTAUpdates(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 5
     && strcmp(_mqttTopicLevels.get()[0], Interface::get().getConfig().get().deviceId) == 0
@@ -784,7 +792,7 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload, const AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
+bool BootNormal::__handleBroadcasts(char * topic, char * payload, const AsyncMqttClientMessageProperties & properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 2
     && strcmp_P(_mqttTopicLevels.get()[0], PSTR("$broadcast")) == 0
@@ -802,45 +810,63 @@ bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleResets(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
+bool BootNormal::__handleResets(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 3
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
     && strcmp_P(_mqttTopicLevels.get()[2], PSTR("reset")) == 0
-    && strcmp_P(_mqttPayloadBuffer.get(), PSTR("true")) == 0
     ) {
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
-    Interface::get().getLogger() << F("Flagged for reset by network") << endl;
-    Interface::get().disable = true;
-    Interface::get().reset.resetFlag = true;
-    return true;
+      if(strcmp_P(_mqttPayloadBuffer.get(), PSTR("true")) == 0){
+        Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
+        Interface::get().getLogger() << F("Flagged for reset by network") << endl;
+        Interface::get().disable = true;
+        Interface::get().reset.resetFlag = true;
+      }
+      return true;
   }
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleConfig(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
+bool BootNormal::__handleRestarts(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total){
+  if (
+    _mqttTopicLevelsCount == 3
+    && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
+    && strcmp_P(_mqttTopicLevels.get()[2], PSTR("restart")) == 0
+    ) {
+      if(strcmp_P(_mqttPayloadBuffer.get(), PSTR("true")) == 0){
+        Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/restart")), 1, true, "false");
+        Interface::get().getLogger() << F("Flagged for restart by network") << endl;
+        Interface::get().disable = true;
+        _flaggedForReboot = true;
+      }
+      return true;
+  }
+  return false;
+}
+
+bool BootNormal::__handleConfig(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 4
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
     && strcmp_P(_mqttTopicLevels.get()[2], PSTR("config")) == 0
     && strcmp_P(_mqttTopicLevels.get()[3], PSTR("set")) == 0
     ) {
-    Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config/set")), 1, true, "");
-    ValidationResult configPatchResult = Interface::get().getConfig().patch(_mqttPayloadBuffer.get());
-    if (configPatchResult.valid) {
-      Interface::get().getLogger() << F("✔ Configuration updated") << endl;
-      _flaggedForReboot = true;
-      Interface::get().getLogger() << F("Flagged for reboot") << endl;
-    } else {
-      Interface::get().getLogger() << F("✖ Configuration not updated") << endl;
-      Interface::get().getLogger() << F("Error: ") << configPatchResult.reason << endl;
-    }
-    return true;
+      Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config/set")), 1, true, "");
+      ValidationResult configPatchResult = Interface::get().getConfig().patch(_mqttPayloadBuffer.get());
+      if (configPatchResult.valid) {
+        Interface::get().getLogger() << F("✔ Configuration updated") << endl;
+        _flaggedForReboot = true;
+        Interface::get().getLogger() << F("Flagged for reboot") << endl;
+      } else {
+        Interface::get().getLogger() << F("✖ Configuration not updated") << endl;
+        Interface::get().getLogger() << F("✖ Error: ") << configPatchResult.reason << endl;
+      }
+      return true;
   }
   return false;
 }
 
-bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
+bool BootNormal::__handleNodeProperty(char * topic, char * payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   // initialize HomieRange
   HomieRange range;
   range.isRange = false;

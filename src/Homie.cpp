@@ -123,7 +123,7 @@ void HomieClass::loop() {
   }
 }
 
-bool HomieInternals::HomieClass::loadSettings() {
+bool HomieClass::loadSettings() {
   // Check the max allowed setting elements
   if (IHomieSetting::settings.size() > MAX_CONFIG_SETTING_SIZE) {
     Helpers::abort(F("✖ Settings exceed set limit of elelement."));
