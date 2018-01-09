@@ -816,7 +816,7 @@ bool BootNormal::__handleResets(char * topic, char * payload, const AsyncMqttCli
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
     && strcmp_P(_mqttTopicLevels.get()[2], PSTR("reset")) == 0
     ) {
-      if(strcmp_P(_mqttPayloadBuffer.get(), PSTR("true")) == 0){
+      if ( strcmp_P(_mqttPayloadBuffer.get(), PSTR("true") ) == 0 ) {
         Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
         Interface::get().getLogger() << F("Flagged for reset by network") << endl;
         Interface::get().disable = true;
@@ -827,13 +827,13 @@ bool BootNormal::__handleResets(char * topic, char * payload, const AsyncMqttCli
   return false;
 }
 
-bool BootNormal::__handleRestarts(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total){
+bool BootNormal::__handleRestarts(char* topic, char* payload, const AsyncMqttClientMessageProperties& properties, size_t len, size_t index, size_t total) {
   if (
     _mqttTopicLevelsCount == 3
     && strcmp_P(_mqttTopicLevels.get()[1], PSTR("$implementation")) == 0
     && strcmp_P(_mqttTopicLevels.get()[2], PSTR("restart")) == 0
     ) {
-      if(strcmp_P(_mqttPayloadBuffer.get(), PSTR("true")) == 0){
+      if ( strcmp_P(_mqttPayloadBuffer.get(), PSTR("true") ) == 0 ) {
         Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/restart")), 1, true, "false");
         Interface::get().getLogger() << F("Flagged for restart by network") << endl;
         Interface::get().disable = true;
