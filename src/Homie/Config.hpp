@@ -22,6 +22,7 @@ class Config {
   Config();
   bool load();
   const ConfigStruct& get() const;
+  ValidationResultOBJ getJsonObject(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>* jsonBuffer);
   char* getSafeConfigFile();
   void erase();
   void setHomieBootModeOnNextBoot(HomieBootMode bootMode);

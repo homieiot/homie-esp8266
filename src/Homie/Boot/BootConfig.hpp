@@ -53,11 +53,12 @@ class BootConfig : public Boot {
   void _onProxyControlRequest(AsyncWebServerRequest *request);
   void _proxyHttpRequest(AsyncWebServerRequest *request);
   void _onWifiStatusRequest(AsyncWebServerRequest *request);
+  void _onCurrentConfig(AsyncWebServerRequest *request);
 
   // Helpers
   static void __setCORS();
   static const int MAX_POST_SIZE = 1500;
   static void __parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
-  static void __SendJSONError(AsyncWebServerRequest *request, String msg, int16_t code = 400);
+  static void __SendJSONError(AsyncWebServerRequest *request, int16_t code, String msg);
 };
 }  // namespace HomieInternals

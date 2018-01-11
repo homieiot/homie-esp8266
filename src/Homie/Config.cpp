@@ -12,6 +12,10 @@ const ConfigStruct& Config::get() const {
   return _configStruct;
 }
 
+ValidationResultOBJ Config::getJsonObject(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>* jsonBuffer) {
+  return _loadConfigFile(jsonBuffer, true);
+}
+
 bool Config::_spiffsBegin() {
   if (!_spiffsBegan) {
     _spiffsBegan = SPIFFS.begin();
