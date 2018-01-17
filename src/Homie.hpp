@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Arduino.h"
-
 #include "AsyncMqttClient.h"
+
 #include "Homie/Datatypes/Interface.hpp"
 #include "Homie/Constants.hpp"
 #include "Homie/Limits.hpp"
@@ -53,8 +53,8 @@ class HomieClass {
   HomieClass& onEvent(const EventHandler& handler);
   HomieClass& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
   HomieClass& disableResetTrigger();
-  HomieClass& setSetupFunction(const OperationFunction& function);
-  HomieClass& setLoopFunction(const OperationFunction& function);
+  HomieClass& setSetupFunction(const CallbackFunction& function);
+  HomieClass& setLoopFunction(const CallbackFunction& function);
   HomieClass& setHomieBootMode(HomieBootMode bootMode);
   HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
 
@@ -78,7 +78,6 @@ class HomieClass {
   BootStandalone _bootStandalone;
   BootNormal _bootNormal;
   BootConfig _bootConfig;
-  bool _flaggedForReboot;
   SendingPromise _sendingPromise;
   Logger _logger;
   Blinker _blinker;

@@ -9,7 +9,6 @@ BootNormal::BootNormal()
   , _mqttConnectNotified(false)
   , _mqttDisconnectNotified(true)
   , _otaOngoing(false)
-  , _flaggedForReboot(false)
   , _mqttOfflineMessageId(0)
   , _otaIsBase64(false)
   , _otaBase64Pads(0)
@@ -89,7 +88,10 @@ void BootNormal::setup() {
 
   if (Interface::get().getConfig().get().mqtt.auth) Interface::get().getMqttClient().setCredentials(Interface::get().getConfig().get().mqtt.username, Interface::get().getConfig().get().mqtt.password);
 
-  ResetHandler::Attach();
+  ResetHandler::attach();
+#if HOMIE_FIRMWARE_HOMIE_BUTTON
+  HomieButton::attach();
+#endif
 
   Interface::get().getConfig().log();
 
@@ -102,14 +104,6 @@ void BootNormal::setup() {
 
 void BootNormal::loop() {
   Boot::loop();
-
-  if (_flaggedForReboot && Interface::get().reset.idle) {
-    Interface::get().getLogger() << F("Device is idle") << endl;
-
-    Interface::get().getLogger() << F("↻ Rebooting...") << endl;
-    Serial.flush();
-    ESP.restart();
-  }
 
   if (_mqttReconnectTimer.check()) {
     _mqttConnect();
@@ -152,7 +146,7 @@ void BootNormal::loop() {
 
   // here, we have notified the sketch we are ready
 
-  if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
+  if (_mqttOfflineMessageId == 0 && Interface::get().flags.sleep) {
     Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
     _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
   }
@@ -211,7 +205,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     Interface::get().eventHandler(Interface::get().event);
 
     _publishOtaStatus(200);  // 200 OK
-    _flaggedForReboot = true;
+    Interface::get().flags.reboot = true;
   } else {
     int code;
     String info;
@@ -254,7 +248,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
 }
 
 void BootNormal::_wifiConnect() {
-  if (!Interface::get().disable) {
+  if (!Interface::get().flags.disable) {
     if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
     Interface::get().getLogger() << F("↕ Attempting to connect to Wi-Fi...") << endl;
 
@@ -325,7 +319,7 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
 }
 
 void BootNormal::_mqttConnect() {
-  if (!Interface::get().disable) {
+  if (!Interface::get().flags.disable) {
     if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_MQTT_DELAY);
     Interface::get().getLogger() << F("↕ Attempting to connect to MQTT...") << endl;
     Interface::get().getMqttClient().connect();
@@ -380,9 +374,9 @@ void BootNormal::_advertise() {
       break;
     case AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_CONFIG:
     {
-      char* safeConfigFile = Interface::get().getConfig().getSafeConfigFile();
-      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config")), 1, true, safeConfigFile);
-      free(safeConfigFile);
+      std::unique_ptr<char[]> safeConfigFile = Interface::get().getConfig().getSafeConfigFileSTR();
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config")), 1, true, safeConfigFile.get());
+      safeConfigFile.release();
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_VERSION;
       break;
     }
@@ -506,7 +500,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 
     _mqttDisconnectNotified = true;
 
-    if (Interface::get().flaggedForSleep) {
+    if (Interface::get().flags.sleep) {
       _mqttOfflineMessageId = 0;
       Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
       Interface::get().event.type = HomieEventType::READY_TO_SLEEP;
@@ -570,7 +564,7 @@ void BootNormal::_onMqttPublish(uint16_t id) {
   Interface::get().event.packetId = id;
   Interface::get().eventHandler(Interface::get().event);
 
-  if (Interface::get().flaggedForSleep && id == _mqttOfflineMessageId) {
+  if (Interface::get().flags.sleep && id == _mqttOfflineMessageId) {
     Interface::get().getLogger() << F("Offline message acknowledged. Disconnecting MQTT...") << endl;
     Interface::get().getMqttClient().disconnect();
   }
@@ -819,8 +813,8 @@ bool BootNormal::__handleResets(char * topic, char * payload, const AsyncMqttCli
       if ( strcmp_P(_mqttPayloadBuffer.get(), PSTR("true") ) == 0 ) {
         Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/reset")), 1, true, "false");
         Interface::get().getLogger() << F("Flagged for reset by network") << endl;
-        Interface::get().disable = true;
-        Interface::get().reset.resetFlag = true;
+        Interface::get().flags.disable = true;
+        Interface::get().flags.reset = true;
       }
       return true;
   }
@@ -836,8 +830,8 @@ bool BootNormal::__handleRestarts(char* topic, char* payload, const AsyncMqttCli
       if ( strcmp_P(_mqttPayloadBuffer.get(), PSTR("true") ) == 0 ) {
         Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/restart")), 1, true, "false");
         Interface::get().getLogger() << F("Flagged for restart by network") << endl;
-        Interface::get().disable = true;
-        _flaggedForReboot = true;
+        Interface::get().flags.disable = true;
+        Interface::get().flags.reboot = true;
       }
       return true;
   }
@@ -855,7 +849,8 @@ bool BootNormal::__handleConfig(char * topic, char * payload, const AsyncMqttCli
       ValidationResult configPatchResult = Interface::get().getConfig().patch(_mqttPayloadBuffer.get());
       if (configPatchResult.valid) {
         Interface::get().getLogger() << F("✔ Configuration updated") << endl;
-        _flaggedForReboot = true;
+        Interface::get().flags.disable = true;
+        Interface::get().flags.reboot = true;
         Interface::get().getLogger() << F("Flagged for reboot") << endl;
       } else {
         Interface::get().getLogger() << F("✖ Configuration not updated") << endl;

@@ -5,14 +5,12 @@
   "description": "ESP8266 framework for Homie, a lightweight MQTT convention for the IoT",
   "homepage": "http://marvinroger.github.io/homie-esp8266/",
   "license": "MIT",
-  "authors":
-  {
+  "authors": {
     "name": "Marvin Roger",
     "url": "https://www.marvinroger.fr",
     "maintainer": true
   },
-  "repository":
-  {
+  "repository": {
     "type": "git",
     "url": "https://github.com/marvinroger/homie-esp8266.git",
     "branch": "master"
@@ -33,6 +31,9 @@
       "version": "^2.1.0"
     },
     {
+      "name": "OneButton"
+    },
+    {
       "name": "ESP Async WebServer"
     }
   ],
@@ -43,5 +44,11 @@
       "src/*",
       "examples/*"
     ]
-  }
+  },
+  "build": {
+    "libCompatMode": 2,
+    "flags":[
+      "-D HOMIE_FIRMWARE_HOMIE_BUTTON=1"
+    ]
+  }  
 }

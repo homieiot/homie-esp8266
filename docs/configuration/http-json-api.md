@@ -158,7 +158,7 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
 
 --------------
 
-??? summary "PUT `/wifi/connect`"
+??? summary "POST `/wifi/connect`"
     Initiates the connection of the device to the Wi-Fi network while in configuation mode. This request is not synchronous and the result (Wi-Fi connected or not) must be obtained by with `GET /wifi/status`.
 
     ## Request body
@@ -221,7 +221,7 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
 
 --------------
 
-??? summary "PUT `/proxy/control`"
+??? summary "POST `/proxy/control`"
     Enable/disable the device to act as a transparent proxy between AP and Station networks.
 
     All requests that don't collide with existing API paths will be bridged to the destination according to the `Host` HTTP header. The destination host is called using the existing Wi-Fi connection (established after a `PUT /wifi/connect`) and all contents are bridged back to the connection made to the AP side.

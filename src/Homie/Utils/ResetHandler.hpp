@@ -10,16 +10,18 @@
 namespace HomieInternals {
 class ResetHandler {
  public:
-  static void Attach();
+  static void attach();
 
  private:
-  // Disallow creating an instance of this object
+  // Disable creating an instance of this object
   ResetHandler() {}
-  static Ticker _resetBTNTicker;
-  static Bounce _resetBTNDebouncer;
-  static void _tick();
+
   static Ticker _resetTicker;
   static bool _sentReset;
+  static bool _sentRestart;
+
+  static void _tick();
+  static void _handleReboot();
   static void _handleReset();
 };
 }  // namespace HomieInternals

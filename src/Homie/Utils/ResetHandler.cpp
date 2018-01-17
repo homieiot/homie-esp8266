@@ -2,35 +2,36 @@
 
 using namespace HomieInternals;
 
-Ticker ResetHandler::_resetBTNTicker;
-Bounce ResetHandler::_resetBTNDebouncer;
 Ticker ResetHandler::_resetTicker;
 bool ResetHandler::_sentReset = false;
+bool ResetHandler::_sentRestart = false;
 
-void ResetHandler::Attach() {
-  if (Interface::get().reset.enabled) {
-    pinMode(Interface::get().reset.triggerPin, INPUT_PULLUP);
-    _resetBTNDebouncer.attach(Interface::get().reset.triggerPin);
-    _resetBTNDebouncer.interval(Interface::get().reset.triggerTime);
-
-    _resetBTNTicker.attach_ms(10, _tick);
-    _resetTicker.attach_ms(100, _handleReset);
-  }
+void ResetHandler::attach() {
+  _resetTicker.attach_ms(100, _tick);
 }
 
 void ResetHandler::_tick() {
-  if (!Interface::get().reset.resetFlag && Interface::get().reset.enabled) {
-    _resetBTNDebouncer.update();
-    if (_resetBTNDebouncer.read() == Interface::get().reset.triggerState) {
-      Interface::get().getLogger() << F("Flagged for reset by pin") << endl;
-      Interface::get().disable = true;
-      Interface::get().reset.resetFlag = true;
-    }
+  _handleReboot();
+  _handleReset();
+}
+
+void ResetHandler::_handleReboot() {
+  if (Interface::get().flags.reboot && !_sentRestart && Interface::get().flags.idle) {
+    Interface::get().getLogger() << F("Device is idle") << endl;
+
+    Interface::get().getLogger() << F("Triggering ABOUT_TO_RESTART event...") << endl;
+    Interface::get().event.type = HomieEventType::ABOUT_TO_RESTART;
+    Interface::get().eventHandler(Interface::get().event);
+
+    Interface::get().getLogger() << F("↻ Rebooting...") << endl;
+    Serial.flush();
+    ESP.restart();
+    _sentRestart = true;
   }
 }
 
 void ResetHandler::_handleReset() {
-  if (Interface::get().reset.resetFlag && !_sentReset && Interface::get().reset.idle) {
+  if (Interface::get().flags.reset && !_sentReset && Interface::get().flags.idle) {
     Interface::get().getLogger() << F("Device is idle") << endl;
 
     Interface::get().getConfig().erase();

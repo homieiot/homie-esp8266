@@ -13,14 +13,15 @@ HomieClass::HomieClass()
   Interface::get().led.enabled = true;
   Interface::get().led.pin = BUILTIN_LED;
   Interface::get().led.on = LOW;
-  Interface::get().reset.idle = true;
   Interface::get().reset.enabled = true;
   Interface::get().reset.triggerPin = DEFAULT_RESET_PIN;
   Interface::get().reset.triggerState = DEFAULT_RESET_STATE;
   Interface::get().reset.triggerTime = DEFAULT_RESET_TIME;
-  Interface::get().reset.resetFlag = false;
-  Interface::get().disable = false;
-  Interface::get().flaggedForSleep = false;
+  Interface::get().flags.idle = true;
+  Interface::get().flags.disable = false;
+  Interface::get().flags.reboot = false;
+  Interface::get().flags.reset = false;
+  Interface::get().flags.sleep = false;
   Interface::get().globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
   Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
   Interface::get().setupFunction = []() {};
@@ -105,22 +106,14 @@ void HomieClass::setup() {
     return;  // never reached, here for clarity
   }
 
+  // Set the boot mode
+  Interface::get().bootMode = _selectedHomieBootMode;
+
   _boot->setup();
 }
 
 void HomieClass::loop() {
   _boot->loop();
-
-  if (_flaggedForReboot && Interface::get().reset.idle) {
-    Interface::get().getLogger() << F("Device is idle") << endl;
-    Interface::get().getLogger() << F("Triggering ABOUT_TO_RESET event...") << endl;
-    Interface::get().event.type = HomieEventType::ABOUT_TO_RESET;
-    Interface::get().eventHandler(Interface::get().event);
-
-    Interface::get().getLogger() << F("↻ Rebooting device...") << endl;
-    Serial.flush();
-    ESP.restart();
-  }
 }
 
 bool HomieClass::loadSettings() {
@@ -237,18 +230,18 @@ void HomieClass::__setBrand(const char* brand) const {
 
 void HomieClass::reset() {
   Interface::get().getLogger() << F("Flagged for reset by sketch") << endl;
-  Interface::get().disable = true;
-  Interface::get().reset.resetFlag = true;
+  Interface::get().flags.disable = true;
+  Interface::get().flags.reset = true;
 }
 
 void HomieClass::reboot() {
   Interface::get().getLogger() << F("Flagged for reboot by sketch") << endl;
-  Interface::get().disable = true;
-  _flaggedForReboot = true;
+  Interface::get().flags.disable = true;
+  Interface::get().flags.reboot = true;
 }
 
 void HomieClass::setIdle(bool idle) {
-  Interface::get().reset.idle = idle;
+  Interface::get().flags.idle = idle;
 }
 
 HomieClass& HomieClass::setGlobalInputHandler(const GlobalInputHandler& globalInputHandler) {
@@ -267,7 +260,7 @@ HomieClass& HomieClass::setBroadcastHandler(const BroadcastHandler& broadcastHan
   return *this;
 }
 
-HomieClass& HomieClass::setSetupFunction(const OperationFunction& function) {
+HomieClass& HomieClass::setSetupFunction(const CallbackFunction& function) {
   _checkBeforeSetup(F("setSetupFunction"));
 
   Interface::get().setupFunction = function;
@@ -275,7 +268,7 @@ HomieClass& HomieClass::setSetupFunction(const OperationFunction& function) {
   return *this;
 }
 
-HomieClass& HomieClass::setLoopFunction(const OperationFunction& function) {
+HomieClass& HomieClass::setLoopFunction(const CallbackFunction& function) {
   _checkBeforeSetup(F("setLoopFunction"));
 
   Interface::get().loopFunction = function;
@@ -349,10 +342,10 @@ String HomieInternals::HomieClass::getDeviceID() {
 void HomieClass::prepareToSleep() {
   Interface::get().getLogger() << F("Flagged for sleep by sketch") << endl;
   if (Interface::get().ready) {
-    Interface::get().disable = true;
-    Interface::get().flaggedForSleep = true;
+    Interface::get().flags.disable = true;
+    Interface::get().flags.sleep = true;
   } else {
-    Interface::get().disable = true;
+    Interface::get().flags.disable = true;
     Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
     Interface::get().event.type = HomieEventType::READY_TO_SLEEP;
     Interface::get().eventHandler(Interface::get().event);

@@ -70,6 +70,12 @@ void BootConfig::setup() {
       _onCaptivePortal(request);
     }
   });
+
+  ResetHandler::attach();
+  #if HOMIE_FIRMWARE_HOMIE_BUTTON
+    HomieButton::attach();
+  #endif
+
   _http.begin();
 }
 
@@ -80,9 +86,7 @@ void BootConfig::loop() {
 
   if (_flaggedForReboot) {
     if (millis() - _flaggedForRebootAt >= 3000UL) {
-      Interface::get().getLogger() << F("↻ Rebooting into normal mode...") << endl;
-      Serial.flush();
-      ESP.restart();
+      Interface::get().flags.reboot = true;
     }
 
     return;
@@ -376,7 +380,7 @@ void BootConfig::_onNetworksRequest(AsyncWebServerRequest *request) {
 
 void BootConfig::_onCurrentConfig(AsyncWebServerRequest *request) {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
-  ValidationResultOBJ result = Interface::get().getConfig().getJsonObject(&jsonBuffer);
+  ValidationResultOBJ result = Interface::get().getConfig().getSafeConfigFile(&jsonBuffer);
 
   if (!result.valid) {
     Interface::get().getLogger() << F("✖ Error: ") << result.reason << endl;
@@ -413,14 +417,14 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
 
   request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 
-  Interface::get().disable = true;
+  Interface::get().flags.disable = true;
   _flaggedForReboot = true;  // We don't reboot immediately, otherwise the response above is not sent
   _flaggedForRebootAt = millis();
 }
 
 void BootConfig::__setCORS() {
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Origin"), F("*"));
-  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), F("GET, PUT"));
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), F("GET, POST, PUT"));
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), F("Content-Type, Origin, Referer, User-Agent"));
 }
 

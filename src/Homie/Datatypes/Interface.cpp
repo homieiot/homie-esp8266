@@ -10,9 +10,8 @@ InterfaceData::InterfaceData()
   , configurationAp{ .secured = false, .password = {'\0'} }
   , firmware{ .name = {'\0'}, .version = {'\0'} }
   , led{ .enabled = false, .pin = 0, .on = 0 }
-  , reset{ .enabled = false, .idle = false, .triggerPin = 0, .triggerState = 0, .triggerTime = 0, .resetFlag = false }
-  , disable{ false }
-  , flaggedForSleep{ false }
+  , reset{ .enabled = false, .triggerPin = 0, .triggerState = 0, .triggerTime = 0 }
+  , flags{.idle = false, .disable = false, .reboot = false, .reset = false, .sleep = false }
   , event{}
   , ready{ false }
   , _logger{ nullptr }

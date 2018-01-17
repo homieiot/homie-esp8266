@@ -19,6 +19,9 @@
 #include "../ExponentialBackoffTimer.hpp"
 #include "Boot.hpp"
 #include "../Utils/ResetHandler.hpp"
+#if HOMIE_FIRMWARE_HOMIE_BUTTON
+#include "../Utils/HomieButton.hpp"
+#endif
 
 namespace HomieInternals {
 class BootNormal : public Boot {
@@ -70,7 +73,6 @@ class BootNormal : public Boot {
   bool _mqttConnectNotified;
   bool _mqttDisconnectNotified;
   bool _otaOngoing;
-  bool _flaggedForReboot;
   uint16_t _mqttOfflineMessageId;
   char _fwChecksum[32 + 1];
   bool _otaIsBase64;

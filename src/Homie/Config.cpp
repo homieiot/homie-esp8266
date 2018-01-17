@@ -12,10 +12,6 @@ const ConfigStruct& Config::get() const {
   return _configStruct;
 }
 
-ValidationResultOBJ Config::getJsonObject(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>* jsonBuffer) {
-  return _loadConfigFile(jsonBuffer, true);
-}
-
 bool Config::_spiffsBegin() {
   if (!_spiffsBegan) {
     _spiffsBegan = SPIFFS.begin();
@@ -181,27 +177,38 @@ bool Config::load() {
   return true;
 }
 
-char* Config::getSafeConfigFile() {
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
-  ValidationResultOBJ configLoadResult = _loadConfigFile(&jsonBuffer);
+ValidationResultOBJ Config::getConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>* jsonBuffer) {
+  return _loadConfigFile(jsonBuffer, true);
+}
+
+ValidationResultOBJ Config::getSafeConfigFile(StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE>* jsonBuffer) {
+  ValidationResultOBJ configLoadResult = getConfigFile(jsonBuffer);
   if (!configLoadResult.valid) {
-    return nullptr;
+    return configLoadResult;
   }
   JsonObject& configObject = *configLoadResult.config;
-  ValidationResult configValidResult = validateConfig(configObject);
-  if (!configValidResult.valid) {
-    return nullptr;
-  }
 
   configObject["wifi"].as<JsonObject&>().remove("password");
   configObject["mqtt"].as<JsonObject&>().remove("username");
   configObject["mqtt"].as<JsonObject&>().remove("password");
 
+  return configLoadResult;
+}
+
+
+std::unique_ptr<char[]> Config::getSafeConfigFileSTR() {
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
+  ValidationResultOBJ configLoadResult = getSafeConfigFile(&jsonBuffer);
+  if (!configLoadResult.valid) {
+    return std::unique_ptr<char[]>(nullptr);
+  }
+  JsonObject& configObject = *configLoadResult.config;
+
   size_t jsonBufferLength = configObject.measureLength() + 1;
   std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
   configObject.printTo(jsonString.get(), jsonBufferLength);
 
-  return strdup(jsonString.get());
+  return jsonString;
 }
 
 void Config::erase() {

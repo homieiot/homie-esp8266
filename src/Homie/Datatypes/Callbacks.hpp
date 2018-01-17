@@ -7,7 +7,7 @@
 class HomieNode;
 
 namespace HomieInternals {
-  typedef std::function<void()> OperationFunction;
+  typedef std::function<void()> CallbackFunction;
 
   typedef std::function<bool(const HomieNode& node, const String& property, const HomieRange& range, const String& value)> GlobalInputHandler;
   typedef std::function<bool(const String& property, const HomieRange& range, const String& value)> NodeInputHandler;

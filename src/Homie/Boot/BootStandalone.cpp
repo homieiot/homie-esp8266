@@ -14,7 +14,10 @@ void BootStandalone::setup() {
 
   WiFi.mode(WIFI_OFF);
 
-  ResetHandler::Attach();
+  ResetHandler::attach();
+#if HOMIE_FIRMWARE_HOMIE_BUTTON
+  HomieButton::attach();
+#endif
 }
 
 void BootStandalone::loop() {

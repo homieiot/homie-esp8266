@@ -48,20 +48,23 @@ class InterfaceData {
 
   struct Reset {
     bool enabled;
-    bool idle;
     uint8_t triggerPin;
     uint8_t triggerState;
     uint16_t triggerTime;
-    bool resetFlag;
   } reset;
 
-  bool disable;
-  bool flaggedForSleep;
+  struct Flags {
+    bool idle;
+    bool disable;
+    bool reboot;
+    bool reset;
+    bool sleep;
+  } flags;
 
   GlobalInputHandler globalInputHandler;
   BroadcastHandler broadcastHandler;
-  OperationFunction setupFunction;
-  OperationFunction loopFunction;
+  CallbackFunction setupFunction;
+  CallbackFunction loopFunction;
   EventHandler eventHandler;
 
   /***** Runtime data *****/
