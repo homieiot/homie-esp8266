@@ -51,13 +51,15 @@ class BootConfig : public Boot {
   void _onCaptivePortal(AsyncWebServerRequest *request);
   void _onDeviceInfoRequest(AsyncWebServerRequest *request);
   void _onNetworksRequest(AsyncWebServerRequest *request);
+  void _onCurrentConfig(AsyncWebServerRequest *request);
   void _onConfigRequest(AsyncWebServerRequest *request);
+  void _onPatchConfigRequest(AsyncWebServerRequest *request);
   void _generateNetworksJson();
   void _onWifiConnectRequest(AsyncWebServerRequest *request);
   void _onProxyControlRequest(AsyncWebServerRequest *request);
   void _proxyHttpRequest(AsyncWebServerRequest *request);
   void _onWifiStatusRequest(AsyncWebServerRequest *request);
-  void _onCurrentConfig(AsyncWebServerRequest *request);
+
 
   // Helpers
   static void __setCORS();

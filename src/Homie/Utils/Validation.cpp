@@ -3,6 +3,8 @@
 using namespace HomieInternals;
 
 ValidationResult Validation::validateConfig(const JsonObject& object) {
+  _removeNullConfigItems("Config", (JsonObject&)object);
+
   ValidationResult result;
   result = _validateConfigRoot(object);
   if (!result.valid) return result;
@@ -18,6 +20,22 @@ ValidationResult Validation::validateConfig(const JsonObject& object) {
   result.valid = true;
   return result;
 }
+
+void Validation::_removeNullConfigItems(const char* name, JsonObject& object) {
+  auto hasValue = [](JsonVariant& val) {
+    return val.is<bool>() || val.is<int>() || val.is<float>() || val.as<const char*>() != nullptr;
+  };
+
+  for (JsonPair kv : object) {
+    if (kv.value.is<JsonObject&>()) {
+       _removeNullConfigItems(kv.key, kv.value.as<JsonObject&>());
+    } else if (!hasValue(kv.value)) {
+       Interface::get().getLogger() << F("Removed ") << kv.key << F(" from ") << name << endl;
+       object.remove(kv.key);
+    }
+  }
+}
+
 
 ValidationResult Validation::_validateConfigRoot(const JsonObject& object) {
   ValidationResult result;
@@ -200,21 +218,6 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
     result.reason = F("mqtt.port is not an integer");
     return result;
   }
-  if (object["mqtt"].as<JsonObject&>().containsKey("ssl") && !object["mqtt"]["ssl"].is<bool>()) {
-    result.reason = F("mqtt.ssl is not a bool");
-    return result;
-  }
-  if (object["mqtt"].as<JsonObject&>().containsKey("ssl_fingerprint")) {
-    if (!object["mqtt"]["ssl_fingerprint"].is<const char*>()) {
-      result.reason = F("mqtt.ssl_fingerprint is not a string");
-      return result;
-    }
-
-    if (strlen(object["mqtt"]["ssl_fingerprint"]) + 1 != MAX_FINGERPRINT_STRING_LENGTH) {
-      result.reason = F("mqtt.ssl_fingerprint is not the right length");
-      return result;
-    }
-  }
   if (object["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
     if (!object["mqtt"]["base_topic"].is<const char*>()) {
       result.reason = F("mqtt.base_topic is not a string");
@@ -249,6 +252,21 @@ ValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
         result.reason = F("mqtt.password is too long");
         return result;
       }
+    }
+  }
+  if (object["mqtt"].as<JsonObject&>().containsKey("ssl") && !object["mqtt"]["ssl"].is<bool>()) {
+    result.reason = F("mqtt.ssl is not a bool");
+    return result;
+  }
+  if (object["mqtt"].as<JsonObject&>().containsKey("ssl_fingerprint")) {
+    if (!object["mqtt"]["ssl_fingerprint"].is<const char*>()) {
+      result.reason = F("mqtt.ssl_fingerprint is not a string");
+      return result;
+    }
+
+    if (strlen(object["mqtt"]["ssl_fingerprint"]) + 1 != MAX_FINGERPRINT_STRING_LENGTH) {
+      result.reason = F("mqtt.ssl_fingerprint is not the right length");
+      return result;
     }
   }
 

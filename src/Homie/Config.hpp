@@ -16,6 +16,8 @@
 #include "./Strings.hpp"
 #include "./Datatypes/Result.hpp"
 
+// TODO: Config Remove of sensitive data Should have a default value so we know it actually exists.
+
 namespace HomieInternals {
 class Config {
  public:
@@ -34,6 +36,7 @@ class Config {
   ValidationResult saveSetting(const char* name, T value);
   void log() const;  // print the current config to log output
   bool isValid() const;
+  ValidationResult isConfigFileValid();
 
   static ValidationResult validateConfig(const JsonObject& parsedJson, bool skipValidation = false);
 

@@ -59,6 +59,7 @@ void BootConfig::setup() {
   _http.on("/networks", HTTP_GET, [this](AsyncWebServerRequest *request) { _onNetworksRequest(request); });
   _http.on("/config", HTTP_GET, [this](AsyncWebServerRequest *request) { _onCurrentConfig(request); });
   _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); }).onBody(BootConfig::__parsePost);
+  _http.on("/config/patch", HTTP_POST, [this](AsyncWebServerRequest *request) { _onPatchConfigRequest(request); }).onBody(BootConfig::__parsePost);
   _http.on("/wifi/connect", HTTP_POST, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); }).onBody(BootConfig::__parsePost);
   _http.on("/wifi/status", HTTP_GET, [this](AsyncWebServerRequest *request) { _onWifiStatusRequest(request); });
   _http.on("/proxy/control", HTTP_POST, [this](AsyncWebServerRequest *request) { _onProxyControlRequest(request); }).onBody(BootConfig::__parsePost);
@@ -208,7 +209,9 @@ void BootConfig::_generateNetworksJson() {
   for (int network = 0; network < _ssidCount; network++) {
     JsonObject& jsonNetwork = generatedJsonBuffer.createObject();
     jsonNetwork["ssid"] = WiFi.SSID(network);
+    jsonNetwork["bssid"] = WiFi.BSSIDstr(network);
     jsonNetwork["rssi"] = WiFi.RSSI(network);
+    jsonNetwork["signal"] = Helpers::rssiToPercentage(WiFi.RSSI(network));
     switch (WiFi.encryptionType(network)) {
       case ENC_TYPE_WEP:
         jsonNetwork["encryption"] = "wep";
@@ -315,12 +318,17 @@ void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
 
 void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received device information request") << endl;
+
   auto numSettings = IHomieSetting::settings.size();
   auto numNodes = HomieNode::nodes.size();
   DynamicJsonBuffer jsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
   JsonObject& json = jsonBuffer.createObject();
-  json["hardware_device_id"] = DeviceId::get();
+  json["homie_version"] = HOMIE_VERSION;
   json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
+  json["device_hardware_id"] = DeviceId::get();
+  auto configValidationResult = Interface::get().getConfig().isConfigFileValid();
+  json["device_config_state"] = configValidationResult.valid;
+  if (!configValidationResult.valid) json["device_config_state_error"] = configValidationResult.reason;
   JsonObject& firmware = json.createNestedObject("firmware");
   firmware["name"] = Interface::get().firmware.name;
   firmware["version"] = Interface::get().firmware.version;
@@ -397,19 +405,37 @@ void BootConfig::_onCurrentConfig(AsyncWebServerRequest *request) {
 
 void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received config request") << endl;
-  if (_flaggedForReboot) {
+  if (Interface::get().getConfig().isConfigFileValid().valid) {
     __SendJSONError(request, 403,  F("✖ Device already configured"));
     return;
   }
 
-  DynamicJsonBuffer parseJsonBuffer(MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE);
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
   const char* body = (const char*)(request->_tempObject);
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
+  JsonObject& parsedJson = jsonBuffer.parseObject(body);
 
   ValidationResult configWriteResult = Interface::get().getConfig().write(parsedJson);
   if (!configWriteResult.valid) {
     Interface::get().getLogger() << F("✖ Error: ") << configWriteResult.reason << endl;
     __SendJSONError(request, 500, configWriteResult.reason);
+    return;
+  }
+
+  Interface::get().getLogger() << F("✔ Configured") << endl;
+
+  request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
+
+  Interface::get().flags.disable = true;
+  _flaggedForReboot = true;  // We don't reboot immediately, otherwise the response above is not sent
+  _flaggedForRebootAt = millis();
+}
+
+void BootConfig::_onPatchConfigRequest(AsyncWebServerRequest *request) {
+  const char* body = (const char*)(request->_tempObject);
+  ValidationResult configPatchResult = Interface::get().getConfig().patch(body);
+  if (!configPatchResult.valid) {
+    Interface::get().getLogger() << F("✖ Error: ") << configPatchResult.reason << endl;
+    __SendJSONError(request, 500, configPatchResult.reason);
     return;
   }
 

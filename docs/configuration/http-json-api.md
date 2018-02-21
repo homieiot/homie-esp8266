@@ -48,8 +48,11 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
 
     ```json
     {
-      "hardware_device_id": "52a8fa5d",
-      "homie_esp8266_version": "2.0.0",
+      "device_hardware_id": "52a8fa5d",
+      "homie_version": "2.0.0",
+      "homie_esp8266_version": "2.1.0",
+      "device_config_state": false,
+      "device_config_state_error": "ERROR MESSAGE",
       "firmware": {
         "name": "awesome-device",
         "version": "1.0.0"
@@ -116,6 +119,60 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
 
 --------------
 
+??? summary "GET `/config`"
+    Retrieve the Config file of the device.
+
+    ## Response
+
+    !!! success "In case of success"
+        `200 OK (application/json)`
+
+        ```json
+        {
+          "name": "The kitchen light",
+          "device_id": "kitchen-light",
+          "device_stats_interval": 60,
+          "wifi": {
+            "ssid": "Network_1",
+            "password": "I'm a Wi-Fi password!",
+            "bssid": "DE:AD:BE:EF:BA:BE",
+            "channel": 1,
+            "ip": "192.168.1.5",
+            "mask": "255.255.255.0",
+            "gw": "192.168.1.1",
+            "dns1": "8.8.8.8",
+            "dns2": "8.8.4.4"
+          },
+          "mqtt": {
+            "host": "192.168.1.10",
+            "port": 1883,
+            "base_topic": "devices/",
+            "auth": true,
+            "username": "user",
+            "password": "pass",
+            "ssl": true,
+            "ssl_fingerprint": "a27992d3420c89f293d351378ba5f5675f74fe3c"
+          },
+          "ota": {
+            "enabled": true
+          },
+          "settings": {
+            "percentage": 55
+          }
+        }
+        ```
+
+    !!! failure "In case there was something wrong loading the current config."
+        `500 Service Unavailable (application/json)`
+
+        ```json
+        {
+          "error": "ERROR MESSAGE"
+        }
+        ```
+
+--------------
+
 ??? summary "PUT `/config`"
     Save the config to the device.
 
@@ -153,6 +210,38 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
         {
           "success": false,
           "error": "Device already configured"
+        }
+        ```
+
+--------------
+
+??? summary "POST `/config/patch`"
+    Save the config to the device via incremental patches.
+
+    ## Request body
+
+    `(application/json)`
+
+    See [JSON configuration file](json-configuration-file.md).
+
+    ## Response
+
+    !!! success "In case of success"
+        `200 OK (application/json)`
+
+        ```json
+        {
+          "success": true
+        }
+        ```
+
+    !!! failure "In case of error in the payload"
+        `400 Bad Request (application/json)`
+
+        ```json
+        {
+          "success": false,
+          "error": "Reason why the payload is invalid"
         }
         ```
 

@@ -35,12 +35,12 @@ void HomieButton::_doubleClickFunc() {
   // change Modes
   if (Interface::get().bootMode == HomieBootMode::NORMAL) {
     Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::CONFIGURATION);
-    Interface::get().getLogger() << F("Changed next boot mode to congig") << endl;
+    Interface::get().getLogger() << F("Changed next boot mode to congig, by homie button") << endl;
     Interface::get().flags.disable = true;
     Interface::get().flags.reboot = true;
   } else if (Interface::get().bootMode == HomieBootMode::CONFIGURATION) {
     Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::NORMAL);
-    Interface::get().getLogger() << F("Changed next boot mode to normal") << endl;
+    Interface::get().getLogger() << F("Changed next boot mode to normal, by homie button") << endl;
     Interface::get().flags.disable = true;
     Interface::get().flags.reboot = true;
   }
@@ -49,7 +49,7 @@ void HomieButton::_doubleClickFunc() {
 void HomieButton::_longPressStartFunc() {
   // reset device
   if (Interface::get().reset.enabled && !Interface::get().flags.reset) {
-    Interface::get().getLogger() << F("Flagged for reset by pin") << endl;
+    Interface::get().getLogger() << F("Flagged for reset by homie button") << endl;
     Interface::get().flags.disable = true;
     Interface::get().flags.reset = true;
   }

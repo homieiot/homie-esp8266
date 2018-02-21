@@ -84,14 +84,6 @@ bool Config::load() {
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
   }
-  bool reqMqttSsl = false;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("ssl")) {
-    reqMqttSsl = parsedJson["mqtt"]["ssl"];
-  }
-  const char* reqMqttFingerprint = "";
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("ssl_fingerprint")) {
-    reqMqttFingerprint = parsedJson["mqtt"]["ssl_fingerprint"];
-  }
   const char* reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
     reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
@@ -107,6 +99,14 @@ bool Config::load() {
   const char* reqMqttPassword = "";
   if (parsedJson["mqtt"].as<JsonObject&>().containsKey("password")) {
     reqMqttPassword = parsedJson["mqtt"]["password"];
+  }
+  bool reqMqttSsl = false;
+  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("ssl")) {
+    reqMqttSsl = parsedJson["mqtt"]["ssl"];
+  }
+  const char* reqMqttFingerprint = "";
+  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("ssl_fingerprint")) {
+    reqMqttFingerprint = parsedJson["mqtt"]["ssl_fingerprint"];
   }
 
   bool reqOtaEnabled = false;
@@ -417,6 +417,11 @@ ValidationResult Config::patch(const char* patch) {
 
 bool Config::isValid() const {
   return this->_valid;
+}
+
+ValidationResult Config::isConfigFileValid() {
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
+  return (ValidationResult)_loadConfigFile(&jsonBuffer);
 }
 
 void Config::log() const {

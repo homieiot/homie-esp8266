@@ -47,8 +47,8 @@ Here are the rules:
 * `bssid`, `channel`, `ip`, `mask`, `gw`, `dns1`, `dns2` are not mandatory and are only needed to if there is a requirement to specify particular AP or set Static IP address. There are some rules which needs to be satisfied:
    - `bssid` and `channel` have to be defined together and these settings are independand of settings related to static IP
    - to define static IP, `ip` (IP address), `mask` (netmask) and `gw` (gateway) settings have to be defined at the same time
-   - to define second DNS `dns2` the first one `dns1` has to be defined. Set DNS without `ip`, `mask` and `gw` does not affect the configuration (dns server will be provided by DHCP). It is not required to set DNS servers.
-* `ssl_fingerprint` if not required if `ssl` is enabled.
+   - to define second DNS `dns2` the first one `dns1` has to be defined. Set `ip`, `mask` and `gw` without DNS, does not affect the configuration (dns server will be provided by DHCP). It is not required to set DNS servers.
+* `ssl_fingerprint` is not required if `ssl` is enabled.
 
 
 Default values if not provided:
@@ -58,5 +58,6 @@ Default values if not provided:
 * `mqtt.port`: `1883`
 * `mqtt.base_topic`: `homie/`
 * `mqtt.auth`: `false`
+* `mqtt.ssl`: `false`
 
 The `mqtt.host` field can be either an IP or an hostname.
