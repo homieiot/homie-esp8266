@@ -9,6 +9,8 @@
 #include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
 #include <ArduinoJson.h>
+
+#include "../../HomieFirmwareConfig.hpp"
 #include "Boot.hpp"
 #include "../Constants.hpp"
 #include "../Limits.hpp"

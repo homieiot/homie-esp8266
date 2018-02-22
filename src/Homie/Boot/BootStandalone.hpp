@@ -2,6 +2,7 @@
 
 #include "Arduino.h"
 
+#include "../../HomieFirmwareConfig.hpp"
 #include "Boot.hpp"
 #include "../../StreamingOperator.hpp"
 #include "../Utils/ResetHandler.hpp"

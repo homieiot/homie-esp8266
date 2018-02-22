@@ -1,9 +1,5 @@
-
-#ifndef LIBRARIES_HOMIE_CONFIG_H
-#define LIBRARIES_HOMIE_CONFIG_H
+#pragma once
 
 #ifndef HOMIE_FIRMWARE_HOMIE_BUTTON
 #define HOMIE_FIRMWARE_HOMIE_BUTTON 1
 #endif
-
-#endif // 

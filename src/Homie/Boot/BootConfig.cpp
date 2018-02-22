@@ -410,8 +410,9 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
     return;
   }
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
   const char* body = (const char*)(request->_tempObject);
+
+  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_FILE_BUFFER_SIZE> jsonBuffer;
   JsonObject& parsedJson = jsonBuffer.parseObject(body);
 
   ValidationResult configWriteResult = Interface::get().getConfig().write(parsedJson);
@@ -455,15 +456,18 @@ void BootConfig::__setCORS() {
 }
 
 void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-  if (!index && total > MAX_POST_SIZE) {
-    Interface::get().getLogger() << "Request is to large to be processed." << endl;
-  } else if (!index && total <= MAX_POST_SIZE) {
-    char* buff = new char[total + 1];
-    strcpy(buff, (const char*)data);
-    request->_tempObject = buff;
-  } else if (total <= MAX_POST_SIZE) {
-    char* buff = reinterpret_cast<char*>(request->_tempObject);
-    strcat(buff, (const char*)data);
+  if (total > MAX_POST_SIZE) {
+    Interface::get().getLogger() << F("Request is to large to be processed.") << endl;
+  } else {
+    if (index == 0) {
+      request->_tempObject = new char[total + 1];
+    }
+    void* buff = request->_tempObject + index;
+    memcpy(buff, data, len);
+    if (index + len == total) {
+      void* buff = request->_tempObject + total;
+      *(char*)buff = 0;
+    }
   }
 }
 

@@ -7,6 +7,8 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <AsyncMqttClient.h>
+
+#include "../../HomieFirmwareConfig.hpp"
 #include "../../HomieNode.hpp"
 #include "../../HomieRange.hpp"
 #include "../../StreamingOperator.hpp"
