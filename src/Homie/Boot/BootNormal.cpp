@@ -26,23 +26,25 @@ void BootNormal::setup()
 
   // Generate topic buffer
   size_t baseTopicLength = strlen(Interface::get().getConfig().get().mqtt.baseTopic) + strlen(Interface::get().getConfig().get().deviceId);
-  size_t longestSubtopicLength = 29 + 1; // /$implementation/ota/firmware
-  for (HomieNode *iNode : HomieNode::nodes)
-  {
-    size_t nodeMaxTopicLength = 1 + strlen(iNode->getId()) + 12 + 1; // /id/$properties
-    if (nodeMaxTopicLength > longestSubtopicLength)
-      longestSubtopicLength = nodeMaxTopicLength;
+  //Todo changed
+  size_t longestSubtopicLength = 64 + 1;
+  // size_t longestSubtopicLength = 29 + 1; // /$implementation/ota/firmware
+  //  for (HomieNode *iNode : HomieNode::nodes)
+  // {
+  //   size_t nodeMaxTopicLength = 1 + strlen(iNode->getId()) + 12 + 1; // /id/$properties
+  //   if (nodeMaxTopicLength > longestSubtopicLength)
+  //     longestSubtopicLength = nodeMaxTopicLength;
 
-    for (Property *iProperty : iNode->getProperties())
-    {
-      size_t propertyMaxTopicLength = 1 + strlen(iNode->getId()) + 1 + strlen(iProperty->getProperty()) + 1;
-      if (iProperty->isSettable())
-        propertyMaxTopicLength += 4; // /set
+  //   for (Property *iProperty : iNode->getProperties())
+  //   {
+  //     size_t propertyMaxTopicLength = 1 + strlen(iNode->getId()) + 1 + strlen(iProperty->getProperty()) + 1;
+  //     if (iProperty->isSettable())
+  //       propertyMaxTopicLength += 4; // /set
 
-      if (propertyMaxTopicLength > longestSubtopicLength)
-        longestSubtopicLength = propertyMaxTopicLength;
-    }
-  }
+  //     if (propertyMaxTopicLength > longestSubtopicLength)
+  //       longestSubtopicLength = propertyMaxTopicLength;
+  //   }
+  // }
   _mqttTopic = std::unique_ptr<char[]>(new char[baseTopicLength + longestSubtopicLength]);
 
   _wifiGotIpHandler = WiFi.onStationModeGotIP(std::bind(&BootNormal::_onWifiGotIp, this, std::placeholders::_1));
@@ -52,7 +54,7 @@ void BootNormal::setup()
   Interface::get().getMqttClient().onDisconnect(std::bind(&BootNormal::_onMqttDisconnected, this, std::placeholders::_1));
   Interface::get().getMqttClient().onMessage(std::bind(&BootNormal::_onMqttMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
   Interface::get().getMqttClient().onPublish(std::bind(&BootNormal::_onMqttPublish, this, std::placeholders::_1));
-  //Todo
+
   Interface::get().getMqttClient().setServer(Interface::get().getConfig().get().mqtt.server.host, Interface::get().getConfig().get().mqtt.server.port);
   Interface::get().getMqttClient().setMaxTopicLength(MAX_MQTT_TOPIC_LENGTH);
   _mqttClientId = std::unique_ptr<char[]>(new char[strlen(Interface::get().brand) + 1 + strlen(Interface::get().getConfig().get().deviceId) + 1]);
@@ -72,10 +74,7 @@ void BootNormal::setup()
 
   Interface::get().getConfig().log();
 
-  for (HomieNode *iNode : HomieNode::nodes)
-  {
-    iNode->setup();
-  }
+  HomieNode::getMaster()->setup();
 
   _wifiConnect();
 }
@@ -123,10 +122,7 @@ void BootNormal::loop()
     Interface::get().event.type = HomieEventType::MQTT_READY;
     Interface::get().eventHandler(Interface::get().event);
 
-    for (HomieNode *iNode : HomieNode::nodes)
-    {
-      iNode->onReadyToOperate();
-    }
+    HomieNode::getMaster()->onReadyToOperate();
 
     if (!_setupFunctionCalled)
     {
@@ -168,10 +164,7 @@ void BootNormal::loop()
 
   Interface::get().loopFunction();
 
-  for (HomieNode *iNode : HomieNode::nodes)
-  {
-    iNode->loop();
-  }
+  HomieNode::getMaster()->loop();
 }
 
 void BootNormal::_prefixMqttTopic()
@@ -430,69 +423,77 @@ void BootNormal::_advertise()
     packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/enabled")), 1, true, Interface::get().getConfig().get().ota.enabled ? "true" : "false");
     if (packetId != 0)
     {
-      if (HomieNode::nodes.size())
-      { // skip if no nodes to publish
-        _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES;
-        _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
-        _advertisementProgress.currentNodeIndex = 0;
-      }
-      else
-      {
-        _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
-      }
+      //Todo
+      // if (HomieNode::nodes.size())
+      // { // skip if no nodes to publish
+      //   _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES;
+      //   _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+      //   _advertisementProgress.currentNodeIndex = 0;
+      // }
+      // else
+      // {
+      //   _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
+      // }
+      _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES;
     }
     break;
   case AdvertisementProgress::GlobalStep::PUB_NODES:
   {
-    HomieNode *node = HomieNode::nodes[_advertisementProgress.currentNodeIndex];
-    std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(node->getId()) + 12 + 1]); // /id/$properties
-    switch (_advertisementProgress.nodeStep)
+    //Todo changed
+    HomieNode *node = HomieNode::getMaster();
+    packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$type")), 1, true, node->getType());
+    if (packetId != 0)
     {
-    case AdvertisementProgress::NodeStep::PUB_TYPE:
-      strcpy_P(subtopic.get(), PSTR("/"));
-      strcat(subtopic.get(), node->getId());
-      strcat_P(subtopic.get(), PSTR("/$type"));
-      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, node->getType());
-      if (packetId != 0)
-        _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES;
-      break;
-    case AdvertisementProgress::NodeStep::PUB_PROPERTIES:
-      strcpy_P(subtopic.get(), PSTR("/"));
-      strcat(subtopic.get(), node->getId());
-      strcat_P(subtopic.get(), PSTR("/$properties"));
-      String properties;
-      for (Property *iProperty : node->getProperties())
-      {
-        properties.concat(iProperty->getProperty());
-        if (iProperty->isRange())
-        {
-          properties.concat("[");
-          properties.concat(iProperty->getLower());
-          properties.concat("-");
-          properties.concat(iProperty->getUpper());
-          properties.concat("]");
-        }
-        if (iProperty->isSettable())
-          properties.concat(":settable");
-        properties.concat(",");
-      }
-      if (node->getProperties().size() >= 1)
-        properties.remove(properties.length() - 1);
-      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, properties.c_str());
-      if (packetId != 0)
-      {
-        if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1)
-        {
-          _advertisementProgress.currentNodeIndex++;
-          _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
-        }
-        else
-        {
-          _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
-        }
-      }
-      break;
+      _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
     }
+    // HomieNode *node = HomieNode::nodes[_advertisementProgress.currentNodeIndex];
+    // std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(node->getId()) + 12 + 1]); // /id/$properties
+    // switch (_advertisementProgress.nodeStep)
+    // {
+    // case AdvertisementProgress::NodeStep::PUB_TYPE:
+    //   strcpy_P(subtopic.get(), PSTR("/"));
+    //   strcat(subtopic.get(), node->getId());
+    //   strcat_P(subtopic.get(), PSTR("/$type"));
+    //   packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, node->getType());
+    //   if (packetId != 0)
+    //     _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES;
+    //   break;
+    // case AdvertisementProgress::NodeStep::PUB_PROPERTIES:
+    //   strcpy_P(subtopic.get(), PSTR("/"));
+    //   strcat(subtopic.get(), node->getId());
+    //   strcat_P(subtopic.get(), PSTR("/$properties"));
+    //   String properties;
+    //   for (Property *iProperty : node->getProperties())
+    //   {
+    //     properties.concat(iProperty->getProperty());
+    //     if (iProperty->isRange())
+    //     {
+    //       properties.concat("[");
+    //       properties.concat(iProperty->getLower());
+    //       properties.concat("-");
+    //       properties.concat(iProperty->getUpper());
+    //       properties.concat("]");
+    //     }
+    //     if (iProperty->isSettable())
+    //       properties.concat(":settable");
+    //     properties.concat(",");
+    //   }
+    //   if (node->getProperties().size() >= 1)
+    //     properties.remove(properties.length() - 1);
+    // packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, properties.c_str());
+    // if (packetId != 0)
+    // {
+    //   if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1)
+    //   {
+    //     _advertisementProgress.currentNodeIndex++;
+    //     _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+    //   }
+    //   else
+    //   {
+    //   _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
+    // break;
+    //     }
+    // }
     break;
   }
   case AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA:
@@ -511,7 +512,7 @@ void BootNormal::_advertise()
       _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_SET;
     break;
   case AdvertisementProgress::GlobalStep::SUB_SET:
-    packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$set/#")), 2);
+    packetId = Interface::get().getMqttClient().subscribe(_prefixMqttTopic(PSTR("/$set/#")), 1);
     if (packetId != 0)
       _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_BROADCAST;
     break;
@@ -948,28 +949,34 @@ bool HomieInternals::BootNormal::__handleConfig(char *topic, char *payload, cons
 
 bool HomieInternals::BootNormal::__handleNodeProperty(char *topic, char *payload, const AsyncMqttClientMessageProperties &properties, size_t len, size_t index, size_t total)
 {
-  // initialize HomieRange
   if (strcmp_P(_mqttTopicLevels.get()[1], PSTR("$set")) == 0)
   {
-    char *node = _mqttTopicLevels.get()[2];
-    HomieNode *homieNode = HomieNode::find(node);
-    if (!homieNode)
-    {
-      Interface::get().getLogger() << F("Node ") << node << F(" not registered") << endl;
-      return true;
-    }
+    HomieNode *homieNode = HomieNode::getMaster();
 #ifdef DEBUG
     Interface::get().getLogger() << F("Recived network message for ") << homieNode->getId() << endl;
+#endif // DEBUG \
+       //  base_topic/device_id/$set/node_name
+#ifdef DEBUG
+    Interface::get().getLogger() << F("Calling global input handler...") << endl;
 #endif // DEBUG
-    int seperating_count = 4;
-    char *subtopic = topic;
-    while (seperating_count > 0)
-    {
-      if (*(subtopic++) == '/')
-        seperating_count--;
-    }
 
-    auto handled = homieNode->handleInput(subtopic, payload);
+    // bool handled = Interface::get().globalInputHandler(*homieNode, String(property), range, String(_mqttPayloadBuffer.get()));
+    // if (handled)
+    //   return true;
+    std::string subtopic = _mqttTopicLevels.get()[2];
+    for (int i = 3; i < _mqttTopicLevelsCount; i++)
+      subtopic += "/" + std::string(_mqttTopicLevels.get()[i]);
+    Binary data(len);
+    for (int i = 0; i < len; i++)
+      data[i] = payload[i];
+    auto handled = homieNode->handleMsg(subtopic, data);
+    if (Node::HandleError::success != handled)
+    {
+      Interface::get().getLogger() << "subtopic :" << subtopic << endl
+                                   << "payload" << payload << endl
+                                   << "len :" << len << endl
+                                   << "error: " << handled << endl;
+    }
   }
   return false;
 
