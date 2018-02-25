@@ -167,10 +167,16 @@ This will mark the Homie firmware as standalone, meaning it will first boot in `
 ### Functions to call *after* `Homie.setup()`
 
 ```c++
+void reboot();
+```
+
+Flag the device for reboot (restart).
+
+```c++
 void reset();
 ```
 
-Flag the device for reset.
+Flag the device for reset (Wipes config).
 
 ```c++
 void setIdle(bool idle);

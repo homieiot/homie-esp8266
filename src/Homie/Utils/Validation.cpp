@@ -311,20 +311,11 @@ ValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
     return result;
   }
 
-  JsonObject& settingsObject = object["settings"].as<JsonObject&>();
+  const JsonObject& settingsObject = object["settings"].as<JsonObject&>();
 
   if (settingsObject.size() > MAX_CONFIG_SETTING_SIZE) {
     result.reason = F("settings contains more elements than the set limit");
     return result;
-  }
-
-  // Remove nulls in settings
-  for (JsonPair kv : settingsObject) {
-    bool hasValue = kv.value.is<bool>() || kv.value.is<int>() || kv.value.is<float>() || kv.value.as<const char*>() != nullptr;
-    if (!hasValue) {
-      Interface::get().getLogger() << F("Removed ") << kv.key << F(" from settings") << endl;
-      settingsObject.remove(kv.key);
-    }
   }
 
   enum class Issue {

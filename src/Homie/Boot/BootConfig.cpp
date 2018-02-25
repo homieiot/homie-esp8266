@@ -462,11 +462,11 @@ void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size
     if (index == 0) {
       request->_tempObject = new char[total + 1];
     }
-    void* buff = request->_tempObject + index;
+    char* buff = reinterpret_cast<char*>(request->_tempObject) + index;
     memcpy(buff, data, len);
     if (index + len == total) {
-      void* buff = request->_tempObject + total;
-      *(char*)buff = 0;
+      char* buff =  reinterpret_cast<char*>(request->_tempObject) + total;
+      *buff = '\0';
     }
   }
 }

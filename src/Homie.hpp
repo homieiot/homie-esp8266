@@ -59,7 +59,7 @@ class HomieClass {
   HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
 
   static void reset();
-  void reboot();
+  static void reboot();
   static void setIdle(bool idle);
   static bool isConfigured();
   static bool isConnected();
