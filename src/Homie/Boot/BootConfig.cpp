@@ -3,28 +3,21 @@
 using namespace HomieInternals;
 
 BootConfig::BootConfig()
-  : Boot("config")
-  , _http(80)
-  , _httpClient()
-  , _ssidCount(0)
-  , _wifiScanAvailable(false)
-  , _lastWifiScanEnded(true)
-  , _jsonWifiNetworks()
-  , _flaggedForReboot(false)
-  , _flaggedForRebootAt(0)
-  , _proxyEnabled(false)
-  , _apIpStr{ '\0' }
+    : Boot("config"), _http(80), _httpClient(), _ssidCount(0), _wifiScanAvailable(false), _lastWifiScanEnded(true), _jsonWifiNetworks(), _flaggedForReboot(false), _flaggedForRebootAt(0), _proxyEnabled(false), _apIpStr{'\0'}
 {
   _wifiScanTimer.setInterval(CONFIG_SCAN_INTERVAL);
 }
 
-BootConfig::~BootConfig() {
+BootConfig::~BootConfig()
+{
 }
 
-void BootConfig::setup() {
+void BootConfig::setup()
+{
   Boot::setup();
 
-  if (Interface::get().led.enabled) {
+  if (Interface::get().led.enabled)
+  {
     digitalWrite(Interface::get().led.pin, Interface::get().led.on);
   }
 
@@ -38,9 +31,12 @@ void BootConfig::setup() {
   strcat(apName, DeviceId::get());
 
   WiFi.softAPConfig(ACCESS_POINT_IP, ACCESS_POINT_IP, IPAddress(255, 255, 255, 0));
-  if (Interface::get().configurationAp.secured) {
+  if (Interface::get().configurationAp.secured)
+  {
     WiFi.softAP(apName, Interface::get().configurationAp.password);
-  } else {
+  }
+  else
+  {
     WiFi.softAP(apName);
   }
 
@@ -58,12 +54,12 @@ void BootConfig::setup() {
   _http.on("/device-info", HTTP_GET, [this](AsyncWebServerRequest *request) { _onDeviceInfoRequest(request); });
   _http.on("/networks", HTTP_GET, [this](AsyncWebServerRequest *request) { _onNetworksRequest(request); });
   _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); }).onBody(BootConfig::__parsePost);
-  _http.on("/config", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
+  _http.on("/config", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) { // CORS
     Interface::get().getLogger() << F("Received CORS request for /config") << endl;
     __sendCORS(request);
   });
   _http.on("/wifi/connect", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); }).onBody(BootConfig::__parsePost);
-  _http.on("/wifi/connect", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
+  _http.on("/wifi/connect", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) { // CORS
     Interface::get().getLogger() << F("Received CORS request for /wifi/connect") << endl;
     __sendCORS(request);
   });
@@ -73,13 +69,16 @@ void BootConfig::setup() {
   _http.begin();
 }
 
-void BootConfig::loop() {
+void BootConfig::loop()
+{
   Boot::loop();
 
   _dns.processNextRequest();
 
-  if (_flaggedForReboot) {
-    if (millis() - _flaggedForRebootAt >= 3000UL) {
+  if (_flaggedForReboot)
+  {
+    if (millis() - _flaggedForRebootAt >= 3000UL)
+    {
       Interface::get().getLogger() << F("↻ Rebooting into normal mode...") << endl;
       Serial.flush();
       ESP.restart();
@@ -88,10 +87,12 @@ void BootConfig::loop() {
     return;
   }
 
-  if (!_lastWifiScanEnded) {
+  if (!_lastWifiScanEnded)
+  {
     int8_t scanResult = WiFi.scanComplete();
 
-    switch (scanResult) {
+    switch (scanResult)
+    {
     case WIFI_SCAN_RUNNING:
       return;
     case WIFI_SCAN_FAILED:
@@ -110,7 +111,8 @@ void BootConfig::loop() {
     _lastWifiScanEnded = true;
   }
 
-  if (_lastWifiScanEnded && _wifiScanTimer.check()) {
+  if (_lastWifiScanEnded && _wifiScanTimer.check())
+  {
     Interface::get().getLogger() << F("Triggering Wi-Fi scan...") << endl;
     WiFi.scanNetworks(true);
     _wifiScanTimer.tick();
@@ -118,36 +120,41 @@ void BootConfig::loop() {
   }
 }
 
-void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
+void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request)
+{
   Interface::get().getLogger() << F("Received Wi-Fi connect request") << endl;
   DynamicJsonBuffer parseJsonBuffer(JSON_OBJECT_SIZE(2));
-  const char* body = (const char*)(request->_tempObject);
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
-  if (!parsedJson.success()) {
+  const char *body = (const char *)(request->_tempObject);
+  JsonObject &parsedJson = parseJsonBuffer.parseObject(body);
+  if (!parsedJson.success())
+  {
     __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
-  if (!parsedJson.containsKey("ssid") || !parsedJson["ssid"].is<const char*>() || !parsedJson.containsKey("password") || !parsedJson["password"].is<const char*>()) {
+  if (!parsedJson.containsKey("ssid") || !parsedJson["ssid"].is<const char *>() || !parsedJson.containsKey("password") || !parsedJson["password"].is<const char *>())
+  {
     __SendJSONError(request, F("✖ SSID and password required"));
     return;
   }
 
   Interface::get().getLogger() << F("Connecting to Wi-Fi") << endl;
-  WiFi.begin(parsedJson["ssid"].as<const char*>(), parsedJson["password"].as<const char*>());
+  WiFi.begin(parsedJson["ssid"].as<const char *>(), parsedJson["password"].as<const char *>());
 
   request->send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 }
 
-void BootConfig::_onWifiStatusRequest(AsyncWebServerRequest *request) {
+void BootConfig::_onWifiStatusRequest(AsyncWebServerRequest *request)
+{
   Interface::get().getLogger() << F("Received Wi-Fi status request") << endl;
 
   DynamicJsonBuffer generatedJsonBuffer(JSON_OBJECT_SIZE(2));
-  JsonObject& json = generatedJsonBuffer.createObject();
+  JsonObject &json = generatedJsonBuffer.createObject();
   String status;
 
   //String json = "";
-  switch (WiFi.status()) {
+  switch (WiFi.status())
+  {
   case WL_IDLE_STATUS:
     status = F("idle");
     break;
@@ -179,17 +186,20 @@ void BootConfig::_onWifiStatusRequest(AsyncWebServerRequest *request) {
   request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), output);
 }
 
-void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request) {
+void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request)
+{
   Interface::get().getLogger() << F("Received proxy control request") << endl;
   DynamicJsonBuffer parseJsonBuffer(JSON_OBJECT_SIZE(1));
-  const char* body = (const char*)(request->_tempObject);
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);  // do not use plain String, else fails
-  if (!parsedJson.success()) {
+  const char *body = (const char *)(request->_tempObject);
+  JsonObject &parsedJson = parseJsonBuffer.parseObject(body); // do not use plain String, else fails
+  if (!parsedJson.success())
+  {
     __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
-  if (!parsedJson.containsKey("enable") || !parsedJson["enable"].is<bool>()) {
+  if (!parsedJson.containsKey("enable") || !parsedJson["enable"].is<bool>())
+  {
     __SendJSONError(request, F("✖ enable parameter is required"));
     return;
   }
@@ -199,16 +209,19 @@ void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request) {
   request->send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 }
 
-void BootConfig::_generateNetworksJson() {
-  DynamicJsonBuffer generatedJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3)));  // 1 at root, 3 in childrend
-  JsonObject& json = generatedJsonBuffer.createObject();
+void BootConfig::_generateNetworksJson()
+{
+  DynamicJsonBuffer generatedJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3))); // 1 at root, 3 in childrend
+  JsonObject &json = generatedJsonBuffer.createObject();
 
-  JsonArray& networks = json.createNestedArray("networks");
-  for (int network = 0; network < _ssidCount; network++) {
-    JsonObject& jsonNetwork = generatedJsonBuffer.createObject();
+  JsonArray &networks = json.createNestedArray("networks");
+  for (int network = 0; network < _ssidCount; network++)
+  {
+    JsonObject &jsonNetwork = generatedJsonBuffer.createObject();
     jsonNetwork["ssid"] = WiFi.SSID(network);
     jsonNetwork["rssi"] = WiFi.RSSI(network);
-    switch (WiFi.encryptionType(network)) {
+    switch (WiFi.encryptionType(network))
+    {
     case ENC_TYPE_WEP:
       jsonNetwork["encryption"] = "wep";
       break;
@@ -234,12 +247,15 @@ void BootConfig::_generateNetworksJson() {
   _jsonWifiNetworks = output;
 }
 
-void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
+void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request)
+{
   String host = request->host();
   Interface::get().getLogger() << F("Received captive portal request: ");
-  if (host && !host.equals(_apIpStr)) {
+  if (host && !host.equals(_apIpStr))
+  {
     // redirect unknown host requests to self if not connected to Internet yet
-    if (!_proxyEnabled) {
+    if (!_proxyEnabled)
+    {
       // Catch any captive portal probe.
       // Every browser brand uses a different URL for this purpose
       // We MUST redirect all them to local webserver to prevent cache poisoning
@@ -247,23 +263,31 @@ void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
       redirectUrl.concat(_apIpStr);
       Interface::get().getLogger() << F("Redirect: ") << redirectUrl << endl;
       request->redirect(redirectUrl);
-    } else {
+    }
+    else
+    {
       // perform transparent proxy to Internet if connected
       Interface::get().getLogger() << F("Proxy") << endl;
       _proxyHttpRequest(request);
     }
-  } else if (request->url() == "/" && !SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
+  }
+  else if (request->url() == "/" && !SPIFFS.exists(CONFIG_UI_BUNDLE_PATH))
+  {
     // UI File not found
     String msg = String(F("UI bundle not loaded. See Configuration API usage: http://marvinroger.github.io/homie-esp8266/"));
     Interface::get().getLogger() << msg << endl;
     request->send(404, F("text/plain"), msg);
-  } else if (request->url() == "/" && SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
+  }
+  else if (request->url() == "/" && SPIFFS.exists(CONFIG_UI_BUNDLE_PATH))
+  {
     // Respond with UI
     Interface::get().getLogger() << F("UI bundle found") << endl;
     AsyncWebServerResponse *response = request->beginResponse(SPIFFS, CONFIG_UI_BUNDLE_PATH, F("text/html"));
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
-  } else {
+  }
+  else
+  {
     // Faild to find request
     String msg = String(F("Request NOT found for url: ")) + request->url();
     Interface::get().getLogger() << msg << endl;
@@ -271,7 +295,8 @@ void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
   }
 }
 
-void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
+void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request)
+{
   Interface::get().getLogger() << F("Received transparent proxy request") << endl;
 
   String url = String("http://");
@@ -282,78 +307,107 @@ void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
   _httpClient.setUserAgent(F("ESP8266-Homie"));
   _httpClient.begin(url);
   // copy headers
-  for (int i = 0; i < request->headers(); i++) {
+  for (int i = 0; i < request->headers(); i++)
+  {
     _httpClient.addHeader(request->headerName(i), request->header(i));
   }
 
   String method = "";
-  switch (request->method()) {
-  case HTTP_GET: method = F("GET"); break;
-  case HTTP_PUT: method = F("PUT"); break;
-  case HTTP_POST: method = F("POST"); break;
-  case HTTP_DELETE: method = F("DELETE"); break;
-  case HTTP_OPTIONS: method = F("OPTIONS"); break;
-  default: break;
+  switch (request->method())
+  {
+  case HTTP_GET:
+    method = F("GET");
+    break;
+  case HTTP_PUT:
+    method = F("PUT");
+    break;
+  case HTTP_POST:
+    method = F("POST");
+    break;
+  case HTTP_DELETE:
+    method = F("DELETE");
+    break;
+  case HTTP_OPTIONS:
+    method = F("OPTIONS");
+    break;
+  default:
+    break;
   }
 
   Interface::get().getLogger() << F("Proxy sent request to destination") << endl;
-  const char* body = (const char*)(request->_tempObject);
+  const char *body = (const char *)(request->_tempObject);
   int _httpCode = _httpClient.sendRequest(method.c_str(), body);
   Interface::get().getLogger() << F("Destination response code = ") << _httpCode << endl;
 
   // bridge response to browser
   // copy response headers
   Interface::get().getLogger() << F("Bridging received destination contents to client") << endl;
-  AsyncWebServerResponse* response = request->beginResponse(_httpCode, _httpClient.header("Content-Type"), _httpClient.getString());
-  for (int i = 0; i < _httpClient.headers(); i++) {
+  AsyncWebServerResponse *response = request->beginResponse(_httpCode, _httpClient.header("Content-Type"), _httpClient.getString());
+  for (int i = 0; i < _httpClient.headers(); i++)
+  {
     response->addHeader(_httpClient.headerName(i), _httpClient.header(i));
   }
   request->send(response);
   _httpClient.end();
 }
 
-void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
+void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request)
+{
   Interface::get().getLogger() << F("Received device information request") << endl;
   auto numSettings = IHomieSetting::settings.size();
-  auto numNodes = HomieNode::nodes.size();
-  DynamicJsonBuffer jsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
-  JsonObject& json = jsonBuffer.createObject();
+  //Todo  changed
+  // auto numNodes = HomieNode::nodes.size();
+  auto numNodes = 2;
+  DynamicJsonBuffer jsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + (JSON_OBJECT_SIZE(numNodes)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
+  JsonObject &json = jsonBuffer.createObject();
   json["hardware_device_id"] = DeviceId::get();
   json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
-  JsonObject& firmware = json.createNestedObject("firmware");
+  JsonObject &firmware = json.createNestedObject("firmware");
   firmware["name"] = Interface::get().firmware.name;
   firmware["version"] = Interface::get().firmware.version;
 
-  JsonArray& nodes = json.createNestedArray("nodes");
-  for (HomieNode* iNode : HomieNode::nodes) {
-    JsonObject& jsonNode = jsonBuffer.createObject();
-    jsonNode["id"] = iNode->getId();
-    jsonNode["type"] = iNode->getType();
-    nodes.add(jsonNode);
-  }
+  JsonObject &nodes = json.createNestedObject("nodes");
+  HomieNode::getMaster()->getProperties(nodes);
+  // for (HomieNode *iNode : HomieNode::nodes)
+  // {
+  //   JsonObject &jsonNode = jsonBuffer.createObject();
+  //   jsonNode["id"] = iNode->getId();
+  //   jsonNode["type"] = iNode->getType();
+  //   nodes.add(jsonNode);
+  // }
 
-  JsonArray& settings = json.createNestedArray("settings");
-  for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    JsonObject& jsonSetting = jsonBuffer.createObject();
+  JsonArray &settings = json.createNestedArray("settings");
+  for (IHomieSetting *iSetting : IHomieSetting::settings)
+  {
+    JsonObject &jsonSetting = jsonBuffer.createObject();
 
-    if (iSetting->getType() != "unknown") {
+    if (iSetting->getType() != "unknown")
+    {
       jsonSetting["name"] = iSetting->getName();
       jsonSetting["description"] = iSetting->getDescription();
       jsonSetting["type"] = iSetting->getType();
       jsonSetting["required"] = iSetting->isRequired();
 
-      if (!iSetting->isRequired()) {
-        if (iSetting->isBool()) {
-          HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+      if (!iSetting->isRequired())
+      {
+        if (iSetting->isBool())
+        {
+          HomieSetting<bool> *setting = static_cast<HomieSetting<bool> *>(iSetting);
           jsonSetting["default"] = setting->get();
-        } else if (iSetting->isLong()) {
-          HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+        }
+        else if (iSetting->isLong())
+        {
+          HomieSetting<long> *setting = static_cast<HomieSetting<long> *>(iSetting);
           jsonSetting["default"] = setting->get();
-        } else if (iSetting->isDouble()) {
-          HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+        }
+        else if (iSetting->isDouble())
+        {
+          HomieSetting<double> *setting = static_cast<HomieSetting<double> *>(iSetting);
           jsonSetting["default"] = setting->get();
-        } else if (iSetting->isConstChar()) {
-          HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+        }
+        else if (iSetting->isConstChar())
+        {
+          HomieSetting<const char *> *setting = static_cast<HomieSetting<const char *> *>(iSetting);
           jsonSetting["default"] = setting->get();
         }
       }
@@ -368,32 +422,40 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), output);
 }
 
-void BootConfig::_onNetworksRequest(AsyncWebServerRequest *request) {
+void BootConfig::_onNetworksRequest(AsyncWebServerRequest *request)
+{
   Interface::get().getLogger() << F("Received networks request") << endl;
-  if (_wifiScanAvailable) {
+  if (_wifiScanAvailable)
+  {
     request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), _jsonWifiNetworks);
-  } else {
+  }
+  else
+  {
     __SendJSONError(request, F("Initial Wi-Fi scan not finished yet"), 503);
   }
 }
 
-void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
+void BootConfig::_onConfigRequest(AsyncWebServerRequest *request)
+{
   Interface::get().getLogger() << F("Received config request") << endl;
-  if (_flaggedForReboot) {
+  if (_flaggedForReboot)
+  {
     __SendJSONError(request, F("✖ Device already configured"), 403);
     return;
   }
 
   DynamicJsonBuffer parseJsonBuffer(MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE);
-  const char* body = (const char*)(request->_tempObject);
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
-  if (!parsedJson.success()) {
+  const char *body = (const char *)(request->_tempObject);
+  JsonObject &parsedJson = parseJsonBuffer.parseObject(body);
+  if (!parsedJson.success())
+  {
     __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
   ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
-  if (!configValidationResult.valid) {
+  if (!configValidationResult.valid)
+  {
     __SendJSONError(request, String(F("✖ Config file is not valid, reason: ")) + configValidationResult.reason);
     return;
   }
@@ -405,11 +467,12 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 
   Interface::get().disable = true;
-  _flaggedForReboot = true;  // We don't reboot immediately, otherwise the response above is not sent
+  _flaggedForReboot = true; // We don't reboot immediately, otherwise the response above is not sent
   _flaggedForRebootAt = millis();
 }
 
-void BootConfig::__sendCORS(AsyncWebServerRequest *request) {
+void BootConfig::__sendCORS(AsyncWebServerRequest *request)
+{
   AsyncWebServerResponse *response = request->beginResponse(204);
   response->addHeader(F("Access-Control-Allow-Origin"), F("*"));
   response->addHeader(F("Access-Control-Allow-Methods"), F("PUT"));
@@ -417,25 +480,33 @@ void BootConfig::__sendCORS(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
-void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-  if (!index && total > MAX_POST_SIZE) {
+void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+{
+  if (!index && total > MAX_POST_SIZE)
+  {
     Interface::get().getLogger() << "Request is to large to be processed." << endl;
-  } else if (!index && total <= MAX_POST_SIZE) {
-    char* buff = new char[total + 1];
-    strcpy(buff, (const char*)data);
+  }
+  else if (!index && total <= MAX_POST_SIZE)
+  {
+    char *buff = new char[total + 1];
+    strcpy(buff, (const char *)data);
     request->_tempObject = buff;
-  } else if (total <= MAX_POST_SIZE) {
-    char* buff = reinterpret_cast<char*>(request->_tempObject);
-    strcat(buff, (const char*)data);
+  }
+  else if (total <= MAX_POST_SIZE)
+  {
+    char *buff = reinterpret_cast<char *>(request->_tempObject);
+    strcat(buff, (const char *)data);
   }
 }
-static const String ConfigJSONError(const String error) {
+static const String ConfigJSONError(const String error)
+{
   const String BEGINNING = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
   const String END = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_END));
   return BEGINNING + error + END;
 }
 
-void HomieInternals::BootConfig::__SendJSONError(AsyncWebServerRequest * request, String msg, int16_t code) {
+void HomieInternals::BootConfig::__SendJSONError(AsyncWebServerRequest *request, String msg, int16_t code)
+{
   Interface::get().getLogger() << msg << endl;
   const String BEGINNING = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
   const String END = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_END));

@@ -1,36 +1,43 @@
+#define DEBUG true
+
 #include <Homie.h>
+#include "Nodes/Types/RangeType.hpp"
+#include "Nodes/ExecuteNode.hpp"
+#include "TemperatureNode.hpp"
+const int PIN_RELAY = LED_BUILTIN;
 
-const int TEMPERATURE_INTERVAL = 300;
+HomieNode HomieNode::MasterHomieNode("master", "master node");
 
-unsigned long lastTemperatureSent = 0;
+using NodeClass = Node::Node;
 
-HomieNode temperatureNode("temperature", "temperature");
+Node::TemperatureNode temprature("living_room");
 
-void setupHandler() {
-  temperatureNode.setProperty("unit").send("c");
+void lightSetup()
+{
+  pinMode(PIN_RELAY, OUTPUT);
+  digitalWrite(PIN_RELAY, LOW);
 }
-
-void loopHandler() {
-  if (millis() - lastTemperatureSent >= TEMPERATURE_INTERVAL * 1000UL || lastTemperatureSent == 0) {
-    float temperature = 22; // Fake temperature here, for the example
-    Homie.getLogger() << "Temperature: " << temperature << " °C" << endl;
-    temperatureNode.setProperty("degrees").send(String(temperature));
-    lastTemperatureSent = millis();
-  }
+bool lightOnHandler(const Node::RangeType<0, 100> &range)
+{
+  bool on = (range.value < 50);
+  digitalWrite(PIN_RELAY, on ? HIGH : LOW);
+  Homie.getLogger() << "Light is " << range.value << endl;
+  return true;
 }
-
-void setup() {
+Node::ExecuteNode<Node::RangeType<0, 100>> light("light", lightOnHandler);
+void setup()
+{
   Serial.begin(115200);
-  Serial << endl << endl;
-  Homie_setFirmware("awesome-temperature", "1.0.0");
-  Homie.setSetupFunction(setupHandler).setLoopFunction(loopHandler);
-
-  temperatureNode.advertise("unit");
-  temperatureNode.advertise("degrees");
-
+  Serial << endl
+         << endl;
+  Homie.setSetupFunction(lightSetup);
+  Homie_setFirmware("temprature", "1.0.1");
+  HomieNode::getMaster()->addNode(&light);
+  HomieNode::getMaster()->addNode(&temprature);
   Homie.setup();
 }
 
-void loop() {
+void loop()
+{
   Homie.loop();
 }
