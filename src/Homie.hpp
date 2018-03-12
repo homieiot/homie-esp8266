@@ -52,7 +52,7 @@ class HomieClass {
   HomieClass& setGlobalInputHandler(const GlobalInputHandler& globalInputHandler);
   HomieClass& setBroadcastHandler(const BroadcastHandler& broadcastHandler);
   HomieClass& onEvent(const EventHandler& handler);
-  HomieClass& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
+  HomieClass& setResetTrigger(uint8_t pin, bool state, uint16_t time);
   HomieClass& disableResetTrigger();
   HomieClass& setSetupFunction(const CallbackFunction& function);
   HomieClass& setLoopFunction(const CallbackFunction& function);
