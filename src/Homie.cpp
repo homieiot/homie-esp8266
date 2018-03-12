@@ -323,7 +323,7 @@ HomieClass& HomieClass::disableResetTrigger() {
   return *this;
 }
 
-HomieClass& HomieClass::setHomieButtonClick(CallbackFunction& function) {
+HomieClass& HomieClass::setHomieButtonClick(const CallbackFunction& function) {
   HomieButton::setClickHandler(function);
 }
 

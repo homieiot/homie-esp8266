@@ -19,7 +19,7 @@ void HomieButton::attach() {
     _homieButton->attachLongPressStart(_longPressStartFunc);
 }
 
-void HomieButton::setClickHandler(CallbackFunction& function) {
+void HomieButton::setClickHandler(const CallbackFunction& function) {
   _userClickFunc = function;
 }
 

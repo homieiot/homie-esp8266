@@ -58,7 +58,7 @@ class HomieClass {
   HomieClass& setLoopFunction(const CallbackFunction& function);
   HomieClass& setHomieBootMode(HomieBootMode bootMode);
   HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
-  HomieClass& setHomieButtonClick(CallbackFunction& function);
+  HomieClass& setHomieButtonClick(const CallbackFunction& function);
 
   static void reset();
   static void reboot();

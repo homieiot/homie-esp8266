@@ -12,7 +12,7 @@ namespace HomieInternals {
 class HomieButton{
  public:
   static void attach();
-  static void setClickHandler(CallbackFunction& function);
+  static void setClickHandler(const CallbackFunction& function);
 
  private:
     // Disable creating an instance of this object
