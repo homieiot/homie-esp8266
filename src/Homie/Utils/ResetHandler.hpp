@@ -3,7 +3,6 @@
 #include "Arduino.h"
 
 #include <Ticker.h>
-#include <Bounce2.h>
 #include "../../StreamingOperator.hpp"
 #include "../Datatypes/Interface.hpp"
 
