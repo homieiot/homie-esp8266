@@ -14,7 +14,7 @@ class Validation {
   static ValidationResult validateConfig(const JsonObject& object);
 
  private:
-  static void _removeNullConfigItems(const char* name, JsonObject& object);
+  static void _removeNullConfigItems(const char* name, JsonObject* object);
   static ValidationResult _validateConfigRoot(const JsonObject& object);
   static ValidationResult _validateConfigWifi(const JsonObject& object);
   static ValidationResult _validateConfigMqtt(const JsonObject& object);

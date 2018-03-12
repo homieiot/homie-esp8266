@@ -17,7 +17,7 @@
 #include "./Strings.hpp"
 #include "./Datatypes/Result.hpp"
 
-// TODO: Config Remove of sensitive data Should have a default value so we know it actually exists.
+// TODO(timpur): Config Remove of sensitive data Should have a default value so we know it actually exists.
 
 namespace HomieInternals {
 class Config {

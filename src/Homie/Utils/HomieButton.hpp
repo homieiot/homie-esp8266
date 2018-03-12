@@ -12,7 +12,7 @@ namespace HomieInternals {
 class HomieButton{
  public:
   static void attach();
-  static void addClickHandler(CallbackFunction func);
+  static void setClickHandler(CallbackFunction& function);
 
  private:
     // Disable creating an instance of this object
@@ -21,10 +21,10 @@ class HomieButton{
   static Ticker _homieButtonTicker;
   static OneButton* _homieButton;
   static CallbackFunction _userClickFunc;
-    
+
   static void _tick();
   static void _clickFunc();
   static void _doubleClickFunc();
   static void _longPressStartFunc();
 };
-}
+} //  namespace HomieInternals

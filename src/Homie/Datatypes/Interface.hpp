@@ -49,7 +49,7 @@ class InterfaceData {
   struct Reset {
     bool enabled;
     uint8_t triggerPin;
-    uint8_t triggerState;
+    bool triggerState;
     uint16_t triggerTime;
   } reset;
 

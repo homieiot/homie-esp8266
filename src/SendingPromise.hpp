@@ -19,6 +19,7 @@ class SendingPromise {
   SendingPromise& setRange(const HomieRange& range);
   SendingPromise& setRange(uint16_t rangeIndex);
   uint16_t send(const String& value);
+  uint16_t send(const char* value);
 
  private:
   SendingPromise& setNode(const HomieNode& node);

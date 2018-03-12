@@ -11,7 +11,7 @@ void HomieButton::attach() {
 
     _homieButtonTicker.attach_ms(10, _tick);
 
-    _homieButton = new OneButton(Interface::get().reset.triggerPin, !Interface::get().reset.triggerState);
+    _homieButton = new OneButton(Interface::get().reset.triggerPin, !Interface::get().reset.triggerState); // TODO(timpur): Work out why this is inverted
     _homieButton->setPressTicks(Interface::get().reset.triggerTime);
 
     _homieButton->attachClick(_clickFunc);
@@ -19,8 +19,8 @@ void HomieButton::attach() {
     _homieButton->attachLongPressStart(_longPressStartFunc);
 }
 
-void HomieButton::addClickHandler(CallbackFunction func) {
-  _userClickFunc = func;
+void HomieButton::setClickHandler(CallbackFunction& function) {
+  _userClickFunc = function;
 }
 
 void HomieButton::_tick() {

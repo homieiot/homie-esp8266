@@ -3,7 +3,8 @@
 using namespace HomieInternals;
 
 ValidationResult Validation::validateConfig(const JsonObject& object) {
-  _removeNullConfigItems("Config", (JsonObject&)object);
+  JsonObject& objectPTR = (JsonObject&)object;
+  _removeNullConfigItems("Config", &objectPTR);
 
   ValidationResult result;
   result = _validateConfigRoot(object);
@@ -21,17 +22,17 @@ ValidationResult Validation::validateConfig(const JsonObject& object) {
   return result;
 }
 
-void Validation::_removeNullConfigItems(const char* name, JsonObject& object) {
+void Validation::_removeNullConfigItems(const char* name, JsonObject* object) {
   auto hasValue = [](JsonVariant& val) {
     return val.is<bool>() || val.is<int>() || val.is<float>() || val.as<const char*>() != nullptr;
   };
 
-  for (JsonPair kv : object) {
+  for (JsonPair kv : *object) {
     if (kv.value.is<JsonObject&>()) {
-       _removeNullConfigItems(kv.key, kv.value.as<JsonObject&>());
+       _removeNullConfigItems(kv.key, &kv.value.as<JsonObject&>());
     } else if (!hasValue(kv.value)) {
        Interface::get().getLogger() << F("Removed ") << kv.key << F(" from ") << name << endl;
-       object.remove(kv.key);
+       object->remove(kv.key);
     }
   }
 }

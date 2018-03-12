@@ -304,7 +304,7 @@ HomieClass& HomieClass::onEvent(const EventHandler& handler) {
   return *this;
 }
 
-HomieClass& HomieClass::setResetTrigger(uint8_t pin, uint8_t state, uint16_t time) {
+HomieClass& HomieClass::setResetTrigger(uint8_t pin, bool state, uint16_t time) {
   _checkBeforeSetup(F("setResetTrigger"));
 
   Interface::get().reset.enabled = true;
@@ -321,6 +321,10 @@ HomieClass& HomieClass::disableResetTrigger() {
   Interface::get().reset.enabled = false;
 
   return *this;
+}
+
+HomieClass& HomieClass::setHomieButtonClick(CallbackFunction& function) {
+  HomieButton::setClickHandler(function);
 }
 
 const ConfigStruct& HomieClass::getConfiguration() {

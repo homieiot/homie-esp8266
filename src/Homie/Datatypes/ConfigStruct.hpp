@@ -43,4 +43,4 @@ struct ConfigStruct {
     bool enabled;
   } ota;
 };
-}  // namespace HomieInternals
+} // namespace HomieInternals

@@ -14,6 +14,7 @@
 #include "Homie/Logger.hpp"
 #include "Homie/Config.hpp"
 #include "Homie/Blinker.hpp"
+#include "Homie/Utils/HomieButton.hpp"
 
 #include "SendingPromise.hpp"
 #include "HomieBootMode.hpp"
@@ -57,6 +58,7 @@ class HomieClass {
   HomieClass& setLoopFunction(const CallbackFunction& function);
   HomieClass& setHomieBootMode(HomieBootMode bootMode);
   HomieClass& setHomieBootModeOnNextBoot(HomieBootMode bootMode);
+  HomieClass& setHomieButtonClick(CallbackFunction& function);
 
   static void reset();
   static void reboot();

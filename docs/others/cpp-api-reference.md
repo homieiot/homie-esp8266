@@ -130,7 +130,7 @@ Set the event handler. Useful if you want to hook to Homie events.
 Homie& setResetTrigger(uint8_t pin, uint8_t state, uint16_t time);
 ```
 
-Set the reset trigger. By default, the device will reset when pin `0` is `LOW` for `5000`ms.
+Set the reset trigger and the Homie Button. By default, the device will reset when pin `0` is `LOW` for `5000`ms. This Homie button can also be used by the user with `setHomieButtonClick(fnc)` and also used to swap between boot modes. This is usefull to update the config.
 
 * **`pin`**: Pin of the reset trigger
 * **`state`**: Reset when the pin reaches this state for the given time
@@ -163,6 +163,14 @@ Homie& setStandalone();
 ```
 
 This will mark the Homie firmware as standalone, meaning it will first boot in `standalone` mode. To configure it and boot to `configuration` mode, the device has to be resetted.
+
+```c++
+  HomieClass& setHomieButtonClick(std::function<void()> function);
+```
+
+You can provide the function that will be called when the homie button is clicked.
+
+* **`callback`**: Loop function
 
 ### Functions to call *after* `Homie.setup()`
 

@@ -40,6 +40,10 @@ SendingPromise& SendingPromise::setRange(uint16_t rangeIndex) {
 }
 
 uint16_t SendingPromise::send(const String& value) {
+  return send(value.c_str());
+}
+
+uint16_t SendingPromise::send(const char* value) {
   if (!Interface::get().ready) {
     Interface::get().getLogger() << F("✖ setNodeProperty(): impossible now") << endl;
     return 0;
@@ -60,11 +64,11 @@ uint16_t SendingPromise::send(const String& value) {
     strcat(topic, rangeStr);
   }
 
-  uint16_t packetId = Interface::get().getMqttClient().publish(topic, _qos, _retained, value.c_str());
+  uint16_t packetId = Interface::get().getMqttClient().publish(topic, _qos, _retained, value);
 
   if (_overwriteSetter) {
     strcat_P(topic, PSTR("/set"));
-    Interface::get().getMqttClient().publish(topic, 1, true, value.c_str());
+    Interface::get().getMqttClient().publish(topic, 1, true, value);
   }
 
   delete[] topic;
