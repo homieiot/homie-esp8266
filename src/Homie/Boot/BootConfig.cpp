@@ -426,7 +426,7 @@ void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size
     memcpy(buff, data, len);
     if (index + len == total) {
       void* buff = request->_tempObject + total;
-      *(char*)buff = 0;
+      *reinterpret_cast<char*>(buff) = 0;
     }
   }
 }
