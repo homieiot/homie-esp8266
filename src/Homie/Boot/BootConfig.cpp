@@ -51,6 +51,7 @@ void BootConfig::setup() {
   _dns.setErrorReplyCode(DNSReplyCode::NoError);
   _dns.start(53, F("*"), ACCESS_POINT_IP);
 
+  __setCORS();
   _http.on("/heart", HTTP_GET, [this](AsyncWebServerRequest *request) {
     Interface::get().getLogger() << F("Received heart request") << endl;
     request->send(204);
@@ -58,18 +59,17 @@ void BootConfig::setup() {
   _http.on("/device-info", HTTP_GET, [this](AsyncWebServerRequest *request) { _onDeviceInfoRequest(request); });
   _http.on("/networks", HTTP_GET, [this](AsyncWebServerRequest *request) { _onNetworksRequest(request); });
   _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); }).onBody(BootConfig::__parsePost);
-  _http.on("/config", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
-    Interface::get().getLogger() << F("Received CORS request for /config") << endl;
-    __sendCORS(request);
-  });
   _http.on("/wifi/connect", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); }).onBody(BootConfig::__parsePost);
-  _http.on("/wifi/connect", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
-    Interface::get().getLogger() << F("Received CORS request for /wifi/connect") << endl;
-    __sendCORS(request);
-  });
   _http.on("/wifi/status", HTTP_GET, [this](AsyncWebServerRequest *request) { _onWifiStatusRequest(request); });
   _http.on("/proxy/control", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onProxyControlRequest(request); }).onBody(BootConfig::__parsePost);
-  _http.onNotFound([this](AsyncWebServerRequest *request) { _onCaptivePortal(request); });
+  _http.onNotFound([this](AsyncWebServerRequest *request) {
+    if ( request->method() == HTTP_OPTIONS ) {
+      Interface::get().getLogger() << F("Received CORS request for ")<< request->url() << endl;
+      request->send(200);
+    } else {
+      _onCaptivePortal(request);
+    }
+  });
   _http.begin();
 }
 
@@ -409,24 +409,25 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   _flaggedForRebootAt = millis();
 }
 
-void BootConfig::__sendCORS(AsyncWebServerRequest *request) {
-  AsyncWebServerResponse *response = request->beginResponse(204);
-  response->addHeader(F("Access-Control-Allow-Origin"), F("*"));
-  response->addHeader(F("Access-Control-Allow-Methods"), F("PUT"));
-  response->addHeader(F("Access-Control-Allow-Headers"), F("Content-Type, Origin, Referer, User-Agent"));
-  request->send(response);
+void BootConfig::__setCORS() {
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Origin"), F("*"));
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), F("GET, PUT"));
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), F("Content-Type, Origin, Referer, User-Agent"));
 }
 
 void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-  if (!index && total > MAX_POST_SIZE) {
-    Interface::get().getLogger() << "Request is to large to be processed." << endl;
-  } else if (!index && total <= MAX_POST_SIZE) {
-    char* buff = new char[total + 1];
-    strcpy(buff, (const char*)data);
-    request->_tempObject = buff;
-  } else if (total <= MAX_POST_SIZE) {
-    char* buff = reinterpret_cast<char*>(request->_tempObject);
-    strcat(buff, (const char*)data);
+  if (total > MAX_POST_SIZE) {
+    Interface::get().getLogger() << F("Request is to large to be processed.") << endl;
+  } else {
+    if (index == 0) {
+      request->_tempObject = new char[total + 1];
+    }
+    void* buff = request->_tempObject + index;
+    memcpy(buff, data, len);
+    if (index + len == total) {
+      void* buff = request->_tempObject + total;
+      *reinterpret_cast<char*>(buff) = 0;
+    }
   }
 }
 static const String ConfigJSONError(const String error) {

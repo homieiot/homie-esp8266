@@ -55,7 +55,7 @@ class BootConfig : public Boot {
   void _onWifiStatusRequest(AsyncWebServerRequest *request);
 
   // Helpers
-  static void __sendCORS(AsyncWebServerRequest *request);
+  static void __setCORS();
   static const int MAX_POST_SIZE = 1500;
   static void __parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
   static void __SendJSONError(AsyncWebServerRequest *request, String msg, int16_t code = 400);
