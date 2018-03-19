@@ -264,8 +264,7 @@ void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
   } else if (request->url() == "/" && SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
     // Respond with UI
     Interface::get().getLogger() << F("UI bundle found") << endl;
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, CONFIG_UI_BUNDLE_PATH, F("text/html"));
-    response->addHeader("Content-Encoding", "gzip");
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS.open(CONFIG_UI_BUNDLE_PATH, "r"), F("index.html"), F("text/html"));
     request->send(response);
   } else {
     // Faild to find request
