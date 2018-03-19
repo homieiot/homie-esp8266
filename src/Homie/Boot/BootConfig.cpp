@@ -281,7 +281,7 @@ void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
   _httpClient.setUserAgent(F("ESP8266-Homie"));
   _httpClient.begin(url);
   // copy headers
-  for (int i = 0; i < request->headers(); i++) {
+  for (size_t i = 0; i < request->headers(); i++) {
     _httpClient.addHeader(request->headerName(i), request->header(i));
   }
 
@@ -335,7 +335,7 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
     JsonObject& jsonSetting = jsonBuffer.createObject();
 
-    if (iSetting->getType() != "unknown") {
+    if (String(iSetting->getType()) != "unknown") {
       jsonSetting["name"] = iSetting->getName();
       jsonSetting["description"] = iSetting->getDescription();
       jsonSetting["type"] = iSetting->getType();
@@ -421,18 +421,13 @@ void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size
     if (index == 0) {
       request->_tempObject = new char[total + 1];
     }
-    void* buff = request->_tempObject + index;
+    char* buff = reinterpret_cast<char*>(request->_tempObject) + index;
     memcpy(buff, data, len);
     if (index + len == total) {
-      void* buff = request->_tempObject + total;
-      *reinterpret_cast<char*>(buff) = 0;
+      char* buff =  reinterpret_cast<char*>(request->_tempObject) + total;
+      *buff = '\0';
     }
   }
-}
-static const String ConfigJSONError(const String error) {
-  const String BEGINNING = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-  const String END = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_END));
-  return BEGINNING + error + END;
 }
 
 void HomieInternals::BootConfig::__SendJSONError(AsyncWebServerRequest * request, String msg, int16_t code) {
