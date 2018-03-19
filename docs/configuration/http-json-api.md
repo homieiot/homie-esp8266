@@ -158,7 +158,7 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
 
 --------------
 
-??? summary "GET `/wifi/connect`"
+??? summary "PUT `/wifi/connect`"
     Initiates the connection of the device to the Wi-Fi network while in configuation mode. This request is not synchronous and the result (Wi-Fi connected or not) must be obtained by with `GET /wifi/status`.
 
     ## Request body
