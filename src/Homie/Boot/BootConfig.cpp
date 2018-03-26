@@ -344,7 +344,7 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   for (IHomieSetting& iSetting : IHomieSetting::settings) {
     JsonObject& jsonSetting = jsonBuffer.createObject();
 
-    if (strcmp(iSetting->getType(), "unknown") != 0) {
+    if (strcmp(iSetting.getType(), "unknown") != 0) {
       jsonSetting["name"] = iSetting.getName();
       jsonSetting["description"] = iSetting.getDescription();
       jsonSetting["type"] = iSetting.getType();
