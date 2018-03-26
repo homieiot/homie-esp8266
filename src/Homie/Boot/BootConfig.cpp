@@ -285,7 +285,7 @@ void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
   _httpClient.setUserAgent(F("ESP8266-Homie"));
   _httpClient.begin(url);
   // copy headers
-  for (int i = 0; i < request->headers(); i++) {
+  for (size_t i = 0; i < request->headers(); i++) {
     _httpClient.addHeader(request->headerName(i), request->header(i));
   }
 
@@ -344,7 +344,7 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   for (IHomieSetting& iSetting : IHomieSetting::settings) {
     JsonObject& jsonSetting = jsonBuffer.createObject();
 
-    if (iSetting.getType() != "unknown") {
+    if (strcmp(iSetting->getType(), "unknown") != 0) {
       jsonSetting["name"] = iSetting.getName();
       jsonSetting["description"] = iSetting.getDescription();
       jsonSetting["type"] = iSetting.getType();

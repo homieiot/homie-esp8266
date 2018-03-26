@@ -331,14 +331,14 @@ void BootNormal::_advertise() {
   switch (_advertisementProgress.globalStep) {
     case AdvertisementProgress::GlobalStep::PUB_HOMIE:
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
-      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_MAC;
-      break;
-    case AdvertisementProgress::GlobalStep::PUB_MAC:
-      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$mac")), 1, true, WiFi.macAddress().c_str());
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NAME;
       break;
     case AdvertisementProgress::GlobalStep::PUB_NAME:
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$name")), 1, true, Interface::get().getConfig().get().name);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_MAC;
+      break;
+    case AdvertisementProgress::GlobalStep::PUB_MAC:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$mac")), 1, true, WiFi.macAddress().c_str());
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_LOCALIP;
       break;
     case AdvertisementProgress::GlobalStep::PUB_LOCALIP:
@@ -347,6 +347,18 @@ void BootNormal::_advertise() {
       char localIpStr[MAX_IP_STRING_LENGTH];
       Helpers::ipToString(localIp, localIpStr);
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$localip")), 1, true, localIpStr);
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES_ATTR;
+      break;
+    }
+    case AdvertisementProgress::GlobalStep::PUB_NODES_ATTR:
+    {
+      String nodes;
+      for (HomieNode* node : HomieNode::nodes) {
+        nodes.concat(node->getId());
+        nodes.concat(F(","));
+      }
+      if (HomieNode::nodes.size() >= 1) nodes.remove(nodes.length() - 1);
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$nodes")), 1, true, nodes.c_str());
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL;
       break;
     }

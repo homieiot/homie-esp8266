@@ -38,9 +38,10 @@ class BootNormal : public Boot {
     bool done = false;
     enum class GlobalStep {
       PUB_HOMIE,
-      PUB_MAC,
       PUB_NAME,
+      PUB_MAC,
       PUB_LOCALIP,
+      PUB_NODES_ATTR,
       PUB_STATS_INTERVAL,
       PUB_FW_NAME,
       PUB_FW_VERSION,

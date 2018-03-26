@@ -11,7 +11,7 @@ HomieClass::HomieClass()
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
   Interface::get().led.enabled = true;
-  Interface::get().led.pin = BUILTIN_LED;
+  Interface::get().led.pin = LED_BUILTIN;
   Interface::get().led.on = LOW;
   Interface::get().reset.enabled = true;
   Interface::get().reset.triggerPin = DEFAULT_RESET_PIN;
