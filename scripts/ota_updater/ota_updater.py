@@ -84,7 +84,7 @@ def on_message(client, userdata, msg):
         client.publish(topic, userdata['firmware'])
 
 
-def main(broker_host, broker_port, broker_username, broker_password, base_topic, device_id, firmware):
+def main(broker_host, broker_port, broker_username, broker_password, broker_ca_cert, base_topic, device_id, firmware):
     # initialise mqtt client and register callbacks
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -93,6 +93,11 @@ def main(broker_host, broker_port, broker_username, broker_password, base_topic,
     # set username and password if given
     if broker_username and broker_password:
         client.username_pw_set(broker_username, broker_password)
+
+    if broker_ca_cert is not None:
+        client.tls_set(
+            ca_certs=broker_ca_cert
+        )
 
     # save data to be used in the callbacks
     client.user_data_set({
@@ -138,6 +143,10 @@ if __name__ == '__main__':
     parser.add_argument('firmware', type=argparse.FileType('rb'),
                         help='path to the firmware to be sent to the device')
 
+    parser.add_argument("--broker-tls-cacert", default=None, required=False,
+                        help="CA certificate bundle used to validate TLS connections. If set, TLS will be enabled on the broker conncetion"
+    )
+
     # workaround for http://bugs.python.org/issue9694
     parser._optionals.title = "arguments"
 
@@ -152,4 +161,4 @@ if __name__ == '__main__':
 
     # Invoke the business logic
     main(args.broker_host, args.broker_port, args.broker_username,
-         args.broker_password, args.base_topic, args.device_id, firmware)
+         args.broker_password, args.broker_tls_cacert, args.base_topic, args.device_id, firmware)
