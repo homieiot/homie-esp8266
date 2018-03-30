@@ -7,7 +7,7 @@ Homie for ESP8266
 
 An Arduino for ESP8266 implementation of [Homie](https://github.com/marvinroger/homie), an MQTT convention for the IoT.
 
-Currently Homie for ESP8266 implements [Homie 2.0.0](https://github.com/marvinroger/homie/releases/tag/v2.0.0)
+Currently Homie for ESP8266 implements [Homie 2.0.1](https://github.com/marvinroger/homie/releases/tag/v2.0.1)
 
 ## Note for v1.x users
 
