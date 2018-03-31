@@ -17,7 +17,7 @@ void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
 }
 
 uint32_t HomieInternals::Timer::getInterval() {
-  _interval;
+  return _interval;
 }
 
 bool Timer::check() const {

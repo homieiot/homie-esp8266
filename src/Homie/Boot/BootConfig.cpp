@@ -51,6 +51,7 @@ void BootConfig::setup() {
   _dns.setErrorReplyCode(DNSReplyCode::NoError);
   _dns.start(53, F("*"), ACCESS_POINT_IP);
 
+  __setCORS();
   _http.on("/heart", HTTP_GET, [this](AsyncWebServerRequest *request) {
     Interface::get().getLogger() << F("Received heart request") << endl;
     request->send(204);
@@ -58,18 +59,17 @@ void BootConfig::setup() {
   _http.on("/device-info", HTTP_GET, [this](AsyncWebServerRequest *request) { _onDeviceInfoRequest(request); });
   _http.on("/networks", HTTP_GET, [this](AsyncWebServerRequest *request) { _onNetworksRequest(request); });
   _http.on("/config", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onConfigRequest(request); }).onBody(BootConfig::__parsePost);
-  _http.on("/config", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
-    Interface::get().getLogger() << F("Received CORS request for /config") << endl;
-    __sendCORS(request);
-  });
   _http.on("/wifi/connect", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onWifiConnectRequest(request); }).onBody(BootConfig::__parsePost);
-  _http.on("/wifi/connect", HTTP_OPTIONS, [this](AsyncWebServerRequest *request) {  // CORS
-    Interface::get().getLogger() << F("Received CORS request for /wifi/connect") << endl;
-    __sendCORS(request);
-  });
   _http.on("/wifi/status", HTTP_GET, [this](AsyncWebServerRequest *request) { _onWifiStatusRequest(request); });
   _http.on("/proxy/control", HTTP_PUT, [this](AsyncWebServerRequest *request) { _onProxyControlRequest(request); }).onBody(BootConfig::__parsePost);
-  _http.onNotFound([this](AsyncWebServerRequest *request) { _onCaptivePortal(request); });
+  _http.onNotFound([this](AsyncWebServerRequest *request) {
+    if ( request->method() == HTTP_OPTIONS ) {
+      Interface::get().getLogger() << F("Received CORS request for ")<< request->url() << endl;
+      request->send(200);
+    } else {
+      _onCaptivePortal(request);
+    }
+  });
   _http.begin();
 }
 
@@ -260,8 +260,7 @@ void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
   } else if (request->url() == "/" && SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
     // Respond with UI
     Interface::get().getLogger() << F("UI bundle found") << endl;
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, CONFIG_UI_BUNDLE_PATH, F("text/html"));
-    response->addHeader("Content-Encoding", "gzip");
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS.open(CONFIG_UI_BUNDLE_PATH, "r"), F("index.html"), F("text/html"));
     request->send(response);
   } else {
     // Faild to find request
@@ -282,7 +281,7 @@ void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
   _httpClient.setUserAgent(F("ESP8266-Homie"));
   _httpClient.begin(url);
   // copy headers
-  for (int i = 0; i < request->headers(); i++) {
+  for (size_t i = 0; i < request->headers(); i++) {
     _httpClient.addHeader(request->headerName(i), request->header(i));
   }
 
@@ -336,7 +335,7 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
     JsonObject& jsonSetting = jsonBuffer.createObject();
 
-    if (iSetting->getType() != "unknown") {
+    if (strcmp(iSetting->getType(), "unknown") != 0) {
       jsonSetting["name"] = iSetting->getName();
       jsonSetting["description"] = iSetting->getDescription();
       jsonSetting["type"] = iSetting->getType();
@@ -409,30 +408,26 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
   _flaggedForRebootAt = millis();
 }
 
-void BootConfig::__sendCORS(AsyncWebServerRequest *request) {
-  AsyncWebServerResponse *response = request->beginResponse(204);
-  response->addHeader(F("Access-Control-Allow-Origin"), F("*"));
-  response->addHeader(F("Access-Control-Allow-Methods"), F("PUT"));
-  response->addHeader(F("Access-Control-Allow-Headers"), F("Content-Type, Origin, Referer, User-Agent"));
-  request->send(response);
+void BootConfig::__setCORS() {
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Origin"), F("*"));
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), F("GET, PUT"));
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), F("Content-Type, Origin, Referer, User-Agent"));
 }
 
 void BootConfig::__parsePost(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-  if (!index && total > MAX_POST_SIZE) {
-    Interface::get().getLogger() << "Request is to large to be processed." << endl;
-  } else if (!index && total <= MAX_POST_SIZE) {
-    char* buff = new char[total + 1];
-    strcpy(buff, (const char*)data);
-    request->_tempObject = buff;
-  } else if (total <= MAX_POST_SIZE) {
-    char* buff = reinterpret_cast<char*>(request->_tempObject);
-    strcat(buff, (const char*)data);
+  if (total > MAX_POST_SIZE) {
+    Interface::get().getLogger() << F("Request is to large to be processed.") << endl;
+  } else {
+    if (index == 0) {
+      request->_tempObject = new char[total + 1];
+    }
+    char* buff = reinterpret_cast<char*>(request->_tempObject) + index;
+    memcpy(buff, data, len);
+    if (index + len == total) {
+      char* buff =  reinterpret_cast<char*>(request->_tempObject) + total;
+      *buff = '\0';
+    }
   }
-}
-static const String ConfigJSONError(const String error) {
-  const String BEGINNING = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_BEGINNING));
-  const String END = String(FPSTR(PROGMEM_CONFIG_JSON_FAILURE_END));
-  return BEGINNING + error + END;
 }
 
 void HomieInternals::BootConfig::__SendJSONError(AsyncWebServerRequest * request, String msg, int16_t code) {
