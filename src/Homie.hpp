@@ -71,6 +71,7 @@ class HomieClass {
   static String getDeviceID();
   static void prepareToSleep();
   static void doDeepSleep(uint32_t time_us = 0, RFMode mode = RF_DEFAULT);
+  static HomieBootMode getHomieBootMode();
 
  private:
   bool _setupCalled;

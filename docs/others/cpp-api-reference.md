@@ -245,6 +245,12 @@ String getDeviceID();
 
 Get the Device ID, which homie is using. Could be the config `device_id` or the inertnal device `mac`.
 
+```c++
+HomieBootMode getHomieBootMode();
+```
+
+Get the boot mode of homie: `UNDEFINED,STANDALONE,CONFIGURATION,NORMAL`.
+
 -------
 
 ## HomieNode

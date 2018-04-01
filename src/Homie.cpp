@@ -362,4 +362,8 @@ void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode) {
   ESP.deepSleep(time_us, mode);
 }
 
+HomieBootMode HomieClass::getHomieBootMode() {
+  return Interface::get().bootMode;
+}
+
 HomieClass Homie;
