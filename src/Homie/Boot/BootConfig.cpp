@@ -324,7 +324,7 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   JsonObject& json = jsonBuffer.createObject();
   json["homie_version"] = HOMIE_VERSION;
   json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
-  json["device_hardware_id"] = DeviceId::get();
+  json["hardware_device_id"] = DeviceId::get();
   auto configValidationResult = Interface::get().getConfig().isConfigFileValid();
   json["device_config_state"] = configValidationResult.valid;
   if (!configValidationResult.valid) json["device_config_state_error"] = configValidationResult.reason;

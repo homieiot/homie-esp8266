@@ -48,7 +48,7 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
 
     ```json
     {
-      "device_hardware_id": "52a8fa5d",
+      "hardware_device_id": "52a8fa5d",
       "homie_version": "2.0.0",
       "homie_esp8266_version": "2.1.0",
       "device_config_state": false,
