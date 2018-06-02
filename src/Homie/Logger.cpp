@@ -4,19 +4,23 @@ using namespace HomieInternals;
 
 Logger::Logger()
 : _loggingEnabled(true)
-{
-}
-
-bool Logger::isEnabled() {
-  return this->_loggingEnabled;
+, _printer(&Serial) {
 }
 
 void Logger::setLogging(bool enable) {
-  this->_loggingEnabled = enable;
+  _loggingEnabled = enable;
 }
 
-void Logger::logln() {
-  if (this->_loggingEnabled) {
-    Serial.println();
-  }
+void Logger::setPrinter(Print* printer) {
+  _printer = printer;
+}
+
+size_t Logger::write(uint8_t character) {
+  if (_loggingEnabled) return _printer->write(character);
+  return 0;
+}
+
+size_t Logger::write(const uint8_t* buffer, size_t size) {
+  if (_loggingEnabled) return _printer->write(buffer, size);
+  return 0;
 }

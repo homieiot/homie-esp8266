@@ -1,0 +1,76 @@
+site_name: Homie for ESP8266
+site_description: The Homie for ESP8266 documentation.
+site_author: Marvin ROGER
+
+repo_name: 'marvinroger/homie-esp8266'
+repo_url: 'https://github.com/marvinroger/homie-esp8266'
+
+edit_uri: edit/develop/docs
+
+pages:
+  - Welcome: index.md
+  - Quickstart:
+    - What is it?: quickstart/what-is-it.md
+    - Getting started: quickstart/getting-started.md
+  - Advanced usage:
+    - Built-in LED: advanced-usage/built-in-led.md
+    - Branding: advanced-usage/branding.md
+    - Events: advanced-usage/events.md
+    - Logging: advanced-usage/logging.md
+    - Streaming operator: advanced-usage/streaming-operator.md
+    - Input handlers: advanced-usage/input-handlers.md
+    - Broadcast: advanced-usage/broadcast.md
+    - Custom settings: advanced-usage/custom-settings.md
+    - Resetting: advanced-usage/resetting.md
+    - Standalone mode: advanced-usage/standalone-mode.md
+    - Magic bytes: advanced-usage/magic-bytes.md
+    - Range properties: advanced-usage/range-properties.md
+    - Deep sleep: advanced-usage/deep-sleep.md
+    - Miscellaneous: advanced-usage/miscellaneous.md
+    - UI Bundle: advanced-usage/ui-bundle.md
+  - Configuration:
+    - JSON configuration file: configuration/json-configuration-file.md
+    - HTTP JSON API: configuration/http-json-api.md
+  - Others:
+    - OTA/configuration updates: others/ota-configuration-updates.md
+    - Homie implementation specifics: others/homie-implementation-specifics.md
+    - Limitations and known issues: others/limitations-and-known-issues.md
+    - Troubleshooting: others/troubleshooting.md
+    - C++ API reference: others/cpp-api-reference.md
+    - Upgrade guide from v1 to v2: others/upgrade-guide-from-v1-to-v2.md
+    - Community projects: others/community-projects.md
+
+theme:
+  name: material
+  palette:
+    primary: red
+    accent: red
+  logo: assets/logo.png
+  feature:
+    tabs: true
+
+extra:
+  social:
+    - type: cog
+      link: http://marvinroger.github.io/homie-esp8266/configurators/v2/
+
+markdown_extensions:
+  - meta
+  - footnotes
+  - codehilite
+  - admonition
+  - toc(permalink=true)
+  - pymdownx.arithmatex
+  - pymdownx.betterem(smart_enable=all)
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist(custom_checkbox=true)
+  - pymdownx.tilde

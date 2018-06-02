@@ -1,34 +1,43 @@
 #pragma once
 
+#include "Arduino.h"
+
 #include <ArduinoJson.h>
 #include "FS.h"
 #include "Datatypes/Interface.hpp"
 #include "Datatypes/ConfigStruct.hpp"
-#include "Helpers.hpp"
+#include "Utils/DeviceId.hpp"
+#include "Utils/Validation.hpp"
+#include "Constants.hpp"
 #include "Limits.hpp"
-#include "Logger.hpp"
+#include "../HomieBootMode.hpp"
+#include "../HomieSetting.hpp"
+#include "../StreamingOperator.hpp"
 
 namespace HomieInternals {
-  class Config {
-    public:
-      Config();
-      void attachInterface(Interface* interface);
-      bool load();
-      const ConfigStruct& get();
-      void erase();
-      void write(const String& config);
-      void setOtaMode(bool enabled, const char* version = "");
-      const char* getOtaVersion();
-      BootMode getBootMode();
-      void log(); // print the current config to log output
+class Config {
+ public:
+  Config();
+  bool load();
+  inline const ConfigStruct& get() const;
+  char* getSafeConfigFile() const;
+  void erase();
+  void setHomieBootModeOnNextBoot(HomieBootMode bootMode);
+  HomieBootMode getHomieBootModeOnNextBoot();
+  void write(const JsonObject& config);
+  bool patch(const char* patch);
+  void log() const;  // print the current config to log output
+  bool isValid() const;
 
-    private:
-      Interface* _interface;
-      BootMode _bootMode;
-      ConfigStruct _configStruct;
-      char _otaVersion[MAX_FIRMWARE_VERSION_LENGTH];
-      bool _spiffsBegan;
+ private:
+  ConfigStruct _configStruct;
+  bool _spiffsBegan;
+  bool _valid;
 
-      bool _spiffsBegin();
-  };
+  bool _spiffsBegin();
+};
+
+const ConfigStruct& Config::get() const {
+  return _configStruct;
 }
+}  // namespace HomieInternals

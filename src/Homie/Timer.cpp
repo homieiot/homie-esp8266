@@ -6,27 +6,50 @@ Timer::Timer()
 : _initialTime(0)
 , _interval(0)
 , _tickAtBeginning(false)
-{
+, _active(true) {
 }
 
-void Timer::setInterval(unsigned long interval, bool tickAtBeginning) {
-  this->_interval = interval;
-  this->_tickAtBeginning = tickAtBeginning;
+void Timer::setInterval(uint32_t interval, bool tickAtBeginning) {
+  _interval = interval;
+  _tickAtBeginning = tickAtBeginning;
 
-  if (!tickAtBeginning) this->_initialTime = millis();
+  this->reset();
 }
 
-bool Timer::check() {
-  if (this->_tickAtBeginning && this->_initialTime == 0) return true;
-  if (millis() - this->_initialTime >= this->_interval) return true;
+uint32_t HomieInternals::Timer::getInterval() {
+  return _interval;
+}
+
+bool Timer::check() const {
+  if (!_active) return false;
+
+  if (_tickAtBeginning && _initialTime == 0) return true;
+  if (millis() - _initialTime >= _interval) return true;
 
   return false;
 }
 
 void Timer::reset() {
-  this->_initialTime = 0;
+  if (_tickAtBeginning) {
+    _initialTime = 0;
+  } else {
+    this->tick();
+  }
 }
 
 void Timer::tick() {
-  this->_initialTime = millis();
+  _initialTime = millis();
+}
+
+void Timer::activate() {
+  _active = true;
+}
+
+void Timer::deactivate() {
+  _active = false;
+  reset();
+}
+
+bool Timer::isActive() const {
+  return _active;
 }

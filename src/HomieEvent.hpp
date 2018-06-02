@@ -1,12 +1,38 @@
 #pragma once
 
-enum HomieEvent : unsigned char {
-    HOMIE_CONFIGURATION_MODE = 1,
-    HOMIE_NORMAL_MODE,
-    HOMIE_OTA_MODE,
-    HOMIE_ABOUT_TO_RESET,
-    HOMIE_WIFI_CONNECTED,
-    HOMIE_WIFI_DISCONNECTED,
-    HOMIE_MQTT_CONNECTED,
-    HOMIE_MQTT_DISCONNECTED
+#include <ESP8266WiFi.h>
+#include <AsyncMqttClient.h>
+
+enum class HomieEventType : uint8_t {
+  STANDALONE_MODE = 1,
+  CONFIGURATION_MODE,
+  NORMAL_MODE,
+  OTA_STARTED,
+  OTA_PROGRESS,
+  OTA_SUCCESSFUL,
+  OTA_FAILED,
+  ABOUT_TO_RESET,
+  WIFI_CONNECTED,
+  WIFI_DISCONNECTED,
+  MQTT_READY,
+  MQTT_DISCONNECTED,
+  MQTT_PACKET_ACKNOWLEDGED,
+  READY_TO_SLEEP
+};
+
+struct HomieEvent {
+  HomieEventType type;
+  /* WIFI_CONNECTED */
+  IPAddress ip;
+  IPAddress mask;
+  IPAddress gateway;
+  /* WIFI_DISCONNECTED */
+  WiFiDisconnectReason wifiReason;
+  /* MQTT_DISCONNECTED */
+  AsyncMqttClientDisconnectReason mqttReason;
+  /* MQTT_PACKET_ACKNOWLEDGED */
+  uint16_t packetId;
+  /* OTA_PROGRESS */
+  size_t sizeDone;
+  size_t sizeTotal;
 };

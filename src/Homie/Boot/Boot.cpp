@@ -3,34 +3,20 @@
 using namespace HomieInternals;
 
 Boot::Boot(const char* name)
-: _interface(nullptr)
-, _name(name)
-{
+: _name(name) {
 }
 
-void Boot::attachInterface(Interface* interface) {
-  _interface = interface;
-}
 
 void Boot::setup() {
-  if (this->_interface->led.enabled) {
-    pinMode(this->_interface->led.pin, OUTPUT);
-    digitalWrite(this->_interface->led.pin, !this->_interface->led.on);
+  if (Interface::get().led.enabled) {
+    pinMode(Interface::get().led.pin, OUTPUT);
+    digitalWrite(Interface::get().led.pin, !Interface::get().led.on);
   }
 
-  WiFi.persistent(false); // Don't persist data on EEPROM since this is handled by Homie
-  WiFi.disconnect(); // Reset network state
+  WiFi.persistent(true);  // Persist data on SDK as it seems Wi-Fi connection is faster
 
-  char hostname[MAX_WIFI_SSID_LENGTH];
-  strcpy(hostname, this->_interface->brand);
-  strcat_P(hostname, PSTR("-"));
-  strcat(hostname, Helpers::getDeviceId());
-
-  WiFi.hostname(hostname);
-
-  this->_interface->logger->log(F("** Booting into "));
-  this->_interface->logger->log(this->_name);
-  this->_interface->logger->logln(F(" mode **"));
+  Interface::get().getLogger() << F("💡 Firmware ") << Interface::get().firmware.name << F(" (") << Interface::get().firmware.version << F(")") << endl;
+  Interface::get().getLogger() << F("🔌 Booting into ") << _name << F(" mode 🔌") << endl;
 }
 
 void Boot::loop() {

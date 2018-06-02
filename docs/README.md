@@ -1,4 +1,7 @@
-Homie for ESP8266 documentation
-===============================
+Docs
+====
 
-See [index.md](index.md) to view it locally, or http://marvinroger.viewdocs.io/homie-esp8266/ to view it online.
+Docs are available:
+
+* Locally at [index.md](index.md)
+* Online at http://marvinroger.github.io/homie-esp8266/

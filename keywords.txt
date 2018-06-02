@@ -4,42 +4,94 @@
 
 Homie	KEYWORD1
 HomieNode	KEYWORD1
+HomieSetting	KEYWORD1
 HomieEvent	KEYWORD1
+HomieEventType	KEYWORD1
+HomieRange	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
+Homie_setBrand	KEYWORD2
+Homie_setFirmware	KEYWORD2
+
+# Homie
+
 setup	KEYWORD2
 loop	KEYWORD2
-enableLogging	KEYWORD2
-enableBuiltInLedIndicator	KEYWORD2
+disableLogging	KEYWORD2
+setLoggingPrinter	KEYWORD2
+disableLedFeedback	KEYWORD2
 setLedPin	KEYWORD2
-setBrand	KEYWORD2
-setFirmware	KEYWORD2
-registerNode	KEYWORD2
+setConfigurationApPassword	KEYWORD2
 setGlobalInputHandler	KEYWORD2
-setSetupFunction	KEYWORD2
-setLoopFunction	KEYWORD2
+setBroadcastHandler	KEYWORD2
 onEvent	KEYWORD2
 setResetTrigger	KEYWORD2
 disableResetTrigger	KEYWORD2
-setResetFunction	KEYWORD2
-isReadyToOperate	KEYWORD2
-setResettable	KEYWORD2
-setNodeProperty	KEYWORD2
+setSetupFunction	KEYWORD2
+setLoopFunction	KEYWORD2
+setStandalone	KEYWORD2
+reset	KEYWORD2
+setIdle	KEYWORD2
+isConfigured	KEYWORD2
+isConnected	KEYWORD2
+getConfiguration	KEYWORD2
+getMqttClient	KEYWORD2
+getLogger	KEYWORD2
+prepareToSleep	KEYWORD2
+doDeepSleep	KEYWORD2
 
-subscribe	KEYWORD2
+# HomieNode
+
+getId	KEYWORD2
+getType	KEYWORD2
+advertise	KEYWORD2
+advertiseRange	KEYWORD2
+settable	KEYWORD2
+setProperty	KEYWORD2
+
+# HomieSetting
+
+get	KEYWORD2
+wasProvided	KEYWORD2
+setDefaultValue	KEYWORD2
+setValidator	KEYWORD2
+
+# HomieRange
+
+isRange	KEYWORD2
+index	KEYWORD2
+
+# SendingPromise
+
+setQos	KEYWORD2
+setRetained	KEYWORD2
+setRange	KEYWORD2
+send	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
 
-HOMIE_CONFIGURATION_MODE	LITERAL1
-HOMIE_NORMAL_MODE	LITERAL1
-HOMIE_OTA_MODE	LITERAL1
-HOMIE_ABOUT_TO_RESET	LITERAL1
-HOMIE_WIFI_CONNECTED	LITERAL1
-HOMIE_WIFI_DISCONNECTED	LITERAL1
-HOMIE_MQTT_CONNECTED	LITERAL1
-HOMIE_MQTT_DISCONNECTED	LITERAL1
+# HomieEventType
+
+STANDALONE_MODE	LITERAL1
+CONFIGURATION_MODE	LITERAL1
+NORMAL_MODE	LITERAL1
+OTA_STARTED	LITERAL1
+OTA_PROGRESS	LITERAL1
+OTA_FAILED	LITERAL1
+OTA_SUCCESSFUL	LITERAL1
+ABOUT_TO_RESET	LITERAL1
+WIFI_CONNECTED	LITERAL1
+WIFI_DISCONNECTED	LITERAL1
+MQTT_READY	LITERAL1
+MQTT_DISCONNECTED	LITERAL1
+MQTT_PACKET_ACKNOWLEDGED	LITERAL1
+READY_TO_SLEEP	LITERAL1
+
+# StreamingOperator
+
+endl	LITERAL1

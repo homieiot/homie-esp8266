@@ -4,29 +4,27 @@ const int PIN_RELAY = 5;
 
 HomieNode lightNode("light", "switch");
 
-bool lightOnHandler(String value) {
-  if (value == "true") {
-    digitalWrite(PIN_RELAY, HIGH);
-    Homie.setNodeProperty(lightNode, "on", "true"); // Update the state of the light
-    Serial.println("Light is on");
-  } else if (value == "false") {
-    digitalWrite(PIN_RELAY, LOW);
-    Homie.setNodeProperty(lightNode, "on", "false");
-    Serial.println("Light is off");
-  } else {
-    return false;
-  }
+bool lightOnHandler(const HomieRange& range, const String& value) {
+  if (value != "true" && value != "false") return false;
+
+  bool on = (value == "true");
+  digitalWrite(PIN_RELAY, on ? HIGH : LOW);
+  lightNode.setProperty("on").send(value);
+  Homie.getLogger() << "Light is " << (on ? "on" : "off") << endl;
 
   return true;
 }
 
 void setup() {
+  Serial.begin(115200);
+  Serial << endl << endl;
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 
-  Homie.setFirmware("awesome-relay", "1.0.0");
-  lightNode.subscribe("on", lightOnHandler);
-  Homie.registerNode(lightNode);
+  Homie_setFirmware("awesome-relay", "1.0.0");
+
+  lightNode.advertise("on").settable(lightOnHandler);
+
   Homie.setup();
 }
 

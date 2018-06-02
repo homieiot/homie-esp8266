@@ -3,24 +3,20 @@
 #include "Arduino.h"
 
 namespace HomieInternals {
-  class Logger {
-    public:
-      Logger();
-      void setLogging(bool enable);
-      bool isEnabled();
-      template <typename T> void log(T value) {
-        if (this->_loggingEnabled) {
-          Serial.print(value);
-        }
-      }
-      template <typename T> void logln(T value) {
-        if (this->_loggingEnabled) {
-          Serial.println(value);
-        }
-      }
-      void logln();
+class HomieClass;
+class Logger : public Print {
+  friend HomieClass;
 
-    private:
-      bool _loggingEnabled;
-  };
-}
+ public:
+  Logger();
+  virtual size_t write(uint8_t character);
+  virtual size_t write(const uint8_t* buffer, size_t size);
+
+ private:
+  void setPrinter(Print* printer);
+  void setLogging(bool enable);
+
+  bool _loggingEnabled;
+  Print* _printer;
+};
+}  // namespace HomieInternals

@@ -1,59 +1,66 @@
 #include "HomieNode.hpp"
+#include "Homie.hpp"
 
 using namespace HomieInternals;
 
-HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler, bool subscribeToAll)
+std::vector<HomieNode*> HomieNode::nodes;
+
+PropertyInterface::PropertyInterface()
+: _property(nullptr) {
+}
+
+void PropertyInterface::settable(const PropertyInputHandler& inputHandler) {
+  _property->settable(inputHandler);
+}
+
+PropertyInterface& PropertyInterface::setProperty(Property* property) {
+  _property = property;
+  return *this;
+}
+
+HomieNode::HomieNode(const char* id, const char* type, const NodeInputHandler& inputHandler)
 : _id(id)
 , _type(type)
-, _subscriptionsCount(0)
-, _subscribeToAll(subscribeToAll)
+, _properties()
 , _inputHandler(inputHandler) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
-    Serial.println(F("✖ HomieNode(): either the id or type string is too long"));
-    abort();
+    Helpers::abort(F("✖ HomieNode(): either the id or type string is too long"));
+    return;  // never reached, here for clarity
   }
+  Homie._checkBeforeSetup(F("HomieNode::HomieNode"));
 
-  this->_id = id;
-  this->_type = type;
+  HomieNode::nodes.push_back(this);
 }
 
-void HomieNode::subscribe(const char* property, PropertyInputHandler inputHandler) {
-  if (strlen(property) + 1 > MAX_NODE_PROPERTY_LENGTH) {
-    Serial.println(F("✖ subscribe(): the property string is too long"));
-    abort();
-  }
-
-  if (this->_subscriptionsCount > MAX_SUBSCRIPTIONS_COUNT_PER_NODE) {
-    Serial.println(F("✖ subscribe(): the max subscription count has been reached"));
-    abort();
-  }
-
-  Subscription subscription;
-  strcpy(subscription.property, property);
-  subscription.inputHandler = inputHandler;
-  this->_subscriptions[this->_subscriptionsCount++] = subscription;
+HomieNode::~HomieNode() {
+    Helpers::abort(F("✖✖ ~HomieNode(): Destruction of HomieNode object not possible\n  Hint: Don't create HomieNode objects as a local variable (e.g. in setup())"));
+    return;  // never reached, here for clarity
 }
 
-const char* HomieNode::getId() const {
-  return this->_id;
+PropertyInterface& HomieNode::advertise(const char* property) {
+  Property* propertyObject = new Property(property);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
 }
 
-const char* HomieNode::getType() const {
-  return this->_type;
+PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
+  Property* propertyObject = new Property(property, true, lower, upper);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
 }
 
-const Subscription* HomieNode::getSubscriptions() const {
-  return this->_subscriptions;
+SendingPromise& HomieNode::setProperty(const String& property) const {
+  return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true).overwriteSetter(false).setRange({ .isRange = false, .index = 0 });
 }
 
-unsigned char HomieNode::getSubscriptionsCount() const {
-  return this->_subscriptionsCount;
+bool HomieNode::handleInput(const String& property, const HomieRange& range, const String& value) {
+  return _inputHandler(property, range, value);
 }
 
-bool HomieNode::getSubscribeToAll() const {
-  return this->_subscribeToAll;
-}
-
-NodeInputHandler HomieNode::getInputHandler() const {
-  return this->_inputHandler;
+const std::vector<HomieInternals::Property*>& HomieNode::getProperties() const {
+  return _properties;
 }

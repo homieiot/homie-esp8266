@@ -1,0 +1,101 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/code
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - checkout
+      - run:
+          name: install PlatformIO
+          command: sudo pip install -U https://github.com/platformio/platformio-core/archive/develop.zip
+      - run:
+          name: install current code as a PlatformIO library with all dependencies
+          command: platformio lib -g install file://.
+      - run:
+          name: install staging version of Arduino Core for ESP8266
+          command: platformio platform install https://github.com/platformio/platform-espressif8266.git#feature/stage
+      - run:
+          name: install exemples dependencies
+          command: platformio lib -g install Shutters@2.1.1 SonoffDual@1.1.0
+      - run: platformio ci ./examples/CustomSettings --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/DoorSensor --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/HookToEvents --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/IteadSonoff --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/LightOnOff --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/TemperatureSensor --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/LedStrip --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/Broadcast --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/GlobalInputHandler --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/SonoffDualShutters --board=esp01 --board=nodemcuv2
+
+  lint:
+    working_directory: ~/code
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - checkout
+      - run:
+          name: install cpplint
+          command: sudo pip install cpplint
+      - run: make cpplint
+
+  generate_docs:
+    working_directory: ~/code
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: sudo pip install mkdocs==0.17.2 mkdocs-material==2.2.0 pygments==2.2.0 pymdown-extensions==4.5.1
+      - run:
+          name: generate and publish docs
+          command: |
+            if [ -z ${PRIVATE_KEY_ENCRYPT_KEY+x} ]
+            then
+              echo "Fork detected. Ignoring..."
+              exit 0
+            fi
+
+            openssl aes-256-cbc -d -in ./.circleci/assets/id_rsa.enc -k "${PRIVATE_KEY_ENCRYPT_KEY}" >> /tmp/deploy_rsa
+            eval "$(ssh-agent -s)"
+            chmod 600 /tmp/deploy_rsa
+            ssh-add /tmp/deploy_rsa
+
+            chmod +x ./.circleci/assets/generate_docs.py
+            ./.circleci/assets/generate_docs.py -o /tmp/site
+
+            # make sure we ignore the gh-pages branch
+            mkdir /tmp/site/.circleci
+            cp ./.circleci/assets/circleci.ignore.yml /tmp/site/.circleci/config.yml
+
+            pushd /tmp/site
+            git init
+            git config --global user.name "circleci"
+            git config --global user.email "sayhi@circleci.com"
+            git remote add origin git@github.com:marvinroger/homie-esp8266.git
+            git add .
+            git commit -m ":package: Result of CircleCI build ${CIRCLE_BUILD_URL}"
+            git push -f origin master:gh-pages
+            popd
+
+workflows:
+  version: 2
+  lint_build_generatedocs:
+    jobs:
+      - lint:
+          filters:
+            branches:
+              ignore:
+                - gh-pages
+      - build:
+          filters:
+            branches:
+              ignore:
+                - gh-pages
+      - generate_docs:
+          filters:
+            branches:
+              ignore:
+                - gh-pages
