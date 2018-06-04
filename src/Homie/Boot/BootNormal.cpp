@@ -524,7 +524,7 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
   _mqttTopicCopy = std::unique_ptr<char[]>(new char[topicLength+1]);
   memcpy(_mqttTopicCopy.get(), topic, topicLength);
   _mqttTopicCopy.get()[topicLength] = '\0';
-  
+
   // split topic on each "/"
   if (index == 0) {
     __splitTopic(_mqttTopicCopy.get());
