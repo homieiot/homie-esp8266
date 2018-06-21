@@ -13,18 +13,9 @@ def on_connect(client, userdata, flags, rc):
     else:
         print("Connected with result code {}".format(rc))
 
-    # calcluate firmware md5
-    firmware_md5 = md5(userdata['firmware']).hexdigest()
-    userdata.update({'md5': firmware_md5})
+    client.subscribe("{base_topic}{device_id}/$online".format(**userdata))
 
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-    client.subscribe("{base_topic}{device_id}/$implementation/ota/status".format(**userdata))
-    client.subscribe("{base_topic}{device_id}/$implementation/ota/enabled".format(**userdata))
-    client.subscribe("{base_topic}{device_id}/$fw/#".format(**userdata))
-
-    # Wait for device info to come in and invoke the on_message callback where update will continue
-    print("Waiting for device info...")
+    print("Waiting for device to come online...")
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -74,6 +65,23 @@ def on_message(client, userdata, msg):
         else:
             print("Device ota disabled, aborting...")
             client.disconnect()
+
+    elif msg.topic.endswith('$online'):
+        if msg.payload == 'false':
+            return
+
+        # calcluate firmware md5
+        firmware_md5 = md5(userdata['firmware']).hexdigest()
+        userdata.update({'md5': firmware_md5})
+
+        # Subscribing in on_connect() means that if we lose the connection and
+        # reconnect then subscriptions will be renewed.
+        client.subscribe("{base_topic}{device_id}/$implementation/ota/status".format(**userdata))
+        client.subscribe("{base_topic}{device_id}/$implementation/ota/enabled".format(**userdata))
+        client.subscribe("{base_topic}{device_id}/$fw/#".format(**userdata))
+
+        # Wait for device info to come in and invoke the on_message callback where update will continue
+        print("Waiting for device info...")
 
     if ( not userdata.get("published") ) and ( userdata.get('ota_enabled') ) and \
        ( 'old_md5' in userdata.keys() ) and ( userdata.get('md5') != userdata.get('old_md5') ):
