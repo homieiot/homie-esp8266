@@ -18,8 +18,9 @@ PropertyInterface& PropertyInterface::setProperty(Property* property) {
   return *this;
 }
 
-HomieNode::HomieNode(const char* id, const char* type, const NodeInputHandler& inputHandler)
+HomieNode::HomieNode(const char* id, const char* name, const char* type, const NodeInputHandler& inputHandler)
 : _id(id)
+, _name(name)
 , _type(type)
 , _properties()
 , _inputHandler(inputHandler) {

@@ -61,11 +61,12 @@ class HomieNode {
   friend HomieInternals::BootConfig;
 
  public:
-  HomieNode(const char* id, const char* type, const HomieInternals::NodeInputHandler& nodeInputHandler = [](const String& property, const HomieRange& range, const String& value) { return false; });
+  HomieNode(const char* id, const char* name, const char* type, const HomieInternals::NodeInputHandler& nodeInputHandler = [](const String& property, const HomieRange& range, const String& value) { return false; });
   virtual ~HomieNode();
 
   const char* getId() const { return _id; }
   const char* getType() const { return _type; }
+  const char* getName() const {return _name; }
 
   HomieInternals::PropertyInterface& advertise(const char* property);
   HomieInternals::PropertyInterface& advertiseRange(const char* property, uint16_t lower, uint16_t upper);
@@ -90,6 +91,7 @@ class HomieNode {
   }
 
   const char* _id;
+  const char* _name;
   const char* _type;
   std::vector<HomieInternals::Property*> _properties;
   HomieInternals::NodeInputHandler _inputHandler;
