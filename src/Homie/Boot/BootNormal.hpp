@@ -57,6 +57,7 @@ class BootNormal : public Boot {
     } globalStep;
 
     enum class NodeStep {
+      PUB_NAME,
       PUB_TYPE,
       PUB_PROPERTIES
     } nodeStep;

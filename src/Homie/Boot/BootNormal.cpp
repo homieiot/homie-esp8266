@@ -401,7 +401,7 @@ void BootNormal::_advertise() {
       if (packetId != 0) {
         if (HomieNode::nodes.size()) {  // skip if no nodes to publish
           _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES;
-          _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+          _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
           _advertisementProgress.currentNodeIndex = 0;
         } else {
           _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
@@ -413,6 +413,13 @@ void BootNormal::_advertise() {
       HomieNode* node = HomieNode::nodes[_advertisementProgress.currentNodeIndex];
       std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(node->getId()) + 12 + 1]);  // /id/$properties
       switch (_advertisementProgress.nodeStep) {
+        case AdvertisementProgress::NodeStep::PUB_NAME:
+          strcpy_P(subtopic.get(), PSTR("/"));
+          strcat(subtopic.get(), node->getId());
+          strcat_P(subtopic.get(), PSTR("/$name"));
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, node->getName());
+          if (packetId != 0) _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+          break;
         case AdvertisementProgress::NodeStep::PUB_TYPE:
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
@@ -442,7 +449,7 @@ void BootNormal::_advertise() {
           if (packetId != 0) {
             if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
               _advertisementProgress.currentNodeIndex++;
-              _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+              _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
             } else {
               _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
             }
@@ -496,7 +503,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
   _mqttConnectNotified = false;
   _advertisementProgress.done = false;
   _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_HOMIE;
-  _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+  _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
   _advertisementProgress.currentNodeIndex = 0;
   if (!_mqttDisconnectNotified) {
     _statsTimer.reset();
