@@ -53,7 +53,7 @@ class BootNormal : public Boot {
       SUB_IMPLEMENTATION_CONFIG_SET,
       SUB_SET,
       SUB_BROADCAST,
-      PUB_ONLINE
+      PUB_READY
     } globalStep;
 
     enum class NodeStep {

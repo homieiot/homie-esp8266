@@ -472,11 +472,11 @@ void BootNormal::_advertise() {
       String broadcast_topic(Interface::get().getConfig().get().mqtt.baseTopic);
       broadcast_topic.concat("$broadcast/+");
       packetId = Interface::get().getMqttClient().subscribe(broadcast_topic.c_str(), 2);
-      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_ONLINE;
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_READY;
       break;
     }
-    case AdvertisementProgress::GlobalStep::PUB_ONLINE:
-      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
+    case AdvertisementProgress::GlobalStep::PUB_READY:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$state")), 1, true, "ready");
       if (packetId != 0) _advertisementProgress.done = true;
       break;
   }
