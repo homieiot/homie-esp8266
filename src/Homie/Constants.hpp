@@ -3,8 +3,8 @@
 #include <ESP8266WiFi.h>
 
 namespace HomieInternals {
-  const char HOMIE_VERSION[] = "2.0.1";
-  const char HOMIE_ESP8266_VERSION[] = "2.0.0";
+  const char HOMIE_VERSION[] = "3.0.0";
+  const char HOMIE_ESP8266_VERSION[] = "3.0.0";
 
   const IPAddress ACCESS_POINT_IP(192, 168, 123, 1);
 
