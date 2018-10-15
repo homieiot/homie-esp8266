@@ -32,6 +32,7 @@ class BootNormal : public Boot {
   struct AdvertisementProgress {
     bool done = false;
     enum class GlobalStep {
+      PUB_INIT,
       PUB_HOMIE,
       PUB_NAME,
       PUB_MAC,

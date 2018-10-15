@@ -321,6 +321,10 @@ void BootNormal::_mqttConnect() {
 void BootNormal::_advertise() {
   uint16_t packetId;
   switch (_advertisementProgress.globalStep) {
+    case AdvertisementProgress::GlobalStep::PUB_INIT:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$state")), 1, true, "init");
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_HOMIE;
+      break;
     case AdvertisementProgress::GlobalStep::PUB_HOMIE:
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NAME;
