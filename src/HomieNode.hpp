@@ -37,16 +37,28 @@ class Property {
 
  public:
   explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; _settable = false; }
+  void addName(const char* name) { _name = strdup(name); }
+  void addUnit(const char* unit) { _unit = strdup(unit); }
+  void addDatatype(const char* datatype) { _unit = strdup(datatype); }
+  void addFormat(const char* format) { _unit = strdup(format); }
   void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
   const char* getProperty() const { return _id; }
+  const char* getName() const { return _name; }
+  const char* getUnit() const { return _unit; }
+  const char* getDatatype() const { return _datatype; }
+  const char* getFormat() const { return _format; }
   bool isSettable() const { return _settable; }
   bool isRange() const { return _range; }
   uint16_t getLower() const { return _lower; }
   uint16_t getUpper() const { return _upper; }
   PropertyInputHandler getInputHandler() const { return _inputHandler; }
   const char* _id;
+  const char* _name;
+  const char* _unit;
+  const char* _datatype:
+  const char* _format;
   bool _range;
   uint16_t _lower;
   uint16_t _upper;
