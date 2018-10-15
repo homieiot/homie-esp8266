@@ -38,6 +38,7 @@ class BootNormal : public Boot {
       PUB_MAC,
       PUB_LOCALIP,
       PUB_NODES_ATTR,
+      PUB_STATS,
       PUB_STATS_INTERVAL,
       PUB_FW_NAME,
       PUB_FW_VERSION,

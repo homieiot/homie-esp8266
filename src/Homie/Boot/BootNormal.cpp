@@ -355,9 +355,13 @@ void BootNormal::_advertise() {
       }
       if (HomieNode::nodes.size() >= 1) nodes.remove(nodes.length() - 1);
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$nodes")), 1, true, nodes.c_str());
-      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL;
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS;
       break;
     }
+    case AdvertisementProgress::GlobalStep:PUB_STATS:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats")), 1, true, "uptime");
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL;
+      break;
     case AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL:
       char statsIntervalStr[3 + 1];
       itoa(STATS_SEND_INTERVAL_SEC / 1000, statsIntervalStr, 10);
