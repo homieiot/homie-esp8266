@@ -502,7 +502,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
   Interface::get().ready = false;
   _mqttConnectNotified = false;
   _advertisementProgress.done = false;
-  _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_HOMIE;
+  _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_INIT;
   _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
   _advertisementProgress.currentNodeIndex = 0;
   if (!_mqttDisconnectNotified) {
