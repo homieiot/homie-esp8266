@@ -36,11 +36,13 @@ class Property {
   friend BootNormal;
 
  public:
-  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; _settable = false; }
+  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { 
+    _id = strdup(id); _name = null; _unit = null, _datatype = null, _format = null;
+    _range = range; _lower = lower; _upper = upper; _settable = false; }
   void addName(const char* name) { _name = strdup(name); }
   void addUnit(const char* unit) { _unit = strdup(unit); }
   void addDatatype(const char* datatype) { _unit = strdup(datatype); }
-  void addFormat(const char* format) { _unit = strdup(format); }
+  void addFormat(const char* format) { _format = strdup(format); }
   void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
