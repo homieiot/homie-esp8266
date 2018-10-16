@@ -358,7 +358,7 @@ void BootNormal::_advertise() {
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS;
       break;
     }
-    case AdvertisementProgress::GlobalStep:PUB_STATS:
+    case AdvertisementProgress::GlobalStep::PUB_STATS:
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats")), 1, true, "uptime");
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL;
       break;
@@ -428,6 +428,7 @@ void BootNormal::_advertise() {
           if (packetId != 0) _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES;
           break;
         case AdvertisementProgress::NodeStep::PUB_PROPERTIES:
+        {
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$properties"));
@@ -448,7 +449,9 @@ void BootNormal::_advertise() {
           packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, properties.c_str());
           if (packetId != 0) _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES_ATTRIBUTES;
           break;
+        }
         case AdvertisementProgress::NodeStep::PUB_PROPERTIES_ATTRIBUTES:
+        {
           for (Property* iProperty : node->getProperties()) {
             if (iProperty->getName()) {
               strcpy_P(subtopic.get(), PSTR("/"));
@@ -494,6 +497,7 @@ void BootNormal::_advertise() {
             _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
           }
           break;
+       } 
       }
       break;
     }
