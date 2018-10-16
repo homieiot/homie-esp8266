@@ -37,7 +37,7 @@ class Property {
 
  public:
   explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { 
-    _id = strdup(id); _name = null; _unit = null, _datatype = null, _format = null;
+    _id = strdup(id); _name = NULL; _unit = NULL, _datatype = NULL, _format = NULL;
     _range = range; _lower = lower; _upper = upper; _settable = false; }
   void addName(const char* name) { _name = strdup(name); }
   void addUnit(const char* unit) { _unit = strdup(unit); }
