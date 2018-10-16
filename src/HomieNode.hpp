@@ -59,7 +59,7 @@ class Property {
   const char* _id;
   const char* _name;
   const char* _unit;
-  const char* _datatype:
+  const char* _datatype;
   const char* _format;
   bool _range;
   uint16_t _lower;
