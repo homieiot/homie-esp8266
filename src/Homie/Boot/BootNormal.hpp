@@ -59,7 +59,8 @@ class BootNormal : public Boot {
     enum class NodeStep {
       PUB_NAME,
       PUB_TYPE,
-      PUB_PROPERTIES
+      PUB_PROPERTIES,
+      PUB_PROPERTIES_ATTRIBUTES
     } nodeStep;
 
     size_t currentNodeIndex;

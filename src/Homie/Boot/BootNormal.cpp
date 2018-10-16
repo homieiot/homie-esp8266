@@ -446,13 +446,52 @@ void BootNormal::_advertise() {
           }
           if (node->getProperties().size() >= 1) properties.remove(properties.length() - 1);
           packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, properties.c_str());
-          if (packetId != 0) {
-            if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
-              _advertisementProgress.currentNodeIndex++;
-              _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
-            } else {
-              _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
+          if (packetId != 0) _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES_ATTRIBUTES;
+          break;
+        case AdvertisementProgress::NodeStep::PUB_PROPERTIES_ATTRIBUTES:
+          for (Property* iProperty : node->getProperties()) {
+            if (iProperty->getName()) {
+              strcpy_P(subtopic.get(), PSTR("/"));
+              strcat(subtopic.get(), node->getId());
+              strcat(subtopic.get(), iProperty->getProperty());
+              strcat_P(subtopic.get(), PSTR("/$name"));
+              packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getName());
             }
+            if (iProperty->isSettable()) {
+              strcpy_P(subtopic.get(), PSTR("/"));
+              strcat(subtopic.get(), node->getId());
+              strcat(subtopic.get(), iProperty->getProperty());
+              strcat_P(subtopic.get(), PSTR("/$settable"));
+              packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, "true");
+            }
+            if (iProperty->getUnit()) {
+              strcpy_P(subtopic.get(), PSTR("/"));
+              strcat(subtopic.get(), node->getId());
+              strcat(subtopic.get(), iProperty->getProperty());
+              strcat_P(subtopic.get(), PSTR("/$unit"));
+              packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getUnit());
+            }
+            if (iProperty->getDatatype()) {
+              strcpy_P(subtopic.get(), PSTR("/"));
+              strcat(subtopic.get(), node->getId());
+              strcat(subtopic.get(), iProperty->getProperty());
+              strcat_P(subtopic.get(), PSTR("/$datatype"));
+              packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getDatatype());
+            }
+            if (iProperty->getFormat()) {
+              strcpy_P(subtopic.get(), PSTR("/"));
+              strcat(subtopic.get(), node->getId());
+              strcat(subtopic.get(), iProperty->getProperty());
+              strcat_P(subtopic.get(), PSTR("/$format"));
+              packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getFormat());
+            }
+          }
+          
+          if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
+            _advertisementProgress.currentNodeIndex++;
+            _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
+          } else {
+            _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
           }
           break;
       }
