@@ -442,7 +442,6 @@ void BootNormal::_advertise() {
               properties.concat(iProperty->getUpper());
               properties.concat("]");
             }
-            if (iProperty->isSettable()) properties.concat(":settable");
             properties.concat(",");
           }
           if (node->getProperties().size() >= 1) properties.remove(properties.length() - 1);
