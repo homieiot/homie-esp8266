@@ -1,6 +1,6 @@
 {
   "name": "Homie",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "keywords": "iot, home, automation, mqtt, esp8266, async, sensor",
   "description": "ESP8266 framework for Homie, a lightweight MQTT convention for the IoT",
   "homepage": "http://marvinroger.github.io/homie-esp8266/",
