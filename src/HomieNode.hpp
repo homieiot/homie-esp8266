@@ -36,13 +36,10 @@ class Property {
   friend BootNormal;
 
  public:
-  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { 
-    _id = strdup(id); _name = NULL; _unit = NULL, _datatype = NULL, _format = NULL;
-    _range = range; _lower = lower; _upper = upper; _settable = false; }
-  void addName(const char* name) { _name = strdup(name); }
-  void addUnit(const char* unit) { _unit = strdup(unit); }
-  void addDatatype(const char* datatype) { _unit = strdup(datatype); }
-  void addFormat(const char* format) { _format = strdup(format); }
+  explicit Property(const char* id, const char* name = "", const char* datatype = "", const char* unit = "",  
+                    const char* format = "", bool range = false, uint16_t lower = 0, uint16_t upper = 0) { 
+    _id = strdup(id); _name = strdup(name); _unit = strdup(unit), _datatype = strdup(datatype), 
+    _format = strdup(format);_range = range; _lower = lower; _upper = upper; _settable = false; }
   void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
 
  private:
@@ -82,8 +79,16 @@ class HomieNode {
   const char* getType() const { return _type; }
   const char* getName() const {return _name; }
 
-  HomieInternals::PropertyInterface& advertise(const char* property);
-  HomieInternals::PropertyInterface& advertiseRange(const char* property, uint16_t lower, uint16_t upper);
+  HomieInternals::PropertyInterface& advertise(const char* id);
+  HomieInternals::PropertyInterface& advertise(const char* id, const char* name);
+  HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype);
+  HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype, const char* unit);
+  HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype, const char* unit, const char* format);
+  HomieInternals::PropertyInterface& advertiseRange(const char* id, uint16_t lower, uint16_t upper);
+  HomieInternals::PropertyInterface& advertiseRange(const char* id, const char* name, uint16_t lower, uint16_t upper);
+  HomieInternals::PropertyInterface& advertiseRange(const char* id, const char* name, const char* datatype, uint16_t lower, uint16_t upper);
+  HomieInternals::PropertyInterface& advertiseRange(const char* id, const char* name, const char* datatype, const char* unit, uint16_t lower, uint16_t upper);
+  HomieInternals::PropertyInterface& advertiseRange(const char* id, const char* name, const char* datatype, const char* unit, const char* format, uint16_t lower, uint16_t upper);
 
   HomieInternals::SendingPromise& setProperty(const String& property) const;
 

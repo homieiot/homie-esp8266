@@ -38,16 +38,85 @@ HomieNode::~HomieNode() {
     return;  // never reached, here for clarity
 }
 
-PropertyInterface& HomieNode::advertise(const char* property) {
-  Property* propertyObject = new Property(property);
+// advertise function overloading
+PropertyInterface& HomieNode::advertise(const char* id) {
+  Property* propertyObject = new Property(id);
 
   _properties.push_back(propertyObject);
 
   return _propertyInterface.setProperty(propertyObject);
 }
 
-PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
-  Property* propertyObject = new Property(property, true, lower, upper);
+PropertyInterface& HomieNode::advertise(const char* id, const char* name) {
+  Property* propertyObject = new Property(id, name);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
+}
+
+PropertyInterface& HomieNode::advertise(const char* id, const char* name, const char* datatype) {
+  Property* propertyObject = new Property(id, name, datatype);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
+}
+
+PropertyInterface& HomieNode::advertise(const char* id, const char* name, const char* datatype, const char* unit) {
+  Property* propertyObject = new Property(id, name, datatype, unit);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
+}
+
+PropertyInterface& HomieNode::advertise(const char* id, const char* name, const char* datatype, const char* unit, const char* format) {
+  Property* propertyObject = new Property(id, name, datatype, unit, format);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
+}
+
+
+// advertiseRange function overloading
+PropertyInterface& HomieNode::advertiseRange(const char* id, uint16_t lower, uint16_t upper) {
+  Property* propertyObject = new Property(id, "", "", "", "", true, lower, upper);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
+}
+
+PropertyInterface& HomieNode::advertiseRange(const char* id, const char* name, uint16_t lower, uint16_t upper) {
+  Property* propertyObject = new Property(id, name, "", "", "", true, lower, upper);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
+}
+
+PropertyInterface& HomieNode::advertiseRange(const char* id, const char* name, const char* datatype, uint16_t lower, uint16_t upper) {
+  Property* propertyObject = new Property(id, name, datatype, "", "", true, lower, upper);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
+}
+
+PropertyInterface& HomieNode::advertiseRange(const char* id, const char* name, const char* datatype, 
+                                             const char* unit, uint16_t lower, uint16_t upper) {
+  Property* propertyObject = new Property(id, name, datatype, unit, "", true, lower, upper);
+
+  _properties.push_back(propertyObject);
+
+  return _propertyInterface.setProperty(propertyObject);
+}
+
+PropertyInterface& HomieNode::advertiseRange(const char* id, const char* name, const char* datatype, 
+                                             const char* unit, const char* format, uint16_t lower, uint16_t upper) {
+  Property* propertyObject = new Property(id, name, datatype, unit, format, true, lower, upper);
 
   _properties.push_back(propertyObject);
 
