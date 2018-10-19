@@ -68,10 +68,10 @@ void BootNormal::setup() {
   strcat_P(_mqttClientId.get(), PSTR("-"));
   strcat(_mqttClientId.get(), Interface::get().getConfig().get().deviceId);
   Interface::get().getMqttClient().setClientId(_mqttClientId.get());
-  char* mqttWillTopic = _prefixMqttTopic(PSTR("/$online"));
+  char* mqttWillTopic = _prefixMqttTopic(PSTR("/$state"));
   _mqttWillTopic = std::unique_ptr<char[]>(new char[strlen(mqttWillTopic) + 1]);
   memcpy(_mqttWillTopic.get(), mqttWillTopic, strlen(mqttWillTopic) + 1);
-  Interface::get().getMqttClient().setWill(_mqttWillTopic.get(), 1, true, "false");
+  Interface::get().getMqttClient().setWill(_mqttWillTopic.get(), 1, true, "lost");
 
   if (Interface::get().getConfig().get().mqtt.auth) Interface::get().getMqttClient().setCredentials(Interface::get().getConfig().get().mqtt.username, Interface::get().getConfig().get().mqtt.password);
 
