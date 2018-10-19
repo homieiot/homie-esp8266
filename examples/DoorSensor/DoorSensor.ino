@@ -5,7 +5,7 @@ const int PIN_DOOR = 16;
 Bounce debouncer = Bounce(); // Bounce is built into Homie, so you can use it without including it first
 int lastDoorValue = -1;
 
-HomieNode doorNode("door", "door");
+HomieNode doorNode("door", "Door", "door");
 
 void loopHandler() {
   int doorValue = debouncer.read();
@@ -29,7 +29,7 @@ void setup() {
   Homie_setFirmware("awesome-door", "1.0.0");
   Homie.setLoopFunction(loopHandler);
 
-  doorNode.advertise("open");
+  doorNode.advertise("open", "Open", "boolean");
 
   Homie.setup();
 }

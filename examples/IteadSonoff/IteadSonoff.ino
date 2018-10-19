@@ -6,7 +6,7 @@ const int PIN_RELAY = 12;
 const int PIN_LED = 13;
 const int PIN_BUTTON = 0;
 
-HomieNode switchNode("switch", "switch");
+HomieNode switchNode("switch", "Switch", "switch");
 
 bool switchOnHandler(const HomieRange& range, const String& value) {
   if (value != "true" && value != "false") return false;
@@ -28,7 +28,7 @@ void setup() {
   Homie_setFirmware("itead-sonoff", "1.0.0");
   Homie.setLedPin(PIN_LED, LOW).setResetTrigger(PIN_BUTTON, LOW, 5000);
 
-  switchNode.advertise("on").settable(switchOnHandler);
+  switchNode.advertise("on", "On", "boolean").settable(switchOnHandler);
 
   Homie.setup();
 }

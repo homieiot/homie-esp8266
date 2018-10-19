@@ -4,13 +4,9 @@ const int DEFAULT_TEMPERATURE_INTERVAL = 300;
 
 unsigned long lastTemperatureSent = 0;
 
-HomieNode temperatureNode("temperature", "temperature");
+HomieNode temperatureNode("temperature", "Temperature", "temperature");
 
 HomieSetting<long> temperatureIntervalSetting("temperatureInterval", "The temperature interval in seconds");
-
-void setupHandler() {
-  temperatureNode.setProperty("unit").send("c");
-}
 
 void loopHandler() {
   if (millis() - lastTemperatureSent >= temperatureIntervalSetting.get() * 1000UL || lastTemperatureSent == 0) {
@@ -25,10 +21,9 @@ void setup() {
   Serial.begin(115200);
   Serial << endl << endl;
   Homie_setFirmware("temperature-setting", "1.0.0");
-  Homie.setSetupFunction(setupHandler).setLoopFunction(loopHandler);
+  Homie.setLoopFunction(loopHandler);
 
-  temperatureNode.advertise("unit");
-  temperatureNode.advertise("degrees");
+  temperatureNode.advertise("degrees", "Degrees", "float", "ºC");
 
   temperatureIntervalSetting.setDefaultValue(DEFAULT_TEMPERATURE_INTERVAL).setValidator([] (long candidate) {
     return candidate > 0;

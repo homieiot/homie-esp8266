@@ -3,7 +3,7 @@
 const unsigned char NUMBER_OF_LED = 4;
 const unsigned char LED_PINS[NUMBER_OF_LED] = { 16, 5, 4, 0 };
 
-HomieNode stripNode("strip", "strip");
+HomieNode stripNode("strip", "Strip", "strip");
 
 bool stripLedHandler(const HomieRange& range, const String& value) {
   if (!range.isRange) return false;  // if it's not a range
@@ -32,7 +32,7 @@ void setup() {
 
   Homie_setFirmware("awesome-ledstrip", "1.0.0");
 
-  stripNode.advertiseRange("led", 1, NUMBER_OF_LED).settable(stripLedHandler);
+  stripNode.advertiseRange("led", "Led", "boolean", 1, NUMBER_OF_LED).settable(stripLedHandler);
 
   Homie.setup();
 }
