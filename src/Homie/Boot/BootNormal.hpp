@@ -63,7 +63,16 @@ class BootNormal : public Boot {
       PUB_PROPERTIES_ATTRIBUTES
     } nodeStep;
 
+    enum class PropertyStep {
+      PUB_NAME,
+      PUB_SETTABLE,
+      PUB_DATATYPE,
+      PUB_UNIT,
+      PUB_FORMAT
+    } propertyStep;
+
     size_t currentNodeIndex;
+    size_t currentPropertyIndex;
   } _advertisementProgress;
   Uptime _uptime;
   Timer _statsTimer;
