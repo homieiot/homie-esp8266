@@ -33,8 +33,11 @@ The Git repository contains the development version of Homie for ESP8266. Stable
 platform = espressif8266
 board = ...
 framework = arduino
+build_flags = -D PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY
 lib_deps = Homie
 ```
+
+Add the `PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY` build flag to ensure reliable OTA updates.
 
 ### Development version
 
