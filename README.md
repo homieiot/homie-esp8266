@@ -49,6 +49,7 @@ Add the `PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY` build flag to ensure reliable O
 platform = ...
 board = ...
 framework = arduino
+build_flags = -D PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY
 
 ; the latest development branch
 lib_deps = https://github.com/marvinroger/homie-esp8266.git
