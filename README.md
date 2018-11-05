@@ -5,9 +5,9 @@ Homie for ESP8266
 
 [![Build Status](https://img.shields.io/circleci/project/github/marvinroger/homie-esp8266/develop.svg?style=flat-square)](https://circleci.com/gh/marvinroger/homie-esp8266) [![Latest Release](https://img.shields.io/badge/release-v2.0.0-yellow.svg?style=flat-square)](https://github.com/marvinroger/homie-esp8266/releases) [![Gitter](https://img.shields.io/gitter/room/Homie/ESP8266.svg?style=flat-square)](https://gitter.im/homie-iot/ESP8266)
 
-An Arduino for ESP8266 implementation of [Homie](https://github.com/marvinroger/homie), an MQTT convention for the IoT.
+An Arduino for ESP8266 implementation of [Homie](https://github.com/homieiot/convention), an MQTT convention for the IoT.
 
-Currently Homie for ESP8266 implements [Homie 2.0.1](https://github.com/marvinroger/homie/releases/tag/v2.0.1)
+Currently Homie for ESP8266 implements [Homie 3.0.0](https://github.com/homieiot/convention/releases/tag/v3.0.0)
 
 ## Note for v1.x users
 
@@ -73,7 +73,7 @@ Happy coding with PlatformIO!
 
 const int PIN_RELAY = 5;
 
-HomieNode lightNode("light", "switch");
+HomieNode lightNode("light", "Light", "switch");
 
 bool lightOnHandler(const HomieRange& range, const String& value) {
   if (value != "true" && value != "false") return false;
@@ -94,7 +94,7 @@ void setup() {
 
   Homie_setFirmware("awesome-relay", "1.0.0");
 
-  lightNode.advertise("on").settable(lightOnHandler);
+  lightNode.advertise("on", "On", "boolean").settable(lightOnHandler);
 
   Homie.setup();
 }
