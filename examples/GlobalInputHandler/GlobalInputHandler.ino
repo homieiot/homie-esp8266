@@ -2,7 +2,7 @@
 
 HomieNode lightNode("light", "Light", "switch");
 
-bool globalInputHandler(const HomieNode& node, const String& property, const HomieRange& range, const String& value) {
+bool globalInputHandler(const HomieNode& node, const HomieRange& range, const String& property, const String& value) {
   Homie.getLogger() << "Received on node " << node.getId() << ": " << property << " = " << value << endl;
   return true;
 }
