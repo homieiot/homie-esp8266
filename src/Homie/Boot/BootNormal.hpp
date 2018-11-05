@@ -59,6 +59,8 @@ class BootNormal : public Boot {
     enum class NodeStep {
       PUB_NAME,
       PUB_TYPE,
+      PUB_ARRAY,
+      PUB_ARRAY_NODES,
       PUB_PROPERTIES,
       PUB_PROPERTIES_ATTRIBUTES
     } nodeStep;
@@ -72,6 +74,7 @@ class BootNormal : public Boot {
     } propertyStep;
 
     size_t currentNodeIndex;
+    size_t currentArrayNodeIndex;
     size_t currentPropertyIndex;
   } _advertisementProgress;
   Uptime _uptime;
