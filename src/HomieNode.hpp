@@ -36,9 +36,9 @@ class Property {
   friend BootNormal;
 
  public:
-  explicit Property(const char* id, const char* name = "", const char* datatype = "", const char* unit = "",  
-                    const char* format = "") { 
-    _id = strdup(id); _name = strdup(name); _unit = strdup(unit), _datatype = strdup(datatype), 
+  explicit Property(const char* id, const char* name = "", const char* datatype = "", const char* unit = "",
+                    const char* format = "") {
+    _id = strdup(id); _name = strdup(name); _unit = strdup(unit), _datatype = strdup(datatype),
     _format = strdup(format); _settable = false; }
   void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
 
@@ -66,7 +66,7 @@ class HomieNode {
   friend HomieInternals::BootConfig;
 
  public:
-  HomieNode(const char* id, const char* name, const char* type, bool range = false, uint16_t lower=0, uint16_t upper=0, const HomieInternals::NodeInputHandler& nodeInputHandler = [](const HomieRange& range, const String& property, const String& value) { return false; });
+  HomieNode(const char* id, const char* name, const char* type, bool range = false, uint16_t lower = 0, uint16_t upper = 0, const HomieInternals::NodeInputHandler& nodeInputHandler = [](const HomieRange& range, const String& property, const String& value) { return false; });
   virtual ~HomieNode();
 
   const char* getId() const { return _id; }
@@ -81,7 +81,6 @@ class HomieNode {
   HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype);
   HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype, const char* unit);
   HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype, const char* unit, const char* format);
-  
   HomieInternals::SendingPromise& setProperty(const String& property) const;
 
  protected:

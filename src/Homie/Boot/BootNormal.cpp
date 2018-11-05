@@ -451,7 +451,7 @@ void BootNormal::_advertise() {
           break;
         }
         case AdvertisementProgress::NodeStep::PUB_ARRAY_NODES:
-        { 
+        {
           String id;
           id.concat(node->getId());
           id.concat("_");
@@ -573,7 +573,9 @@ void BootNormal::_advertise() {
                 strcat_P(subtopic.get(), PSTR("/$format"));
                 packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getFormat());
                 if (packetId != 0) sent = true;
-              } else sent = true;
+              } else {
+                sent = true;
+              }
 
               if (sent) {
                 if (_advertisementProgress.currentPropertyIndex < node->getProperties().size() - 1) {
@@ -601,7 +603,7 @@ void BootNormal::_advertise() {
               break;
             }
           }
-        } 
+        }
       }
       break;
     }
