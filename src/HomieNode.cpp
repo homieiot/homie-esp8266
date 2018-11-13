@@ -9,8 +9,29 @@ PropertyInterface::PropertyInterface()
 : _property(nullptr) {
 }
 
-void PropertyInterface::settable(const PropertyInputHandler& inputHandler) {
+PropertyInterface& PropertyInterface::settable(const PropertyInputHandler& inputHandler) {
   _property->settable(inputHandler);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setName(const char* name) {
+  _property->setName(name);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setUnit(const char* unit) {
+  _property->setUnit(unit);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setDatatype(const char* datatype) {
+  _property->setDatatype(datatype);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setFormat(const char* format) {
+  _property->setFormat(format);
+  return *this;
 }
 
 PropertyInterface& PropertyInterface::setProperty(Property* property) {
@@ -41,41 +62,8 @@ HomieNode::~HomieNode() {
     return;  // never reached, here for clarity
 }
 
-// advertise function overloading
 PropertyInterface& HomieNode::advertise(const char* id) {
   Property* propertyObject = new Property(id);
-
-  _properties.push_back(propertyObject);
-
-  return _propertyInterface.setProperty(propertyObject);
-}
-
-PropertyInterface& HomieNode::advertise(const char* id, const char* name) {
-  Property* propertyObject = new Property(id, name);
-
-  _properties.push_back(propertyObject);
-
-  return _propertyInterface.setProperty(propertyObject);
-}
-
-PropertyInterface& HomieNode::advertise(const char* id, const char* name, const char* datatype) {
-  Property* propertyObject = new Property(id, name, datatype);
-
-  _properties.push_back(propertyObject);
-
-  return _propertyInterface.setProperty(propertyObject);
-}
-
-PropertyInterface& HomieNode::advertise(const char* id, const char* name, const char* datatype, const char* unit) {
-  Property* propertyObject = new Property(id, name, datatype, unit);
-
-  _properties.push_back(propertyObject);
-
-  return _propertyInterface.setProperty(propertyObject);
-}
-
-PropertyInterface& HomieNode::advertise(const char* id, const char* name, const char* datatype, const char* unit, const char* format) {
-  Property* propertyObject = new Property(id, name, datatype, unit, format);
 
   _properties.push_back(propertyObject);
 

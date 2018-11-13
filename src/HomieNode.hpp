@@ -24,7 +24,11 @@ class PropertyInterface {
  public:
   PropertyInterface();
 
-  void settable(const PropertyInputHandler& inputHandler = [](const HomieRange& range, const String& value) { return false; });
+  PropertyInterface& settable(const PropertyInputHandler& inputHandler = [](const HomieRange& range, const String& value) { return false; });
+  PropertyInterface& setName(const char* name);
+  PropertyInterface& setUnit(const char* unit);
+  PropertyInterface& setDatatype(const char* datatype);
+  PropertyInterface& setFormat(const char* format);
 
  private:
   PropertyInterface& setProperty(Property* property);
@@ -36,11 +40,14 @@ class Property {
   friend BootNormal;
 
  public:
-  explicit Property(const char* id, const char* name = "", const char* datatype = "", const char* unit = "",
-                    const char* format = "") {
-    _id = strdup(id); _name = strdup(name); _unit = strdup(unit), _datatype = strdup(datatype),
-    _format = strdup(format); _settable = false; }
+  explicit Property(const char* id) { 
+    _id = strdup(id); _name = ""; _unit = ""; _datatype = ""; _format= ""; _settable = false; }
   void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
+  void setName(const char* name) { _name = name; }
+  void setUnit(const char* unit) { _unit = unit; }
+  void setDatatype(const char* datatype) { _datatype = datatype; }
+  void setFormat(const char* format) { _format = format; }
+
 
  private:
   const char* getProperty() const { return _id; }
@@ -77,10 +84,6 @@ class HomieNode {
   uint16_t getUpper() const { return _upper; }
 
   HomieInternals::PropertyInterface& advertise(const char* id);
-  HomieInternals::PropertyInterface& advertise(const char* id, const char* name);
-  HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype);
-  HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype, const char* unit);
-  HomieInternals::PropertyInterface& advertise(const char* id, const char* name, const char* datatype, const char* unit, const char* format);
   HomieInternals::SendingPromise& setProperty(const String& property) const;
 
  protected:
