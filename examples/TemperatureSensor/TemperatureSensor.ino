@@ -21,7 +21,9 @@ void setup() {
   Homie_setFirmware("awesome-temperature", "1.0.0");
   Homie.setLoopFunction(loopHandler);
 
-  temperatureNode.advertise("degrees", "Degrees", "float", "ºC");
+  temperatureNode.advertise("degrees").setName("Degrees")
+                                      .setFormat("float")
+                                      .setUnit("ºC");
 
   Homie.setup();
 }

@@ -23,7 +23,7 @@ void setup() {
 
   Homie_setFirmware("awesome-relay", "1.0.0");
 
-  lightNode.advertise("on", "On", "boolean").settable(lightOnHandler);
+  lightNode.advertise("on").setName("On").setDatatype("boolean").settable(lightOnHandler);
 
   Homie.setup();
 }

@@ -32,7 +32,7 @@ void setup() {
 
   Homie_setFirmware("awesome-ledstrip", "1.0.0");
 
-  stripNode.advertise("led", "Led", "boolean").settable(stripLedHandler);
+  stripNode.advertise("led").setName("Led").setDatatype("boolean").settable(stripLedHandler);
 
   Homie.setup();
 }

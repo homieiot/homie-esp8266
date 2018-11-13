@@ -13,7 +13,7 @@ void setup() {
   Homie_setFirmware("global-input-handler", "1.0.0");
   Homie.setGlobalInputHandler(globalInputHandler);
 
-  lightNode.advertise("on", "On", "boolean").settable();
+  lightNode.advertise("on").setName("On").setDatatype("boolean").settable();
 
   Homie.setup();
 }

@@ -23,7 +23,9 @@ void setup() {
   Homie_setFirmware("temperature-setting", "1.0.0");
   Homie.setLoopFunction(loopHandler);
 
-  temperatureNode.advertise("degrees", "Degrees", "float", "ºC");
+  temperatureNode.advertise("degrees").setName("Degrees")
+                                      .setDatatype("float")
+                                      .setUnit("ºC");
 
   temperatureIntervalSetting.setDefaultValue(DEFAULT_TEMPERATURE_INTERVAL).setValidator([] (long candidate) {
     return candidate > 0;

@@ -105,7 +105,8 @@ void setup() {
   Homie.setLedPin(SonoffDual.LED_PIN, SonoffDual.LED_ON);
   Homie.onEvent(onHomieEvent);
 
-  shuttersNode.advertise("level", "Level", "integer", "", "0:100").settable(shuttersLevelHandler);
+  shuttersNode.advertise("level").setName("Level").setDatatype("integer")
+              .setFormat("0:100").settable(shuttersLevelHandler);
 
   Homie.setup();
 }
