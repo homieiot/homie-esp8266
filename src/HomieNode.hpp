@@ -40,8 +40,8 @@ class Property {
   friend BootNormal;
 
  public:
-  explicit Property(const char* id) { 
-    _id = strdup(id); _name = ""; _unit = ""; _datatype = ""; _format= ""; _settable = false; }
+  explicit Property(const char* id) {
+    _id = strdup(id); _name = ""; _unit = ""; _datatype = ""; _format = ""; _settable = false; }
   void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
   void setName(const char* name) { _name = name; }
   void setUnit(const char* unit) { _unit = unit; }
