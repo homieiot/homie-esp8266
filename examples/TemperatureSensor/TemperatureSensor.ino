@@ -22,7 +22,7 @@ void setup() {
   Homie.setLoopFunction(loopHandler);
 
   temperatureNode.advertise("degrees").setName("Degrees")
-                                      .setFormat("float")
+                                      .setDatatype("float")
                                       .setUnit("ºC");
 
   Homie.setup();
