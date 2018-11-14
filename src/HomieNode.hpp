@@ -29,6 +29,7 @@ class PropertyInterface {
   PropertyInterface& setUnit(const char* unit);
   PropertyInterface& setDatatype(const char* datatype);
   PropertyInterface& setFormat(const char* format);
+  PropertyInterface& retained(const bool retained = true);
 
  private:
   PropertyInterface& setProperty(Property* property);
@@ -37,24 +38,27 @@ class PropertyInterface {
 };
 
 class Property {
+  friend HomieNode;
   friend BootNormal;
 
  public:
   explicit Property(const char* id) {
-    _id = strdup(id); _name = ""; _unit = ""; _datatype = ""; _format = ""; _settable = false; }
+    _id = strdup(id); _name = ""; _unit = ""; _datatype = ""; _format = ""; _retained = true; _settable = false; }
   void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
   void setName(const char* name) { _name = name; }
   void setUnit(const char* unit) { _unit = unit; }
   void setDatatype(const char* datatype) { _datatype = datatype; }
   void setFormat(const char* format) { _format = format; }
+  void retained(const bool retained = true) { _retained = retained; }
 
 
  private:
-  const char* getProperty() const { return _id; }
+  const char* getId() const { return _id; }
   const char* getName() const { return _name; }
   const char* getUnit() const { return _unit; }
   const char* getDatatype() const { return _datatype; }
   const char* getFormat() const { return _format; }
+  bool isRetained() const { return _retained; }
   bool isSettable() const { return _settable; }
   PropertyInputHandler getInputHandler() const { return _inputHandler; }
   const char* _id;
@@ -62,6 +66,7 @@ class Property {
   const char* _unit;
   const char* _datatype;
   const char* _format;
+  bool _retained;
   bool _settable;
   PropertyInputHandler _inputHandler;
 };
@@ -85,6 +90,7 @@ class HomieNode {
 
   HomieInternals::PropertyInterface& advertise(const char* id);
   HomieInternals::SendingPromise& setProperty(const String& property) const;
+  HomieInternals::Property* getProperty(const String& property) const;
 
  protected:
   virtual void setup() {}

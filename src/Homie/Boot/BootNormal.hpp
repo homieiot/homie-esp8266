@@ -68,6 +68,7 @@ class BootNormal : public Boot {
     enum class PropertyStep {
       PUB_NAME,
       PUB_SETTABLE,
+      PUB_RETAINED,
       PUB_DATATYPE,
       PUB_UNIT,
       PUB_FORMAT

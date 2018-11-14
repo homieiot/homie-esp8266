@@ -34,6 +34,11 @@ PropertyInterface& PropertyInterface::setFormat(const char* format) {
   return *this;
 }
 
+PropertyInterface& PropertyInterface::retained(const bool retained) {
+  _property->retained(retained);
+  return *this;
+}
+
 PropertyInterface& PropertyInterface::setProperty(Property* property) {
   _property = property;
   return *this;
@@ -71,7 +76,21 @@ PropertyInterface& HomieNode::advertise(const char* id) {
 }
 
 SendingPromise& HomieNode::setProperty(const String& property) const {
-  return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true).overwriteSetter(false).setRange({ .isRange = false, .index = 0 });
+  Property* iProperty = this->getProperty(property);
+  if (iProperty) {
+    if (iProperty->isRetained())
+      return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true);
+    else
+      return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1);
+  }
+}
+
+Property* HomieNode::getProperty(const String& property) const {
+  for (Property* iProperty : getProperties()) {
+    if (strcmp(iProperty->getId(), property.c_str()) == 0)
+       return iProperty;
+  }
+  return NULL;
 }
 
 bool HomieNode::handleInput(const HomieRange& range, const String& property, const String& value) {

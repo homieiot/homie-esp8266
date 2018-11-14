@@ -45,7 +45,7 @@ void BootNormal::setup() {
     if (nodeMaxTopicLength > longestSubtopicLength) longestSubtopicLength = nodeMaxTopicLength;
 
     for (Property* iProperty : iNode->getProperties()) {
-      size_t propertyMaxTopicLength = 1 + strlen(iNode->getId()) + 1 + strlen(iProperty->getProperty()) + 1;
+      size_t propertyMaxTopicLength = 1 + strlen(iNode->getId()) + 1 + strlen(iProperty->getId()) + 1;
       if (iProperty->isSettable()) propertyMaxTopicLength += 4;  // /set
 
       if (propertyMaxTopicLength > longestSubtopicLength) longestSubtopicLength = propertyMaxTopicLength;
@@ -477,7 +477,7 @@ void BootNormal::_advertise() {
           strcat_P(subtopic.get(), PSTR("/$properties"));
           String properties;
           for (Property* iProperty : node->getProperties()) {
-            properties.concat(iProperty->getProperty());
+            properties.concat(iProperty->getId());
             properties.concat(",");
           }
           if (node->getProperties().size() >= 1) properties.remove(properties.length() - 1);
@@ -508,14 +508,14 @@ void BootNormal::_advertise() {
         {
           HomieNode* node = HomieNode::nodes[_advertisementProgress.currentNodeIndex];
           Property* iProperty = node->getProperties()[_advertisementProgress.currentPropertyIndex];
-          std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(node->getId()) + 1 +strlen(iProperty->getProperty()) + 10 + 1]);  // /nodeId/propId/$settable
+          std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(node->getId()) + 1 +strlen(iProperty->getId()) + 10 + 1]);  // /nodeId/propId/$settable
           switch (_advertisementProgress.propertyStep) {
             case AdvertisementProgress::PropertyStep::PUB_NAME:
               if (iProperty->getName() && (iProperty->getName()[0] != '\0')) {
                 strcpy_P(subtopic.get(), PSTR("/"));
                 strcat(subtopic.get(), node->getId());
                 strcat_P(subtopic.get(), PSTR("/"));
-                strcat(subtopic.get(), iProperty->getProperty());
+                strcat(subtopic.get(), iProperty->getId());
                 strcat_P(subtopic.get(), PSTR("/$name"));
                 packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getName());
                 if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_SETTABLE;
@@ -528,9 +528,22 @@ void BootNormal::_advertise() {
                 strcpy_P(subtopic.get(), PSTR("/"));
                 strcat(subtopic.get(), node->getId());
                 strcat_P(subtopic.get(), PSTR("/"));
-                strcat(subtopic.get(), iProperty->getProperty());
+                strcat(subtopic.get(), iProperty->getId());
                 strcat_P(subtopic.get(), PSTR("/$settable"));
                 packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, "true");
+                if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_RETAINED;
+              } else {
+                _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_RETAINED;
+              }
+              break;
+            case AdvertisementProgress::PropertyStep::PUB_RETAINED:
+              if (!iProperty->isRetained()) {
+                strcpy_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), node->getId());
+                strcat_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), iProperty->getId());
+                strcat_P(subtopic.get(), PSTR("/$retained"));
+                packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, "false");
                 if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_DATATYPE;
               } else {
                 _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_DATATYPE;
@@ -541,7 +554,7 @@ void BootNormal::_advertise() {
                 strcpy_P(subtopic.get(), PSTR("/"));
                 strcat(subtopic.get(), node->getId());
                 strcat_P(subtopic.get(), PSTR("/"));
-                strcat(subtopic.get(), iProperty->getProperty());
+                strcat(subtopic.get(), iProperty->getId());
                 strcat_P(subtopic.get(), PSTR("/$datatype"));
                 packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getDatatype());
                 if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_UNIT;
@@ -554,7 +567,7 @@ void BootNormal::_advertise() {
                 strcpy_P(subtopic.get(), PSTR("/"));
                 strcat(subtopic.get(), node->getId());
                 strcat_P(subtopic.get(), PSTR("/"));
-                strcat(subtopic.get(), iProperty->getProperty());
+                strcat(subtopic.get(), iProperty->getId());
                 strcat_P(subtopic.get(), PSTR("/$unit"));
                 packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getUnit());
                 if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_FORMAT;
@@ -569,7 +582,7 @@ void BootNormal::_advertise() {
                 strcpy_P(subtopic.get(), PSTR("/"));
                 strcat(subtopic.get(), node->getId());
                 strcat_P(subtopic.get(), PSTR("/"));
-                strcat(subtopic.get(), iProperty->getProperty());
+                strcat(subtopic.get(), iProperty->getId());
                 strcat_P(subtopic.get(), PSTR("/$format"));
                 packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getFormat());
                 if (packetId != 0) sent = true;
@@ -1053,7 +1066,7 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
 
   Property* propertyObject = nullptr;
   for (Property* iProperty : homieNode->getProperties()) {
-    if (strcmp(property, iProperty->getProperty()) == 0) {
+    if (strcmp(property, iProperty->getId()) == 0) {
       propertyObject = iProperty;
       break;
     }
