@@ -29,7 +29,7 @@ class PropertyInterface {
   PropertyInterface& setUnit(const char* unit);
   PropertyInterface& setDatatype(const char* datatype);
   PropertyInterface& setFormat(const char* format);
-  PropertyInterface& retained(const bool retained = true);
+  PropertyInterface& setRetained(const bool retained = true);
 
  private:
   PropertyInterface& setProperty(Property* property);
@@ -49,7 +49,7 @@ class Property {
   void setUnit(const char* unit) { _unit = unit; }
   void setDatatype(const char* datatype) { _datatype = datatype; }
   void setFormat(const char* format) { _format = format; }
-  void retained(const bool retained = true) { _retained = retained; }
+  void setRetained(const bool retained = true) { _retained = retained; }
 
 
  private:

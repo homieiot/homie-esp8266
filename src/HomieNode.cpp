@@ -34,8 +34,8 @@ PropertyInterface& PropertyInterface::setFormat(const char* format) {
   return *this;
 }
 
-PropertyInterface& PropertyInterface::retained(const bool retained) {
-  _property->retained(retained);
+PropertyInterface& PropertyInterface::setRetained(const bool retained) {
+  _property->setRetained(retained);
   return *this;
 }
 

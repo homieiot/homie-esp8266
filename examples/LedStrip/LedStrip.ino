@@ -3,7 +3,7 @@
 const unsigned int NUMBER_OF_LED = 4;
 const unsigned char LED_PINS[NUMBER_OF_LED] = { 16, 5, 4, 0 };
 
-HomieNode stripNode("strip", "Strip", "strip", "true", 1, NUMBER_OF_LED);
+HomieNode stripNode("strip", "Strip", "strip", true, 1, NUMBER_OF_LED);
 
 bool stripLedHandler(const HomieRange& range, const String& value) {
   if (!range.isRange) return false;  // if it's not a range

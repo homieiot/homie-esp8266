@@ -32,7 +32,7 @@ void setup() {
   buttonNode.advertise("button").setName("Button")
                                 .setDatatype("enum")
                                 .setFormat("PRESSED,RELEASED")
-                                .retained(false);
+                                .setRetained(false);
 
   Homie.setup();
 }
