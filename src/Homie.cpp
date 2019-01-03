@@ -9,9 +9,16 @@ HomieClass::HomieClass()
   strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
+  #ifdef ESP32
+  //FIXME: led on ESP32
+  Interface::get().led.enabled = false;
+  //Interface::get().led.pin = LED_BUILTIN;
+  //Interface::get().led.on = LOW;
+  #elif defined(ESP8266)
   Interface::get().led.enabled = true;
   Interface::get().led.pin = LED_BUILTIN;
   Interface::get().led.on = LOW;
+  #endif // ESP32
   Interface::get().reset.idle = true;
   Interface::get().reset.enabled = true;
   Interface::get().reset.triggerPin = DEFAULT_RESET_PIN;
@@ -332,6 +339,9 @@ Logger& HomieClass::getLogger() {
   return _logger;
 }
 
+#ifdef ESP32
+//FIXME: implement for ESP32
+#elif defined(ESP8266)
 void HomieClass::prepareToSleep() {
   Interface::get().getLogger() << F("Flagged for sleep by sketch") << endl;
   if (Interface::get().ready) {
@@ -350,5 +360,7 @@ void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode) {
   Serial.flush();
   ESP.deepSleep(time_us, mode);
 }
+#endif // ESP32
+
 
 HomieClass Homie;

@@ -3,6 +3,9 @@
 #include "Arduino.h"
 
 #include <ArduinoJson.h>
+#ifdef ESP32
+#include <SPIFFS.h>
+#endif // ESP32
 #include "FS.h"
 #include "Datatypes/Interface.hpp"
 #include "Datatypes/ConfigStruct.hpp"
