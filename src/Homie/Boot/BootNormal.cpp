@@ -23,7 +23,7 @@ BootNormal::BootNormal()
   , _mqttTopicLevels(nullptr)
   , _mqttTopicLevelsCount(0) {
   //FIXME: getSketchMD5 not implemented / boot loop on ESP32
-  //TODO: Remove Update.h from BootNormal.cpp, change status codes to https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/system/ota.html
+  //Remove Update.h from BootNormal.cpp, change status codes to https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/system/ota.html
   strcpy(_fwChecksum, "00000000000000000000000000000000");
   _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
 }
@@ -48,7 +48,7 @@ BootNormal::BootNormal()
   , _mqttTopicLevels(nullptr)
   , _mqttTopicLevelsCount(0) {
   strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
- _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
+  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
 }
 #endif // ESP32
 
@@ -182,9 +182,9 @@ void BootNormal::loop() {
 
   if (_statsTimer.check()) {
     char statsIntervalStr[3 + 1];
-    itoa(Interface::get().getConfig().get().deviceStatsInterval, statsIntervalStr, 10);
+    itoa(Interface::get().getConfig().get().deviceStatsInterval+5, statsIntervalStr, 10);
     Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
-    Interface::get().getLogger() << F("  • Interval: ") << statsIntervalStr << F("s") << endl;
+    Interface::get().getLogger() << F("  • Interval: ") << statsIntervalStr << F("s (") << Interface::get().getConfig().get().deviceStatsInterval << F("s including 5s grace time)") << endl;
     uint16_t intervalPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/interval")), 1, true, statsIntervalStr);
 
     uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
@@ -328,8 +328,13 @@ void BootNormal::_wifiConnect() {
       WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password);
     }
 
+    #ifdef ESP32
+    WiFi.setAutoConnect(false);
+    WiFi.setAutoReconnect(false);
+    #elif defined(ESP8266)
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
+    #endif // ESP32
   }
 }
 
@@ -349,17 +354,17 @@ void BootNormal::_onWifiGotIp(WiFiEvent_t event, WiFiEventInfo_t info) {
 }
 #elif defined(ESP8266)
 void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
-   if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
-   Interface::get().getLogger() << F("✔ Wi-Fi connected, IP: ") << event.ip << endl;
-   Interface::get().getLogger() << F("Triggering WIFI_CONNECTED event...") << endl;
-   Interface::get().event.type = HomieEventType::WIFI_CONNECTED;
-   Interface::get().event.ip = event.ip;
-   Interface::get().event.mask = event.mask;
-   Interface::get().event.gateway = event.gw;
-   Interface::get().eventHandler(Interface::get().event);
-   MDNS.begin(Interface::get().getConfig().get().deviceId);
+  if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
+  Interface::get().getLogger() << F("✔ Wi-Fi connected, IP: ") << event.ip << endl;
+  Interface::get().getLogger() << F("Triggering WIFI_CONNECTED event...") << endl;
+  Interface::get().event.type = HomieEventType::WIFI_CONNECTED;
+  Interface::get().event.ip = event.ip;
+  Interface::get().event.mask = event.mask;
+  Interface::get().event.gateway = event.gw;
+  Interface::get().eventHandler(Interface::get().event);
+  MDNS.begin(Interface::get().getConfig().get().deviceId);
 
-   _mqttConnect();
+  _mqttConnect();
  }
 #endif // ESP32
 
@@ -368,26 +373,26 @@ void BootNormal::_onWifiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
   Interface::get().ready = false;
   if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
   _statsTimer.reset();
-  Interface::get().getLogger() << F("✖ Wi-Fi disconnected") << endl;
+  Interface::get().getLogger() << F("✖ Wi-Fi disconnected, reason: ") << info.disconnected.reason << endl;
   Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
-  //Interface::get().event.wifiReason = info.disconnected.reason;
+  Interface::get().event.wifiReason = info.disconnected.reason;
   Interface::get().eventHandler(Interface::get().event);
 
   _wifiConnect();
 }
 #elif defined(ESP8266)
 void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event) {
-   Interface::get().ready = false;
-   if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
-   _statsTimer.reset();
-   Interface::get().getLogger() << F("✖ Wi-Fi disconnected") << endl;
-   Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
-   Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
-   Interface::get().event.wifiReason = event.reason;
-   Interface::get().eventHandler(Interface::get().event);
+  Interface::get().ready = false;
+  if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
+  _statsTimer.reset();
+  Interface::get().getLogger() << F("✖ Wi-Fi disconnected, reason: ") << event.reason << endl;
+  Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
+  Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
+  Interface::get().event.wifiReason = event.reason;
+  Interface::get().eventHandler(Interface::get().event);
 
-   _wifiConnect();
+  _wifiConnect();
 }
 #endif // ESP32
 
@@ -447,7 +452,7 @@ void BootNormal::_advertise() {
       break;
     case AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL:
       char statsIntervalStr[3 + 1];
-      itoa(Interface::get().getConfig().get().deviceStatsInterval, statsIntervalStr, 10);
+      itoa(Interface::get().getConfig().get().deviceStatsInterval+5, statsIntervalStr, 10);
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/interval")), 1, true, statsIntervalStr);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_FW_NAME;
       break;
@@ -756,7 +761,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
   _advertisementProgress.currentPropertyIndex = 0;
   if (!_mqttDisconnectNotified) {
     _statsTimer.reset();
-    Interface::get().getLogger() << F("✖ MQTT disconnected") << endl;
+    Interface::get().getLogger() << F("✖ MQTT disconnected, reason: ") << (int8_t)reason<< endl;
     Interface::get().getLogger() << F("Triggering MQTT_DISCONNECTED event...") << endl;
     Interface::get().event.type = HomieEventType::MQTT_DISCONNECTED;
     Interface::get().event.mqttReason = reason;
