@@ -761,7 +761,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
   _advertisementProgress.currentPropertyIndex = 0;
   if (!_mqttDisconnectNotified) {
     _statsTimer.reset();
-    Interface::get().getLogger() << F("✖ MQTT disconnected, reason: ") << (int8_t)reason<< endl;
+    Interface::get().getLogger() << F("✖ MQTT disconnected, reason: ") << (int8_t)reason << endl;
     Interface::get().getLogger() << F("Triggering MQTT_DISCONNECTED event...") << endl;
     Interface::get().event.type = HomieEventType::MQTT_DISCONNECTED;
     Interface::get().event.mqttReason = reason;
