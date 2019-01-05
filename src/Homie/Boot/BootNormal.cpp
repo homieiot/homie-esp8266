@@ -365,7 +365,7 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   MDNS.begin(Interface::get().getConfig().get().deviceId);
 
   _mqttConnect();
- }
+}
 #endif // ESP32
 
 #ifdef ESP32
