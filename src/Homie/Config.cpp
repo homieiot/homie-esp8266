@@ -10,7 +10,7 @@ Config::Config()
 
 bool Config::_spiffsBegin() {
   if (!_spiffsBegan) {
-    _spiffsBegan = SPIFFS.begin();
+    _spiffsBegan = SPIFFS.begin(true);
     if (!_spiffsBegan) Interface::get().getLogger() << F("✖ Cannot mount filesystem") << endl;
   }
 
