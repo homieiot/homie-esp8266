@@ -2,7 +2,7 @@ This is an upgrade guide to upgrade your Homie devices from v1 to v2.
 
 ## New convention
 
-The Homie convention has been revised to v2 to be more extensible and introspectable. Be sure to [check it out](https://github.com/marvinroger/homie/tree/v2).
+The Homie convention has been revised to v2 to be more extensible and introspectable. Be sure to [check it out](https://github.com/homieiot/convention/tree/v2.0.0).
 
 ## API changes in the sketch
 

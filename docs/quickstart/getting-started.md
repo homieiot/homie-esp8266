@@ -5,7 +5,7 @@ To use Homie for ESP8266, you will need:
 * An ESP8266
 * The Arduino IDE for ESP8266 (version 2.3.0 minimum)
 * Basic knowledge of the Arduino environment (upload a sketch, import libraries, ...)
-* To understand [the Homie convention](https://github.com/marvinroger/homie)
+* To understand [the Homie convention](https://github.com/homieiot/convention)
 
 ## Installing Homie for ESP8266
 
