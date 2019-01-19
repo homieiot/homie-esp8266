@@ -74,7 +74,7 @@ jobs:
             git init
             git config --global user.name "circleci"
             git config --global user.email "sayhi@circleci.com"
-            git remote add origin git@github.com:marvinroger/homie-esp8266.git
+            git remote add origin git@github.com:homieiot/homie-esp8266.git
             git add .
             git commit -m ":package: Result of CircleCI build ${CIRCLE_BUILD_URL}"
             git push -f origin master:gh-pages
