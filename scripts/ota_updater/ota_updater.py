@@ -13,18 +13,9 @@ def on_connect(client, userdata, flags, rc):
     else:
         print("Connected with result code {}".format(rc))
 
-    # calcluate firmware md5
-    firmware_md5 = md5(userdata['firmware']).hexdigest()
-    userdata.update({'md5': firmware_md5})
+    client.subscribe("{base_topic}{device_id}/$online".format(**userdata))
 
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-    client.subscribe("{base_topic}{device_id}/$implementation/ota/status".format(**userdata))
-    client.subscribe("{base_topic}{device_id}/$implementation/ota/enabled".format(**userdata))
-    client.subscribe("{base_topic}{device_id}/$fw/#".format(**userdata))
-
-    # Wait for device info to come in and invoke the on_message callback where update will continue
-    print("Waiting for device info...")
+    print("Waiting for device to come online...")
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -75,6 +66,23 @@ def on_message(client, userdata, msg):
             print("Device ota disabled, aborting...")
             client.disconnect()
 
+    elif msg.topic.endswith('$online'):
+        if msg.payload == 'false':
+            return
+
+        # calcluate firmware md5
+        firmware_md5 = md5(userdata['firmware']).hexdigest()
+        userdata.update({'md5': firmware_md5})
+
+        # Subscribing in on_connect() means that if we lose the connection and
+        # reconnect then subscriptions will be renewed.
+        client.subscribe("{base_topic}{device_id}/$implementation/ota/status".format(**userdata))
+        client.subscribe("{base_topic}{device_id}/$implementation/ota/enabled".format(**userdata))
+        client.subscribe("{base_topic}{device_id}/$fw/#".format(**userdata))
+
+        # Wait for device info to come in and invoke the on_message callback where update will continue
+        print("Waiting for device info...")
+
     if ( not userdata.get("published") ) and ( userdata.get('ota_enabled') ) and \
        ( 'old_md5' in userdata.keys() ) and ( userdata.get('md5') != userdata.get('old_md5') ):
         # push the firmware binary
@@ -84,7 +92,7 @@ def on_message(client, userdata, msg):
         client.publish(topic, userdata['firmware'])
 
 
-def main(broker_host, broker_port, broker_username, broker_password, base_topic, device_id, firmware):
+def main(broker_host, broker_port, broker_username, broker_password, broker_ca_cert, base_topic, device_id, firmware):
     # initialise mqtt client and register callbacks
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -93,6 +101,11 @@ def main(broker_host, broker_port, broker_username, broker_password, base_topic,
     # set username and password if given
     if broker_username and broker_password:
         client.username_pw_set(broker_username, broker_password)
+
+    if broker_ca_cert is not None:
+        client.tls_set(
+            ca_certs=broker_ca_cert
+        )
 
     # save data to be used in the callbacks
     client.user_data_set({
@@ -138,6 +151,10 @@ if __name__ == '__main__':
     parser.add_argument('firmware', type=argparse.FileType('rb'),
                         help='path to the firmware to be sent to the device')
 
+    parser.add_argument("--broker-tls-cacert", default=None, required=False,
+                        help="CA certificate bundle used to validate TLS connections. If set, TLS will be enabled on the broker conncetion"
+    )
+
     # workaround for http://bugs.python.org/issue9694
     parser._optionals.title = "arguments"
 
@@ -152,4 +169,4 @@ if __name__ == '__main__':
 
     # Invoke the business logic
     main(args.broker_host, args.broker_port, args.broker_username,
-         args.broker_password, args.base_topic, args.device_id, firmware)
+         args.broker_password, args.broker_tls_cacert, args.base_topic, args.device_id, firmware)
