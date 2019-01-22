@@ -32,11 +32,13 @@ class BootNormal : public Boot {
   struct AdvertisementProgress {
     bool done = false;
     enum class GlobalStep {
+      PUB_INIT,
       PUB_HOMIE,
       PUB_NAME,
       PUB_MAC,
       PUB_LOCALIP,
       PUB_NODES_ATTR,
+      PUB_STATS,
       PUB_STATS_INTERVAL,
       PUB_FW_NAME,
       PUB_FW_VERSION,
@@ -51,15 +53,30 @@ class BootNormal : public Boot {
       SUB_IMPLEMENTATION_CONFIG_SET,
       SUB_SET,
       SUB_BROADCAST,
-      PUB_ONLINE
+      PUB_READY
     } globalStep;
 
     enum class NodeStep {
+      PUB_NAME,
       PUB_TYPE,
-      PUB_PROPERTIES
+      PUB_ARRAY,
+      PUB_ARRAY_NODES,
+      PUB_PROPERTIES,
+      PUB_PROPERTIES_ATTRIBUTES
     } nodeStep;
 
+    enum class PropertyStep {
+      PUB_NAME,
+      PUB_SETTABLE,
+      PUB_RETAINED,
+      PUB_DATATYPE,
+      PUB_UNIT,
+      PUB_FORMAT
+    } propertyStep;
+
     size_t currentNodeIndex;
+    size_t currentArrayNodeIndex;
+    size_t currentPropertyIndex;
   } _advertisementProgress;
   Uptime _uptime;
   Timer _statsTimer;

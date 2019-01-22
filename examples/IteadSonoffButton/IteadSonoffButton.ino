@@ -15,7 +15,7 @@ unsigned long buttonDownTime = 0;
 byte lastButtonState = 1;
 byte buttonPressHandled = 0;
 
-HomieNode switchNode("switch", "switch");
+HomieNode switchNode("switch", "Switch", "switch");
 
 bool switchOnHandler(HomieRange range, String value) {
   if (value != "true" && value != "false") return false;
@@ -64,7 +64,7 @@ void setup() {
   Homie_setFirmware("itead-sonoff-buton", "1.0.0");
   Homie.setLedPin(PIN_LED, LOW).setResetTrigger(PIN_BUTTON, LOW, 5000);
 
-  switchNode.advertise("on").settable(switchOnHandler);
+  switchNode.advertise("on").setName("On").setDatatype("boolean").settable(switchOnHandler);
 
   Homie.setLoopFunction(loopHandler);
   Homie.setup();

@@ -20,7 +20,7 @@ HomieClass::HomieClass()
   Interface::get().reset.resetFlag = false;
   Interface::get().disable = false;
   Interface::get().flaggedForSleep = false;
-  Interface::get().globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
+  Interface::get().globalInputHandler = [](const HomieNode& node, const HomieRange& range, const String& property, const String& value) { return false; };
   Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
   Interface::get().setupFunction = []() {};
   Interface::get().loopFunction = []() {};

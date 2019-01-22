@@ -24,7 +24,12 @@ class PropertyInterface {
  public:
   PropertyInterface();
 
-  void settable(const PropertyInputHandler& inputHandler = [](const HomieRange& range, const String& value) { return false; });
+  PropertyInterface& settable(const PropertyInputHandler& inputHandler = [](const HomieRange& range, const String& value) { return false; });
+  PropertyInterface& setName(const char* name);
+  PropertyInterface& setUnit(const char* unit);
+  PropertyInterface& setDatatype(const char* datatype);
+  PropertyInterface& setFormat(const char* format);
+  PropertyInterface& setRetained(const bool retained = true);
 
  private:
   PropertyInterface& setProperty(Property* property);
@@ -33,23 +38,35 @@ class PropertyInterface {
 };
 
 class Property {
+  friend HomieNode;
   friend BootNormal;
 
  public:
-  explicit Property(const char* id, bool range = false, uint16_t lower = 0, uint16_t upper = 0) { _id = strdup(id); _range = range; _lower = lower; _upper = upper; _settable = false; }
+  explicit Property(const char* id) {
+    _id = strdup(id); _name = ""; _unit = ""; _datatype = ""; _format = ""; _retained = true; _settable = false; }
   void settable(const PropertyInputHandler& inputHandler) { _settable = true;  _inputHandler = inputHandler; }
+  void setName(const char* name) { _name = name; }
+  void setUnit(const char* unit) { _unit = unit; }
+  void setDatatype(const char* datatype) { _datatype = datatype; }
+  void setFormat(const char* format) { _format = format; }
+  void setRetained(const bool retained = true) { _retained = retained; }
+
 
  private:
-  const char* getProperty() const { return _id; }
+  const char* getId() const { return _id; }
+  const char* getName() const { return _name; }
+  const char* getUnit() const { return _unit; }
+  const char* getDatatype() const { return _datatype; }
+  const char* getFormat() const { return _format; }
+  bool isRetained() const { return _retained; }
   bool isSettable() const { return _settable; }
-  bool isRange() const { return _range; }
-  uint16_t getLower() const { return _lower; }
-  uint16_t getUpper() const { return _upper; }
   PropertyInputHandler getInputHandler() const { return _inputHandler; }
   const char* _id;
-  bool _range;
-  uint16_t _lower;
-  uint16_t _upper;
+  const char* _name;
+  const char* _unit;
+  const char* _datatype;
+  const char* _format;
+  bool _retained;
   bool _settable;
   PropertyInputHandler _inputHandler;
 };
@@ -61,22 +78,25 @@ class HomieNode {
   friend HomieInternals::BootConfig;
 
  public:
-  HomieNode(const char* id, const char* type, const HomieInternals::NodeInputHandler& nodeInputHandler = [](const String& property, const HomieRange& range, const String& value) { return false; });
+  HomieNode(const char* id, const char* name, const char* type, bool range = false, uint16_t lower = 0, uint16_t upper = 0, const HomieInternals::NodeInputHandler& nodeInputHandler = [](const HomieRange& range, const String& property, const String& value) { return false; });
   virtual ~HomieNode();
 
   const char* getId() const { return _id; }
   const char* getType() const { return _type; }
+  const char* getName() const {return _name; }
+  bool isRange() const { return _range; }
+  uint16_t getLower() const { return _lower; }
+  uint16_t getUpper() const { return _upper; }
 
-  HomieInternals::PropertyInterface& advertise(const char* property);
-  HomieInternals::PropertyInterface& advertiseRange(const char* property, uint16_t lower, uint16_t upper);
-
+  HomieInternals::PropertyInterface& advertise(const char* id);
   HomieInternals::SendingPromise& setProperty(const String& property) const;
+  HomieInternals::Property* getProperty(const String& property) const;
 
  protected:
   virtual void setup() {}
   virtual void loop() {}
   virtual void onReadyToOperate() {}
-  virtual bool handleInput(const String& property, const HomieRange& range, const String& value);
+  virtual bool handleInput(const HomieRange& range, const String& property, const String& value);
 
  private:
   const std::vector<HomieInternals::Property*>& getProperties() const;
@@ -90,7 +110,11 @@ class HomieNode {
   }
 
   const char* _id;
+  const char* _name;
   const char* _type;
+  bool _range;
+  uint16_t _lower;
+  uint16_t _upper;
   std::vector<HomieInternals::Property*> _properties;
   HomieInternals::NodeInputHandler _inputHandler;
 
