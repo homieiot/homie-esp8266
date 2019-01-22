@@ -12,10 +12,10 @@ An Arduino for ESP8266 implementation of [Homie](https://github.com/homieiot/con
 
 This branch of Homie for ESP8266 implements [Homie 3.0.1](https://github.com/homieiot/convention/releases/tag/v3.0.1)
 
-
 ## Download
 
 The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/homieiot/homie-esp8266/releases).
+
 Note that there is no release of the 3.x.y branch yet. Please use the git repository if you are interested in latest development.
 
 ## Using with PlatformIO

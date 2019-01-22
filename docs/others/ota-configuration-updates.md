@@ -4,7 +4,7 @@ Homie for ESP8266 supports OTA, if enabled in the configuration, and if a compat
 
 There's a script that does just that:
 
-[![GitHub logo](../assets/github.png) ota_updater.py](https://github.com/marvinroger/homie-esp8266/blob/develop/scripts/ota_updater)
+[![GitHub logo](../assets/github.png) ota_updater.py](https://github.com/homieiot/homie-esp8266/blob/develop/scripts/ota_updater)
 
 It works this way:
 

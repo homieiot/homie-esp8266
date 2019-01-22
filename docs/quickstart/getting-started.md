@@ -5,7 +5,7 @@ To use Homie for ESP8266, you will need:
 * An ESP8266
 * The Arduino IDE for ESP8266 (version 2.3.0 minimum)
 * Basic knowledge of the Arduino environment (upload a sketch, import libraries, ...)
-* To understand [the Homie convention](https://github.com/marvinroger/homie)
+* To understand [the Homie convention](https://github.com/homieiot/convention)
 
 ## Installing Homie for ESP8266
 
@@ -17,7 +17,7 @@ There is a YouTube video with instructions:
 
 [![YouTube logo](../assets/youtube.png) How to install Homie libraries on Arduino IDE](https://www.youtube.com/watch?v=bH3KfFfYUvg)
 
-1. Download the [release corresponding to this documentation version](https://github.com/marvinroger/homie-esp8266/releases)
+1. Download the [release corresponding to this documentation version](https://github.com/homieiot/homie-esp8266/releases)
 
 2. Load the `.zip` with **Sketch → Include Library → Add .ZIP Library**
 
@@ -39,7 +39,7 @@ In a terminal, run `platformio lib install 555`.
     The above command is for when the v2 is stable and released. Currently, the latest stable version is 1.5. In the meantime, use the develop branch to get started with the v2, add this in your **platformio.ini**:
 
     ```
-    lib_deps = git+https://github.com/marvinroger/homie-esp8266.git#develop
+    lib_deps = git+https://github.com/homieiot/homie-esp8266.git#develop
     ```
 
 Dependencies are installed automatically.
@@ -118,7 +118,7 @@ Although the sketch looks like it does not do anything, it actually does quite a
 
 Now that we understand how Homie for ESP8266 works, let's create an useful sketch. We want to create a smart light.
 
-[![GitHub logo](../assets/github.png) LightOnOff.ino](https://github.com/marvinroger/homie-esp8266/blob/develop/examples/LightOnOff/LightOnOff.ino)
+[![GitHub logo](../assets/github.png) LightOnOff.ino](https://github.com/homieiot/homie-esp8266/blob/develop/examples/LightOnOff/LightOnOff.ino)
 
 Alright, step by step:
 
@@ -135,7 +135,7 @@ In the previous example sketch, we were reacting to property changes. But what i
 
 Fortunately, Homie for ESP8266 provides an easy way to do that.
 
-[![GitHub logo](../assets/github.png) TemperatureSensor.ino](https://github.com/marvinroger/homie-esp8266/blob/develop/examples/TemperatureSensor/TemperatureSensor.ino)
+[![GitHub logo](../assets/github.png) TemperatureSensor.ino](https://github.com/homieiot/homie-esp8266/blob/develop/examples/TemperatureSensor/TemperatureSensor.ino)
 
 The only new things here are the `Homie.setSetupFunction(setupHandler);` and `Homie.setLoopFunction(loopHandler);` calls. The setup function will be called once, when the device is in `normal` mode and the network connection is up. The loop function will be called everytime, when the device is in `normal` mode and the network connection is up. This provides a nice level of abstraction.
 
