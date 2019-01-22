@@ -77,10 +77,9 @@ PropertyInterface& HomieNode::advertise(const char* id) {
 
 SendingPromise& HomieNode::setProperty(const String& property) const {
   Property* iProperty = this->getProperty(property);
-  if (iProperty) {
-    if (iProperty->isRetained())
+  if (iProperty &&  iProperty->isRetained()) {
       return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true);
-    else
+  } else {
       return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1);
   }
 }
