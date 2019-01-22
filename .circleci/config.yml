@@ -48,7 +48,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: sudo pip install mkdocs==1.0.4 mkdocs-material==3.2.0 pygments==2.3.1 pymdown-extensions==6.0
+          command: sudo pip install mkdocs==0.17.2 mkdocs-material==2.2.0 pygments==2.2.0 pymdown-extensions==4.5.1 markdown==2.6.11
       - run:
           name: generate and publish docs
           command: |

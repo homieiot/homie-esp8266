@@ -7,7 +7,7 @@ repo_url: "https://github.com/homieiot/homie-esp8266"
 
 edit_uri: edit/develop/docs
 
-nav:
+pages:
   - Welcome: index.md
   - Quickstart:
       - What is it?: quickstart/what-is-it.md
