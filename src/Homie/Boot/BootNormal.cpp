@@ -313,6 +313,7 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
 void BootNormal::_mqttConnect() {
   if (!Interface::get().disable) {
     if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_MQTT_DELAY);
+    _mqttConnectNotified = false;
     Interface::get().getLogger() << F("↕ Attempting to connect to MQTT...") << endl;
     Interface::get().getMqttClient().connect();
   }
