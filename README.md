@@ -113,7 +113,7 @@ void loop() {
 
 ## Requirements, installation and usage
 
-The project is documented on http://marvinroger.github.io/homie-esp8266/ with a *Getting started* guide and every piece of information you will need.
+The project is documented on https://homieiot.github.io/homie-esp8266/ with a *Getting started* guide and every piece of information you will need.
 
 ## Donate
 
