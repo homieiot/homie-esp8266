@@ -55,6 +55,8 @@ uint16_t SendingPromise::send(const String& value) {
     itoa(_range.index, rangeStr, 10);
     strcat_P(topic, PSTR("_"));
     strcat(topic, rangeStr);
+    _range.isRange=false;			//FIXME: This is a workaround. Problem is that Range is loaded from the property into SendingPromise, but the SendingPromise is global. (one SendingPromise for the HomieClass instance
+    _range.index = 0;
   }
 
   strcat_P(topic, PSTR("/"));
