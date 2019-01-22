@@ -51,8 +51,11 @@ board = ...
 framework = arduino
 build_flags = -D PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY
 
-; the latest development branch
-lib_deps = https://github.com/homieiot/homie-esp8266.git
+; the latest development branch (convention V2)
+lib_deps = https://github.com/homieiot/homie-esp8266.git#develop
+
+; the latest development branch (convention V3.0.x) 
+lib_deps = https://github.com/homieiot/homie-esp8266.git#develop-v3
 
 ; or tagged version
 lib_deps = https://github.com/homieiot/homie-esp8266.git#v2.0.0-beta.2
@@ -64,11 +67,11 @@ Happy coding with PlatformIO!
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
-* [JSON configuration file](http://marvinroger.github.io/homie-esp8266/docs/develop/configuration/json-configuration-file) to configure the device
-* [Cute HTTP API / Web UI / App](http://marvinroger.github.io/homie-esp8266/docs/develop/configuration/http-json-api) to remotely send the configuration to the device and get information about it
-* [Custom settings](http://marvinroger.github.io/homie-esp8266/docs/develop/advanced-usage/custom-settings)
-* [OTA over MQTT](http://marvinroger.github.io/homie-esp8266/docs/develop/others/ota-configuration-updates)
-* [Magic bytes](http://marvinroger.github.io/homie-esp8266/docs/develop/advanced-usage/magic-bytes)
+* [JSON configuration file](http://homieiot.github.io/homie-esp8266/docs/develop/configuration/json-configuration-file) to configure the device
+* [Cute HTTP API / Web UI / App](http://homieiot.github.io/homie-esp8266/docs/develop/configuration/http-json-api) to remotely send the configuration to the device and get information about it
+* [Custom settings](http://homieiot.github.io/homie-esp8266/docs/develop/advanced-usage/custom-settings)
+* [OTA over MQTT](http://homieiot.github.io/homie-esp8266/docs/develop/others/ota-configuration-updates)
+* [Magic bytes](http://homieiot.github.io/homie-esp8266/docs/develop/advanced-usage/magic-bytes)
 * Available in the [PlatformIO registry](http://platformio.org/#!/lib/show/555/Homie)
 * Pretty straightforward sketches, a simple light for example:
 
