@@ -5,9 +5,9 @@ Homie for ESP8266
 
 [![Build Status](https://img.shields.io/circleci/project/github/homieiot/homie-esp8266/develop.svg?style=flat-square)](https://circleci.com/gh/homieiot/homie-esp8266) [![Latest Release](https://img.shields.io/badge/release-v2.0.0-yellow.svg?style=flat-square)](https://github.com/homieiot/homie-esp8266/releases) [![Gitter](https://img.shields.io/gitter/room/Homie/ESP8266.svg?style=flat-square)](https://gitter.im/homie-iot/ESP8266)
 
-An Arduino for ESP8266 implementation of [Homie](https://github.com/homieiot/homie), an MQTT convention for the IoT.
+An Arduino for ESP8266 implementation of [Homie](https://github.com/homieiot/convention), an MQTT convention for the IoT.
 
-Currently Homie for ESP8266 implements [Homie 2.0.1](https://github.com/homieiot/homie/releases/tag/v2.0.1)
+Currently Homie for ESP8266 implements [Homie 2.0.1](https://github.com/homieiot/convention/releases/tag/v2.0.1)
 
 ## Note for v1.x users
 
@@ -15,7 +15,7 @@ The old configurator is not available online anymore. You can download it [here]
 
 ## Download
 
-The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/marvinroger/homie-esp8266/releases).
+The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/homieiot/homie-esp8266/releases).
 
 ## Using with PlatformIO
 
@@ -51,7 +51,10 @@ board = ...
 framework = arduino
 build_flags = -D PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY
 
-; the latest development branch
+; the latest development branch (convention V2)
+lib_deps = https://github.com/homieiot/homie-esp8266.git#develop
+
+; the latest development branch (convention V3.0.x) 
 lib_deps = https://github.com/homieiot/homie-esp8266.git#develop-v3
 
 ; or tagged version

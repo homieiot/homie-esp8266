@@ -2,8 +2,8 @@ site_name: Homie for ESP8266
 site_description: The Homie for ESP8266 documentation.
 site_author: Marvin ROGER
 
-repo_name: 'marvinroger/homie-esp8266'
-repo_url: 'https://github.com/marvinroger/homie-esp8266'
+repo_name: 'homieiot/homie-esp8266'
+repo_url: 'https://github.com/homieiot/homie-esp8266'
 
 edit_uri: edit/develop/docs
 

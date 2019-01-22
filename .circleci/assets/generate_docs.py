@@ -28,11 +28,11 @@ CONFIGURATORS_VERSIONS = [
 
 current_dir = os.path.dirname(__file__)
 output_dir = getopt.getopt(sys.argv[1:], 'o:')[0][0][1]
-github_releases = json.load(urllib2.urlopen('https://api.github.com/repos/marvinroger/homie-esp8266/releases'))
+github_releases = json.load(urllib2.urlopen('https://api.github.com/repos/homieiot/homie-esp8266/releases'))
 
 def generate_docs(data):
   print('Generating docs for ' + data['tag'] + ' (' + data['description'] + ') at /' + data['path'] + '...')
-  zip_url = 'https://github.com/marvinroger/homie-esp8266/archive/' + data['tag'] + '.zip'
+  zip_url = 'https://github.com/homieiot/homie-esp8266/archive/' + data['tag'] + '.zip'
   zip_path = tempfile.mkstemp()[1]
   urllib.urlretrieve(zip_url, zip_path)
 
