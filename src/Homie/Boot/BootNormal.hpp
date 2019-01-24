@@ -1,3 +1,7 @@
+#ifndef HOMIE_MDNS
+#define HOMIE_MDNS 1
+#endif
+
 #pragma once
 
 #include "Arduino.h"
@@ -5,7 +9,9 @@
 #include <functional>
 #include <libb64/cdecode.h>
 #include <ESP8266WiFi.h>
+#if HOMIE_MDNS
 #include <ESP8266mDNS.h>
+#endif
 #include <AsyncMqttClient.h>
 #include "../../HomieNode.hpp"
 #include "../../HomieRange.hpp"
