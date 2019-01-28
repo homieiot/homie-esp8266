@@ -43,7 +43,10 @@ Add the `PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY` build flag to ensure reliable O
 
 4. Update dev/platform to staging version:
    - [Instruction for Espressif 8266](http://docs.platformio.org/en/latest/platforms/espressif8266.html#using-arduino-framework-with-staging-version)
-5. Add development version of "Homie" to project using `platformio.ini` and [lib_deps](http://docs.platformio.org/page/projectconf/section_env_library.html#lib-deps) option:
+
+5. Before editing platformio.ini as shown below, you must install "git" if you don't already have it. For Windows, just go to http://git-scm.com/download/win and the download will start automatically. Note, this is only a requirement for the development versions.
+
+6. Add development version of "Homie" to project using `platformio.ini` and [lib_deps](http://docs.platformio.org/page/projectconf/section_env_library.html#lib-deps) option:
 ```ini
 [env:myboard]
 platform = ...
