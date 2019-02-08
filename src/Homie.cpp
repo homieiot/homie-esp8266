@@ -10,10 +10,11 @@ HomieClass::HomieClass()
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
   #ifdef ESP32
-  //FIXME: led on ESP32
   Interface::get().led.enabled = false;
-  //Interface::get().led.pin = LED_BUILTIN;
-  //Interface::get().led.on = LOW;
+  #ifdef LED_BUILTIN
+  Interface::get().led.pin = LED_BUILTIN;
+  #endif // LED_BUILTIN
+  Interface::get().led.on = LOW;
   #elif defined(ESP8266)
   Interface::get().led.enabled = true;
   Interface::get().led.pin = LED_BUILTIN;
