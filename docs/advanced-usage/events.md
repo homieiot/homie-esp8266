@@ -55,6 +55,9 @@ void onHomieEvent(const HomieEvent& event) {
     case HomieEventType::READY_TO_SLEEP:
       // After you've called `prepareToSleep()`, the event is triggered when MQTT is disconnected
       break;
+    case HomieEventType::SENDING_STATISTICS:
+      // Do whatever you want when statistics are sent in normal mode
+      break;
   }
 }
 
