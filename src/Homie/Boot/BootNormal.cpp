@@ -158,6 +158,9 @@ void BootNormal::loop() {
     uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
 
     if (signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+
+    Interface::get().event.type = HomieEventType::SENDING_STATISICS;
+    Interface::get().eventHandler(Interface::get().event);
   }
 
   Interface::get().loopFunction();
