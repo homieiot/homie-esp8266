@@ -158,6 +158,9 @@ void BootNormal::loop() {
     uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
 
     if (signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+
+    Interface::get().event.type = HomieEventType::SENDING_STATISICS;
+    Interface::get().eventHandler(Interface::get().event);
   }
 
   Interface::get().loopFunction();
@@ -313,7 +316,6 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
 void BootNormal::_mqttConnect() {
   if (!Interface::get().disable) {
     if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_MQTT_DELAY);
-    _mqttConnectNotified = false;
     Interface::get().getLogger() << F("↕ Attempting to connect to MQTT...") << endl;
     Interface::get().getMqttClient().connect();
   }
