@@ -208,6 +208,28 @@ void BootConfig::_generateNetworksJson() {
     JsonObject& jsonNetwork = generatedJsonBuffer.createObject();
     jsonNetwork["ssid"] = WiFi.SSID(network);
     jsonNetwork["rssi"] = WiFi.RSSI(network);
+    #ifdef ESP32
+    switch (WiFi.encryptionType(network)) {
+    case (WIFI_AUTH_OPEN):
+      jsonNetwork["encryption"] = "none";
+      break;
+    case (WIFI_AUTH_WEP):
+      jsonNetwork["encryption"] = "wep";
+      break;
+    case (WIFI_AUTH_WPA_PSK):
+      jsonNetwork["encryption"] = "wpa";
+      break;
+    case (WIFI_AUTH_WPA2_PSK):
+      jsonNetwork["encryption"] = "wpa2";
+      break;
+    case (WIFI_AUTH_WPA_WPA2_PSK):
+      //FIXME
+      break;
+    case (WIFI_AUTH_WPA2_ENTERPRISE):
+      //FIXME
+      break;
+    }
+    #elif defined(ESP8266)
     switch (WiFi.encryptionType(network)) {
     case ENC_TYPE_WEP:
       jsonNetwork["encryption"] = "wep";
@@ -225,6 +247,7 @@ void BootConfig::_generateNetworksJson() {
       jsonNetwork["encryption"] = "auto";
       break;
     }
+    #endif // ESP32
 
     networks.add(jsonNetwork);
   }

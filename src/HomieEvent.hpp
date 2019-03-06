@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef ESP32
+#include <WiFi.h>
+#elif defined(ESP8266)
 #include <ESP8266WiFi.h>
+#endif // ESP32
 #include <AsyncMqttClient.h>
 
 enum class HomieEventType : uint8_t {
@@ -27,7 +31,11 @@ struct HomieEvent {
   IPAddress mask;
   IPAddress gateway;
   /* WIFI_DISCONNECTED */
+  #ifdef ESP32
+  uint8_t wifiReason;
+  #elif defined(ESP8266)
   WiFiDisconnectReason wifiReason;
+  #endif // ESP32
   /* MQTT_DISCONNECTED */
   AsyncMqttClientDisconnectReason mqttReason;
   /* MQTT_PACKET_ACKNOWLEDGED */
