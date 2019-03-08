@@ -12,6 +12,7 @@ An Arduino for ESP8266 implementation of [Homie](https://github.com/homieiot/con
 
 This branch of Homie for ESP8266 implements [Homie 3.0.1](https://github.com/homieiot/convention/releases/tag/v3.0.1)
 
+
 ## Download
 
 The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/homieiot/homie-esp8266/releases).
@@ -78,7 +79,7 @@ Happy coding with PlatformIO!
 
 const int PIN_RELAY = 5;
 
-HomieNode lightNode("light", "switch");
+HomieNode lightNode("light", "Light", "switch");
 
 bool lightOnHandler(const HomieRange& range, const String& value) {
   if (value != "true" && value != "false") return false;
@@ -99,7 +100,7 @@ void setup() {
 
   Homie_setFirmware("awesome-relay", "1.0.0");
 
-  lightNode.advertise("on").settable(lightOnHandler);
+  lightNode.advertise("on", "On", "boolean").settable(lightOnHandler);
 
   Homie.setup();
 }
