@@ -107,7 +107,11 @@ void HomieClass::setup() {
     Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::UNDEFINED);
   }
 
+#if HOMIE_CONFIG
   HomieBootMode _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
+#else
+  HomieBootMode _selectedHomieBootMode = HomieBootMode::NORMAL;
+#endif
 
   // select boot mode source
   if (_applicationHomieBootMode != HomieBootMode::UNDEFINED) {
@@ -120,8 +124,13 @@ void HomieClass::setup() {
 
   // validate selected mode and fallback as needed
   if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load()) {
+#if HOMIE_CONFIG
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
     _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
+#else
+    Interface::get().getLogger() << F("Configuration invalid. CONFIG MODE is disabled.") << endl;
+    ESP.restart();
+#endif
   }
 
   // run selected mode
@@ -129,10 +138,12 @@ void HomieClass::setup() {
     _boot = &_bootNormal;
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
+#if HOMIE_CONFIG
   } else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
+#endif
   } else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
     _boot = &_bootStandalone;
     Interface::get().event.type = HomieEventType::STANDALONE_MODE;

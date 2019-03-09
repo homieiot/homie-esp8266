@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef HOMIE_CONFIG
+#define HOMIE_CONFIG 1
+#endif
+
 #include <ESP8266WiFi.h>
 
 namespace HomieInternals {

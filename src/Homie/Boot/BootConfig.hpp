@@ -22,6 +22,7 @@
 #include "../../HomieSetting.hpp"
 #include "../../StreamingOperator.hpp"
 
+#if HOMIE_CONFIG
 namespace HomieInternals {
 class BootConfig : public Boot {
  public:
@@ -61,3 +62,5 @@ class BootConfig : public Boot {
   static void __SendJSONError(AsyncWebServerRequest *request, String msg, int16_t code = 400);
 };
 }  // namespace HomieInternals
+
+#endif
