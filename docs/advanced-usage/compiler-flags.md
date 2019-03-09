@@ -9,3 +9,15 @@ build_flags = -D HOMIE_CONFIG=0
 ```
 
 This reduces the firmware size by about 50000 bytes.
+
+## HOMIE_MDNS
+
+This compiler flag allows to disable the publishing of the device identifier via mDNS protocol. Add the following to your platformio.ini file:
+
+```
+build_flags = -D HOMIE_MDNS=0
+```
+
+This reduces the firmware size by about 6400 bytes.
+
+

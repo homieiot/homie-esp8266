@@ -297,7 +297,9 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   Interface::get().event.mask = event.mask;
   Interface::get().event.gateway = event.gw;
   Interface::get().eventHandler(Interface::get().event);
+#if HOMIE_MDNS
   MDNS.begin(Interface::get().getConfig().get().deviceId);
+#endif
 
   _mqttConnect();
 }
