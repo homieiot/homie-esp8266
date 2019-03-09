@@ -73,7 +73,9 @@ class HomieClass {
   Boot* _boot;
   BootStandalone _bootStandalone;
   BootNormal _bootNormal;
+#if HOMIE_CONFIG
   BootConfig _bootConfig;
+#endif
   bool _flaggedForReboot;
   SendingPromise _sendingPromise;
   Logger _logger;

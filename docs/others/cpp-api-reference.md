@@ -27,7 +27,10 @@ void Homie_setFirmware(const char* name, const char* version);
 // This is not a typo
 ```
 
-Set the name and version of the firmware. This is useful for OTA, as Homie will check against the server if there is a newer version.
+Set the name and version of the firmware.
+This is useful for OTA, as Homie will check against the server if there is a newer version.
+Be aware, that the function is implemented as a `define` macro.
+If you want to define the name or version outside the function call, you need to do so in the form of a `define` as well. 
 
 !!! warning "Mandatory!"
     You need to set the firmware for your sketch to work.

@@ -1,3 +1,21 @@
+# Setup() and Loop()
+
+It is possible to register `setup()` and `loop()` functions:
+```c++
+    Homie_setFirmware("device", "1.0.0");  // The underscore is not a typo! See Magic bytes
+    Homie.setSetupFunction(setupHandler);  // before Homie.setup()
+    Homie.setLoopFunction(loopHandler);    // before Homie.setup()
+
+    Homie.setup();
+```
+
+These functions have to be set before calling `setup()`. 
+
+* The function passed in `setLoopFunction()` is called from Homie.loop() when MQTT is connected.
+* The function passed in `setSetupfunction()` is called after the first MQTT connection has been made.
+
+# Global Event Handler
+
 You may want to hook to Homie events. Maybe you will want to control an RGB LED if the Wi-Fi connection is lost, or execute some code prior to a device reset, for example to clear some EEPROM you're using:
 
 ```c++
@@ -54,6 +72,9 @@ void onHomieEvent(const HomieEvent& event) {
       break;
     case HomieEventType::READY_TO_SLEEP:
       // After you've called `prepareToSleep()`, the event is triggered when MQTT is disconnected
+      break;
+    case HomieEventType::SENDING_STATISTICS:
+      // Do whatever you want when statistics are sent in normal mode
       break;
   }
 }

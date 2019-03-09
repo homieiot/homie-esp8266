@@ -1,5 +1,6 @@
 #include "BootConfig.hpp"
 
+#if HOMIE_CONFIG
 using namespace HomieInternals;
 
 BootConfig::BootConfig()
@@ -437,3 +438,4 @@ void HomieInternals::BootConfig::__SendJSONError(AsyncWebServerRequest * request
   String errorJson = BEGINNING + msg + END;
   request->send(code, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), errorJson);
 }
+#endif
