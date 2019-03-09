@@ -161,7 +161,7 @@ void BootNormal::loop() {
 
     if (signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
 
-    Interface::get().event.type = HomieEventType::SENDING_STATISICS;
+    Interface::get().event.type = HomieEventType::SENDING_STATISTICS;
     Interface::get().eventHandler(Interface::get().event);
   }
 
