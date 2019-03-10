@@ -22,6 +22,7 @@ pages:
       - Broadcast: advanced-usage/broadcast.md
       - Custom settings: advanced-usage/custom-settings.md
       - Resetting: advanced-usage/resetting.md
+      - Compiler-Flags: advanced-usage/compiler-flags.md
       - Standalone mode: advanced-usage/standalone-mode.md
       - Magic bytes: advanced-usage/magic-bytes.md
       - Range properties: advanced-usage/range-properties.md
