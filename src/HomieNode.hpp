@@ -120,9 +120,9 @@ class HomieNode {
   bool _range;
   uint16_t _lower;
   uint16_t _upper;
-  
+
   bool runLoopDisconnected;
-  
+
   std::vector<HomieInternals::Property*> _properties;
   HomieInternals::NodeInputHandler _inputHandler;
 
