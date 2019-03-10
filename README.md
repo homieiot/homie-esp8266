@@ -3,7 +3,7 @@
 Homie for ESP8266
 =================
 
-[![Build Status](https://img.shields.io/circleci/project/github/homieiot/homie-esp8266/develop.svg?style=flat-square)](https://circleci.com/gh/homieiot/homie-esp8266) [![Latest Release](https://img.shields.io/badge/release-v2.0.0-yellow.svg?style=flat-square)](https://github.com/homieiot/homie-esp8266/releases) [![Gitter](https://img.shields.io/gitter/room/Homie/ESP8266.svg?style=flat-square)](https://gitter.im/homie-iot/ESP8266)
+[![Build Status](https://img.shields.io/circleci/project/github/homieiot/homie-esp8266/develop.svg?style=flat-square)](https://circleci.com/gh/homieiot/homie-esp8266) [![Latest Release](https://img.shields.io/badge/release-v2.0.0-yellow.svg?style=flat-square)](https://github.com/homieiot/homie-esp8266/releases) [![Gitter](https://img.shields.io/gitter/room/Homie/ESP8266.svg?style=flat-square)](https://gitter.im/homie-iot/ESP8266) [![PlatformIO](https://img.shields.io/badge/Powered-PlatformIO-blue.png)](https://platformio.org/lib/show/555/Homie)
 
 An Arduino for ESP8266 implementation of [Homie](https://github.com/homieiot/convention), an MQTT convention for the IoT.
 
