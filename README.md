@@ -9,6 +9,12 @@ An Arduino for ESP8266 implementation of [Homie](https://github.com/homieiot/con
 
 Currently Homie for ESP8266 implements [Homie 2.0.1](https://github.com/homieiot/convention/releases/tag/v2.0.1)
 
+## Note about v3 features (Auto-discovery, ESP32, ...)
+
+Version v3 is currently in development. It adds support for Homie-convention v3.0.1 and ESP32 controllers.
+
+If you are interested in testing or helping development, please try the [#develop-v3 branch](https://github.com/homieiot/homie-esp8266/tree/develop-v3).
+
 ## Note for v1.x users
 
 The old configurator is not available online anymore. You can download it [here](https://github.com/homieiot/homie-esp8266/releases/download/v1.5.0/homie-esp8266-v1-setup.zip).
