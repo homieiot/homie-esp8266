@@ -402,5 +402,5 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
 //    }
 //    ++mac;
 //   }
-//   return (i == MAX_MAC_STRING_LENGTH && s == 5);
+//   return (i == MAX_MAC_LENGTH * 2 && s == 5);
 // }

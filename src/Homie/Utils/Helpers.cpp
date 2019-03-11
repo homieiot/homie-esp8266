@@ -55,7 +55,7 @@ bool Helpers::validateMacAddress(const char* mac) {
     }
     ++mac;
   }
-  return (i == MAX_MAC_STRING_LENGTH && s == 5);
+  return (i == MAX_MAC_LENGTH * 2 && s == 5);
 }
 
 bool Helpers::validateMd5(const char* md5) {
