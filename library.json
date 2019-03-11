@@ -14,7 +14,7 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/marvinroger/homie-esp8266.git",
+    "url": "https://github.com/homieiot/homie-esp8266.git",
     "branch": "master"
   },
   "frameworks": "arduino",

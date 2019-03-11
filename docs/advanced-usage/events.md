@@ -55,6 +55,9 @@ void onHomieEvent(const HomieEvent& event) {
     case HomieEventType::READY_TO_SLEEP:
       // After you've called `prepareToSleep()`, the event is triggered when MQTT is disconnected
       break;
+    case HomieEventType::SENDING_STATISTICS:
+      // Do whatever you want when statistics are sent in normal mode
+      break;
   }
 }
 
@@ -66,4 +69,4 @@ void setup() {
 
 See the following example for a concrete use case:
 
-[![GitHub logo](../assets/github.png) HookToEvents.ino](https://github.com/marvinroger/homie-esp8266/blob/develop/examples/HookToEvents/HookToEvents.ino)
+[![GitHub logo](../assets/github.png) HookToEvents.ino](https://github.com/homieiot/homie-esp8266/blob/develop/examples/HookToEvents/HookToEvents.ino)
