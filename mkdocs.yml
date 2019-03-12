@@ -38,6 +38,7 @@ pages:
     - Troubleshooting: others/troubleshooting.md
     - C++ API reference: others/cpp-api-reference.md
     - Upgrade guide from v1 to v2: others/upgrade-guide-from-v1-to-v2.md
+    - Upgrade guide from v2 to v3: others/upgrade-guide-from-v2-to-v3.md
     - Community projects: others/community-projects.md
 
 theme:
