@@ -4,3 +4,4 @@
 /config.json
 *.filters
 *.vcxitems
+.vscode/
