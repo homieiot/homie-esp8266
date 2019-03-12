@@ -1,6 +1,6 @@
 site_name: Homie for ESP8266
-repo_name: 'marvinroger/homie-esp8266'
-repo_url: 'https://github.com/marvinroger/homie-esp8266'
+repo_name: 'homieiot/homie-esp8266'
+repo_url: 'https://github.com/homieiot/homie-esp8266'
 
 theme:
   name: material

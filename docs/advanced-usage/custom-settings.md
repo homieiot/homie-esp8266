@@ -35,4 +35,4 @@ For this example, if you want to provide the `percentage` setting, you will have
 
 See the following example for a concrete use case:
 
-[![GitHub logo](../assets/github.png) CustomSettings.ino](https://github.com/marvinroger/homie-esp8266/blob/develop/examples/CustomSettings/CustomSettings.ino)
+[![GitHub logo](../assets/github.png) CustomSettings.ino](https://github.com/homieiot/homie-esp8266/blob/develop/examples/CustomSettings/CustomSettings.ino)

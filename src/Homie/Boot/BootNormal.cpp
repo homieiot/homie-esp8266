@@ -112,7 +112,9 @@ void BootNormal::setup() {
 
   if (Interface::get().getConfig().get().mqtt.auth) Interface::get().getMqttClient().setCredentials(Interface::get().getConfig().get().mqtt.username, Interface::get().getConfig().get().mqtt.password);
 
+#if HOMIE_CONFIG
   ResetHandler::Attach();
+#endif
 
   Interface::get().getConfig().log();
 
@@ -134,6 +136,9 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
+  for (HomieNode* iNode : HomieNode::nodes) {
+    if (iNode->runLoopDisconnected ||Interface::get().getMqttClient().connected()) iNode->loop();
+  }
   if (_mqttReconnectTimer.check()) {
     _mqttConnect();
     return;
@@ -200,13 +205,11 @@ void BootNormal::loop() {
     uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
 
     if (intervalPacketId != 0 && signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+    Interface::get().event.type = HomieEventType::SENDING_STATISTICS;
+    Interface::get().eventHandler(Interface::get().event);
   }
 
   Interface::get().loopFunction();
-
-  for (HomieNode* iNode : HomieNode::nodes) {
-    iNode->loop();
-  }
 }
 
 void BootNormal::_prefixMqttTopic() {
@@ -362,7 +365,9 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   Interface::get().event.mask = event.mask;
   Interface::get().event.gateway = event.gw;
   Interface::get().eventHandler(Interface::get().event);
+#if HOMIE_MDNS
   MDNS.begin(Interface::get().getConfig().get().deviceId);
+#endif
 
   _mqttConnect();
 }

@@ -1,5 +1,6 @@
 #include "ResetHandler.hpp"
 
+#if HOMIE_CONFIG
 using namespace HomieInternals;
 
 Ticker ResetHandler::_resetBTNTicker;
@@ -49,3 +50,4 @@ void ResetHandler::_handleReset() {
     _sentReset = true;
   }
 }
+#endif

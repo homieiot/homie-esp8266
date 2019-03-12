@@ -52,6 +52,7 @@ HomieNode::HomieNode(const char* id, const char* name, const char* type, bool ra
 , _lower(lower)
 , _upper(upper)
 , _properties()
+, runLoopDisconnected(false)
 , _inputHandler(inputHandler) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
     Helpers::abort(F("✖ HomieNode(): either the id or type string is too long"));

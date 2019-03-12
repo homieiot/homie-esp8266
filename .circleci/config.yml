@@ -48,7 +48,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: sudo pip install mkdocs==0.17.2 mkdocs-material==2.2.0 pygments==2.2.0 pymdown-extensions==4.5.1
+          command: sudo pip install mkdocs==0.17.2 mkdocs-material==2.2.0 pygments==2.2.0 pymdown-extensions==4.5.1 markdown==2.6.11
       - run:
           name: generate and publish docs
           command: |
@@ -74,7 +74,7 @@ jobs:
             git init
             git config --global user.name "circleci"
             git config --global user.email "sayhi@circleci.com"
-            git remote add origin git@github.com:marvinroger/homie-esp8266.git
+            git remote add origin git@github.com:homieiot/homie-esp8266.git
             git add .
             git commit -m ":package: Result of CircleCI build ${CIRCLE_BUILD_URL}"
             git push -f origin master:gh-pages

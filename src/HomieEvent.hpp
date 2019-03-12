@@ -21,7 +21,8 @@ enum class HomieEventType : uint8_t {
   MQTT_READY,
   MQTT_DISCONNECTED,
   MQTT_PACKET_ACKNOWLEDGED,
-  READY_TO_SLEEP
+  READY_TO_SLEEP,
+  SENDING_STATISTICS
 };
 
 struct HomieEvent {

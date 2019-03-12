@@ -92,6 +92,10 @@ class HomieNode {
   HomieInternals::SendingPromise& setProperty(const String& property) const;
   HomieInternals::Property* getProperty(const String& property) const;
 
+  void setRunLoopDisconnected(bool runLoopDisconnected) {
+    this->runLoopDisconnected = runLoopDisconnected;
+  }
+
  protected:
   virtual void setup() {}
   virtual void loop() {}
@@ -109,12 +113,16 @@ class HomieNode {
     return 0;
   }
 
+
   const char* _id;
   const char* _name;
   const char* _type;
   bool _range;
   uint16_t _lower;
   uint16_t _upper;
+
+  bool runLoopDisconnected;
+
   std::vector<HomieInternals::Property*> _properties;
   HomieInternals::NodeInputHandler _inputHandler;
 

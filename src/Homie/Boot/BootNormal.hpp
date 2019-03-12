@@ -1,17 +1,26 @@
+
 #pragma once
 
 #include "Arduino.h"
 
 #include <functional>
 #include <libb64/cdecode.h>
+
 #ifdef ESP32
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <Update.h>
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
 #endif // ESP32
+
+#ifndef HOMIE_MDNS
+#define HOMIE_MDNS 1
+#endif
+#if HOMIE_MDNS
+#include <ESP8266mDNS.h>
+#endif
+
 #include <AsyncMqttClient.h>
 #include "../../HomieNode.hpp"
 #include "../../HomieRange.hpp"
