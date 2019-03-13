@@ -12,6 +12,10 @@ void setup() {
 }
 ```
 
+!!! tip "setDefaultValue() before Homie.setup()"
+    As shown in the example above, the **default value** has to be set **before** `Homie.setup()` is called.
+    Otherwise you get an error on startup if there is also no value configured in JSON configuration file.
+
 An `HomieSetting` instance can be of the following types:
 
 Type | Value
