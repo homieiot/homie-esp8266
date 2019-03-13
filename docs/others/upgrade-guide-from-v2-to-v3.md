@@ -10,5 +10,6 @@ The Homie convention has been revised to v3 to be more extensible and introspect
    E.g. `HomieNode lightNode("light", "Light");` -> `HomieNode lightNode("light", "Light", "switch");`.
 2. Signature of handleInput has changed to: `handleInput(const HomieRange& range, const String& property, const String& value)`
    TODO: see Ping example.
-3. TODO: The `loop`s of HomieNodes could be run although there is no MQTT connection by setting param ...
+3. The `loop`s of HomieNodes could be run although there is no MQTT connection by setting param `setRunLoopDisconnected(true);`.
+   For sending properties, you have to verify then first if connection is established: `if (Homie.isConnected()) { ... }`
 4. TODO
