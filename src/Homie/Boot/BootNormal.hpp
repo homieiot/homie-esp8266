@@ -6,20 +6,24 @@
 #include <functional>
 #include <libb64/cdecode.h>
 
-#ifdef ESP32
-#include <WiFi.h>
-#include <ESPmDNS.h>
-#include <Update.h>
-#elif defined(ESP8266)
-#include <ESP8266WiFi.h>
-#endif // ESP32
-
 #ifndef HOMIE_MDNS
 #define HOMIE_MDNS 1
 #endif
+
+
+#ifdef ESP32
+#include <WiFi.h>
+#include <Update.h>
+#if HOMIE_MDNS
+#include <ESPmDNS.h>
+#endif
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
 #if HOMIE_MDNS
 #include <ESP8266mDNS.h>
 #endif
+#endif // ESP32
+
 
 #include <AsyncMqttClient.h>
 #include "../../HomieNode.hpp"
