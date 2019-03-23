@@ -2,7 +2,7 @@ When in `configuration` mode, the device exposes a HTTP JSON API to send the con
 
 If you don't want to mess with JSON, you have a Web UI / app available:
 
-* At http://marvinroger.github.io/homie-esp8266/configurators/v2/
+* At http://homieiot.github.io/homie-esp8266/configurators/v2/
 * As an [Android app](https://build.phonegap.com/apps/1906578/share)
 
 **Quick instructions to use the Web UI / app**:
