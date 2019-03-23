@@ -254,7 +254,7 @@ void BootConfig::_onCaptivePortal(AsyncWebServerRequest *request) {
     }
   } else if (request->url() == "/" && !SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
     // UI File not found
-    String msg = String(F("UI bundle not loaded. See Configuration API usage: http://marvinroger.github.io/homie-esp8266/"));
+    String msg = String(F("UI bundle not loaded. See Configuration API usage: http://homieiot.github.io/homie-esp8266"));
     Interface::get().getLogger() << msg << endl;
     request->send(404, F("text/plain"), msg);
   } else if (request->url() == "/" && SPIFFS.exists(CONFIG_UI_BUNDLE_PATH)) {
