@@ -22,8 +22,6 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     # decode string for python2/3 compatiblity
     msg.payload = msg.payload.decode()
-    print("Payload: ")
-    print(str(msg.payload))
 
     if msg.topic.endswith('$implementation/ota/status'):
         status = int(msg.payload.split()[0])
