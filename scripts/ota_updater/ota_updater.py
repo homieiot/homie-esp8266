@@ -13,7 +13,7 @@ def on_connect(client, userdata, flags, rc):
     else:
         print("Connected with result code {}".format(rc))
 
-    client.subscribe("{base_topic}{device_id}/$online".format(**userdata))
+    client.subscribe("{base_topic}{device_id}/$state".format(**userdata))
 
     print("Waiting for device to come online...")
 
@@ -66,7 +66,7 @@ def on_message(client, userdata, msg):
             print("Device ota disabled, aborting...")
             client.disconnect()
 
-    elif msg.topic.endswith('$online'):
+    elif msg.topic.endswith('$state'):
         if msg.payload == 'false':
             return
 
