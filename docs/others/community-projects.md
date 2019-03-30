@@ -17,3 +17,18 @@ Its lets you do useful things like:
    * When a network device is dis/connected (i.e. your phone joins your wifi, turn the lights on)
    * Sunset / rise
    * When another property changes
+
+# [skoona/HomieMonitor](https://github.com/skoona/HomieMonitor)
+
+This application is designed to act as a Homie Controller, or Monitor, in support of IOT/Devices using Homie-esp8266; although any Homie Device implementation should be supported.
+
+* Monitor Homie V2, and V3 Devices (Initial Focus on `ESP8266`)
+* Controller model for ESP8266 devices
+* MQTT OTA operations
+* *Discover Devices page* auto-refreshes every 30 seconds
+* Packaged app
+  * Self contained Application packaged as Java Executable warFile; using Warbler.gem -- port 8080
+  * [Docker image](https://hub.docker.com/r/skoona/homie-monitor).
+* Internally designed to tollerate potentially Homie Specification 1.5+, but focused on V3.
+* Attribute and Property retention as Homie may consider some discovery related attributes optional and they are not always retained!
+* MQTT Retained Message cleanup. Old/stale device topics retained in MQTT can be deleted to cleanup the discovery process.
