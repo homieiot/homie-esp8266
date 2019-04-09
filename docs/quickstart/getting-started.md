@@ -122,7 +122,7 @@ Now that we understand how Homie for ESP8266 works, let's create an useful sketc
 
 Alright, step by step:
 
-1. We create a node with an ID of `light` and a type of `switch` with `HomieNode lightNode("light", "switch")`
+1. We create a node with an ID of `light`, and name `Light` and a type of `switch` with `HomieNode lightNode("light", "Light", "switch")`
 2. We set the name and the version of the firmware with `Homie_setFirmware("awesome-light" ,"1.0.0");`
 3. We want our `light` node to advertise an `on` property, which is settable. We do that with `lightNode.advertise("on").settable(lightOnHandler);`. The `lightOnHandler` function will be called when the value of this property is changed
 4. In the `lightOnHandler` function, we want to update the state of the `light` node. We do this with `lightNode.setProperty("on").send("true");`
