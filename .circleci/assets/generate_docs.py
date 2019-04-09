@@ -23,7 +23,7 @@ DOCS_BRANCHES = [
 ]
 CONFIGURATORS_PATH = 'configurators'
 CONFIGURATORS_VERSIONS = [
-  { 'title': 'v2', 'description': 'For Homie v2.x.x', 'path': 'v2', 'url': 'https://github.com/marvinroger/homie-esp8266-setup/raw/gh-pages/ui_bundle.html' },
+  { 'title': 'v2', 'description': 'For Homie v2.x.x', 'path': 'v2', 'url': 'https://github.com/homieiot/homie-esp8266-setup/raw/gh-pages/ui_bundle.html' },
   { 'title': 'v1', 'description': 'For Homie v1.x.x', 'path': 'v1', 'file': '/configurator_v1.html' }
 ]
 
