@@ -35,12 +35,3 @@ The framework needs to work continuously (ie. `Homie.loop()` needs to be called 
 ## 4. My device resets itself without me doing anything?
 
 You have probably connected a sensor to the default reset pin of the framework (D3 on NodeMCU, GPIO0 on other boards). See [Resetting](../advanced-usage/resetting.md).
-
-## 5. How to remove Homie Device from MQTT
-
-Simple Script to remove all reatined messages for a homie device, effectively removing the Homie device from MQTT.
-
-The script get all topics "below" a device e.g `homie/a020a615f72c/$mac` and send a NULL message with mosquitto_pub
-to the topic. This removes the retained message and the topic will not show up anymore.
-
-[Gist of andreasgruener](https://gist.github.com/andreasgruener/9935ffecbc59404375e7a9cb4a9a8812)
