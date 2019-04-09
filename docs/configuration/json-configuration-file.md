@@ -47,7 +47,6 @@ Here are the rules:
    - to define static IP, `ip` (IP address), `mask` (netmask) and `gw` (gateway) settings have to be defined at the same time
    - to define second DNS `dns2` the first one `dns1` has to be defined. Set DNS without `ip`, `mask` and `gw` does not affect the configuration (dns server will be provided by DHCP). It is not required to set DNS servers.
 
-
 Default values if not provided:
 
 * `device_id`: the hardware device ID (eg. `1a2b3c4d5e6f`)
@@ -57,3 +56,7 @@ Default values if not provided:
 * `mqtt.auth`: `false`
 
 The `mqtt.host` field can be either an IP or an hostname.
+
+!!! tip "OTA"
+    Homie-esp8266 supports `Over the Air` update if you enabled this in configuration (`ota.enabled: true`).
+    For more details see: [OTA updates](../others/ota-configuration-updates.md)

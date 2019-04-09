@@ -1,6 +1,6 @@
 # OTA updates
 
-Homie for ESP8266 supports OTA, if enabled in the configuration, and if a compatible OTA entity is set up.
+Homie for ESP8266 supports OTA (Over the Air), if enabled in the configuration, and if a compatible OTA entity is set up.
 
 There's a script that does just that:
 
