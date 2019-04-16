@@ -16,18 +16,21 @@ jobs:
           name: install Arduino Core for ESP8266
           command: platformio platform install espressif8266
       - run:
-          name: install exemples dependencies
+          name: install Arduino Core for ESP32
+          command: platformio platform install espressif32
+      - run:
+          name: install examples dependencies
           command: platformio lib -g install Shutters@2.1.1 SonoffDual@1.1.0
-      - run: platformio ci ./examples/CustomSettings --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/DoorSensor --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/HookToEvents --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/IteadSonoff --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/LightOnOff --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/TemperatureSensor --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/LedStrip --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/Broadcast --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/GlobalInputHandler --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/SonoffDualShutters --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/CustomSettings --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/DoorSensor --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/HookToEvents --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/IteadSonoff --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/LightOnOff --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/TemperatureSensor --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/LedStrip --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/Broadcast --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/GlobalInputHandler --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/SonoffDualShutters --board=esp01 --board=nodemcuv2 --board=esp32dev
 
   lint:
     working_directory: ~/code
