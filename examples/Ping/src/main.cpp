@@ -14,7 +14,7 @@ void setup() {
 
   Homie.setup();
   Homie.getLogger() << F("✔ main: Setup ready") << endl;
-  Homie.getLogger() << F("  send now ping request via MQTT to /homie/") << Homie.getId << F("/ping/ping/set") << endl;
+  Homie.getLogger() << F("  send now ping request via MQTT to /homie/") << Homie.getId() << F("/ping/ping/set") << endl;
 }
 
 void loop() {
