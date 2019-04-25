@@ -2,7 +2,6 @@
 
 using namespace HomieInternals;
 
-#ifdef ESP32
 BootNormal::BootNormal()
   : Boot("normal")
   , _mqttReconnectTimer(MQTT_RECONNECT_INITIAL_INTERVAL, MQTT_RECONNECT_MAX_BACKOFF)
@@ -22,42 +21,16 @@ BootNormal::BootNormal()
   , _mqttPayloadBuffer(nullptr)
   , _mqttTopicLevels(nullptr)
   , _mqttTopicLevelsCount(0) {
-  //FIXME: getSketchMD5 not implemented / boot loop on ESP32
-  //Remove Update.h from BootNormal.cpp, change status codes to https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/system/ota.html
-  strcpy(_fwChecksum, "00000000000000000000000000000000");
-  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
 }
-#elif defined(ESP8266)
-BootNormal::BootNormal()
-  : Boot("normal")
-  , _mqttReconnectTimer(MQTT_RECONNECT_INITIAL_INTERVAL, MQTT_RECONNECT_MAX_BACKOFF)
-  , _setupFunctionCalled(false)
-  , _mqttConnectNotified(false)
-  , _mqttDisconnectNotified(true)
-  , _otaOngoing(false)
-  , _flaggedForReboot(false)
-  , _mqttOfflineMessageId(0)
-  , _otaIsBase64(false)
-  , _otaBase64Pads(0)
-  , _otaSizeTotal(0)
-  , _otaSizeDone(0)
-  , _mqttTopic(nullptr)
-  , _mqttClientId(nullptr)
-  , _mqttWillTopic(nullptr)
-  , _mqttPayloadBuffer(nullptr)
-  , _mqttTopicLevels(nullptr)
-  , _mqttTopicLevelsCount(0) {
-  strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
-  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
-}
-#endif // ESP32
-
 
 BootNormal::~BootNormal() {
 }
 
 void BootNormal::setup() {
   Boot::setup();
+
+  strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
+  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
 
   #ifdef ESP32
   //FIXME
@@ -750,6 +723,8 @@ void BootNormal::_advertise() {
 void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
   _mqttReconnectTimer.deactivate();
+
+  Update.end();
 
   Interface::get().getLogger() << F("Sending initial information...") << endl;
 
