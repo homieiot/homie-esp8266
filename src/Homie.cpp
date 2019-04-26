@@ -153,6 +153,8 @@ void HomieClass::setup() {
     return;  // never reached, here for clarity
   }
 
+  WiFi.disconnect(); // workaround for issue #351
+
   _boot->setup();
 }
 
