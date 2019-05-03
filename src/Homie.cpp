@@ -367,8 +367,7 @@ void HomieClass::prepareToSleep() {
 }
 
 #ifdef ESP32
-void HomieClass::doDeepSleep(uint64_t time_us)
-{
+void HomieClass::doDeepSleep(uint64_t time_us) {
   Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
   Serial.flush();
   esp_sleep_enable_timer_wakeup(time_us);
