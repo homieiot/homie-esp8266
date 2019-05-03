@@ -3,22 +3,23 @@
 using namespace HomieInternals;
 
 HomieClass::HomieClass()
-    : _setupCalled(false), _firmwareSet(false), __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25")
-{
+  : _setupCalled(false)
+  , _firmwareSet(false)
+  , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
   strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
-#ifdef ESP32
+  #ifdef ESP32
   Interface::get().led.enabled = false;
-#ifdef LED_BUILTIN
+  #ifdef LED_BUILTIN
   Interface::get().led.pin = LED_BUILTIN;
-#endif // LED_BUILTIN
+  #endif // LED_BUILTIN
   Interface::get().led.on = LOW;
-#elif defined(ESP8266)
+  #elif defined(ESP8266)
   Interface::get().led.enabled = true;
   Interface::get().led.pin = LED_BUILTIN;
   Interface::get().led.on = LOW;
-#endif // ESP32
+  #endif // ESP32
   Interface::get().reset.idle = true;
   Interface::get().reset.enabled = true;
   Interface::get().reset.triggerPin = DEFAULT_RESET_PIN;
@@ -27,11 +28,11 @@ HomieClass::HomieClass()
   Interface::get().reset.resetFlag = false;
   Interface::get().disable = false;
   Interface::get().flaggedForSleep = false;
-  Interface::get().globalInputHandler = [](const HomieNode &node, const HomieRange &range, const String &property, const String &value) { return false; };
-  Interface::get().broadcastHandler = [](const String &level, const String &value) { return false; };
+  Interface::get().globalInputHandler = [](const HomieNode& node, const HomieRange& range, const String& property, const String& value) { return false; };
+  Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
   Interface::get().setupFunction = []() {};
   Interface::get().loopFunction = []() {};
-  Interface::get().eventHandler = [](const HomieEvent &event) {};
+  Interface::get().eventHandler = [](const HomieEvent& event) {};
   Interface::get().ready = false;
   Interface::get()._mqttClient = &_mqttClient;
   Interface::get()._sendingPromise = &_sendingPromise;
@@ -42,14 +43,11 @@ HomieClass::HomieClass()
   DeviceId::generate();
 }
 
-HomieClass::~HomieClass()
-{
+HomieClass::~HomieClass() {
 }
 
-void HomieClass::_checkBeforeSetup(const __FlashStringHelper *functionName) const
-{
-  if (_setupCalled)
-  {
+void HomieClass::_checkBeforeSetup(const __FlashStringHelper* functionName) const {
+  if (_setupCalled) {
     String message;
     message.concat(F("✖ "));
     message.concat(functionName);
@@ -58,70 +56,54 @@ void HomieClass::_checkBeforeSetup(const __FlashStringHelper *functionName) cons
   }
 }
 
-void HomieClass::setup()
-{
+void HomieClass::setup() {
   _setupCalled = true;
 
   // Check if firmware is set
-  if (!_firmwareSet)
-  {
+  if (!_firmwareSet) {
     Helpers::abort(F("✖ Firmware name must be set before calling setup()"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   // Check the max allowed setting elements
-  if (IHomieSetting::settings.size() > MAX_CONFIG_SETTING_SIZE)
-  {
+  if (IHomieSetting::settings.size() > MAX_CONFIG_SETTING_SIZE) {
     Helpers::abort(F("✖ Settings exceed set limit of elelement."));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   // Check if default settings values are valid
   bool defaultSettingsValuesValid = true;
-  for (IHomieSetting *iSetting : IHomieSetting::settings)
-  {
-    if (iSetting->isBool())
-    {
-      HomieSetting<bool> *setting = static_cast<HomieSetting<bool> *>(iSetting);
-      if (!setting->isRequired() && !setting->validate(setting->get()))
-      {
+  for (IHomieSetting* iSetting : IHomieSetting::settings) {
+    if (iSetting->isBool()) {
+      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+      if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
         break;
       }
-    }
-    else if (iSetting->isLong())
-    {
-      HomieSetting<long> *setting = static_cast<HomieSetting<long> *>(iSetting);
-      if (!setting->isRequired() && !setting->validate(setting->get()))
-      {
+    } else if (iSetting->isLong()) {
+      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+      if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
         break;
       }
-    }
-    else if (iSetting->isDouble())
-    {
-      HomieSetting<double> *setting = static_cast<HomieSetting<double> *>(iSetting);
-      if (!setting->isRequired() && !setting->validate(setting->get()))
-      {
+    } else if (iSetting->isDouble()) {
+      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+      if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
         break;
       }
-    }
-    else if (iSetting->isConstChar())
-    {
-      HomieSetting<const char *> *setting = static_cast<HomieSetting<const char *> *>(iSetting);
-      if (!setting->isRequired() && !setting->validate(setting->get()))
-      {
+    } else if (iSetting->isConstChar()) {
+      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+      if (!setting->isRequired() && !setting->validate(setting->get())) {
         defaultSettingsValuesValid = false;
         break;
       }
     }
   }
 
-  if (!defaultSettingsValuesValid)
-  {
+  if (!defaultSettingsValuesValid) {
     Helpers::abort(F("✖ Default setting value does not pass validator test"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   // boot mode set during this boot by application before Homie.setup()
@@ -129,8 +111,7 @@ void HomieClass::setup()
 
   // boot mode set before resetting the device. If application has defined a boot mode, this will be ignored
   HomieBootMode _nextHomieBootMode = Interface::get().getConfig().getHomieBootModeOnNextBoot();
-  if (_nextHomieBootMode != HomieBootMode::UNDEFINED)
-  {
+  if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
     Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::UNDEFINED);
   }
 
@@ -141,22 +122,16 @@ void HomieClass::setup()
 #endif
 
   // select boot mode source
-  if (_applicationHomieBootMode != HomieBootMode::UNDEFINED)
-  {
+  if (_applicationHomieBootMode != HomieBootMode::UNDEFINED) {
     _selectedHomieBootMode = _applicationHomieBootMode;
-  }
-  else if (_nextHomieBootMode != HomieBootMode::UNDEFINED)
-  {
+  } else if (_nextHomieBootMode != HomieBootMode::UNDEFINED) {
     _selectedHomieBootMode = _nextHomieBootMode;
-  }
-  else
-  {
+  } else {
     _selectedHomieBootMode = HomieBootMode::NORMAL;
   }
 
   // validate selected mode and fallback as needed
-  if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load())
-  {
+  if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load()) {
 #if HOMIE_CONFIG
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
     _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
@@ -167,30 +142,23 @@ void HomieClass::setup()
   }
 
   // run selected mode
-  if (_selectedHomieBootMode == HomieBootMode::NORMAL)
-  {
+  if (_selectedHomieBootMode == HomieBootMode::NORMAL) {
     _boot = &_bootNormal;
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
 #if HOMIE_CONFIG
-  }
-  else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION)
-  {
+  } else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
 #endif
-  }
-  else if (_selectedHomieBootMode == HomieBootMode::STANDALONE)
-  {
+  } else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
     _boot = &_bootStandalone;
     Interface::get().event.type = HomieEventType::STANDALONE_MODE;
     Interface::get().eventHandler(Interface::get().event);
-  }
-  else
-  {
+  } else {
     Helpers::abort(F("✖ Boot mode invalid"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   WiFi.disconnect(); // workaround for issue #351
@@ -198,12 +166,10 @@ void HomieClass::setup()
   _boot->setup();
 }
 
-void HomieClass::loop()
-{
+void HomieClass::loop() {
   _boot->loop();
 
-  if (_flaggedForReboot && Interface::get().reset.idle)
-  {
+  if (_flaggedForReboot && Interface::get().reset.idle) {
     Interface::get().getLogger() << F("Device is idle") << endl;
     Interface::get().getLogger() << F("Triggering ABOUT_TO_RESET event...") << endl;
     Interface::get().event.type = HomieEventType::ABOUT_TO_RESET;
@@ -215,8 +181,7 @@ void HomieClass::loop()
   }
 }
 
-HomieClass &HomieClass::disableLogging()
-{
+HomieClass& HomieClass::disableLogging() {
   _checkBeforeSetup(F("disableLogging"));
 
   Interface::get().getLogger().setLogging(false);
@@ -224,8 +189,7 @@ HomieClass &HomieClass::disableLogging()
   return *this;
 }
 
-HomieClass &HomieClass::setLoggingPrinter(Print *printer)
-{
+HomieClass& HomieClass::setLoggingPrinter(Print* printer) {
   _checkBeforeSetup(F("setLoggingPrinter"));
 
   Interface::get().getLogger().setPrinter(printer);
@@ -233,8 +197,7 @@ HomieClass &HomieClass::setLoggingPrinter(Print *printer)
   return *this;
 }
 
-HomieClass &HomieClass::disableLedFeedback()
-{
+HomieClass& HomieClass::disableLedFeedback() {
   _checkBeforeSetup(F("disableLedFeedback"));
 
   Interface::get().led.enabled = false;
@@ -242,8 +205,7 @@ HomieClass &HomieClass::disableLedFeedback()
   return *this;
 }
 
-HomieClass &HomieClass::setLedPin(uint8_t pin, uint8_t on)
-{
+HomieClass& HomieClass::setLedPin(uint8_t pin, uint8_t on) {
   _checkBeforeSetup(F("setLedPin"));
 
   Interface::get().led.pin = pin;
@@ -252,8 +214,7 @@ HomieClass &HomieClass::setLedPin(uint8_t pin, uint8_t on)
   return *this;
 }
 
-HomieClass &HomieClass::setConfigurationApPassword(const char *password)
-{
+HomieClass& HomieClass::setConfigurationApPassword(const char* password) {
   _checkBeforeSetup(F("setConfigurationApPassword"));
 
   Interface::get().configurationAp.secured = true;
@@ -261,13 +222,11 @@ HomieClass &HomieClass::setConfigurationApPassword(const char *password)
   return *this;
 }
 
-void HomieClass::__setFirmware(const char *name, const char *version)
-{
+void HomieClass::__setFirmware(const char* name, const char* version) {
   _checkBeforeSetup(F("setFirmware"));
-  if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH)
-  {
+  if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
     Helpers::abort(F("✖ setFirmware(): either the name or version string is too long"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   strncpy(Interface::get().firmware.name, name + 5, strlen(name) - 10);
@@ -277,40 +236,34 @@ void HomieClass::__setFirmware(const char *name, const char *version)
   _firmwareSet = true;
 }
 
-void HomieClass::__setBrand(const char *brand) const
-{
+void HomieClass::__setBrand(const char* brand) const {
   _checkBeforeSetup(F("setBrand"));
-  if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH)
-  {
+  if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
     Helpers::abort(F("✖ setBrand(): the brand string is too long"));
-    return; // never reached, here for clarity
+    return;  // never reached, here for clarity
   }
 
   strncpy(Interface::get().brand, brand + 5, strlen(brand) - 10);
   Interface::get().brand[strlen(brand) - 10] = '\0';
 }
 
-void HomieClass::reset()
-{
+void HomieClass::reset() {
   Interface::get().getLogger() << F("Flagged for reset by sketch") << endl;
   Interface::get().disable = true;
   Interface::get().reset.resetFlag = true;
 }
 
-void HomieClass::reboot()
-{
+void HomieClass::reboot() {
   Interface::get().getLogger() << F("Flagged for reboot by sketch") << endl;
   Interface::get().disable = true;
   _flaggedForReboot = true;
 }
 
-void HomieClass::setIdle(bool idle)
-{
+void HomieClass::setIdle(bool idle) {
   Interface::get().reset.idle = idle;
 }
 
-HomieClass &HomieClass::setGlobalInputHandler(const GlobalInputHandler &globalInputHandler)
-{
+HomieClass& HomieClass::setGlobalInputHandler(const GlobalInputHandler& globalInputHandler) {
   _checkBeforeSetup(F("setGlobalInputHandler"));
 
   Interface::get().globalInputHandler = globalInputHandler;
@@ -318,8 +271,7 @@ HomieClass &HomieClass::setGlobalInputHandler(const GlobalInputHandler &globalIn
   return *this;
 }
 
-HomieClass &HomieClass::setBroadcastHandler(const BroadcastHandler &broadcastHandler)
-{
+HomieClass& HomieClass::setBroadcastHandler(const BroadcastHandler& broadcastHandler) {
   _checkBeforeSetup(F("setBroadcastHandler"));
 
   Interface::get().broadcastHandler = broadcastHandler;
@@ -327,8 +279,7 @@ HomieClass &HomieClass::setBroadcastHandler(const BroadcastHandler &broadcastHan
   return *this;
 }
 
-HomieClass &HomieClass::setSetupFunction(const OperationFunction &function)
-{
+HomieClass& HomieClass::setSetupFunction(const OperationFunction& function) {
   _checkBeforeSetup(F("setSetupFunction"));
 
   Interface::get().setupFunction = function;
@@ -336,8 +287,7 @@ HomieClass &HomieClass::setSetupFunction(const OperationFunction &function)
   return *this;
 }
 
-HomieClass &HomieClass::setLoopFunction(const OperationFunction &function)
-{
+HomieClass& HomieClass::setLoopFunction(const OperationFunction& function) {
   _checkBeforeSetup(F("setLoopFunction"));
 
   Interface::get().loopFunction = function;
@@ -345,31 +295,26 @@ HomieClass &HomieClass::setLoopFunction(const OperationFunction &function)
   return *this;
 }
 
-HomieClass &HomieClass::setHomieBootMode(HomieBootMode bootMode)
-{
+HomieClass& HomieClass::setHomieBootMode(HomieBootMode bootMode) {
   _checkBeforeSetup(F("setHomieBootMode"));
   Interface::get().bootMode = bootMode;
   return *this;
 }
 
-HomieClass &HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode)
-{
+HomieClass& HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   Interface::get().getConfig().setHomieBootModeOnNextBoot(bootMode);
   return *this;
 }
 
-bool HomieClass::isConfigured()
-{
+bool HomieClass::isConfigured() {
   return Interface::get().getConfig().load();
 }
 
-bool HomieClass::isConnected()
-{
+bool HomieClass::isConnected() {
   return Interface::get().ready;
 }
 
-HomieClass &HomieClass::onEvent(const EventHandler &handler)
-{
+HomieClass& HomieClass::onEvent(const EventHandler& handler) {
   _checkBeforeSetup(F("onEvent"));
 
   Interface::get().eventHandler = handler;
@@ -377,8 +322,7 @@ HomieClass &HomieClass::onEvent(const EventHandler &handler)
   return *this;
 }
 
-HomieClass &HomieClass::setResetTrigger(uint8_t pin, uint8_t state, uint16_t time)
-{
+HomieClass& HomieClass::setResetTrigger(uint8_t pin, uint8_t state, uint16_t time) {
   _checkBeforeSetup(F("setResetTrigger"));
 
   Interface::get().reset.enabled = true;
@@ -389,8 +333,7 @@ HomieClass &HomieClass::setResetTrigger(uint8_t pin, uint8_t state, uint16_t tim
   return *this;
 }
 
-HomieClass &HomieClass::disableResetTrigger()
-{
+HomieClass& HomieClass::disableResetTrigger() {
   _checkBeforeSetup(F("disableResetTrigger"));
 
   Interface::get().reset.enabled = false;
@@ -398,31 +341,24 @@ HomieClass &HomieClass::disableResetTrigger()
   return *this;
 }
 
-const ConfigStruct &HomieClass::getConfiguration()
-{
+const ConfigStruct& HomieClass::getConfiguration() {
   return Interface::get().getConfig().get();
 }
 
-AsyncMqttClient &HomieClass::getMqttClient()
-{
+AsyncMqttClient& HomieClass::getMqttClient() {
   return _mqttClient;
 }
 
-Logger &HomieClass::getLogger()
-{
+Logger& HomieClass::getLogger() {
   return _logger;
 }
 
-void HomieClass::prepareToSleep()
-{
+void HomieClass::prepareToSleep() {
   Interface::get().getLogger() << F("Flagged for sleep by sketch") << endl;
-  if (Interface::get().ready)
-  {
+  if (Interface::get().ready) {
     Interface::get().disable = true;
     Interface::get().flaggedForSleep = true;
-  }
-  else
-  {
+  } else {
     Interface::get().disable = true;
     Interface::get().getLogger() << F("Triggering READY_TO_SLEEP event...") << endl;
     Interface::get().event.type = HomieEventType::READY_TO_SLEEP;
@@ -431,19 +367,21 @@ void HomieClass::prepareToSleep()
 }
 
 #ifdef ESP32
-void HomieClass::doDeepSleep()
+void HomieClass::doDeepSleep(uint64_t time_us)
 {
   Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
   Serial.flush();
+  esp_sleep_enable_timer_wakeup(time_us);
   esp_deep_sleep_start();
 }
 #elif defined(ESP8266)
-void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode)
-{
+
+void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode) {
   Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
   Serial.flush();
   ESP.deepSleep(time_us, mode);
 }
 #endif // ESP32
+
 
 HomieClass Homie;
