@@ -371,7 +371,7 @@ void HomieClass::doDeepSleep(uint64_t time_us, gpio_num_t gpio_pin, uint8_t logi
   Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
   Serial.flush();
 
-  if(gpio_pin >= 0 && logic_level >= 0) {
+  if (gpio_pin >= 0 && logic_level >= 0) {
     esp_sleep_enable_ext0_wakeup(gpio_pin, logic_level);
   } else {
     esp_sleep_enable_timer_wakeup(time_us);
