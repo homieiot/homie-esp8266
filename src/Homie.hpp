@@ -66,7 +66,7 @@ class HomieClass {
   Logger& getLogger();
   static void prepareToSleep();
   #ifdef ESP32
-  static void doDeepSleep(uint64_t time_us = 0, gpio_num_t gpio_pin=(gpio_num_t)-1, uint8_t logic_level=-1);
+  static void doDeepSleep(uint64_t time_us = 0, gpio_num_t gpio_pin = (gpio_num_t)-1, uint8_t logic_level = -1);
   #elif defined(ESP8266)
   static void doDeepSleep(uint32_t time_us = 0, RFMode mode = RF_DEFAULT);
   #endif // ESP32
