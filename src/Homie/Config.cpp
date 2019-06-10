@@ -289,11 +289,13 @@ bool Config::patch(const char* patch) {
   StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
   JsonObject& configObject = configJsonBuffer.parseObject(configJson);
 
-  // To do alow object that dont currently exist to be added like settings.
-  // if settings wasnt there origionally then it should be allowed to be added by incremental.
   for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
     if (patchObject[it->key].is<JsonObject&>()) {
       JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
+      // To allow custom settings that dont currently exist to be added by incremental update, the Object "settings" must be created
+      if (!configObject.containsKey("settings") && String(it->key).equals("settings")){
+        configObject.createNestedObject("settings");
+      }
       for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
         if (!configObject.containsKey(it->key) || !configObject[it->key].is<JsonObject&>()) {
           String error = "✖ Config does not contain a ";
