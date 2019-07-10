@@ -121,14 +121,15 @@ void BootConfig::loop() {
 
 void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received Wi-Fi connect request") << endl;
-  DynamicJsonBuffer parseJsonBuffer(JSON_OBJECT_SIZE(2));
+  DynamicJsonDocument parseJsonDocument(JSON_OBJECT_SIZE(2));
   const char* body = (const char*)(request->_tempObject);
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
-  if (!parsedJson.success()) {
+  auto error = deserializeJson(parseJsonDocument, body);
+  if (error) {
     __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
+  JsonObject parsedJson = parseJsonDocument.as<JsonObject>();
   if (!parsedJson.containsKey("ssid") || !parsedJson["ssid"].is<const char*>() || !parsedJson.containsKey("password") || !parsedJson["password"].is<const char*>()) {
     __SendJSONError(request, F("✖ SSID and password required"));
     return;
@@ -143,8 +144,8 @@ void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
 void BootConfig::_onWifiStatusRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received Wi-Fi status request") << endl;
 
-  DynamicJsonBuffer generatedJsonBuffer(JSON_OBJECT_SIZE(2));
-  JsonObject& json = generatedJsonBuffer.createObject();
+  DynamicJsonDocument generatedJsonDocument(JSON_OBJECT_SIZE(2));
+  JsonObject json = generatedJsonDocument.as<JsonObject>();
   String status;
 
   //String json = "";
@@ -175,20 +176,21 @@ void BootConfig::_onWifiStatusRequest(AsyncWebServerRequest *request) {
 
   json["status"] = status;
   String output;
-  json.printTo(output);
+  serializeJson(json, output);
 
   request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), output);
 }
 
 void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received proxy control request") << endl;
-  DynamicJsonBuffer parseJsonBuffer(JSON_OBJECT_SIZE(1));
+  DynamicJsonDocument parseJsonDocument(JSON_OBJECT_SIZE(1));
   const char* body = (const char*)(request->_tempObject);
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);  // do not use plain String, else fails
-  if (!parsedJson.success()) {
+  auto error = deserializeJson(parseJsonDocument, body);  // do not use plain String, else fails
+  if (error) {
     __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
+  JsonObject parsedJson = parseJsonDocument.as<JsonObject>();
 
   if (!parsedJson.containsKey("enable") || !parsedJson["enable"].is<bool>()) {
     __SendJSONError(request, F("✖ enable parameter is required"));
@@ -201,12 +203,12 @@ void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request) {
 }
 
 void BootConfig::_generateNetworksJson() {
-  DynamicJsonBuffer generatedJsonBuffer(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3)));  // 1 at root, 3 in childrend
-  JsonObject& json = generatedJsonBuffer.createObject();
+  DynamicJsonDocument generatedJsonDocument(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(_ssidCount) + (_ssidCount * JSON_OBJECT_SIZE(3)));  // 1 at root, 3 in childrend
+  JsonObject json = generatedJsonDocument.as<JsonObject>();
 
-  JsonArray& networks = json.createNestedArray("networks");
+  JsonArray networks = json.createNestedArray("networks");
   for (int network = 0; network < _ssidCount; network++) {
-    JsonObject& jsonNetwork = generatedJsonBuffer.createObject();
+    JsonObject jsonNetwork = generatedJsonDocument.as<JsonObject>();
     jsonNetwork["ssid"] = WiFi.SSID(network);
     jsonNetwork["rssi"] = WiFi.RSSI(network);
     #ifdef ESP32
@@ -254,7 +256,7 @@ void BootConfig::_generateNetworksJson() {
   }
 
   String output;
-  json.printTo(output);
+  serializeJson(json, output);
   _jsonWifiNetworks = output;
 }
 
@@ -339,25 +341,25 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received device information request") << endl;
   auto numSettings = IHomieSetting::settings.size();
   auto numNodes = HomieNode::nodes.size();
-  DynamicJsonBuffer jsonBuffer(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
-  JsonObject& json = jsonBuffer.createObject();
+  DynamicJsonDocument jsonDocument(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
+  JsonObject json = jsonDocument.as<JsonObject>();
   json["hardware_device_id"] = DeviceId::get();
   json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
-  JsonObject& firmware = json.createNestedObject("firmware");
+  JsonObject firmware = json.createNestedObject("firmware");
   firmware["name"] = Interface::get().firmware.name;
   firmware["version"] = Interface::get().firmware.version;
 
-  JsonArray& nodes = json.createNestedArray("nodes");
+  JsonArray nodes = json.createNestedArray("nodes");
   for (HomieNode* iNode : HomieNode::nodes) {
-    JsonObject& jsonNode = jsonBuffer.createObject();
+    JsonObject jsonNode = jsonDocument.as<JsonObject>();
     jsonNode["id"] = iNode->getId();
     jsonNode["type"] = iNode->getType();
     nodes.add(jsonNode);
   }
 
-  JsonArray& settings = json.createNestedArray("settings");
+  JsonArray settings = json.createNestedArray("settings");
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    JsonObject& jsonSetting = jsonBuffer.createObject();
+    JsonObject jsonSetting = jsonDocument.as<JsonObject>();
 
     if (strcmp(iSetting->getType(), "unknown") != 0) {
       jsonSetting["name"] = iSetting->getName();
@@ -386,7 +388,7 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   }
 
   String output;
-  json.printTo(output);
+  serializeJson(json, output);
 
   request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), output);
 }
@@ -407,14 +409,15 @@ void BootConfig::_onConfigRequest(AsyncWebServerRequest *request) {
     return;
   }
 
-  DynamicJsonBuffer parseJsonBuffer(MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE);
+  DynamicJsonDocument parseJsonDocument(MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE);
   const char* body = (const char*)(request->_tempObject);
-  JsonObject& parsedJson = parseJsonBuffer.parseObject(body);
-  if (!parsedJson.success()) {
+  auto error = deserializeJson(parseJsonDocument, body);
+  if (error) {
     __SendJSONError(request, F("✖ Invalid or too big JSON"));
     return;
   }
 
+  JsonObject parsedJson = parseJsonDocument.as<JsonObject>();
   ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
     __SendJSONError(request, String(F("✖ Config file is not valid, reason: ")) + configValidationResult.reason);

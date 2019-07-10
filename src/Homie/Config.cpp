@@ -49,12 +49,13 @@ bool Config::load() {
   configFile.close();
   buf[configSize] = '\0';
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
-  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
-  if (!parsedJson.success()) {
-    Interface::get().getLogger() << F("✖ Invalid JSON in the config file") << endl;
+  StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDocument;
+  auto error = deserializeJson(jsonDocument, buf);
+  if (error) {
+    Interface::get().getLogger() << F("✖ Invalid JSON in the config file: ") << error.c_str() << endl;
     return false;
   }
+  JsonObject parsedJson = jsonDocument.as<JsonObject>();
 
   ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
@@ -77,57 +78,57 @@ bool Config::load() {
   }
 
   const char* reqWifiBssid = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("bssid")) {
+  if (parsedJson["wifi"].as<JsonObject>().containsKey("bssid")) {
     reqWifiBssid = parsedJson["wifi"]["bssid"];
   }
   uint16_t reqWifiChannel = 0;
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("channel")) {
+  if (parsedJson["wifi"].as<JsonObject>().containsKey("channel")) {
     reqWifiChannel = parsedJson["wifi"]["channel"];
   }
   const char* reqWifiIp = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("ip")) {
+  if (parsedJson["wifi"].as<JsonObject>().containsKey("ip")) {
     reqWifiIp = parsedJson["wifi"]["ip"];
   }
   const char* reqWifiMask = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("mask")) {
+  if (parsedJson["wifi"].as<JsonObject>().containsKey("mask")) {
     reqWifiMask = parsedJson["wifi"]["mask"];
   }
   const char* reqWifiGw = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("gw")) {
+  if (parsedJson["wifi"].as<JsonObject>().containsKey("gw")) {
     reqWifiGw = parsedJson["wifi"]["gw"];
   }
   const char* reqWifiDns1 = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("dns1")) {
+  if (parsedJson["wifi"].as<JsonObject>().containsKey("dns1")) {
     reqWifiDns1 = parsedJson["wifi"]["dns1"];
   }
   const char* reqWifiDns2 = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("dns2")) {
+  if (parsedJson["wifi"].as<JsonObject>().containsKey("dns2")) {
     reqWifiDns2 = parsedJson["wifi"]["dns2"];
   }
 
   uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
+  if (parsedJson["mqtt"].as<JsonObject>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
   }
   const char* reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
+  if (parsedJson["mqtt"].as<JsonObject>().containsKey("base_topic")) {
     reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
   }
   bool reqMqttAuth = false;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("auth")) {
+  if (parsedJson["mqtt"].as<JsonObject>().containsKey("auth")) {
     reqMqttAuth = parsedJson["mqtt"]["auth"];
   }
   const char* reqMqttUsername = "";
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("username")) {
+  if (parsedJson["mqtt"].as<JsonObject>().containsKey("username")) {
     reqMqttUsername = parsedJson["mqtt"]["username"];
   }
   const char* reqMqttPassword = "";
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("password")) {
+  if (parsedJson["mqtt"].as<JsonObject>().containsKey("password")) {
     reqMqttPassword = parsedJson["mqtt"]["password"];
   }
 
   bool reqOtaEnabled = false;
-  if (parsedJson["ota"].as<JsonObject&>().containsKey("enabled")) {
+  if (parsedJson["ota"].as<JsonObject>().containsKey("enabled")) {
     reqOtaEnabled = parsedJson["ota"]["enabled"];
   }
 
@@ -153,7 +154,7 @@ bool Config::load() {
 
   /* Parse the settings */
 
-  JsonObject& settingsObject = parsedJson["settings"].as<JsonObject&>();
+  JsonObject settingsObject = parsedJson["settings"].as<JsonObject>();
 
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
     if (iSetting->isBool()) {
@@ -196,15 +197,16 @@ char* Config::getSafeConfigFile() const {
   configFile.close();
   buf[configSize] = '\0';
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
-  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
-  parsedJson["wifi"].as<JsonObject&>().remove("password");
-  parsedJson["mqtt"].as<JsonObject&>().remove("username");
-  parsedJson["mqtt"].as<JsonObject&>().remove("password");
+  StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDocument;
+  deserializeJson(jsonDocument, buf);
+  JsonObject parsedJson = jsonDocument.as<JsonObject>();
+  parsedJson["wifi"].as<JsonObject>().remove("password");
+  parsedJson["mqtt"].as<JsonObject>().remove("username");
+  parsedJson["mqtt"].as<JsonObject>().remove("password");
 
-  size_t jsonBufferLength = parsedJson.measureLength() + 1;
-  std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
-  parsedJson.printTo(jsonString.get(), jsonBufferLength);
+  size_t jsonDocumentLength = measureJson(parsedJson) + 1;
+  std::unique_ptr<char[]> jsonString(new char[jsonDocumentLength]);
+  serializeJson(parsedJson, jsonString.get(), jsonDocumentLength);
 
   return strdup(jsonString.get());
 }
@@ -247,7 +249,7 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
   }
 }
 
-void Config::write(const JsonObject& config) {
+void Config::write(const JsonObject config) {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
@@ -258,17 +260,18 @@ void Config::write(const JsonObject& config) {
     return;
   }
 
-  config.printTo(configFile);
+  serializeJson(config, configFile);
   configFile.close();
 }
 
 bool Config::patch(const char* patch) {
   if (!_spiffsBegin()) { return false; }
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonBuffer;
-  JsonObject& patchObject = patchJsonBuffer.parseObject(patch);
+  StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchjsonDocument;
+  deserializeJson(patchjsonDocument, patch);
+  JsonObject patchObject = patchjsonDocument.as<JsonObject>();
 
-  if (!patchObject.success()) {
+  if (!patchObject.isNull()) {
     Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
     return false;
   }
@@ -286,27 +289,28 @@ bool Config::patch(const char* patch) {
   configFile.close();
   configJson[configSize] = '\0';
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
-  JsonObject& configObject = configJsonBuffer.parseObject(configJson);
+  StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configjsonDocument;
+  deserializeJson(configjsonDocument, configJson);
+  JsonObject configObject = configjsonDocument.as<JsonObject>();
 
   // To do alow object that dont currently exist to be added like settings.
   // if settings wasnt there origionally then it should be allowed to be added by incremental.
   for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
-    if (patchObject[it->key].is<JsonObject&>()) {
-      JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
+    if (patchObject[it->key()].is<JsonObject>()) {
+      JsonObject subObject = patchObject[it->key()].as<JsonObject>();
       for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
-        if (!configObject.containsKey(it->key) || !configObject[it->key].is<JsonObject&>()) {
+        if (!configObject.containsKey(it->key()) || !configObject[it->key()].is<JsonObject>()) {
           String error = "✖ Config does not contain a ";
-          error.concat(it->key);
+          error.concat(it->key().c_str());
           error.concat(" object");
           Interface::get().getLogger() << error << endl;
           return false;
         }
-        JsonObject& subConfigObject = configObject[it->key].as<JsonObject&>();
-        subConfigObject[it2->key] = it2->value;
+        JsonObject subConfigObject = configObject[it->key()].as<JsonObject>();
+        subConfigObject[it2->key()] = it2->value();
       }
     } else {
-      configObject[it->key] = it->value;
+      configObject[it->key()] = it->value();
     }
   }
 

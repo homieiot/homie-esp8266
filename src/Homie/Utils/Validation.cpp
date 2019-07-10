@@ -2,7 +2,7 @@
 
 using namespace HomieInternals;
 
-ConfigValidationResult Validation::validateConfig(const JsonObject& object) {
+ConfigValidationResult Validation::validateConfig(const JsonObject object) {
   ConfigValidationResult result;
   result = _validateConfigRoot(object);
   if (!result.valid) return result;
@@ -19,7 +19,7 @@ ConfigValidationResult Validation::validateConfig(const JsonObject& object) {
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigRoot(const JsonObject& object) {
+ConfigValidationResult Validation::_validateConfigRoot(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
   if (!object.containsKey("name") || !object["name"].is<const char*>()) {
@@ -57,15 +57,15 @@ ConfigValidationResult Validation::_validateConfigRoot(const JsonObject& object)
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object) {
+ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject&>()) {
+  if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject>()) {
     result.reason = F("wifi is not an object");
     return result;
   }
-  if (!object["wifi"].as<JsonObject&>().containsKey("ssid") || !object["wifi"]["ssid"].is<const char*>()) {
+  if (!object["wifi"].as<JsonObject>().containsKey("ssid") || !object["wifi"]["ssid"].is<const char*>()) {
     result.reason = F("wifi.ssid is not a string");
     return result;
   }
@@ -73,7 +73,7 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.ssid is too long");
     return result;
   }
-  if (!object["wifi"].as<JsonObject&>().containsKey("password") || !object["wifi"]["password"].is<const char*>()) {
+  if (!object["wifi"].as<JsonObject>().containsKey("password") || !object["wifi"]["password"].is<const char*>()) {
     result.reason = F("wifi.password is not a string");
     return result;
   }
@@ -82,24 +82,24 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     return result;
   }
   // by benzino
-  if (object["wifi"].as<JsonObject&>().containsKey("bssid") && !object["wifi"]["bssid"].is<const char*>()) {
+  if (object["wifi"].as<JsonObject>().containsKey("bssid") && !object["wifi"]["bssid"].is<const char*>()) {
     result.reason = F("wifi.bssid is not a string");
     return result;
   }
-  if ((object["wifi"].as<JsonObject&>().containsKey("bssid") && !object["wifi"].as<JsonObject&>().containsKey("channel")) ||
-    (!object["wifi"].as<JsonObject&>().containsKey("bssid") && object["wifi"].as<JsonObject&>().containsKey("channel"))) {
+  if ((object["wifi"].as<JsonObject>().containsKey("bssid") && !object["wifi"].as<JsonObject>().containsKey("channel")) ||
+    (!object["wifi"].as<JsonObject>().containsKey("bssid") && object["wifi"].as<JsonObject>().containsKey("channel"))) {
     result.reason = F("wifi.channel_bssid channel and BSSID is required");
     return result;
   }
-  if (object["wifi"].as<JsonObject&>().containsKey("bssid") && !Helpers::validateMacAddress(object["wifi"].as<JsonObject&>().get<const char*>("bssid"))) {
+  if (object["wifi"].as<JsonObject>().containsKey("bssid") && !Helpers::validateMacAddress(object["wifi"].as<JsonObject>().getMember("bssid").as<const char*>())) {
     result.reason = F("wifi.bssid is not valid mac");
     return result;
   }
-  if (object["wifi"].as<JsonObject&>().containsKey("channel") && !object["wifi"]["channel"].is<uint16_t>()) {
+  if (object["wifi"].as<JsonObject>().containsKey("channel") && !object["wifi"]["channel"].is<uint16_t>()) {
     result.reason = F("wifi.channel is not an integer");
     return result;
   }
-  if (object["wifi"].as<JsonObject&>().containsKey("ip") && !object["wifi"]["ip"].is<const char*>()) {
+  if (object["wifi"].as<JsonObject>().containsKey("ip") && !object["wifi"]["ip"].is<const char*>()) {
     result.reason = F("wifi.ip is not a string");
     return result;
   }
@@ -107,11 +107,11 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.ip is too long");
     return result;
   }
-  if (object["wifi"]["ip"] && !Helpers::validateIP(object["wifi"].as<JsonObject&>().get<const char*>("ip"))) {
+  if (object["wifi"]["ip"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("ip").as<const char*>())) {
     result.reason = F("wifi.ip is not valid ip address");
     return result;
   }
-  if (object["wifi"].as<JsonObject&>().containsKey("mask") && !object["wifi"]["mask"].is<const char*>()) {
+  if (object["wifi"].as<JsonObject>().containsKey("mask") && !object["wifi"]["mask"].is<const char*>()) {
     result.reason = F("wifi.mask is not a string");
     return result;
   }
@@ -119,11 +119,11 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.mask is too long");
     return result;
   }
-  if (object["wifi"]["mask"] && !Helpers::validateIP(object["wifi"].as<JsonObject&>().get<const char*>("mask"))) {
+  if (object["wifi"]["mask"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("mask").as<const char*>())) {
     result.reason = F("wifi.mask is not valid mask");
     return result;
   }
-  if (object["wifi"].as<JsonObject&>().containsKey("gw") && !object["wifi"]["gw"].is<const char*>()) {
+  if (object["wifi"].as<JsonObject>().containsKey("gw") && !object["wifi"]["gw"].is<const char*>()) {
     result.reason = F("wifi.gw is not a string");
     return result;
   }
@@ -131,17 +131,17 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.gw is too long");
     return result;
   }
-  if (object["wifi"]["gw"] && !Helpers::validateIP(object["wifi"].as<JsonObject&>().get<const char*>("gw"))) {
+  if (object["wifi"]["gw"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("gw").as<const char*>())) {
     result.reason = F("wifi.gw is not valid gateway address");
     return result;
   }
-  if ((object["wifi"].as<JsonObject&>().containsKey("ip") && (!object["wifi"].as<JsonObject&>().containsKey("mask") || !object["wifi"].as<JsonObject&>().containsKey("gw"))) ||
-    (object["wifi"].as<JsonObject&>().containsKey("gw") && (!object["wifi"].as<JsonObject&>().containsKey("mask") || !object["wifi"].as<JsonObject&>().containsKey("ip"))) ||
-    (object["wifi"].as<JsonObject&>().containsKey("mask") && (!object["wifi"].as<JsonObject&>().containsKey("ip") || !object["wifi"].as<JsonObject&>().containsKey("gw")))) {
+  if ((object["wifi"].as<JsonObject>().containsKey("ip") && (!object["wifi"].as<JsonObject>().containsKey("mask") || !object["wifi"].as<JsonObject>().containsKey("gw"))) ||
+    (object["wifi"].as<JsonObject>().containsKey("gw") && (!object["wifi"].as<JsonObject>().containsKey("mask") || !object["wifi"].as<JsonObject>().containsKey("ip"))) ||
+    (object["wifi"].as<JsonObject>().containsKey("mask") && (!object["wifi"].as<JsonObject>().containsKey("ip") || !object["wifi"].as<JsonObject>().containsKey("gw")))) {
     result.reason = F("wifi.staticip ip, gw and mask is required");
     return result;
   }
-  if (object["wifi"].as<JsonObject&>().containsKey("dns1") && !object["wifi"]["dns1"].is<const char*>()) {
+  if (object["wifi"].as<JsonObject>().containsKey("dns1") && !object["wifi"]["dns1"].is<const char*>()) {
     result.reason = F("wifi.dns1 is not a string");
     return result;
   }
@@ -149,15 +149,15 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.dns1 is too long");
     return result;
   }
-  if (object["wifi"]["dns1"] && !Helpers::validateIP(object["wifi"].as<JsonObject&>().get<const char*>("dns1"))) {
+  if (object["wifi"]["dns1"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("dns1").as<const char*>())) {
     result.reason = F("wifi.dns1 is not valid dns address");
     return result;
   }
-  if (object["wifi"].as<JsonObject&>().containsKey("dns2") && !object["wifi"].as<JsonObject&>().containsKey("dns1")) {
+  if (object["wifi"].as<JsonObject>().containsKey("dns2") && !object["wifi"].as<JsonObject>().containsKey("dns1")) {
     result.reason = F("wifi.dns2 no dns1 defined");
     return result;
   }
-  if (object["wifi"].as<JsonObject&>().containsKey("dns2") && !object["wifi"]["dns2"].is<const char*>()) {
+  if (object["wifi"].as<JsonObject>().containsKey("dns2") && !object["wifi"]["dns2"].is<const char*>()) {
     result.reason = F("wifi.dns2 is not a string");
     return result;
   }
@@ -165,7 +165,7 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
     result.reason = F("wifi.dns2 is too long");
     return result;
   }
-  if (object["wifi"]["dns2"] && !Helpers::validateIP(object["wifi"].as<JsonObject&>().get<const char*>("dns2"))) {
+  if (object["wifi"]["dns2"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("dns2").as<const char*>())) {
     result.reason = F("wifi.dns2 is not valid dns address");
     return result;
   }
@@ -180,15 +180,15 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject& object)
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject& object) {
+ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject&>()) {
+  if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject>()) {
     result.reason = F("mqtt is not an object");
     return result;
   }
-  if (!object["mqtt"].as<JsonObject&>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
+  if (!object["mqtt"].as<JsonObject>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
     result.reason = F("mqtt.host is not a string");
     return result;
   }
@@ -196,11 +196,11 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject& object)
     result.reason = F("mqtt.host is too long");
     return result;
   }
-  if (object["mqtt"].as<JsonObject&>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
+  if (object["mqtt"].as<JsonObject>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
     result.reason = F("mqtt.port is not an integer");
     return result;
   }
-  if (object["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
+  if (object["mqtt"].as<JsonObject>().containsKey("base_topic")) {
     if (!object["mqtt"]["base_topic"].is<const char*>()) {
       result.reason = F("mqtt.base_topic is not a string");
       return result;
@@ -211,14 +211,14 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject& object)
       return result;
     }
   }
-  if (object["mqtt"].as<JsonObject&>().containsKey("auth")) {
+  if (object["mqtt"].as<JsonObject>().containsKey("auth")) {
     if (!object["mqtt"]["auth"].is<bool>()) {
       result.reason = F("mqtt.auth is not a boolean");
       return result;
     }
 
     if (object["mqtt"]["auth"]) {
-      if (!object["mqtt"].as<JsonObject&>().containsKey("username") || !object["mqtt"]["username"].is<const char*>()) {
+      if (!object["mqtt"].as<JsonObject>().containsKey("username") || !object["mqtt"]["username"].is<const char*>()) {
         result.reason = F("mqtt.username is not a string");
         return result;
       }
@@ -226,7 +226,7 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject& object)
         result.reason = F("mqtt.username is too long");
         return result;
       }
-      if (!object["mqtt"].as<JsonObject&>().containsKey("password") || !object["mqtt"]["password"].is<const char*>()) {
+      if (!object["mqtt"].as<JsonObject>().containsKey("password") || !object["mqtt"]["password"].is<const char*>()) {
         result.reason = F("mqtt.password is not a string");
         return result;
       }
@@ -247,15 +247,15 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject& object)
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigOta(const JsonObject& object) {
+ConfigValidationResult Validation::_validateConfigOta(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("ota") || !object["ota"].is<JsonObject&>()) {
+  if (!object.containsKey("ota") || !object["ota"].is<JsonObject>()) {
     result.reason = F("ota is not an object");
     return result;
   }
-  if (!object["ota"].as<JsonObject&>().containsKey("enabled") || !object["ota"]["enabled"].is<bool>()) {
+  if (!object["ota"].as<JsonObject>().containsKey("enabled") || !object["ota"]["enabled"].is<bool>()) {
     result.reason = F("ota.enabled is not a boolean");
     return result;
   }
@@ -264,19 +264,19 @@ ConfigValidationResult Validation::_validateConfigOta(const JsonObject& object) 
   return result;
 }
 
-ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& object) {
+ConfigValidationResult Validation::_validateConfigSettings(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
 
-  StaticJsonBuffer<0> emptySettingsBuffer;
+  StaticJsonDocument<0> emptySettingsDocument;
 
-  JsonObject* settingsObject = &(emptySettingsBuffer.createObject());
+  JsonObject settingsObject = emptySettingsDocument.as<JsonObject>();
 
-  if (object.containsKey("settings") && object["settings"].is<JsonObject&>()) {
-    settingsObject = &(object["settings"].as<JsonObject&>());
+  if (object.containsKey("settings") && object["settings"].is<JsonObject>()) {
+    settingsObject = object["settings"].as<JsonObject>();
   }
 
-  if (settingsObject->size() > MAX_CONFIG_SETTING_SIZE) {//max settings here and in isettings
+  if (settingsObject.size() > MAX_CONFIG_SETTING_SIZE) {//max settings here and in isettings
     result.reason = F("settings contains more elements than the set limit");
     return result;
   }
@@ -304,11 +304,11 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
     if (iSetting->isBool()) {
       HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
 
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<bool>()) {
+      if (settingsObject.containsKey(setting->getName())) {
+        if (!settingsObject[setting->getName()].is<bool>()) {
           setReason(Issue::Type);
           return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<bool>())) {
+        } else if (!setting->validate(settingsObject[setting->getName()].as<bool>())) {
           setReason(Issue::Validator);
           return result;
         }
@@ -319,11 +319,11 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
     } else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
 
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<long>()) {
+      if (settingsObject.containsKey(setting->getName())) {
+        if (!settingsObject[setting->getName()].is<long>()) {
           setReason(Issue::Type);
           return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<long>())) {
+        } else if (!setting->validate(settingsObject[setting->getName()].as<long>())) {
           setReason(Issue::Validator);
           return result;
         }
@@ -334,11 +334,11 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
     } else if (iSetting->isDouble()) {
       HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
 
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<double>()) {
+      if (settingsObject.containsKey(setting->getName())) {
+        if (!settingsObject[setting->getName()].is<double>()) {
           setReason(Issue::Type);
           return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<double>())) {
+        } else if (!setting->validate(settingsObject[setting->getName()].as<double>())) {
           setReason(Issue::Validator);
           return result;
         }
@@ -349,11 +349,11 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject& obj
     } else if (iSetting->isConstChar()) {
       HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
 
-      if (settingsObject->containsKey(setting->getName())) {
-        if (!(*settingsObject)[setting->getName()].is<const char*>()) {
+      if (settingsObject.containsKey(setting->getName())) {
+        if (!settingsObject[setting->getName()].is<const char*>()) {
           setReason(Issue::Type);
           return result;
-        } else if (!setting->validate((*settingsObject)[setting->getName()].as<const char*>())) {
+        } else if (!setting->validate(settingsObject[setting->getName()].as<const char*>())) {
           setReason(Issue::Validator);
           return result;
         }
