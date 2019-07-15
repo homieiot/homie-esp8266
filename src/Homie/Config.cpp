@@ -68,69 +68,63 @@ bool Config::load() {
   const char* reqWifiPassword = parsedJson["wifi"]["password"];
 
   const char* reqMqttHost = parsedJson["mqtt"]["host"];
-  const char* reqDeviceId = DeviceId::get();
-  if (parsedJson.containsKey("device_id")) {
-    reqDeviceId = parsedJson["device_id"];
+  const char* reqDeviceId = parsedJson["device_id"];
+  if (!reqDeviceId) {
+    reqDeviceId = DeviceId::get();
   }
-  uint16_t regDeviceStatsInterval = STATS_SEND_INTERVAL_SEC; //device_stats_interval
-  if (parsedJson.containsKey(F("device_stats_interval"))) {
-    regDeviceStatsInterval = parsedJson[F("device_stats_interval")];
+  uint16_t regDeviceStatsInterval = parsedJson[F("device_stats_interval")];
+  if (regDeviceStatsInterval == 0) {
+    regDeviceStatsInterval = STATS_SEND_INTERVAL_SEC;
   }
 
-  const char* reqWifiBssid = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("bssid")) {
-    reqWifiBssid = parsedJson["wifi"]["bssid"];
+  const char* reqWifiBssid = parsedJson["wifi"]["bssid"];
+  if (!reqWifiBssid) {
+    reqWifiBssid = "";
   }
-  uint16_t reqWifiChannel = 0;
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("channel")) {
-    reqWifiChannel = parsedJson["wifi"]["channel"];
+  // If wifi/channel doesn't exist reqWifiChannel defaults to 0.
+  uint16_t reqWifiChannel = parsedJson["wifi"]["channel"];
+  const char* reqWifiIp = parsedJson["wifi"]["ip"];
+  if (!reqWifiIp) {
+    reqWifiIp = "";
   }
-  const char* reqWifiIp = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("ip")) {
-    reqWifiIp = parsedJson["wifi"]["ip"];
+  const char* reqWifiMask = parsedJson["wifi"]["mask"];
+  if (!reqWifiMask) {
+    reqWifiMask = "";
   }
-  const char* reqWifiMask = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("mask")) {
-    reqWifiMask = parsedJson["wifi"]["mask"];
+  const char* reqWifiGw = parsedJson["wifi"]["gw"];
+  if (!reqWifiGw) {
+    reqWifiGw = "";
   }
-  const char* reqWifiGw = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("gw")) {
-    reqWifiGw = parsedJson["wifi"]["gw"];
+  const char* reqWifiDns1 = parsedJson["wifi"]["dns1"];
+  if (!reqWifiDns1) {
+    reqWifiDns1 = "";
   }
-  const char* reqWifiDns1 = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("dns1")) {
-    reqWifiDns1 = parsedJson["wifi"]["dns1"];
-  }
-  const char* reqWifiDns2 = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("dns2")) {
-    reqWifiDns2 = parsedJson["wifi"]["dns2"];
+  const char* reqWifiDns2 = parsedJson["wifi"]["dns2"];
+  if (!reqWifiDns2) {
+    reqWifiDns2 = "";
   }
 
   uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
   if (parsedJson["mqtt"].as<JsonObject>().containsKey("port")) {
     reqMqttPort = parsedJson["mqtt"]["port"];
   }
-  const char* reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("base_topic")) {
-    reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
+  const char* reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
+  if (!reqMqttBaseTopic) {
+    reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
   }
-  bool reqMqttAuth = false;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("auth")) {
-    reqMqttAuth = parsedJson["mqtt"]["auth"];
+  // If mqtt/auth doesn't exist reqMqttAuth defaults to false.
+  bool reqMqttAuth = parsedJson["mqtt"]["auth"];
+  const char* reqMqttUsername = parsedJson["mqtt"]["username"];
+  if (!reqMqttUsername) {
+    reqMqttUsername = "";
   }
-  const char* reqMqttUsername = "";
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("username")) {
-    reqMqttUsername = parsedJson["mqtt"]["username"];
-  }
-  const char* reqMqttPassword = "";
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("password")) {
-    reqMqttPassword = parsedJson["mqtt"]["password"];
+  const char* reqMqttPassword = parsedJson["mqtt"]["password"];
+  if (!reqMqttPassword) {
+    reqMqttPassword = "";
   }
 
-  bool reqOtaEnabled = false;
-  if (parsedJson["ota"].as<JsonObject>().containsKey("enabled")) {
-    reqOtaEnabled = parsedJson["ota"]["enabled"];
-  }
+  // If ota/enabled doesn't exist reqOtaEnabled defaults to false.
+  bool reqOtaEnabled = parsedJson["ota"]["enabled"];
 
   strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
   strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
