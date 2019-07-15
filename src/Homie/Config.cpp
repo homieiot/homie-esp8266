@@ -183,26 +183,20 @@ bool Config::load() {
 }
 
 char* Config::getSafeConfigFile() const {
+  // TODO/FIXME: Add error handling in case no config file is found.
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
-  size_t configSize = configFile.size();
-
-  char buf[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(buf, configSize);
-  configFile.close();
-  buf[configSize] = '\0';
-
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDocument;
-  deserializeJson(jsonDocument, buf);
-  JsonObject parsedJson = jsonDocument.as<JsonObject>();
-  parsedJson["wifi"].as<JsonObject>().remove("password");
-  parsedJson["mqtt"].as<JsonObject>().remove("username");
-  parsedJson["mqtt"].as<JsonObject>().remove("password");
+  deserializeJson(jsonDocument, configFile);
 
-  size_t jsonDocumentLength = measureJson(parsedJson) + 1;
-  std::unique_ptr<char[]> jsonString(new char[jsonDocumentLength]);
-  serializeJson(parsedJson, jsonString.get(), jsonDocumentLength);
+  jsonDocument["wifi"].as<JsonObject>().remove("password");
+  jsonDocument["mqtt"].as<JsonObject>().remove("username");
+  jsonDocument["mqtt"].as<JsonObject>().remove("password");
 
-  return strdup(jsonString.get());
+  size_t documentSize = measureJson(jsonDocument) + 1;
+  char *config = (char *)malloc(documentSize);
+  serializeJson(jsonDocument, config, documentSize);
+
+  return config;
 }
 
 void Config::erase() {
