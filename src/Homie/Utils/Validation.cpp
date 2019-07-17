@@ -268,11 +268,12 @@ ConfigValidationResult Validation::_validateConfigOta(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("ota") || !object["ota"].is<JsonObject>()) {
+  JsonObject ota = object["ota"].as<JsonObject>();
+  if (ota.isNull()) {
     result.reason = F("ota is not an object");
     return result;
   }
-  if (!object["ota"].as<JsonObject>().containsKey("enabled") || !object["ota"]["enabled"].is<bool>()) {
+  if (!ota.containsKey("enabled") || !ota["enabled"].is<bool>()) {
     result.reason = F("ota.enabled is not a boolean");
     return result;
   }
