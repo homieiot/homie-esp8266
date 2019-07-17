@@ -288,10 +288,9 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject obje
 
   StaticJsonDocument<0> emptySettingsDocument;
 
-  JsonObject settingsObject = emptySettingsDocument.as<JsonObject>();
-
-  if (object.containsKey("settings") && object["settings"].is<JsonObject>()) {
-    settingsObject = object["settings"].as<JsonObject>();
+  JsonObject settingsObject = object["settings"].as<JsonObject>();
+  if (settingsObject.isNull()) {
+    settingsObject = emptySettingsDocument.as<JsonObject>();
   }
 
   if (settingsObject.size() > MAX_CONFIG_SETTING_SIZE) {//max settings here and in isettings
