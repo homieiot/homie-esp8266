@@ -199,63 +199,65 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject object) 
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject>()) {
+  JsonObject mqtt = object["mqtt"].as<JsonObject>();
+  if (mqtt.isNull()) {
     result.reason = F("mqtt is not an object");
     return result;
   }
-  if (!object["mqtt"].as<JsonObject>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
-    result.reason = F("mqtt.host is not a string");
-    return result;
+
+  {
+    const char* host = mqtt["host"];
+    if (!host) {
+      result.reason = F("mqtt.host is not a string");
+      return result;
+    }
+    const auto len = strlen(host);
+    if (len == 0) {
+      result.reason = F("mqtt.host is empty");
+      return result;
+    }
+    if (len + 1 > MAX_HOSTNAME_LENGTH) {
+      result.reason = F("mqtt.host is too long");
+      return result;
+    }
   }
-  if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
-    result.reason = F("mqtt.host is too long");
-    return result;
-  }
-  if (object["mqtt"].as<JsonObject>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
+
+  if (mqtt.containsKey("port") && !mqtt["port"].is<uint16_t>()) {
     result.reason = F("mqtt.port is not an integer");
     return result;
   }
-  if (object["mqtt"].as<JsonObject>().containsKey("base_topic")) {
-    if (!object["mqtt"]["base_topic"].is<const char*>()) {
+  {
+    const char* base_topic = mqtt["base_topic"];
+    if (!base_topic) {
       result.reason = F("mqtt.base_topic is not a string");
       return result;
     }
+    if (strlen(base_topic) + 1 > MAX_MQTT_BASE_TOPIC_LENGTH) {
+        result.reason = F("mqtt.base_topic is too long");
+        return result;
 
-    if (strlen(object["mqtt"]["base_topic"]) + 1 > MAX_MQTT_BASE_TOPIC_LENGTH) {
-      result.reason = F("mqtt.base_topic is too long");
-      return result;
-    }
-  }
-  if (object["mqtt"].as<JsonObject>().containsKey("auth")) {
-    if (!object["mqtt"]["auth"].is<bool>()) {
-      result.reason = F("mqtt.auth is not a boolean");
-      return result;
-    }
-
-    if (object["mqtt"]["auth"]) {
-      if (!object["mqtt"].as<JsonObject>().containsKey("username") || !object["mqtt"]["username"].is<const char*>()) {
-        result.reason = F("mqtt.username is not a string");
-        return result;
-      }
-      if (strlen(object["mqtt"]["username"]) + 1 > MAX_MQTT_CREDS_LENGTH) {
-        result.reason = F("mqtt.username is too long");
-        return result;
-      }
-      if (!object["mqtt"].as<JsonObject>().containsKey("password") || !object["mqtt"]["password"].is<const char*>()) {
-        result.reason = F("mqtt.password is not a string");
-        return result;
-      }
-      if (strlen(object["mqtt"]["password"]) + 1 > MAX_MQTT_CREDS_LENGTH) {
-        result.reason = F("mqtt.password is too long");
-        return result;
-      }
     }
   }
 
-  const char* host = object["mqtt"]["host"];
-  if (strcmp_P(host, PSTR("")) == 0) {
-    result.reason = F("mqtt.host is empty");
-    return result;
+  if (mqtt["auth"]) {
+    const char* username = mqtt["username"];
+    if (!username) {
+      result.reason = F("mqtt.username is not a string");
+      return result;
+    }
+    if (strlen(username) + 1 > MAX_MQTT_CREDS_LENGTH) {
+      result.reason = F("mqtt.username is too long");
+      return result;
+    }
+    const char* password = mqtt["password"];
+    if (password) {
+      result.reason = F("mqtt.password is not a string");
+      return result;
+    }
+    if (strlen(password) + 1 > MAX_MQTT_CREDS_LENGTH) {
+      result.reason = F("mqtt.password is too long");
+      return result;
+    }
   }
 
   result.valid = true;
