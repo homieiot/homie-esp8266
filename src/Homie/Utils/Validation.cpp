@@ -22,30 +22,33 @@ ConfigValidationResult Validation::validateConfig(const JsonObject object) {
 ConfigValidationResult Validation::_validateConfigRoot(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
-  if (!object.containsKey("name") || !object["name"].is<const char*>()) {
+
+  const char* name = object["name"];
+  if (!name) {
     result.reason = F("name is not a string");
     return result;
   }
-  if (strlen(object["name"]) + 1 > MAX_FRIENDLY_NAME_LENGTH) {
+  auto namelen = strlen(name);
+  if (namelen == 0) {
+    result.reason = F("name is empty");
+    return result;
+  }
+
+  if (namelen + 1 > MAX_FRIENDLY_NAME_LENGTH) {
     result.reason = F("name is too long");
     return result;
   }
+
   if (object.containsKey("device_id")) {
-    if (!object["device_id"].is<const char*>()) {
+    const char* device_id = object["device_id"];
+    if (!device_id) {
       result.reason = F("device_id is not a string");
       return result;
     }
-    if (strlen(object["device_id"]) + 1 > MAX_DEVICE_ID_LENGTH) {
+    if (strlen(device_id) + 1 > MAX_DEVICE_ID_LENGTH) {
       result.reason = F("device_id is too long");
       return result;
     }
-  }
-
-  const char* name = object["name"];
-
-  if (strcmp_P(name, PSTR("")) == 0) {
-    result.reason = F("name is empty");
-    return result;
   }
 
   if (object.containsKey(F("device_stats_interval")) && !object[F("device_stats_interval")].is<uint16_t>()) {
