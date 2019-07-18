@@ -292,7 +292,7 @@ bool Config::patch(const char* patch) {
   for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
     if (patchObject[it->key].is<JsonObject&>()) {
       JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
-      // To allow custom settings that dont currently exist to be added by incremental update, the Object "settings" must be created
+      // To allow custom setting that doesn't currently exist to be added by incremental update, the Object "settings" must be created
       if (!configObject.containsKey("settings") && String(it->key).equals("settings")) {
         configObject.createNestedObject("settings");
       }
