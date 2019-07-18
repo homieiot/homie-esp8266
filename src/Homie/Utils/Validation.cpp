@@ -90,68 +90,76 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
   if (!wifi.containsKey("password") || !wifi["password"].is<const char*>()) {
     result.reason = F("wifi.password is not a string");
     return result;
-  }
-  if (wifi["password"] && strlen(wifi["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
+  } else if (strlen(wifi["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
     result.reason = F("wifi.password is too long");
     return result;
   }
 
-  if (wifi.containsKey("bssid") && !wifi["bssid"].is<const char*>()) {
-    result.reason = F("wifi.bssid is not a string");
-    return result;
-  }
-  if ((wifi.containsKey("bssid") && !wifi.containsKey("channel")) ||
-    (!wifi.containsKey("bssid") && wifi.containsKey("channel"))) {
-    result.reason = F("wifi.channel_bssid channel and BSSID is required");
-    return result;
-  }
-  if (wifi.containsKey("bssid") && !Helpers::validateMacAddress(wifi.getMember("bssid").as<const char*>())) {
-    result.reason = F("wifi.bssid is not valid mac");
-    return result;
-  }
-
-  if (wifi.containsKey("channel") && !wifi["channel"].is<uint16_t>()) {
-    result.reason = F("wifi.channel is not an integer");
-    return result;
-  }
-
-  if (wifi.containsKey("ip") && !wifi["ip"].is<const char*>()) {
-    result.reason = F("wifi.ip is not a string");
-    return result;
-  }
-  if (wifi["ip"] && strlen(wifi["ip"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.ip is too long");
-    return result;
-  }
-  if (wifi["ip"] && !Helpers::validateIP(wifi.getMember("ip").as<const char*>())) {
-    result.reason = F("wifi.ip is not valid ip address");
+  if (wifi.containsKey("bssid")) {
+    if (!wifi["bssid"].is<const char*>()) {
+      result.reason = F("wifi.bssid is not a string");
+      return result;
+    }
+    if (!Helpers::validateMacAddress(wifi.getMember("bssid").as<const char*>())) {
+      result.reason = F("wifi.bssid is not valid mac");
+      return result;
+    }
+    if (!wifi.containsKey("channel")) {
+      result.reason = F("wifi.channel_bssid channel is missing");
+      return result;
+    }
+    if (!wifi["channel"].is<uint16_t>()) {
+      result.reason = F("wifi.channel is not an integer");
+      return result;
+    }
+  } else if (wifi.containsKey("channel")) {
+    result.reason = F("wifi.channel_bssid bssid is missing");
     return result;
   }
 
-  if (wifi.containsKey("mask") && !wifi["mask"].is<const char*>()) {
-    result.reason = F("wifi.mask is not a string");
-    return result;
-  }
-  if (wifi["mask"] && strlen(wifi["mask"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.mask is too long");
-    return result;
-  }
-  if (wifi["mask"] && !Helpers::validateIP(wifi.getMember("mask").as<const char*>())) {
-    result.reason = F("wifi.mask is not valid mask");
-    return result;
+  if (wifi.containsKey("ip")) {
+    if (!wifi["ip"].is<const char*>()) {
+      result.reason = F("wifi.ip is not a string");
+      return result;
+    }
+    if (strlen(wifi["ip"]) + 1 > MAX_IP_STRING_LENGTH) {
+      result.reason = F("wifi.ip is too long");
+      return result;
+    }
+    if (!Helpers::validateIP(wifi.getMember("ip").as<const char*>())) {
+      result.reason = F("wifi.ip is not valid ip address");
+      return result;
+    }
   }
 
-  if (wifi.containsKey("gw") && !wifi["gw"].is<const char*>()) {
-    result.reason = F("wifi.gw is not a string");
-    return result;
+  if (wifi.containsKey("mask")) {
+    if (!wifi["mask"].is<const char*>()) {
+      result.reason = F("wifi.mask is not a string");
+      return result;
+    }
+    if (strlen(wifi["mask"]) + 1 > MAX_IP_STRING_LENGTH) {
+      result.reason = F("wifi.mask is too long");
+      return result;
+    }
+    if (!Helpers::validateIP(wifi.getMember("mask").as<const char*>())) {
+      result.reason = F("wifi.mask is not a valid mask");
+      return result;
+    }
   }
-  if (wifi["gw"] && strlen(wifi["gw"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.gw is too long");
-    return result;
-  }
-  if (wifi["gw"] && !Helpers::validateIP(wifi.getMember("gw").as<const char*>())) {
-    result.reason = F("wifi.gw is not valid gateway address");
-    return result;
+
+  if (wifi.containsKey("gw")) {
+    if (!wifi["gw"].is<const char*>()) {
+      result.reason = F("wifi.gw is not a string");
+      return result;
+    }
+    if (strlen(wifi["gw"]) + 1 > MAX_IP_STRING_LENGTH) {
+      result.reason = F("wifi.gw is too long");
+      return result;
+    }
+    if (!Helpers::validateIP(wifi.getMember("gw").as<const char*>())) {
+      result.reason = F("wifi.gw is not valid gateway address");
+      return result;
+    }
   }
 
   if (wifi.containsKey("ip") || wifi.containsKey("gw") || wifi.containsKey("mask")) {
@@ -161,34 +169,40 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
     }
   }
 
-  if (wifi.containsKey("dns1") && !wifi["dns1"].is<const char*>()) {
-    result.reason = F("wifi.dns1 is not a string");
-    return result;
-  }
-  if (wifi["dns1"] && strlen(wifi["dns1"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.dns1 is too long");
-    return result;
-  }
-  if (wifi["dns1"] && !Helpers::validateIP(wifi.getMember("dns1").as<const char*>())) {
-    result.reason = F("wifi.dns1 is not valid dns address");
-    return result;
+  if (wifi.containsKey("dns1")) {
+    const char* dns1 = wifi["dns1"];
+    if (!dns1) {
+      result.reason = F("wifi.dns1 is not a string");
+      return result;
+    }
+    if (strlen(dns1) + 1 > MAX_IP_STRING_LENGTH) {
+      result.reason = F("wifi.dns1 is too long");
+      return result;
+    }
+    if (!Helpers::validateIP(dns1)) {
+      result.reason = F("wifi.dns1 is not valid dns address");
+      return result;
+    }
   }
 
-  if (wifi.containsKey("dns2") && !wifi.containsKey("dns1")) {
-    result.reason = F("wifi.dns2 no dns1 defined");
-    return result;
-  }
-  if (wifi.containsKey("dns2") && !wifi["dns2"].is<const char*>()) {
-    result.reason = F("wifi.dns2 is not a string");
-    return result;
-  }
-  if (wifi["dns2"] && strlen(wifi["dns2"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.dns2 is too long");
-    return result;
-  }
-  if (wifi["dns2"] && !Helpers::validateIP(wifi.getMember("dns2").as<const char*>())) {
-    result.reason = F("wifi.dns2 is not valid dns address");
-    return result;
+  if (wifi.containsKey("dns2")) {
+    if (!wifi.containsKey("dns1")) {
+      result.reason = F("wifi.dns2 no dns1 defined");
+      return result;
+    }
+    const char* dns2 = wifi["dns2"];
+    if (!dns2) {
+      result.reason = F("wifi.dns2 is not a string");
+      return result;
+    }
+    if (strlen(dns2) + 1 > MAX_IP_STRING_LENGTH) {
+      result.reason = F("wifi.dns2 is too long");
+      return result;
+    }
+    if (!Helpers::validateIP(dns2)) {
+      result.reason = F("wifi.dns2 is not valid dns address");
+      return result;
+    }
   }
 
   result.valid = true;
