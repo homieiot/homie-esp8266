@@ -39,7 +39,7 @@ bool Config::load() {
 
   size_t configSize = configFile.size();
 
-  if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
+  if (configSize >= MAX_JSON_CONFIG_FILE_SIZE) {
     Interface::get().getLogger() << F("✖ Config file too big") << endl;
     return false;
   }
