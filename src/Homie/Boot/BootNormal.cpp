@@ -517,10 +517,8 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     }
 
     _mqttConnect();
-
-  } else {
-    _mqttReconnectTimer.activate();
   }
+  _mqttReconnectTimer.activate();
 }
 
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
