@@ -55,7 +55,7 @@ bool Helpers::validateMacAddress(const char* mac) {
     }
     ++mac;
   }
-  return (i == MAX_MAC_STRING_LENGTH && s == 5);
+  return (i == MAX_MAC_LENGTH * 2 && s == 5);
 }
 
 bool Helpers::validateMd5(const char* md5) {
@@ -81,4 +81,19 @@ std::unique_ptr<char[]> Helpers::cloneString(const String& string) {
 
 void Helpers::ipToString(const IPAddress& ip, char * str) {
   snprintf(str, MAX_IP_STRING_LENGTH, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+}
+
+void Helpers::hexStringToByteArray(const char* hexStr, uint8_t* hexArray, uint8_t size) {
+  for (uint8_t i = 0; i < size; i++) {
+    char hex[3];
+    strncpy(hex, (hexStr + (i * 2)), 2);
+    hex[2] = '\0';
+    hexArray[i] = (uint8_t)strtol((const char*)&hex, nullptr, 16);
+  }
+}
+
+void Helpers::byteArrayToHexString(const uint8_t * hexArray, char* hexStr, uint8_t size) {
+  for (uint8_t i = 0; i < size; i++) {
+    snprintf((hexStr + (i * 2)), 3, "%02x", hexArray[i]);
+  }
 }

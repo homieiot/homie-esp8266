@@ -21,19 +21,19 @@ jobs:
       - run:
           name: install examples dependencies
           command: platformio lib -g install Shutters@2.1.1 SonoffDual@1.1.0
-      - run: platformio ci ./examples/Broadcast --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/CustomSettings --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/DoorSensor --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/GlobalInputHandler --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/HookToEvents --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/IteadSonoff --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/IteadSonoffButton --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/LedStrip --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/LightOnOff --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/Ping --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/SingleButton --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/SonoffDualShutters --board=esp01 --board=nodemcuv2 --board=esp32dev
-      - run: platformio ci ./examples/TemperatureSensor --board=esp01 --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/Broadcast --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/CustomSettings --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/DoorSensor --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/GlobalInputHandler --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/HookToEvents --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/IteadSonoff --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/IteadSonoffButton --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/LedStrip --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/LightOnOff --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/Ping --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/SingleButton --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/SonoffDualShutters --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/TemperatureSensor --board=esp01_1m --board=nodemcuv2 --board=esp32dev
 
   lint:
     working_directory: ~/code
