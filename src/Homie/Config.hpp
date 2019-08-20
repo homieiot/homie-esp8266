@@ -27,7 +27,7 @@ class Config {
   void erase();
   void setHomieBootModeOnNextBoot(HomieBootMode bootMode);
   HomieBootMode getHomieBootModeOnNextBoot();
-  void write(const JsonObject& config);
+  void write(const JsonObject config);
   bool patch(const char* patch);
   void log() const;  // print the current config to log output
   bool isValid() const;
