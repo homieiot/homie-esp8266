@@ -22,35 +22,46 @@ ConfigValidationResult Validation::validateConfig(const JsonObject object) {
 ConfigValidationResult Validation::_validateConfigRoot(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
-  if (!object.containsKey("name") || !object["name"].is<const char*>()) {
-    result.reason = F("name is not a string");
-    return result;
-  }
-  if (strlen(object["name"]) + 1 > MAX_FRIENDLY_NAME_LENGTH) {
-    result.reason = F("name is too long");
-    return result;
-  }
-  if (object.containsKey("device_id")) {
-    if (!object["device_id"].is<const char*>()) {
-      result.reason = F("device_id is not a string");
+
+  {
+    JsonVariant jvName = object["name"];
+
+    if (!jvName.is<const char*>()) {
+      result.reason = F("name is not a string");
       return result;
     }
-    if (strlen(object["device_id"]) + 1 > MAX_DEVICE_ID_LENGTH) {
-      result.reason = F("device_id is too long");
+    if (strlen(jvName.as<const char*>()) + 1 > MAX_FRIENDLY_NAME_LENGTH) {
+      result.reason = F("name is too long");
+      return result;
+    }
+    if (strcmp_P(jvName.as<const char*>(), PSTR("")) == 0) {
+      result.reason = F("name is empty");
       return result;
     }
   }
 
-  const char* name = object["name"];
+  {
+    JsonVariant jvDeviceId = object["device_id"];
 
-  if (strcmp_P(name, PSTR("")) == 0) {
-    result.reason = F("name is empty");
-    return result;
+    if (!jvDeviceId.isNull()) {
+      if (!jvDeviceId.is<const char*>()) {
+        result.reason = F("device_id is not a string");
+        return result;
+      }
+      if (strlen(jvDeviceId.as<const char*>()) + 1 > MAX_DEVICE_ID_LENGTH) {
+        result.reason = F("device_id is too long");
+        return result;
+      }
+    }
   }
 
-  if (object.containsKey(F("device_stats_interval")) && !object[F("device_stats_interval")].is<uint16_t>()) {
-    result.reason = F("device_stats_interval is not an integer");
-    return result;
+  {
+    JsonVariant jvDeviceStatsInterval = object["device_stats_interval"];
+
+    if (!jvDeviceStatsInterval.isNull() && !jvDeviceStatsInterval.is<uint16_t>()) {
+      result.reason = F("device_stats_interval is not an integer");
+      return result;
+    }
   }
 
   result.valid = true;
@@ -61,119 +72,160 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("wifi") || !object["wifi"].is<JsonObject>()) {
+  JsonVariant jvWiFi = object["wifi"];
+
+  if (!jvWiFi.is<JsonObject>()) {
     result.reason = F("wifi is not an object");
     return result;
   }
-  if (!object["wifi"].as<JsonObject>().containsKey("ssid") || !object["wifi"]["ssid"].is<const char*>()) {
-    result.reason = F("wifi.ssid is not a string");
-    return result;
-  }
-  if (strlen(object["wifi"]["ssid"]) + 1 > MAX_WIFI_SSID_LENGTH) {
-    result.reason = F("wifi.ssid is too long");
-    return result;
-  }
-  if (!object["wifi"].as<JsonObject>().containsKey("password") || !object["wifi"]["password"].is<const char*>()) {
-    result.reason = F("wifi.password is not a string");
-    return result;
-  }
-  if (object["wifi"]["password"] && strlen(object["wifi"]["password"]) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
-    result.reason = F("wifi.password is too long");
-    return result;
-  }
-  // by benzino
-  if (object["wifi"].as<JsonObject>().containsKey("bssid") && !object["wifi"]["bssid"].is<const char*>()) {
-    result.reason = F("wifi.bssid is not a string");
-    return result;
-  }
-  if ((object["wifi"].as<JsonObject>().containsKey("bssid") && !object["wifi"].as<JsonObject>().containsKey("channel")) ||
-    (!object["wifi"].as<JsonObject>().containsKey("bssid") && object["wifi"].as<JsonObject>().containsKey("channel"))) {
-    result.reason = F("wifi.channel_bssid channel and BSSID is required");
-    return result;
-  }
-  if (object["wifi"].as<JsonObject>().containsKey("bssid") && !Helpers::validateMacAddress(object["wifi"].as<JsonObject>().getMember("bssid").as<const char*>())) {
-    result.reason = F("wifi.bssid is not valid mac");
-    return result;
-  }
-  if (object["wifi"].as<JsonObject>().containsKey("channel") && !object["wifi"]["channel"].is<uint16_t>()) {
-    result.reason = F("wifi.channel is not an integer");
-    return result;
-  }
-  if (object["wifi"].as<JsonObject>().containsKey("ip") && !object["wifi"]["ip"].is<const char*>()) {
-    result.reason = F("wifi.ip is not a string");
-    return result;
-  }
-  if (object["wifi"]["ip"] && strlen(object["wifi"]["ip"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.ip is too long");
-    return result;
-  }
-  if (object["wifi"]["ip"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("ip").as<const char*>())) {
-    result.reason = F("wifi.ip is not valid ip address");
-    return result;
-  }
-  if (object["wifi"].as<JsonObject>().containsKey("mask") && !object["wifi"]["mask"].is<const char*>()) {
-    result.reason = F("wifi.mask is not a string");
-    return result;
-  }
-  if (object["wifi"]["mask"] && strlen(object["wifi"]["mask"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.mask is too long");
-    return result;
-  }
-  if (object["wifi"]["mask"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("mask").as<const char*>())) {
-    result.reason = F("wifi.mask is not valid mask");
-    return result;
-  }
-  if (object["wifi"].as<JsonObject>().containsKey("gw") && !object["wifi"]["gw"].is<const char*>()) {
-    result.reason = F("wifi.gw is not a string");
-    return result;
-  }
-  if (object["wifi"]["gw"] && strlen(object["wifi"]["gw"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.gw is too long");
-    return result;
-  }
-  if (object["wifi"]["gw"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("gw").as<const char*>())) {
-    result.reason = F("wifi.gw is not valid gateway address");
-    return result;
-  }
-  if ((object["wifi"].as<JsonObject>().containsKey("ip") && (!object["wifi"].as<JsonObject>().containsKey("mask") || !object["wifi"].as<JsonObject>().containsKey("gw"))) ||
-    (object["wifi"].as<JsonObject>().containsKey("gw") && (!object["wifi"].as<JsonObject>().containsKey("mask") || !object["wifi"].as<JsonObject>().containsKey("ip"))) ||
-    (object["wifi"].as<JsonObject>().containsKey("mask") && (!object["wifi"].as<JsonObject>().containsKey("ip") || !object["wifi"].as<JsonObject>().containsKey("gw")))) {
-    result.reason = F("wifi.staticip ip, gw and mask is required");
-    return result;
-  }
-  if (object["wifi"].as<JsonObject>().containsKey("dns1") && !object["wifi"]["dns1"].is<const char*>()) {
-    result.reason = F("wifi.dns1 is not a string");
-    return result;
-  }
-  if (object["wifi"]["dns1"] && strlen(object["wifi"]["dns1"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.dns1 is too long");
-    return result;
-  }
-  if (object["wifi"]["dns1"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("dns1").as<const char*>())) {
-    result.reason = F("wifi.dns1 is not valid dns address");
-    return result;
-  }
-  if (object["wifi"].as<JsonObject>().containsKey("dns2") && !object["wifi"].as<JsonObject>().containsKey("dns1")) {
-    result.reason = F("wifi.dns2 no dns1 defined");
-    return result;
-  }
-  if (object["wifi"].as<JsonObject>().containsKey("dns2") && !object["wifi"]["dns2"].is<const char*>()) {
-    result.reason = F("wifi.dns2 is not a string");
-    return result;
-  }
-  if (object["wifi"]["dns2"] && strlen(object["wifi"]["dns2"]) + 1 > MAX_IP_STRING_LENGTH) {
-    result.reason = F("wifi.dns2 is too long");
-    return result;
-  }
-  if (object["wifi"]["dns2"] && !Helpers::validateIP(object["wifi"].as<JsonObject>().getMember("dns2").as<const char*>())) {
-    result.reason = F("wifi.dns2 is not valid dns address");
-    return result;
+
+  {
+    JsonVariant jvWiFiSsid = jvWiFi["ssid"];
+
+    if (!jvWiFiSsid.is<const char*>()) {
+      result.reason = F("wifi.ssid is not a string");
+      return result;
+    }
+    if (strlen(jvWiFiSsid.as<const char*>()) + 1 > MAX_WIFI_SSID_LENGTH) {
+      result.reason = F("wifi.ssid is too long");
+      return result;
+    }
+    if (strcmp_P(jvWiFiSsid.as<const char*>(), PSTR("")) == 0) {
+      result.reason = F("wifi.ssid is empty");
+      return result;
+    }
   }
 
-  const char* wifiSsid = object["wifi"]["ssid"];
-  if (strcmp_P(wifiSsid, PSTR("")) == 0) {
-    result.reason = F("wifi.ssid is empty");
-    return result;
+  {
+    JsonVariant jvWiFiPassword = jvWiFi["password"];
+
+    if (!jvWiFiPassword.is<const char*>()) {
+      result.reason = F("wifi.password is not a string");
+      return result;
+    }
+    if (jvWiFiPassword.as<const char*>() && strlen(jvWiFiPassword.as<const char*>()) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
+      result.reason = F("wifi.password is too long");
+      return result;
+    }
+  }
+
+  {
+    JsonVariant jvWiFiBssid = jvWiFi["bssid"];
+    JsonVariant jvWiFiChannel = jvWiFi["channel"];
+
+    if (!jvWiFiBssid.isNull() && !jvWiFiBssid.is<const char*>()) {
+      result.reason = F("wifi.bssid is not a string");
+      return result;
+    }
+    if ((!jvWiFiBssid.isNull() && jvWiFiChannel.isNull()) || (jvWiFiBssid.isNull() && !jvWiFiChannel.isNull())) {
+      result.reason = F("wifi.channel_bssid channel and BSSID is required");
+      return result;
+    }
+    if (!jvWiFiBssid.isNull() && !Helpers::validateMacAddress(jvWiFiBssid.as<const char*>())) {
+      result.reason = F("wifi.bssid is not valid mac");
+      return result;
+    }
+    if (!jvWiFiChannel.isNull() && !jvWiFiChannel.is<uint16_t>()) {
+      result.reason = F("wifi.channel is not an integer");
+      return result;
+    }
+  }
+
+  {
+    JsonVariant jvWiFiIp = jvWiFi["ip"];
+    JsonVariant jvWiFiMask = jvWiFi["mask"];
+    JsonVariant jvWiFiGateway = jvWiFi["gw"];
+
+    if (!jvWiFiIp.isNull()) {
+      if (!jvWiFiIp.is<const char*>()) {
+        result.reason = F("wifi.ip is not a string");
+        return result;
+      }
+      if (strlen(jvWiFiIp.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
+        result.reason = F("wifi.ip is too long");
+        return result;
+      }
+      if (!Helpers::validateIP(jvWiFiIp.as<const char*>())) {
+        result.reason = F("wifi.ip is not valid ip address");
+        return result;
+      }
+    }
+
+    if (!jvWiFiMask.isNull()) {
+      if (!jvWiFiMask.isNull() && !jvWiFiMask.is<const char*>()) {
+        result.reason = F("wifi.mask is not a string");
+        return result;
+      }
+      if (strlen(jvWiFiMask.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
+        result.reason = F("wifi.mask is too long");
+        return result;
+      }
+      if (!Helpers::validateIP(jvWiFiMask.as<const char*>())) {
+        result.reason = F("wifi.mask is not a valid mask");
+        return result;
+      }
+    }
+
+    if (!jvWiFiGateway.isNull()) {
+      if (!jvWiFiGateway.is<const char*>()) {
+        result.reason = F("wifi.gw is not a string");
+        return result;
+      }
+      if (strlen(jvWiFiGateway.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
+        result.reason = F("wifi.gw is too long");
+        return result;
+      }
+      if (!Helpers::validateIP(jvWiFiGateway.as<const char*>())) {
+        result.reason = F("wifi.gw is not valid gateway address");
+        return result;
+      }
+    }
+
+    if ((!jvWiFiIp.isNull() && (jvWiFiMask.isNull() || jvWiFiGateway.isNull())) ||
+      (!jvWiFiGateway.isNull() && (jvWiFiMask.isNull() || jvWiFiIp.isNull())) ||
+      (!jvWiFiMask.isNull() && (jvWiFiIp.isNull() || jvWiFiGateway.isNull()))) {
+      result.reason = F("wifi.staticip ip, gw and mask is required");
+      return result;
+    }
+  }
+
+{
+    JsonVariant jvWiFiDns1 = jvWiFi["dns1"];
+    JsonVariant jvWiFiDns2 = jvWiFi["dns2"];
+
+    if (!jvWiFiDns1.isNull()) {
+      if (!jvWiFiDns1.is<const char*>()) {
+        result.reason = F("wifi.dns1 is not a string");
+        return result;
+      }
+      if (strlen(jvWiFiDns1.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
+        result.reason = F("wifi.dns1 is too long");
+        return result;
+      }
+      if (!Helpers::validateIP(jvWiFiDns1.as<const char*>())) {
+        result.reason = F("wifi.dns1 is not a valid dns address");
+        return result;
+      }
+    }
+
+    if (!jvWiFiDns2.isNull()) {
+      if (jvWiFiDns1.isNull()) {
+        result.reason = F("wifi.dns2 no dns1 defined");
+        return result;
+      }
+      if (!jvWiFiDns2.is<const char*>()) {
+        result.reason = F("wifi.dns2 is not a string");
+        return result;
+      }
+      if (strlen(jvWiFiDns2.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
+        result.reason = F("wifi.dns2 is too long");
+        return result;
+      }
+      if (!Helpers::validateIP(jvWiFiDns2.as<const char*>())) {
+        result.reason = F("wifi.dns2 is not a valid dns address");
+        return result;
+      }
+    }
   }
 
   result.valid = true;
@@ -184,80 +236,109 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject object) 
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("mqtt") || !object["mqtt"].is<JsonObject>()) {
+  JsonVariant jvMqtt = object["mqtt"];
+
+  if (!jvMqtt.is<JsonObject>()) {
     result.reason = F("mqtt is not an object");
     return result;
   }
-  if (!object["mqtt"].as<JsonObject>().containsKey("host") || !object["mqtt"]["host"].is<const char*>()) {
-    result.reason = F("mqtt.host is not a string");
-    return result;
+
+  {
+    JsonVariant jvMqttHost = jvMqtt["host"];
+
+    if (!jvMqttHost.is<const char*>()) {
+      result.reason = F("mqtt.host is not a string");
+      return result;
+    }
+    if (strlen(jvMqttHost.as<const char*>()) + 1 > MAX_HOSTNAME_LENGTH) {
+      result.reason = F("mqtt.host is too long");
+      return result;
+    }
+    if (strcmp_P(jvMqttHost.as<const char*>(), PSTR("")) == 0) {
+      result.reason = F("mqtt.host is empty");
+      return result;
+    }
   }
-  if (strlen(object["mqtt"]["host"]) + 1 > MAX_HOSTNAME_LENGTH) {
-    result.reason = F("mqtt.host is too long");
-    return result;
+
+  {
+    JsonVariant jvMqttPort = jvMqtt["port"];
+
+    if (!jvMqttPort.isNull() && !jvMqttPort.is<uint16_t>()) {
+      result.reason = F("mqtt.port is not an integer");
+      return result;
+    }
   }
-  if (object["mqtt"].as<JsonObject>().containsKey("port") && !object["mqtt"]["port"].is<uint16_t>()) {
-    result.reason = F("mqtt.port is not an integer");
-    return result;
-  }
-  if (object["mqtt"].as<JsonObject>().containsKey("ssl")) {
-    if (!object["mqtt"]["ssl"].is<bool>()) {
+
+  {
+    JsonVariant jvMqttSsl = jvMqtt["ssl"];
+
+    if (!jvMqttSsl.isNull() && !jvMqttSsl.is<bool>()) {
       result.reason = F("mqtt.ssl is not a bool");
       return result;
     }
   }
-  if (object["mqtt"].as<JsonObject>().containsKey("ssl_fingerprint")) {
-    if (!object["mqtt"]["ssl_fingerprint"].is<const char*>()) {
-      result.reason = F("mqtt.ssl_fingerprint is not a string");
-      return result;
-    }
 
-    if (strlen(object["mqtt"]["ssl_fingerprint"]) > MAX_FINGERPRINT_SIZE * 2) {
-      result.reason = F("mqtt.ssl_fingerprint is too long");
-      return result;
-    }
-  }
-  if (object["mqtt"].as<JsonObject>().containsKey("base_topic")) {
-    if (!object["mqtt"]["base_topic"].is<const char*>()) {
-      result.reason = F("mqtt.base_topic is not a string");
-      return result;
-    }
+  {
+    JsonVariant jvMqttSslFingerprint = jvMqtt["ssl_fingerprint"];
 
-    if (strlen(object["mqtt"]["base_topic"]) + 1 > MAX_MQTT_BASE_TOPIC_LENGTH) {
-      result.reason = F("mqtt.base_topic is too long");
-      return result;
-    }
-  }
-  if (object["mqtt"].as<JsonObject>().containsKey("auth")) {
-    if (!object["mqtt"]["auth"].is<bool>()) {
-      result.reason = F("mqtt.auth is not a boolean");
-      return result;
-    }
-
-    if (object["mqtt"]["auth"]) {
-      if (!object["mqtt"].as<JsonObject>().containsKey("username") || !object["mqtt"]["username"].is<const char*>()) {
-        result.reason = F("mqtt.username is not a string");
+    if (!jvMqttSslFingerprint.isNull()) {
+      if (!jvMqttSslFingerprint.is<const char*>()) {
+        result.reason = F("mqtt.ssl_fingerprint is not a string");
         return result;
       }
-      if (strlen(object["mqtt"]["username"]) + 1 > MAX_MQTT_CREDS_LENGTH) {
-        result.reason = F("mqtt.username is too long");
-        return result;
-      }
-      if (!object["mqtt"].as<JsonObject>().containsKey("password") || !object["mqtt"]["password"].is<const char*>()) {
-        result.reason = F("mqtt.password is not a string");
-        return result;
-      }
-      if (strlen(object["mqtt"]["password"]) + 1 > MAX_MQTT_CREDS_LENGTH) {
-        result.reason = F("mqtt.password is too long");
+
+      if (strlen(jvMqttSslFingerprint.as<const char*>()) > MAX_FINGERPRINT_SIZE * 2) {
+        result.reason = F("mqtt.ssl_fingerprint is too long");
         return result;
       }
     }
   }
 
-  const char* host = object["mqtt"]["host"];
-  if (strcmp_P(host, PSTR("")) == 0) {
-    result.reason = F("mqtt.host is empty");
-    return result;
+  {
+    JsonVariant jvMqttBaseTopic = jvMqtt["base_topic"];
+
+    if (!jvMqttBaseTopic.isNull()) {
+      if (!jvMqttBaseTopic.is<const char*>()) {
+        result.reason = F("mqtt.base_topic is not a string");
+        return result;
+      }
+      if (strlen(jvMqttBaseTopic.as<const char*>()) + 1 > MAX_MQTT_BASE_TOPIC_LENGTH) {
+        result.reason = F("mqtt.base_topic is too long");
+        return result;
+      }
+    }
+  }
+
+  {
+    JsonVariant jvMqttAuth = jvMqtt["auth"];
+
+    if (!jvMqttAuth.isNull()) {
+      if (!jvMqttAuth.is<bool>()) {
+        result.reason = F("mqtt.auth is not a boolean");
+        return result;
+      }
+      if (jvMqttAuth.as<bool>()) {
+        JsonVariant jvMqttUsername = jvMqtt["username"];
+        JsonVariant jvMqttPassword = jvMqtt["password"];
+
+        if (!jvMqttUsername.is<const char*>()) {
+          result.reason = F("mqtt.username is not a string");
+          return result;
+        }
+        if (strlen(jvMqttUsername.as<const char*>()) + 1 > MAX_MQTT_CREDS_LENGTH) {
+          result.reason = F("mqtt.username is too long");
+          return result;
+        }
+        if (!jvMqttPassword.is<const char*>()) {
+          result.reason = F("mqtt.password is not a string");
+          return result;
+        }
+        if (strlen(jvMqttPassword.as<const char*>()) + 1 > MAX_MQTT_CREDS_LENGTH) {
+          result.reason = F("mqtt.password is too long");
+          return result;
+        }
+      }
+    }
   }
 
   result.valid = true;
@@ -268,13 +349,20 @@ ConfigValidationResult Validation::_validateConfigOta(const JsonObject object) {
   ConfigValidationResult result;
   result.valid = false;
 
-  if (!object.containsKey("ota") || !object["ota"].is<JsonObject>()) {
+  JsonVariant jvOta = object["ota"];
+
+  if (!jvOta.is<JsonObject>()) {
     result.reason = F("ota is not an object");
     return result;
   }
-  if (!object["ota"].as<JsonObject>().containsKey("enabled") || !object["ota"]["enabled"].is<bool>()) {
-    result.reason = F("ota.enabled is not a boolean");
-    return result;
+
+  {
+    JsonVariant jvOtaEnabled = jvOta["enabled"];
+
+    if (!jvOtaEnabled.is<bool>()) {
+      result.reason = F("ota.enabled is not a boolean");
+      return result;
+    }
   }
 
   result.valid = true;
@@ -289,8 +377,10 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject obje
 
   JsonObject settingsObject = emptySettingsDoc.to<JsonObject>();
 
-  if (object.containsKey("settings") && object["settings"].is<JsonObject>()) {
-    settingsObject = object["settings"].as<JsonObject>();
+  JsonVariant jvSettings = object["settings"];
+
+  if (jvSettings.is<JsonObject>()) {
+    settingsObject =jvSettings.as<JsonObject>();
   }
 
   if (settingsObject.size() > MAX_CONFIG_SETTING_SIZE) {//max settings here and in isettings
@@ -318,14 +408,16 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject obje
       }
     };
 
+    JsonVariant jvSetting = settingsObject[iSetting->getName()];
+
     if (iSetting->isBool()) {
       HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
 
-      if (settingsObject.containsKey(setting->getName())) {
-        if (!settingsObject[setting->getName()].is<bool>()) {
+      if (!jvSetting.isNull()) {
+        if (!jvSetting.is<bool>()) {
           setReason(Issue::Type);
           return result;
-        } else if (!setting->validate(settingsObject[setting->getName()].as<bool>())) {
+        } else if (!setting->validate(jvSetting.as<bool>())) {
           setReason(Issue::Validator);
           return result;
         }
@@ -336,11 +428,11 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject obje
     } else if (iSetting->isLong()) {
       HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
 
-      if (settingsObject.containsKey(setting->getName())) {
-        if (!settingsObject[setting->getName()].is<long>()) {
+      if (!jvSetting.isNull()) {
+        if (!jvSetting.is<long>()) {
           setReason(Issue::Type);
           return result;
-        } else if (!setting->validate(settingsObject[setting->getName()].as<long>())) {
+        } else if (!setting->validate(jvSetting.as<long>())) {
           setReason(Issue::Validator);
           return result;
         }
@@ -351,11 +443,11 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject obje
     } else if (iSetting->isDouble()) {
       HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
 
-      if (settingsObject.containsKey(setting->getName())) {
-        if (!settingsObject[setting->getName()].is<double>()) {
+      if (!jvSetting.isNull()) {
+        if (!jvSetting.is<double>()) {
           setReason(Issue::Type);
           return result;
-        } else if (!setting->validate(settingsObject[setting->getName()].as<double>())) {
+        } else if (!setting->validate(jvSetting.as<double>())) {
           setReason(Issue::Validator);
           return result;
         }
@@ -366,11 +458,11 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject obje
     } else if (iSetting->isConstChar()) {
       HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
 
-      if (settingsObject.containsKey(setting->getName())) {
-        if (!settingsObject[setting->getName()].is<const char*>()) {
+      if (!jvSetting.isNull()) {
+        if (!jvSetting.is<const char*>()) {
           setReason(Issue::Type);
           return result;
-        } else if (!setting->validate(settingsObject[setting->getName()].as<const char*>())) {
+        } else if (!setting->validate(jvSetting.as<const char*>())) {
           setReason(Issue::Validator);
           return result;
         }

@@ -129,14 +129,16 @@ void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
   }
 
   JsonObject parsedJson = parseJsonDoc.as<JsonObject>();
+  JsonVariant jvWiFiSsid = parsedJson["ssid"];
+  JsonVariant jvWiFiPassword = parsedJson["password"];
 
-  if (!parsedJson.containsKey("ssid") || !parsedJson["ssid"].is<const char*>() || !parsedJson.containsKey("password") || !parsedJson["password"].is<const char*>()) {
+  if (!jvWiFiSsid.is<const char*>() || !jvWiFiPassword.is<const char*>()) {
     __SendJSONError(request, F("✖ SSID and password required"));
     return;
   }
 
   Interface::get().getLogger() << F("Connecting to Wi-Fi") << endl;
-  WiFi.begin(parsedJson["ssid"].as<const char*>(), parsedJson["password"].as<const char*>());
+  WiFi.begin(jvWiFiSsid.as<const char*>(), jvWiFiPassword.as<const char*>());
 
   request->send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 }
@@ -191,13 +193,14 @@ void BootConfig::_onProxyControlRequest(AsyncWebServerRequest *request) {
   }
 
   JsonObject parsedJson = parseJsonDoc.as<JsonObject>();
+  JsonVariant jvProxyEnabled = parsedJson["enable"];
 
-  if (!parsedJson.containsKey("enable") || !parsedJson["enable"].is<bool>()) {
+  if (!jvProxyEnabled.is<bool>()) {
     __SendJSONError(request, F("✖ enable parameter is required"));
     return;
   }
 
-  _proxyEnabled = parsedJson["enable"];
+  _proxyEnabled = jvProxyEnabled.as<bool>();
 
   request->send(202, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), FPSTR(PROGMEM_CONFIG_JSON_SUCCESS));
 }

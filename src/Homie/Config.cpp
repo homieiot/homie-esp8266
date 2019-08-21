@@ -63,86 +63,109 @@ bool Config::load() {
     return false;
   }
 
+  // Mandatory config objects
+  JsonObject objReqWiFi = parsedJson["wifi"].as<JsonObject>();
+  JsonObject objReqMqtt = parsedJson["mqtt"].as<JsonObject>();
+  JsonObject objReqOta = parsedJson["ota"].as<JsonObject>();
+
+  // Mandatory config items
   const char* reqName = parsedJson["name"];
-  const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
-  const char* reqWifiPassword = parsedJson["wifi"]["password"];
+  const char* reqWifiSsid = objReqWiFi["ssid"];
+  const char* reqWifiPassword = objReqWiFi["password"];
+  const char* reqMqttHost = objReqMqtt["host"];
 
-  const char* reqMqttHost = parsedJson["mqtt"]["host"];
+  // Defaults for optional config items
   const char* reqDeviceId = DeviceId::get();
-  if (parsedJson.containsKey("device_id")) {
-    reqDeviceId = parsedJson["device_id"];
-  }
-  uint16_t regDeviceStatsInterval = STATS_SEND_INTERVAL_SEC; //device_stats_interval
-  if (parsedJson.containsKey(F("device_stats_interval"))) {
-    regDeviceStatsInterval = parsedJson[F("device_stats_interval")];
-  }
-
+  uint16_t reqDeviceStatsInterval = STATS_SEND_INTERVAL_SEC; //device_stats_interval
   const char* reqWifiBssid = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("bssid")) {
-    reqWifiBssid = parsedJson["wifi"]["bssid"];
-  }
   uint16_t reqWifiChannel = 0;
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("channel")) {
-    reqWifiChannel = parsedJson["wifi"]["channel"];
-  }
   const char* reqWifiIp = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("ip")) {
-    reqWifiIp = parsedJson["wifi"]["ip"];
-  }
   const char* reqWifiMask = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("mask")) {
-    reqWifiMask = parsedJson["wifi"]["mask"];
-  }
   const char* reqWifiGw = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("gw")) {
-    reqWifiGw = parsedJson["wifi"]["gw"];
-  }
   const char* reqWifiDns1 = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("dns1")) {
-    reqWifiDns1 = parsedJson["wifi"]["dns1"];
-  }
   const char* reqWifiDns2 = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("dns2")) {
-    reqWifiDns2 = parsedJson["wifi"]["dns2"];
-  }
-
   uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("port")) {
-    reqMqttPort = parsedJson["mqtt"]["port"];
-  }
   bool reqMqttSsl = false;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("ssl")) {
-    reqMqttSsl = parsedJson["mqtt"]["ssl"];
-  }
   const char* reqMqttFingerprint = "";
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("ssl_fingerprint")) {
-    reqMqttFingerprint = parsedJson["mqtt"]["ssl_fingerprint"];
-  }
   const char* reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("base_topic")) {
-    reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
-  }
   bool reqMqttAuth = false;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("auth")) {
-    reqMqttAuth = parsedJson["mqtt"]["auth"];
-  }
   const char* reqMqttUsername = "";
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("username")) {
-    reqMqttUsername = parsedJson["mqtt"]["username"];
-  }
   const char* reqMqttPassword = "";
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("password")) {
-    reqMqttPassword = parsedJson["mqtt"]["password"];
-  }
-
   bool reqOtaEnabled = false;
-  if (parsedJson["ota"].as<JsonObject>().containsKey("enabled")) {
-    reqOtaEnabled = parsedJson["ota"]["enabled"];
-  }
+
+  // JsonVariants for optional config items
+  JsonVariant jvReqDeviceId = parsedJson["device_id"];
+  JsonVariant jvReqDeviceStatsInterval = parsedJson["device_stats_interval"];
+  JsonVariant jvReqWifiBssid = objReqWiFi["bssid"];
+  JsonVariant jvReqWiFiChannel = objReqWiFi["channel"];
+  JsonVariant jvReqWiFiIp = objReqWiFi["ip"];
+  JsonVariant jvReqWiFiMask = objReqWiFi["mask"];
+  JsonVariant jvReqWiFiGw = objReqWiFi["gw"];
+  JsonVariant jvReqWiFiDns1 = objReqWiFi["dns1"];
+  JsonVariant jvReqWiFiDns2 = objReqWiFi["dns2"];
+  JsonVariant jvReqMqttPort = objReqMqtt["port"];
+  JsonVariant jvReqMqttSsl = objReqMqtt["ssl"];
+  JsonVariant jvReqMqttFingerprint = objReqMqtt["ssl_fingerprint"];
+  JsonVariant jvReqMqttBaseTopic = objReqMqtt["base_topic"];
+  JsonVariant jvReqMqttAuth = objReqMqtt["auth"];
+  JsonVariant jvReqMqttUsername = objReqMqtt["username"];
+  JsonVariant jvReqMqttPassword = objReqMqtt["password"];
+  JsonVariant jvReqOtaEnabled = objReqOta["enabled"];
+
+  if (!jvReqDeviceId.isNull())
+    reqDeviceId = jvReqDeviceId.as<const char*>();
+
+  if (!jvReqDeviceStatsInterval.isNull())
+    reqDeviceStatsInterval = jvReqDeviceStatsInterval.as<uint16_t>();
+
+  if (!jvReqWifiBssid.isNull())
+    reqWifiBssid = jvReqWifiBssid.as<const char*>();
+
+  if (!jvReqWiFiChannel.isNull())
+    reqWifiChannel = jvReqWiFiChannel.as<uint16_t>();
+
+  if (!jvReqWiFiIp.isNull())
+    reqWifiIp = jvReqWiFiIp.as<const char*>();
+
+  if (!jvReqWiFiMask.isNull())
+    reqWifiMask = jvReqWiFiMask.as<const char*>();
+
+  if (!jvReqWiFiGw.isNull())
+    reqWifiGw = jvReqWiFiGw.as<const char*>();
+
+  if (!jvReqWiFiDns1.isNull())
+    reqWifiDns1 = jvReqWiFiDns1.as<const char*>();
+
+  if (!jvReqWiFiDns2.isNull())
+    reqWifiDns2 = jvReqWiFiDns2.as<const char*>();
+
+  if (!jvReqMqttPort.isNull())
+    reqMqttPort = jvReqMqttPort.as<uint16_t>();
+
+  if (!jvReqMqttSsl.isNull())
+    reqMqttSsl = jvReqMqttSsl.as<bool>();
+
+  if (!jvReqMqttFingerprint.isNull())
+    reqMqttFingerprint = jvReqMqttFingerprint.as<const char*>();
+
+  if (!jvReqMqttBaseTopic.isNull())
+    reqMqttBaseTopic = jvReqMqttBaseTopic.as<const char*>();
+
+  if (!jvReqMqttAuth.isNull())
+    reqMqttAuth = jvReqMqttAuth.as<bool>();
+
+  if (!jvReqMqttUsername.isNull())
+    reqMqttUsername = jvReqMqttUsername.as<const char*>();
+
+  if (!jvReqMqttPassword.isNull())
+    reqMqttPassword = jvReqMqttPassword.as<const char*>();
+
+  if (!jvReqOtaEnabled.isNull())
+    reqOtaEnabled = jvReqOtaEnabled.as<bool>();
 
   strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
   strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
-  _configStruct.deviceStatsInterval = regDeviceStatsInterval;
+  _configStruct.deviceStatsInterval = reqDeviceStatsInterval;
   strlcpy(_configStruct.wifi.ssid, reqWifiSsid, MAX_WIFI_SSID_LENGTH);
   if (reqWifiPassword) strlcpy(_configStruct.wifi.password, reqWifiPassword, MAX_WIFI_PASSWORD_LENGTH);
   strlcpy(_configStruct.wifi.bssid, reqWifiBssid, MAX_MAC_STRING_LENGTH + 6);
@@ -172,29 +195,21 @@ bool Config::load() {
   JsonObject settingsObject = parsedJson["settings"].as<JsonObject>();
 
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    if (iSetting->isBool()) {
-      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+    JsonVariant jvSetting = settingsObject[iSetting->getName()];
 
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<bool>());
-      }
-    } else if (iSetting->isLong()) {
-      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<long>());
-      }
-    } else if (iSetting->isDouble()) {
-      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<double>());
-      }
-    } else if (iSetting->isConstChar()) {
-      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(strdup(settingsObject[setting->getName()].as<const char*>()));
+    if (!jvSetting.isNull()) {
+      if (iSetting->isBool()) {
+        HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+        setting->set(jvSetting.as<bool>());
+      } else if (iSetting->isLong()) {
+        HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+        setting->set(jvSetting.as<long>());
+      } else if (iSetting->isDouble()) {
+        HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+        setting->set(jvSetting.as<double>());
+      } else if (iSetting->isConstChar()) {
+        HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+        setting->set(strdup(jvSetting.as<const char*>()));
       }
     }
   }
@@ -306,24 +321,28 @@ bool Config::patch(const char* patch) {
   deserializeJson(configJsonDoc, configJson);
   JsonObject configObject = configJsonDoc.as<JsonObject>();
 
-  // To do alow object that dont currently exist to be added like settings.
-  // if settings wasnt there origionally then it should be allowed to be added by incremental.
-  for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
-    if (patchObject[it->key()].is<JsonObject>()) {
-      JsonObject subObject = patchObject[it->key()].as<JsonObject>();
-      for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
-        if (!configObject.containsKey(it->key()) || !configObject[it->key()].is<JsonObject>()) {
-          String error = "✖ Config does not contain a ";
-          error.concat(it->key().c_str());
-          error.concat(" object");
-          Interface::get().getLogger() << error << endl;
-          return false;
+  // ToDo: allow patching on a higher depth using recursive functions
+  for (JsonObject::iterator patchRootElement = patchObject.begin(); patchRootElement != patchObject.end(); ++patchRootElement) {
+    if (patchObject[patchRootElement->key()].is<JsonObject>()) {
+      JsonObject patchRootObject = patchObject[patchRootElement->key()];
+      for (JsonObject::iterator patchSubElement = patchRootObject.begin(); patchSubElement != patchRootObject.end(); ++patchSubElement) {
+        JsonVariant configRootElement = configObject[patchSubElement->key()];
+
+        if (!configRootElement.isNull() && configRootElement.is<JsonObject>()) {
+          configRootElement[patchSubElement->key()] = patchSubElement->value();
+        }  // Allow overwriting null objects:
+        else if (configRootElement.isNull() || (configRootElement.is<const char*>() && !configRootElement.as<const char*>())) {
+          configObject[patchRootElement->key()] = patchRootObject;
+        } else {
+            String error = "✖ Config already contains a ";
+            error.concat(patchRootElement->key().c_str());
+            error.concat(" element which is not an object");
+            Interface::get().getLogger() << error << endl;
+            return false;
         }
-        JsonObject subConfigObject = configObject[it->key()].as<JsonObject>();
-        subConfigObject[it2->key()] = it2->value();
       }
     } else {
-      configObject[it->key()] = it->value();
+      configObject[patchRootElement->key()] = patchRootElement->value();
     }
   }
 
