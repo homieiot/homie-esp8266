@@ -30,6 +30,10 @@ ConfigValidationResult Validation::_validateConfigRoot(const JsonObject object) 
       result.reason = F("name is not a string");
       return result;
     }
+    if (!jvName.as<const char*>()) {
+      result.reason = F("name is null");
+      return result;
+    }
     if (strlen(jvName.as<const char*>()) + 1 > MAX_FRIENDLY_NAME_LENGTH) {
       result.reason = F("name is too long");
       return result;
@@ -46,6 +50,10 @@ ConfigValidationResult Validation::_validateConfigRoot(const JsonObject object) 
     if (!jvDeviceId.isNull()) {
       if (!jvDeviceId.is<const char*>()) {
         result.reason = F("device_id is not a string");
+        return result;
+      }
+      if (!jvDeviceId.as<const char*>()) {
+        result.reason = F("device_id is null");
         return result;
       }
       if (strlen(jvDeviceId.as<const char*>()) + 1 > MAX_DEVICE_ID_LENGTH) {
@@ -86,6 +94,10 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
       result.reason = F("wifi.ssid is not a string");
       return result;
     }
+    if (!jvWiFiSsid.as<const char*>()) {
+      result.reason = F("wifi.ssid is null");
+      return result;
+    }
     if (strlen(jvWiFiSsid.as<const char*>()) + 1 > MAX_WIFI_SSID_LENGTH) {
       result.reason = F("wifi.ssid is too long");
       return result;
@@ -113,20 +125,26 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
     JsonVariant jvWiFiBssid = jvWiFi["bssid"];
     JsonVariant jvWiFiChannel = jvWiFi["channel"];
 
-    if (!jvWiFiBssid.isNull() && !jvWiFiBssid.is<const char*>()) {
-      result.reason = F("wifi.bssid is not a string");
+    if (!jvWiFiBssid.isNull()) {
+      if (!jvWiFiBssid.is<const char*>()) {
+        result.reason = F("wifi.bssid is not a string");
+        return result;
+      }
+      if (!jvWiFiBssid.as<const char*>()) {
+        result.reason = F("wifi.bssid is null");
+        return result;
+      }
+      if (!Helpers::validateMacAddress(jvWiFiBssid.as<const char*>())) {
+        result.reason = F("wifi.bssid is not valid mac");
+        return result;
+      }
+    }
+    if (!jvWiFiChannel.isNull() && !jvWiFiChannel.is<uint16_t>()) {
+      result.reason = F("wifi.channel is not an integer");
       return result;
     }
     if ((!jvWiFiBssid.isNull() && jvWiFiChannel.isNull()) || (jvWiFiBssid.isNull() && !jvWiFiChannel.isNull())) {
       result.reason = F("wifi.channel_bssid channel and BSSID is required");
-      return result;
-    }
-    if (!jvWiFiBssid.isNull() && !Helpers::validateMacAddress(jvWiFiBssid.as<const char*>())) {
-      result.reason = F("wifi.bssid is not valid mac");
-      return result;
-    }
-    if (!jvWiFiChannel.isNull() && !jvWiFiChannel.is<uint16_t>()) {
-      result.reason = F("wifi.channel is not an integer");
       return result;
     }
   }
@@ -141,6 +159,10 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
         result.reason = F("wifi.ip is not a string");
         return result;
       }
+      if (!jvWiFiIp.as<const char*>()) {
+        result.reason = F("wifi.ip is null");
+        return result;
+      }
       if (strlen(jvWiFiIp.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
         result.reason = F("wifi.ip is too long");
         return result;
@@ -152,8 +174,12 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
     }
 
     if (!jvWiFiMask.isNull()) {
-      if (!jvWiFiMask.isNull() && !jvWiFiMask.is<const char*>()) {
+      if (!jvWiFiMask.is<const char*>()) {
         result.reason = F("wifi.mask is not a string");
+        return result;
+      }
+      if (!jvWiFiMask.as<const char*>()) {
+        result.reason = F("wifi.mask is null");
         return result;
       }
       if (strlen(jvWiFiMask.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
@@ -169,6 +195,10 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
     if (!jvWiFiGateway.isNull()) {
       if (!jvWiFiGateway.is<const char*>()) {
         result.reason = F("wifi.gw is not a string");
+        return result;
+      }
+      if (!jvWiFiGateway.as<const char*>()) {
+        result.reason = F("wifi.gw is null");
         return result;
       }
       if (strlen(jvWiFiGateway.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
@@ -198,6 +228,10 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
         result.reason = F("wifi.dns1 is not a string");
         return result;
       }
+      if (!jvWiFiDns1.as<const char*>()) {
+        result.reason = F("wifi.dns1 is null");
+        return result;
+      }
       if (strlen(jvWiFiDns1.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
         result.reason = F("wifi.dns1 is too long");
         return result;
@@ -215,6 +249,10 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
       }
       if (!jvWiFiDns2.is<const char*>()) {
         result.reason = F("wifi.dns2 is not a string");
+        return result;
+      }
+      if (!jvWiFiDns2.as<const char*>()) {
+        result.reason = F("wifi.dns2 is null");
         return result;
       }
       if (strlen(jvWiFiDns2.as<const char*>()) + 1 > MAX_IP_STRING_LENGTH) {
@@ -248,6 +286,10 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject object) 
 
     if (!jvMqttHost.is<const char*>()) {
       result.reason = F("mqtt.host is not a string");
+      return result;
+    }
+    if (!jvMqttHost.as<const char*>()) {
+      result.reason = F("mqtt.host is null");
       return result;
     }
     if (strlen(jvMqttHost.as<const char*>()) + 1 > MAX_HOSTNAME_LENGTH) {
@@ -286,7 +328,10 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject object) 
         result.reason = F("mqtt.ssl_fingerprint is not a string");
         return result;
       }
-
+      if (!jvMqttSslFingerprint.as<const char*>()) {
+        result.reason = F("mqtt.ssl_fingerprint is null");
+        return result;
+      }
       if (strlen(jvMqttSslFingerprint.as<const char*>()) > MAX_FINGERPRINT_SIZE * 2) {
         result.reason = F("mqtt.ssl_fingerprint is too long");
         return result;
@@ -300,6 +345,10 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject object) 
     if (!jvMqttBaseTopic.isNull()) {
       if (!jvMqttBaseTopic.is<const char*>()) {
         result.reason = F("mqtt.base_topic is not a string");
+        return result;
+      }
+      if (!jvMqttBaseTopic.as<const char*>()) {
+        result.reason = F("mqtt.base_topic is null");
         return result;
       }
       if (strlen(jvMqttBaseTopic.as<const char*>()) + 1 > MAX_MQTT_BASE_TOPIC_LENGTH) {
@@ -325,12 +374,20 @@ ConfigValidationResult Validation::_validateConfigMqtt(const JsonObject object) 
           result.reason = F("mqtt.username is not a string");
           return result;
         }
+        if (!jvMqttUsername.as<const char*>()) {
+          result.reason = F("mqtt.username is null");
+          return result;
+        }
         if (strlen(jvMqttUsername.as<const char*>()) + 1 > MAX_MQTT_CREDS_LENGTH) {
           result.reason = F("mqtt.username is too long");
           return result;
         }
         if (!jvMqttPassword.is<const char*>()) {
           result.reason = F("mqtt.password is not a string");
+          return result;
+        }
+        if (!jvMqttPassword.as<const char*>()) {
+          result.reason = F("mqtt.password is null");
           return result;
         }
         if (strlen(jvMqttPassword.as<const char*>()) + 1 > MAX_MQTT_CREDS_LENGTH) {
@@ -379,8 +436,13 @@ ConfigValidationResult Validation::_validateConfigSettings(const JsonObject obje
 
   JsonVariant jvSettings = object["settings"];
 
-  if (jvSettings.is<JsonObject>()) {
-    settingsObject =jvSettings.as<JsonObject>();
+  if (!jvSettings.isNull()) {
+    if (jvSettings.is<JsonObject>()) {
+      settingsObject = jvSettings.as<JsonObject>();
+    } else {
+      result.reason = F("settings is not an object");
+      return result;
+    }
   }
 
   if (settingsObject.size() > MAX_CONFIG_SETTING_SIZE) {//max settings here and in isettings
