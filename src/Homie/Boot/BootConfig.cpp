@@ -342,7 +342,7 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   Interface::get().getLogger() << F("Received device information request") << endl;
   auto numSettings = IHomieSetting::settings.size();
   auto numNodes = HomieNode::nodes.size();
-  DynamicJsonDocument jsonDoc(JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
+  DynamicJsonDocument jsonDoc(JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(numNodes) + (numNodes * JSON_OBJECT_SIZE(2)) + JSON_ARRAY_SIZE(numSettings) + (numSettings * JSON_OBJECT_SIZE(5)));
   JsonObject json = jsonDoc.to<JsonObject>();
   json["hardware_device_id"] = DeviceId::get();
   json["homie_esp8266_version"] = HOMIE_ESP8266_VERSION;
@@ -386,7 +386,7 @@ void BootConfig::_onDeviceInfoRequest(AsyncWebServerRequest *request) {
   }
 
   String output;
-  serializeJson(json, output);
+  serializeJson(jsonDoc, output);
 
   request->send(200, FPSTR(PROGMEM_CONFIG_APPLICATION_JSON), output);
 }
