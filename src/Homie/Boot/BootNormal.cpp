@@ -362,7 +362,7 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
 void BootNormal::_onWifiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
   Interface::get().ready = false;
   if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
-  _statsTimer.reset();
+  _statsTimer.deactivate();
   Interface::get().getLogger() << F("✖ Wi-Fi disconnected, reason: ") << info.disconnected.reason << endl;
   Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
@@ -375,7 +375,7 @@ void BootNormal::_onWifiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event) {
   Interface::get().ready = false;
   if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
-  _statsTimer.reset();
+  _statsTimer.deactivate();
   Interface::get().getLogger() << F("✖ Wi-Fi disconnected, reason: ") << event.reason << endl;
   Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
@@ -735,6 +735,7 @@ void BootNormal::_advertise() {
 void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
   _mqttReconnectTimer.deactivate();
+  _statsTimer.activate();
 
   Update.end();
 
@@ -753,7 +754,7 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
   _advertisementProgress.currentNodeIndex = 0;
   _advertisementProgress.currentPropertyIndex = 0;
   if (!_mqttDisconnectNotified) {
-    _statsTimer.reset();
+    _statsTimer.deactivate();
     Interface::get().getLogger() << F("✖ MQTT disconnected, reason: ") << (int8_t)reason << endl;
     Interface::get().getLogger() << F("Triggering MQTT_DISCONNECTED event...") << endl;
     Interface::get().event.type = HomieEventType::MQTT_DISCONNECTED;
