@@ -2,6 +2,9 @@
 
 #include "Arduino.h"
 
+#include "../Constants.hpp"
+#if HOMIE_CONFIG
+
 #include <functional>
 #ifdef ESP32
 #include <WiFi.h>
@@ -17,7 +20,6 @@
 #include <DNSServer.h>
 #include <ArduinoJson.h>
 #include "Boot.hpp"
-#include "../Constants.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
 #include "../Timer.hpp"
@@ -29,7 +31,6 @@
 #include "../../HomieSetting.hpp"
 #include "../../StreamingOperator.hpp"
 
-#if HOMIE_CONFIG
 namespace HomieInternals {
 class BootConfig : public Boot {
  public:
