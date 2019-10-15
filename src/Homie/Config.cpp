@@ -304,26 +304,7 @@ bool Config::patch(const char* patch) {
   deserializeJson(configJsonDoc, configJson);
   JsonObject configObject = configJsonDoc.as<JsonObject>();
 
-  // To do alow object that dont currently exist to be added like settings.
-  // if settings wasnt there origionally then it should be allowed to be added by incremental.
-  for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
-    if (patchObject[it->key()].is<JsonObject>()) {
-      JsonObject subObject = patchObject[it->key()].as<JsonObject>();
-      for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
-        if (!configObject.containsKey(it->key()) || !configObject[it->key()].is<JsonObject>()) {
-          String error = "✖ Config does not contain a ";
-          error.concat(it->key().c_str());
-          error.concat(" object");
-          Interface::get().getLogger() << error << endl;
-          return false;
-        }
-        JsonObject subConfigObject = configObject[it->key()].as<JsonObject>();
-        subConfigObject[it2->key()] = it2->value();
-      }
-    } else {
-      configObject[it->key()] = it->value();
-    }
-  }
+  _patchJsonObject(configObject, patchObject);
 
   ConfigValidationResult configValidationResult = Validation::validateConfig(configObject);
   if (!configValidationResult.valid) {
@@ -334,6 +315,20 @@ bool Config::patch(const char* patch) {
   write(configObject);
 
   return true;
+}
+
+void Config::_patchJsonObject(JsonObject object, JsonObject patch) {
+  for (JsonPair patchRootElement : patch) {
+    JsonVariant patchElement = patchRootElement.value();
+    JsonVariant origElement = object[patchRootElement.key()];
+
+    /* Overwrite a config element if it is not existent or not an object or if the patch equivalent is not an object */
+    if (origElement.isNull() || !origElement.is<JsonObject>() || !patchElement.is<JsonObject>()) {
+      object[patchRootElement.key()] = patchElement;
+    } else {
+        _patchJsonObject(origElement.as<JsonObject>(), patchElement.as<JsonObject>());
+    }
+  }
 }
 
 bool Config::isValid() const {
