@@ -62,82 +62,35 @@ bool Config::load() {
     return false;
   }
 
+  /* Mandatory config items */
+  JsonObject reqWifi = parsedJson["wifi"];
+  JsonObject reqMqtt = parsedJson["mqtt"];
+
   const char* reqName = parsedJson["name"];
-  const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
-  const char* reqWifiPassword = parsedJson["wifi"]["password"];
+  const char* reqWifiSsid = reqWifi["ssid"];
+  const char* reqWifiPassword = reqWifi["password"];
+  const char* reqMqttHost = reqMqtt["host"];
 
-  const char* reqMqttHost = parsedJson["mqtt"]["host"];
-  const char* reqDeviceId = DeviceId::get();
-  if (parsedJson.containsKey("device_id")) {
-    reqDeviceId = parsedJson["device_id"];
-  }
-  uint16_t regDeviceStatsInterval = STATS_SEND_INTERVAL_SEC; //device_stats_interval
-  if (parsedJson.containsKey(F("device_stats_interval"))) {
-    regDeviceStatsInterval = parsedJson[F("device_stats_interval")];
-  }
+  /* Optional config items */
+  const char* reqDeviceId = parsedJson["device_id"] | DeviceId::get();
+  uint16_t regDeviceStatsInterval = parsedJson["device_stats_interval"] | STATS_SEND_INTERVAL_SEC;
+  bool reqOtaEnabled = parsedJson["ota"]["enabled"] | false;
 
-  const char* reqWifiBssid = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("bssid")) {
-    reqWifiBssid = parsedJson["wifi"]["bssid"];
-  }
-  uint16_t reqWifiChannel = 0;
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("channel")) {
-    reqWifiChannel = parsedJson["wifi"]["channel"];
-  }
-  const char* reqWifiIp = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("ip")) {
-    reqWifiIp = parsedJson["wifi"]["ip"];
-  }
-  const char* reqWifiMask = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("mask")) {
-    reqWifiMask = parsedJson["wifi"]["mask"];
-  }
-  const char* reqWifiGw = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("gw")) {
-    reqWifiGw = parsedJson["wifi"]["gw"];
-  }
-  const char* reqWifiDns1 = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("dns1")) {
-    reqWifiDns1 = parsedJson["wifi"]["dns1"];
-  }
-  const char* reqWifiDns2 = "";
-  if (parsedJson["wifi"].as<JsonObject>().containsKey("dns2")) {
-    reqWifiDns2 = parsedJson["wifi"]["dns2"];
-  }
+  uint16_t reqWifiChannel = reqWifi["channel"] | 0;
+  const char* reqWifiBssid = reqWifi["bssid"] | "";
+  const char* reqWifiIp = reqWifi["ip"] | "";
+  const char* reqWifiMask = reqWifi["mask"] | "";
+  const char* reqWifiGw = reqWifi["gw"] | "";
+  const char* reqWifiDns1 = reqWifi["dns1"] | "";
+  const char* reqWifiDns2 = reqWifi["dns2"] | "";
 
-  uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("port")) {
-    reqMqttPort = parsedJson["mqtt"]["port"];
-  }
-  bool reqMqttSsl = false;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("ssl")) {
-    reqMqttSsl = parsedJson["mqtt"]["ssl"];
-  }
-  const char* reqMqttFingerprint = "";
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("ssl_fingerprint")) {
-    reqMqttFingerprint = parsedJson["mqtt"]["ssl_fingerprint"];
-  }
-  const char* reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("base_topic")) {
-    reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
-  }
-  bool reqMqttAuth = false;
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("auth")) {
-    reqMqttAuth = parsedJson["mqtt"]["auth"];
-  }
-  const char* reqMqttUsername = "";
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("username")) {
-    reqMqttUsername = parsedJson["mqtt"]["username"];
-  }
-  const char* reqMqttPassword = "";
-  if (parsedJson["mqtt"].as<JsonObject>().containsKey("password")) {
-    reqMqttPassword = parsedJson["mqtt"]["password"];
-  }
-
-  bool reqOtaEnabled = false;
-  if (parsedJson["ota"].as<JsonObject>().containsKey("enabled")) {
-    reqOtaEnabled = parsedJson["ota"]["enabled"];
-  }
+  uint16_t reqMqttPort = reqMqtt["port"] | DEFAULT_MQTT_PORT;
+  bool reqMqttSsl = reqMqtt["ssl"] | false;
+  bool reqMqttAuth = reqMqtt["auth"] | false;
+  const char* reqMqttUsername = reqMqtt["username"] | "";
+  const char* reqMqttPassword = reqMqtt["password"] | "";
+  const char* reqMqttFingerprint = reqMqtt["ssl_fingerprint"] | "";
+  const char* reqMqttBaseTopic = reqMqtt["base_topic"] | DEFAULT_MQTT_BASE_TOPIC;
 
   strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
   strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
@@ -171,29 +124,21 @@ bool Config::load() {
   JsonObject settingsObject = parsedJson["settings"].as<JsonObject>();
 
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    if (iSetting->isBool()) {
-      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+    JsonVariant reqSetting = settingsObject[iSetting->getName()];
 
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<bool>());
-      }
-    } else if (iSetting->isLong()) {
-      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<long>());
-      }
-    } else if (iSetting->isDouble()) {
-      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<double>());
-      }
-    } else if (iSetting->isConstChar()) {
-      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(strdup(settingsObject[setting->getName()].as<const char*>()));
+    if (!reqSetting.isNull()) {
+      if (iSetting->isBool()) {
+        HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+        setting->set(reqSetting.as<bool>());
+      } else if (iSetting->isLong()) {
+        HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+        setting->set(reqSetting.as<long>());
+      } else if (iSetting->isDouble()) {
+        HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+        setting->set(reqSetting.as<double>());
+      } else if (iSetting->isConstChar()) {
+        HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+        setting->set(strdup(reqSetting.as<const char*>()));
       }
     }
   }
