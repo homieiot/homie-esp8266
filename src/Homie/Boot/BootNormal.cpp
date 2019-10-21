@@ -44,7 +44,7 @@ void BootNormal::setup() {
 
   // Generate topic buffer
   size_t baseTopicLength = strlen(Interface::get().getConfig().get().mqtt.baseTopic) + strlen(Interface::get().getConfig().get().deviceId);
-  size_t longestSubtopicLength = 29 + 1;  // /$implementation/ota/firmware
+  size_t longestSubtopicLength = 31 + 1;  // /$implementation/ota/firmware/+
   for (HomieNode* iNode : HomieNode::nodes) {
     size_t nodeMaxTopicLength = 1 + strlen(iNode->getId()) + 12 + 1;  // /id/$properties
     if (nodeMaxTopicLength > longestSubtopicLength) longestSubtopicLength = nodeMaxTopicLength;
