@@ -12,7 +12,7 @@ It is possible to register `setup()` and `loop()` functions:
 These functions have to be set before calling `setup()`. 
 
 * The function passed in `setLoopFunction()` is called from Homie.loop() when MQTT is connected.
-* The function passed in `setSetupfunction()` is called after the first MQTT connection has been made.
+* The function passed in `setSetupFunction()` is called after the first MQTT connection has been made.
 
 # Global Event Handler
 
