@@ -1,4 +1,4 @@
-This *Getting Started* guide assumes you have an ESP8266 board with an user-configurable LED, and an user programmable button, like a NodeMCU DevKit 1.0, for example. These restrictions can be lifted (see next pages).
+This *Getting Started* guide assumes you have an ESP8266 board with a user-configurable LED, and a user programmable button, like a NodeMCU DevKit 1.0, for example. These restrictions can be lifted (see next pages).
 
 To use Homie for ESP8266, you will need:
 
@@ -114,9 +114,9 @@ Although the sketch looks like it does not do anything, it actually does quite a
 * It subscribes to the special OTA and configuration topics, automatically flashing a sketch if available or updating the configuration
 * It checks for a button press on the ESP8266, to return to `configuration` mode
 
-## Creating an useful sketch
+## Creating a useful sketch
 
-Now that we understand how Homie for ESP8266 works, let's create an useful sketch. We want to create a smart light.
+Now that we understand how Homie for ESP8266 works, let's create a useful sketch. We want to create a smart light.
 
 [![GitHub logo](../assets/github.png) LightOnOff.ino](https://github.com/homieiot/homie-esp8266/blob/develop/examples/LightOnOff/LightOnOff.ino)
 
