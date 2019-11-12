@@ -92,6 +92,7 @@ class BootNormal : public Boot {
   std::unique_ptr<char[]> _mqttPayloadBuffer;
   std::unique_ptr<char*[]> _mqttTopicLevels;
   uint8_t _mqttTopicLevelsCount;
+  std::unique_ptr<char[]> _mqttTopicCopy;
 
   void _wifiConnect();
   void _onWifiGotIp(const WiFiEventStationModeGotIP& event);
