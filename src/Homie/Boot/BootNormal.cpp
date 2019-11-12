@@ -20,7 +20,10 @@ BootNormal::BootNormal()
   , _mqttWillTopic(nullptr)
   , _mqttPayloadBuffer(nullptr)
   , _mqttTopicLevels(nullptr)
-  , _mqttTopicLevelsCount(0) {
+  , _mqttTopicLevelsCount(0)
+  , _mqttTopicCopy(nullptr)
+  {strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
+  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
 }
 
 BootNormal::~BootNormal() {
@@ -780,23 +783,28 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
   if (total == 0) return;  // no empty message possible
 
+  size_t topicLength = strlen(topic);
+  _mqttTopicCopy = std::unique_ptr<char[]>(new char[topicLength+1]);
+  memcpy(_mqttTopicCopy.get(), topic, topicLength);
+  _mqttTopicCopy.get()[topicLength] = '\0';
+
   // split topic on each "/"
   if (index == 0) {
-    __splitTopic(topic);
+    __splitTopic(_mqttTopicCopy.get());
   }
 
   // 1. Handle OTA firmware (not copied to payload buffer)
-  if (__handleOTAUpdates(topic, payload, properties, len, index, total))
+  if (__handleOTAUpdates(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   // 2. Fill Payload Buffer
-  if (__fillPayloadBuffer(topic, payload, properties, len, index, total))
+  if (__fillPayloadBuffer(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   /* Arrived here, the payload is complete */
 
   // 3. handle broadcasts
-  if (__handleBroadcasts(topic, payload, properties, len, index, total))
+  if (__handleBroadcasts(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   // 4.all following messages are only for this deviceId
@@ -804,15 +812,15 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
 
   // 5. handle reset
-  if (__handleResets(topic, payload, properties, len, index, total))
+  if (__handleResets(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   // 6. handle config set
-  if (__handleConfig(topic, payload, properties, len, index, total))
+  if (__handleConfig(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   // 7. here, we're sure we have a node property
-  if (__handleNodeProperty(topic, payload, properties, len, index, total))
+  if (__handleNodeProperty(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 }
 
