@@ -1,6 +1,6 @@
 #include <Homie.h>
 
-#define firmwareVersion "1.0.0";
+#define firmwareVersion "1.0.0"
 const int PIN_RELAY = 5;
 
 HomieNode lightNode("light", "Light", "switch");
