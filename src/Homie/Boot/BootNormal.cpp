@@ -21,9 +21,7 @@ BootNormal::BootNormal()
   , _mqttPayloadBuffer(nullptr)
   , _mqttTopicLevels(nullptr)
   , _mqttTopicLevelsCount(0)
-  , _mqttTopicCopy(nullptr)
-  {strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
-  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
+  , _mqttTopicCopy(nullptr) {
 }
 
 BootNormal::~BootNormal() {
