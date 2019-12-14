@@ -190,7 +190,7 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
     JsonVariant wifiDns2 = wifi["dns2"];
 
     if (!wifiDns1.isNull()) {
-      if (wifiDns1.as<const char*>()) {
+      if (!wifiDns1.as<const char*>()) {
         result.reason = F("wifi.dns1 is not a string");
         return result;
       }
@@ -204,7 +204,7 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
       }
     }
     if (!wifiDns2.isNull()) {
-      if (wifiDns2.as<const char*>()) {
+      if (!wifiDns2.as<const char*>()) {
         result.reason = F("wifi.dns2 is not a string");
         return result;
       }
