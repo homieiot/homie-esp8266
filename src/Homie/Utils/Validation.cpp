@@ -345,17 +345,19 @@ ConfigValidationResult Validation::_validateConfigOta(const JsonObject object) {
 
   JsonVariant ota = object["ota"];
 
-  if (!ota.is<JsonObject>()) {
-    result.reason = F("ota is not an object");
-    return result;
-  }
-
-  {
-    JsonVariant otaEnabled = ota["enabled"];
-
-    if (!otaEnabled.is<bool>()) {
-      result.reason = F("ota.enabled is not a boolean");
+  if (!ota.isNull()) {
+    if (!ota.is<JsonObject>()) {
+      result.reason = F("ota is not an object");
       return result;
+    }
+
+    {
+      JsonVariant otaEnabled = ota["enabled"];
+
+      if (!otaEnabled.isNull() && !otaEnabled.is<bool>()) {
+        result.reason = F("ota.enabled is not a boolean");
+        return result;
+      }
     }
   }
 
