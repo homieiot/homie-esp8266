@@ -781,13 +781,14 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
   if (total == 0) return;  // no empty message possible
 
-  size_t topicLength = strlen(topic);
-  _mqttTopicCopy = std::unique_ptr<char[]>(new char[topicLength+1]);
-  memcpy(_mqttTopicCopy.get(), topic, topicLength);
-  _mqttTopicCopy.get()[topicLength] = '\0';
-
-  // split topic on each "/"
   if (index == 0) {
+    // Copy the topic
+    size_t topicLength = strlen(topic);
+    _mqttTopicCopy = std::unique_ptr<char[]>(new char[topicLength+1]);
+    memcpy(_mqttTopicCopy.get(), topic, topicLength);
+    _mqttTopicCopy.get()[topicLength] = '\0';
+
+    // Split the topic copy on each "/"
     __splitTopic(_mqttTopicCopy.get());
   }
 
