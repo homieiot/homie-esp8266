@@ -68,7 +68,6 @@ bool Config::load() {
 
   const char* reqName = parsedJson["name"];
   const char* reqWifiSsid = reqWifi["ssid"];
-  const char* reqWifiPassword = reqWifi["password"];
   const char* reqMqttHost = reqMqtt["host"];
 
   /* Optional config items */
@@ -78,6 +77,7 @@ bool Config::load() {
 
   uint16_t reqWifiChannel = reqWifi["channel"] | 0;
   const char* reqWifiBssid = reqWifi["bssid"] | "";
+  const char* reqWifiPassword = reqWifi["password"]; // implicit | nullptr;
   const char* reqWifiIp = reqWifi["ip"] | "";
   const char* reqWifiMask = reqWifi["mask"] | "";
   const char* reqWifiGw = reqWifi["gw"] | "";
