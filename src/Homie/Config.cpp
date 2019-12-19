@@ -164,9 +164,9 @@ char* Config::getSafeConfigFile() const {
   parsedJson["mqtt"].as<JsonObject>().remove("password");
 
   size_t jsonBufferLength = measureJson(jsonDoc) + 1;
-  std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
-  serializeJson(jsonDoc, jsonString.get(), jsonBufferLength);
-  return strdup(jsonString.get());
+  char* jsonString = new char[jsonBufferLength];
+  serializeJson(jsonDoc, jsonString, jsonBufferLength);
+  return jsonString;
 }
 
 void Config::erase() {
