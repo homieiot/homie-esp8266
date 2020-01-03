@@ -14,11 +14,13 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/homieiot/homie-esp8266.git",
-    "branch": "master"
+    "url": "https://github.com/homieiot/homie-esp8266.git"
   },
   "frameworks": "arduino",
-  "platforms": "espressif8266",
+  "platforms": [
+    "espressif8266",
+    "espressif32"
+  ],
   "dependencies": [
     {
       "name": "ArduinoJson",
