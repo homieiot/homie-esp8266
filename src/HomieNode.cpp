@@ -9,8 +9,34 @@ PropertyInterface::PropertyInterface()
 : _property(nullptr) {
 }
 
-void PropertyInterface::settable(const PropertyInputHandler& inputHandler) {
+PropertyInterface& PropertyInterface::settable(const PropertyInputHandler& inputHandler) {
   _property->settable(inputHandler);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setName(const char* name) {
+  _property->setName(name);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setUnit(const char* unit) {
+  _property->setUnit(unit);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setDatatype(const char* datatype) {
+  _property->setDatatype(datatype);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setFormat(const char* format) {
+  _property->setFormat(format);
+  return *this;
+}
+
+PropertyInterface& PropertyInterface::setRetained(const bool retained) {
+  _property->setRetained(retained);
+  return *this;
 }
 
 PropertyInterface& PropertyInterface::setProperty(Property* property) {
@@ -18,9 +44,14 @@ PropertyInterface& PropertyInterface::setProperty(Property* property) {
   return *this;
 }
 
-HomieNode::HomieNode(const char* id, const char* type, const NodeInputHandler& inputHandler)
+HomieNode::HomieNode(const char* id, const char* name, const char* type, bool range, uint16_t lower, uint16_t upper, const NodeInputHandler& inputHandler)
 : _id(id)
+, _name(name)
 , _type(type)
+, _range(range)
+, _lower(lower)
+, _upper(upper)
+, runLoopDisconnected(false)
 , _properties()
 , _inputHandler(inputHandler) {
   if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
@@ -37,16 +68,8 @@ HomieNode::~HomieNode() {
     return;  // never reached, here for clarity
 }
 
-PropertyInterface& HomieNode::advertise(const char* property) {
-  Property* propertyObject = new Property(property);
-
-  _properties.push_back(propertyObject);
-
-  return _propertyInterface.setProperty(propertyObject);
-}
-
-PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
-  Property* propertyObject = new Property(property, true, lower, upper);
+PropertyInterface& HomieNode::advertise(const char* id) {
+  Property* propertyObject = new Property(id);
 
   _properties.push_back(propertyObject);
 
@@ -54,11 +77,24 @@ PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lowe
 }
 
 SendingPromise& HomieNode::setProperty(const String& property) const {
-  return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true).overwriteSetter(false).setRange({ .isRange = false, .index = 0 });
+  Property* iProperty = this->getProperty(property);
+  if (iProperty &&  iProperty->isRetained()) {
+      return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true);
+  } else {
+      return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1);
+  }
 }
 
-bool HomieNode::handleInput(const String& property, const HomieRange& range, const String& value) {
-  return _inputHandler(property, range, value);
+Property* HomieNode::getProperty(const String& property) const {
+  for (Property* iProperty : getProperties()) {
+    if (strcmp(iProperty->getId(), property.c_str()) == 0)
+       return iProperty;
+  }
+  return NULL;
+}
+
+bool HomieNode::handleInput(const HomieRange& range, const String& property, const String& value) {
+  return _inputHandler(range, property, value);
 }
 
 const std::vector<HomieInternals::Property*>& HomieNode::getProperties() const {

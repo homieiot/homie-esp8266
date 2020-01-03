@@ -2,15 +2,24 @@
 
 #include "Arduino.h"
 
+#include "../Constants.hpp"
+#if HOMIE_CONFIG
+
 #include <functional>
+#ifdef ESP32
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <AsyncTCP.h>
+#include <SPIFFS.h>
+#elif defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ESPAsyncTCP.h>
+#endif // ESP32
 #include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
 #include <ArduinoJson.h>
 #include "Boot.hpp"
-#include "../Constants.hpp"
 #include "../Limits.hpp"
 #include "../Datatypes/Interface.hpp"
 #include "../Timer.hpp"
@@ -61,3 +70,5 @@ class BootConfig : public Boot {
   static void __SendJSONError(AsyncWebServerRequest *request, String msg, int16_t code = 400);
 };
 }  // namespace HomieInternals
+
+#endif

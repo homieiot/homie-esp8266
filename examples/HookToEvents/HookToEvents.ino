@@ -44,6 +44,9 @@ void onHomieEvent(const HomieEvent& event) {
     case HomieEventType::READY_TO_SLEEP:
       Serial << "Ready to sleep" << endl;
       break;
+    case HomieEventType::SENDING_STATISTICS:
+      Serial << "Sending statistics" << endl;
+      break;
   }
 }
 

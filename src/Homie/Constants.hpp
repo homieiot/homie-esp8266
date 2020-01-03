@@ -1,10 +1,18 @@
 #pragma once
 
+#ifdef ESP32
+#include <WiFi.h>
+#elif defined(ESP8266)
 #include <ESP8266WiFi.h>
+#endif // ESP32
+
+#ifndef HOMIE_CONFIG
+#define HOMIE_CONFIG 1
+#endif
 
 namespace HomieInternals {
-  const char HOMIE_VERSION[] = "2.0.1";
-  const char HOMIE_ESP8266_VERSION[] = "2.0.0";
+  const char HOMIE_VERSION[] = "3.0.1";
+  const char HOMIE_ESP8266_VERSION[] = "3.0.0";
 
   const IPAddress ACCESS_POINT_IP(192, 168, 123, 1);
 

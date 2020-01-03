@@ -1,8 +1,8 @@
 #include <Homie.h>
 
-HomieNode lightNode("light", "switch");
+HomieNode lightNode("light", "Light", "switch");
 
-bool globalInputHandler(const HomieNode& node, const String& property, const HomieRange& range, const String& value) {
+bool globalInputHandler(const HomieNode& node, const HomieRange& range, const String& property, const String& value) {
   Homie.getLogger() << "Received on node " << node.getId() << ": " << property << " = " << value << endl;
   return true;
 }
@@ -13,7 +13,7 @@ void setup() {
   Homie_setFirmware("global-input-handler", "1.0.0");
   Homie.setGlobalInputHandler(globalInputHandler);
 
-  lightNode.advertise("on").settable();
+  lightNode.advertise("on").setName("On").setDatatype("boolean").settable();
 
   Homie.setup();
 }

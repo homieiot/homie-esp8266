@@ -10,7 +10,11 @@ Config::Config()
 
 bool Config::_spiffsBegin() {
   if (!_spiffsBegan) {
+#ifdef ESP32
+    _spiffsBegan = SPIFFS.begin(true);
+#elif defined(ESP8266)
     _spiffsBegan = SPIFFS.begin();
+#endif
     if (!_spiffsBegan) Interface::get().getLogger() << F("✖ Cannot mount filesystem") << endl;
   }
 
@@ -35,7 +39,7 @@ bool Config::load() {
 
   size_t configSize = configFile.size();
 
-  if (configSize > MAX_JSON_CONFIG_FILE_SIZE) {
+  if (configSize >= MAX_JSON_CONFIG_FILE_SIZE) {
     Interface::get().getLogger() << F("✖ Config file too big") << endl;
     return false;
   }
@@ -45,87 +49,48 @@ bool Config::load() {
   configFile.close();
   buf[configSize] = '\0';
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
-  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
-  if (!parsedJson.success()) {
+  StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
+  if (deserializeJson(jsonDoc, buf) != DeserializationError::Ok || !jsonDoc.is<JsonObject>()) {
     Interface::get().getLogger() << F("✖ Invalid JSON in the config file") << endl;
     return false;
   }
 
+  JsonObject parsedJson = jsonDoc.as<JsonObject>();
   ConfigValidationResult configValidationResult = Validation::validateConfig(parsedJson);
   if (!configValidationResult.valid) {
     Interface::get().getLogger() << F("✖ Config file is not valid, reason: ") << configValidationResult.reason << endl;
     return false;
   }
 
+  /* Mandatory config items */
+  JsonObject reqWifi = parsedJson["wifi"];
+  JsonObject reqMqtt = parsedJson["mqtt"];
+
   const char* reqName = parsedJson["name"];
-  const char* reqWifiSsid = parsedJson["wifi"]["ssid"];
-  const char* reqWifiPassword = parsedJson["wifi"]["password"];
+  const char* reqWifiSsid = reqWifi["ssid"];
+  const char* reqMqttHost = reqMqtt["host"];
 
-  const char* reqMqttHost = parsedJson["mqtt"]["host"];
-  const char* reqDeviceId = DeviceId::get();
-  if (parsedJson.containsKey("device_id")) {
-    reqDeviceId = parsedJson["device_id"];
-  }
-  uint16_t regDeviceStatsInterval = STATS_SEND_INTERVAL_SEC; //device_stats_interval
-  if (parsedJson.containsKey(F("device_stats_interval"))) {
-    regDeviceStatsInterval = parsedJson[F("device_stats_interval")];
-  }
+  /* Optional config items */
+  const char* reqDeviceId = parsedJson["device_id"] | DeviceId::get();
+  uint16_t regDeviceStatsInterval = parsedJson["device_stats_interval"] | STATS_SEND_INTERVAL_SEC;
+  bool reqOtaEnabled = parsedJson["ota"]["enabled"] | false;
 
-  const char* reqWifiBssid = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("bssid")) {
-    reqWifiBssid = parsedJson["wifi"]["bssid"];
-  }
-  uint16_t reqWifiChannel = 0;
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("channel")) {
-    reqWifiChannel = parsedJson["wifi"]["channel"];
-  }
-  const char* reqWifiIp = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("ip")) {
-    reqWifiIp = parsedJson["wifi"]["ip"];
-  }
-  const char* reqWifiMask = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("mask")) {
-    reqWifiMask = parsedJson["wifi"]["mask"];
-  }
-  const char* reqWifiGw = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("gw")) {
-    reqWifiGw = parsedJson["wifi"]["gw"];
-  }
-  const char* reqWifiDns1 = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("dns1")) {
-    reqWifiDns1 = parsedJson["wifi"]["dns1"];
-  }
-  const char* reqWifiDns2 = "";
-  if (parsedJson["wifi"].as<JsonObject&>().containsKey("dns2")) {
-    reqWifiDns2 = parsedJson["wifi"]["dns2"];
-  }
+  uint16_t reqWifiChannel = reqWifi["channel"] | 0;
+  const char* reqWifiBssid = reqWifi["bssid"] | "";
+  const char* reqWifiPassword = reqWifi["password"]; // implicit | nullptr;
+  const char* reqWifiIp = reqWifi["ip"] | "";
+  const char* reqWifiMask = reqWifi["mask"] | "";
+  const char* reqWifiGw = reqWifi["gw"] | "";
+  const char* reqWifiDns1 = reqWifi["dns1"] | "";
+  const char* reqWifiDns2 = reqWifi["dns2"] | "";
 
-  uint16_t reqMqttPort = DEFAULT_MQTT_PORT;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("port")) {
-    reqMqttPort = parsedJson["mqtt"]["port"];
-  }
-  const char* reqMqttBaseTopic = DEFAULT_MQTT_BASE_TOPIC;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("base_topic")) {
-    reqMqttBaseTopic = parsedJson["mqtt"]["base_topic"];
-  }
-  bool reqMqttAuth = false;
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("auth")) {
-    reqMqttAuth = parsedJson["mqtt"]["auth"];
-  }
-  const char* reqMqttUsername = "";
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("username")) {
-    reqMqttUsername = parsedJson["mqtt"]["username"];
-  }
-  const char* reqMqttPassword = "";
-  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("password")) {
-    reqMqttPassword = parsedJson["mqtt"]["password"];
-  }
-
-  bool reqOtaEnabled = false;
-  if (parsedJson["ota"].as<JsonObject&>().containsKey("enabled")) {
-    reqOtaEnabled = parsedJson["ota"]["enabled"];
-  }
+  uint16_t reqMqttPort = reqMqtt["port"] | DEFAULT_MQTT_PORT;
+  bool reqMqttSsl = reqMqtt["ssl"] | false;
+  bool reqMqttAuth = reqMqtt["auth"] | false;
+  const char* reqMqttUsername = reqMqtt["username"] | "";
+  const char* reqMqttPassword = reqMqtt["password"] | "";
+  const char* reqMqttFingerprint = reqMqtt["ssl_fingerprint"] | "";
+  const char* reqMqttBaseTopic = reqMqtt["base_topic"] | DEFAULT_MQTT_BASE_TOPIC;
 
   strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
   strlcpy(_configStruct.deviceId, reqDeviceId, MAX_DEVICE_ID_LENGTH);
@@ -140,6 +105,13 @@ bool Config::load() {
   strlcpy(_configStruct.wifi.dns1, reqWifiDns1, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.wifi.dns2, reqWifiDns2, MAX_IP_STRING_LENGTH);
   strlcpy(_configStruct.mqtt.server.host, reqMqttHost, MAX_HOSTNAME_LENGTH);
+#if ASYNC_TCP_SSL_ENABLED
+  _configStruct.mqtt.server.ssl.enabled = reqMqttSsl;
+  if (strcmp_P(reqMqttFingerprint, PSTR("")) != 0) {
+    _configStruct.mqtt.server.ssl.hasFingerprint = true;
+    Helpers::hexStringToByteArray(reqMqttFingerprint, _configStruct.mqtt.server.ssl.fingerprint, MAX_FINGERPRINT_SIZE);
+  }
+#endif
   _configStruct.mqtt.server.port = reqMqttPort;
   strlcpy(_configStruct.mqtt.baseTopic, reqMqttBaseTopic, MAX_MQTT_BASE_TOPIC_LENGTH);
   _configStruct.mqtt.auth = reqMqttAuth;
@@ -149,32 +121,24 @@ bool Config::load() {
 
   /* Parse the settings */
 
-  JsonObject& settingsObject = parsedJson["settings"].as<JsonObject&>();
+  JsonObject settingsObject = parsedJson["settings"].as<JsonObject>();
 
   for (IHomieSetting* iSetting : IHomieSetting::settings) {
-    if (iSetting->isBool()) {
-      HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+    JsonVariant reqSetting = settingsObject[iSetting->getName()];
 
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<bool>());
-      }
-    } else if (iSetting->isLong()) {
-      HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<long>());
-      }
-    } else if (iSetting->isDouble()) {
-      HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(settingsObject[setting->getName()].as<double>());
-      }
-    } else if (iSetting->isConstChar()) {
-      HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-
-      if (settingsObject.containsKey(setting->getName())) {
-        setting->set(strdup(settingsObject[setting->getName()].as<const char*>()));
+    if (!reqSetting.isNull()) {
+      if (iSetting->isBool()) {
+        HomieSetting<bool>* setting = static_cast<HomieSetting<bool>*>(iSetting);
+        setting->set(reqSetting.as<bool>());
+      } else if (iSetting->isLong()) {
+        HomieSetting<long>* setting = static_cast<HomieSetting<long>*>(iSetting);
+        setting->set(reqSetting.as<long>());
+      } else if (iSetting->isDouble()) {
+        HomieSetting<double>* setting = static_cast<HomieSetting<double>*>(iSetting);
+        setting->set(reqSetting.as<double>());
+      } else if (iSetting->isConstChar()) {
+        HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
+        setting->set(strdup(reqSetting.as<const char*>()));
       }
     }
   }
@@ -192,17 +156,17 @@ char* Config::getSafeConfigFile() const {
   configFile.close();
   buf[configSize] = '\0';
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonBuffer;
-  JsonObject& parsedJson = jsonBuffer.parseObject(buf);
-  parsedJson["wifi"].as<JsonObject&>().remove("password");
-  parsedJson["mqtt"].as<JsonObject&>().remove("username");
-  parsedJson["mqtt"].as<JsonObject&>().remove("password");
+  StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
+  deserializeJson(jsonDoc, buf);
+  JsonObject parsedJson = jsonDoc.as<JsonObject>();
+  parsedJson["wifi"].as<JsonObject>().remove("password");
+  parsedJson["mqtt"].as<JsonObject>().remove("username");
+  parsedJson["mqtt"].as<JsonObject>().remove("password");
 
-  size_t jsonBufferLength = parsedJson.measureLength() + 1;
-  std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
-  parsedJson.printTo(jsonString.get(), jsonBufferLength);
-
-  return strdup(jsonString.get());
+  size_t jsonBufferLength = measureJson(jsonDoc) + 1;
+  char* jsonString = new char[jsonBufferLength];
+  serializeJson(jsonDoc, jsonString, jsonBufferLength);
+  return jsonString;
 }
 
 void Config::erase() {
@@ -243,7 +207,7 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
   }
 }
 
-void Config::write(const JsonObject& config) {
+void Config::write(const JsonObject config) {
   if (!_spiffsBegin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
@@ -253,22 +217,21 @@ void Config::write(const JsonObject& config) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return;
   }
-
-  config.printTo(configFile);
+  serializeJson(config, configFile);
   configFile.close();
 }
 
 bool Config::patch(const char* patch) {
   if (!_spiffsBegin()) { return false; }
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonBuffer;
-  JsonObject& patchObject = patchJsonBuffer.parseObject(patch);
+  StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonDoc;
 
-  if (!patchObject.success()) {
+  if (deserializeJson(patchJsonDoc, patch) != DeserializationError::Ok || !patchJsonDoc.is<JsonObject>()) {
     Interface::get().getLogger() << F("✖ Invalid or too big JSON") << endl;
     return false;
   }
 
+  JsonObject patchObject = patchJsonDoc.as<JsonObject>();
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
@@ -282,27 +245,28 @@ bool Config::patch(const char* patch) {
   configFile.close();
   configJson[configSize] = '\0';
 
-  StaticJsonBuffer<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonBuffer;
-  JsonObject& configObject = configJsonBuffer.parseObject(configJson);
+  StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> configJsonDoc;
+  deserializeJson(configJsonDoc, configJson);
+  JsonObject configObject = configJsonDoc.as<JsonObject>();
 
   // To do alow object that dont currently exist to be added like settings.
   // if settings wasnt there origionally then it should be allowed to be added by incremental.
   for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
-    if (patchObject[it->key].is<JsonObject&>()) {
-      JsonObject& subObject = patchObject[it->key].as<JsonObject&>();
+    if (patchObject[it->key()].is<JsonObject>()) {
+      JsonObject subObject = patchObject[it->key()].as<JsonObject>();
       for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
-        if (!configObject.containsKey(it->key) || !configObject[it->key].is<JsonObject&>()) {
+        if (!configObject.containsKey(it->key()) || !configObject[it->key()].is<JsonObject>()) {
           String error = "✖ Config does not contain a ";
-          error.concat(it->key);
+          error.concat(it->key().c_str());
           error.concat(" object");
           Interface::get().getLogger() << error << endl;
           return false;
         }
-        JsonObject& subConfigObject = configObject[it->key].as<JsonObject&>();
-        subConfigObject[it2->key] = it2->value;
+        JsonObject subConfigObject = configObject[it->key()].as<JsonObject>();
+        subConfigObject[it2->key()] = it2->value();
       }
     } else {
-      configObject[it->key] = it->value;
+      configObject[it->key()] = it->value();
     }
   }
 
@@ -339,6 +303,14 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • MQTT: ") << endl;
   Interface::get().getLogger() << F("    ◦ Host: ") << _configStruct.mqtt.server.host << endl;
   Interface::get().getLogger() << F("    ◦ Port: ") << _configStruct.mqtt.server.port << endl;
+#if ASYNC_TCP_SSL_ENABLED
+  Interface::get().getLogger() << F("    ◦ SSL enabled: ") << (_configStruct.mqtt.server.ssl.enabled ? "true" : "false") << endl;
+  if (_configStruct.mqtt.server.ssl.enabled && _configStruct.mqtt.server.ssl.hasFingerprint) {
+    char hexBuf[MAX_FINGERPRINT_STRING_LENGTH];
+    Helpers::byteArrayToHexString(Interface::get().getConfig().get().mqtt.server.ssl.fingerprint, hexBuf, MAX_FINGERPRINT_SIZE);
+    Interface::get().getLogger() << F("    ◦ Fingerprint: ") << hexBuf << endl;
+  }
+#endif
   Interface::get().getLogger() << F("    ◦ Base topic: ") << _configStruct.mqtt.baseTopic << endl;
   Interface::get().getLogger() << F("    ◦ Auth? ") << (_configStruct.mqtt.auth ? F("yes") : F("no")) << endl;
   if (_configStruct.mqtt.auth) {

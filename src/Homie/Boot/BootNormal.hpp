@@ -1,11 +1,30 @@
+
 #pragma once
 
 #include "Arduino.h"
 
 #include <functional>
 #include <libb64/cdecode.h>
+
+#ifndef HOMIE_MDNS
+#define HOMIE_MDNS 1
+#endif
+
+
+#ifdef ESP32
+#include <WiFi.h>
+#include <Update.h>
+#if HOMIE_MDNS
+#include <ESPmDNS.h>
+#endif
+#elif defined(ESP8266)
 #include <ESP8266WiFi.h>
+#if HOMIE_MDNS
 #include <ESP8266mDNS.h>
+#endif
+#endif // ESP32
+
+
 #include <AsyncMqttClient.h>
 #include "../../HomieNode.hpp"
 #include "../../HomieRange.hpp"
@@ -32,11 +51,13 @@ class BootNormal : public Boot {
   struct AdvertisementProgress {
     bool done = false;
     enum class GlobalStep {
+      PUB_INIT,
       PUB_HOMIE,
       PUB_NAME,
       PUB_MAC,
       PUB_LOCALIP,
       PUB_NODES_ATTR,
+      PUB_STATS,
       PUB_STATS_INTERVAL,
       PUB_FW_NAME,
       PUB_FW_VERSION,
@@ -51,22 +72,42 @@ class BootNormal : public Boot {
       SUB_IMPLEMENTATION_CONFIG_SET,
       SUB_SET,
       SUB_BROADCAST,
-      PUB_ONLINE
+      PUB_READY
     } globalStep;
 
     enum class NodeStep {
+      PUB_NAME,
       PUB_TYPE,
-      PUB_PROPERTIES
+      PUB_ARRAY,
+      PUB_ARRAY_NODES,
+      PUB_PROPERTIES,
+      PUB_PROPERTIES_ATTRIBUTES
     } nodeStep;
 
+    enum class PropertyStep {
+      PUB_NAME,
+      PUB_SETTABLE,
+      PUB_RETAINED,
+      PUB_DATATYPE,
+      PUB_UNIT,
+      PUB_FORMAT
+    } propertyStep;
+
     size_t currentNodeIndex;
+    size_t currentArrayNodeIndex;
+    size_t currentPropertyIndex;
   } _advertisementProgress;
   Uptime _uptime;
   Timer _statsTimer;
   ExponentialBackoffTimer _mqttReconnectTimer;
   bool _setupFunctionCalled;
+  #ifdef ESP32
+  WiFiEventId_t _wifiGotIpHandler;
+  WiFiEventId_t _wifiDisconnectedHandler;
+  #elif defined(ESP8266)
   WiFiEventHandler _wifiGotIpHandler;
   WiFiEventHandler _wifiDisconnectedHandler;
+  #endif // ESP32
   bool _mqttConnectNotified;
   bool _mqttDisconnectNotified;
   bool _otaOngoing;
@@ -86,10 +127,16 @@ class BootNormal : public Boot {
   std::unique_ptr<char[]> _mqttPayloadBuffer;
   std::unique_ptr<char*[]> _mqttTopicLevels;
   uint8_t _mqttTopicLevelsCount;
+  std::unique_ptr<char[]> _mqttTopicCopy;
 
   void _wifiConnect();
+  #ifdef ESP32
+  void _onWifiGotIp(WiFiEvent_t event, WiFiEventInfo_t info);
+  void _onWifiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
+  #elif defined(ESP8266)
   void _onWifiGotIp(const WiFiEventStationModeGotIP& event);
   void _onWifiDisconnected(const WiFiEventStationModeDisconnected& event);
+  #endif // ESP32
   void _mqttConnect();
   void _advertise();
   void _onMqttConnected();

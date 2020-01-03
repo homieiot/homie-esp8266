@@ -2,8 +2,8 @@ When in `configuration` mode, the device exposes a HTTP JSON API to send the con
 
 If you don't want to mess with JSON, you have a Web UI / app available:
 
-* At http://homieiot.github.io/homie-esp8266/configurators/v2/
-* As an [Android app](https://build.phonegap.com/apps/1906578/share)
+- At http://homieiot.github.io/homie-esp8266/configurators/v2/
+- As an [Android app](https://build.phonegap.com/apps/1906578/share)
 
 **Quick instructions to use the Web UI / app**:
 
@@ -11,7 +11,7 @@ If you don't want to mess with JSON, you have a Web UI / app available:
 2. Disconnect from your current Wi-Fi AP, and connect to the `Homie-xxxxxxxxxxxx` AP spawned in `configuration` mode
 3. Follow the instructions
 
-You can see the sources of the Web UI [here](https://github.com/marvinroger/homie-esp8266-setup).
+You can see the sources of the Web UI [here](https://github.com/homieiot/homie-esp8266-setup).
 
 Alternatively, you can use this `curl` command to send the configuration to the device. You must connect to the device in `configuration` mode (i.e. the device is an Access Point). This method will not work if not in `configuration` mode:
 
@@ -31,16 +31,16 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
 **API base address:** `http://192.168.123.1`
 
 ??? summary "GET `/heart`"
-    This is useful to ensure we are connected to the device AP.
+This is useful to ensure we are connected to the device AP.
 
     ## Response
 
     `204 No Content`
 
---------------
+---
 
 ??? summary "GET `/device-info`"
-    Get some information on the device.
+Get some information on the device.
 
     ## Response
 
@@ -83,10 +83,10 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
     !!! note "Note about settings"
         If a setting is not required, the `default` field will always be set.
 
---------------
+---
 
 ??? summary "GET `/networks`"
-    Retrieve the Wi-Fi networks the device can see.
+Retrieve the Wi-Fi networks the device can see.
 
     ## Response
 
@@ -114,10 +114,10 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
         }
         ```
 
---------------
+---
 
 ??? summary "PUT `/config`"
-    Save the config to the device.
+Save the config to the device.
 
     ## Request body
 
@@ -156,10 +156,10 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
         }
         ```
 
---------------
+---
 
 ??? summary "PUT `/wifi/connect`"
-    Initiates the connection of the device to the Wi-Fi network while in configuation mode. This request is not synchronous and the result (Wi-Fi connected or not) must be obtained by with `GET /wifi/status`.
+Initiates the connection of the device to the Wi-Fi network while in configuation mode. This request is not synchronous and the result (Wi-Fi connected or not) must be obtained by with `GET /wifi/status`.
 
     ## Request body
 
@@ -193,10 +193,10 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
         }
         ```
 
---------------
+---
 
 ??? summary "GET `/wifi/status`"
-    Returns the current Wi-Fi connection status.
+Returns the current Wi-Fi connection status.
 
     Helpful when monitoring Wi-Fi connectivity after `PUT /wifi/connect`.
 
@@ -219,10 +219,10 @@ If anything goes wrong, a return code != 2xx will be returned, with a JSON `erro
     * `connected` along with a `local_ip` field
     * `disconnected`
 
---------------
+---
 
 ??? summary "PUT `/proxy/control`"
-    Enable/disable the device to act as a transparent proxy between AP and Station networks.
+Enable/disable the device to act as a transparent proxy between AP and Station networks.
 
     All requests that don't collide with existing API paths will be bridged to the destination according to the `Host` HTTP header. The destination host is called using the existing Wi-Fi connection (established after a `PUT /wifi/connect`) and all contents are bridged back to the connection made to the AP side.
 

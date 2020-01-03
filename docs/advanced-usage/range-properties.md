@@ -28,4 +28,4 @@ You can then publish the value `on` to topic `homie/<device id>/strip/led_1/set`
 
 See the following example for a concrete use case:
 
-[![GitHub logo](../assets/github.png) LedStrip](https://github.com/marvinroger/homie-esp8266/blob/develop/examples/LedStrip/LedStrip.ino)
+[![GitHub logo](../assets/github.png) LedStrip](https://github.com/homieiot/homie-esp8266/blob/develop/examples/LedStrip/LedStrip.ino)

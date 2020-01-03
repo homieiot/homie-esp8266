@@ -1,6 +1,6 @@
 # SSL support
 
-In Homie for ESP8266 v1.x, SSL was possible but it was not reliable. Due to the asynchronous nature of the v2.x, SSL is not available anymore.
+In Homie for ESP8266 v1.x, SSL was possible but it was not reliable. Due to the asynchronous nature of the v2.x, SSL is not completely available anymore. Only MQTT connections can be encrypted with SSL.
 
 # ADC readings
 
@@ -8,4 +8,4 @@ In Homie for ESP8266 v1.x, SSL was possible but it was not reliable. Due to the 
 
 # Wi-Fi connection
 
-If you encouter any issues with the Wi-Fi, try changing the flash size build parameter, or try to erase the flash. See [#158](https://github.com/marvinroger/homie-esp8266/issues/158) for more information.
+If you encouter any issues with the Wi-Fi, try changing the flash size build parameter, or try to erase the flash. See [#158](https://github.com/homieiot/homie-esp8266/issues/158) for more information.

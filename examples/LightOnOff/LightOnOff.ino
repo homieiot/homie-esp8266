@@ -1,8 +1,9 @@
 #include <Homie.h>
 
+#define firmwareVersion "1.0.0"
 const int PIN_RELAY = 5;
 
-HomieNode lightNode("light", "switch");
+HomieNode lightNode("light", "Light", "switch");
 
 bool lightOnHandler(const HomieRange& range, const String& value) {
   if (value != "true" && value != "false") return false;
@@ -21,9 +22,9 @@ void setup() {
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, LOW);
 
-  Homie_setFirmware("awesome-relay", "1.0.0");
+  Homie_setFirmware("awesome-relay", firmwareVersion);
 
-  lightNode.advertise("on").settable(lightOnHandler);
+  lightNode.advertise("on").setName("On").setDatatype("boolean").settable(lightOnHandler);
 
   Homie.setup();
 }

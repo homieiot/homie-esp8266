@@ -16,18 +16,24 @@ jobs:
           name: install Arduino Core for ESP8266
           command: platformio platform install espressif8266
       - run:
-          name: install exemples dependencies
+          name: install Arduino Core for ESP32
+          command: platformio platform install espressif32
+      - run:
+          name: install examples dependencies
           command: platformio lib -g install Shutters@2.1.1 SonoffDual@1.1.0
-      - run: platformio ci ./examples/CustomSettings --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/DoorSensor --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/HookToEvents --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/IteadSonoff --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/LightOnOff --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/TemperatureSensor --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/LedStrip --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/Broadcast --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/GlobalInputHandler --board=esp01 --board=nodemcuv2
-      - run: platformio ci ./examples/SonoffDualShutters --board=esp01 --board=nodemcuv2
+      - run: platformio ci ./examples/Broadcast --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/CustomSettings --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/DoorSensor --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/GlobalInputHandler --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/HookToEvents --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/IteadSonoff --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/IteadSonoffButton --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/LedStrip --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/LightOnOff --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/Ping --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/SingleButton --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/SonoffDualShutters --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/TemperatureSensor --board=esp01_1m --board=nodemcuv2 --board=esp32dev
 
   lint:
     working_directory: ~/code
@@ -48,7 +54,7 @@ jobs:
       - checkout
       - run:
           name: install dependencies
-          command: sudo pip install mkdocs==0.17.2 mkdocs-material==2.2.0 pygments==2.2.0 pymdown-extensions==4.5.1
+          command: sudo pip install mkdocs==0.17.2 mkdocs-material==2.2.0 pygments==2.2.0 pymdown-extensions==4.5.1 markdown==2.6.11
       - run:
           name: generate and publish docs
           command: |
@@ -74,7 +80,7 @@ jobs:
             git init
             git config --global user.name "circleci"
             git config --global user.email "sayhi@circleci.com"
-            git remote add origin git@github.com:marvinroger/homie-esp8266.git
+            git remote add origin git@github.com:homieiot/homie-esp8266.git
             git add .
             git commit -m ":package: Result of CircleCI build ${CIRCLE_BUILD_URL}"
             git push -f origin master:gh-pages

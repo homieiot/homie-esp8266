@@ -32,7 +32,7 @@ const bool RELAY2_DOWN = false;
 
 const byte SHUTTERS_EEPROM_POSITION = 0;
 
-HomieNode shuttersNode("shutters", "shutters");
+HomieNode shuttersNode("shutters", "Shutters", "shutters");
 
 // Shutters
 
@@ -105,7 +105,8 @@ void setup() {
   Homie.setLedPin(SonoffDual.LED_PIN, SonoffDual.LED_ON);
   Homie.onEvent(onHomieEvent);
 
-  shuttersNode.advertise("level").settable(shuttersLevelHandler);
+  shuttersNode.advertise("level").setName("Level").setDatatype("integer")
+              .setFormat("0:100").settable(shuttersLevelHandler);
 
   Homie.setup();
 }

@@ -9,9 +9,17 @@ HomieClass::HomieClass()
   strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
+  #ifdef ESP32
+  Interface::get().led.enabled = false;
+  #ifdef LED_BUILTIN
+  Interface::get().led.pin = LED_BUILTIN;
+  #endif // LED_BUILTIN
+  Interface::get().led.on = LOW;
+  #elif defined(ESP8266)
   Interface::get().led.enabled = true;
   Interface::get().led.pin = LED_BUILTIN;
   Interface::get().led.on = LOW;
+  #endif // ESP32
   Interface::get().reset.idle = true;
   Interface::get().reset.enabled = true;
   Interface::get().reset.triggerPin = DEFAULT_RESET_PIN;
@@ -20,7 +28,7 @@ HomieClass::HomieClass()
   Interface::get().reset.resetFlag = false;
   Interface::get().disable = false;
   Interface::get().flaggedForSleep = false;
-  Interface::get().globalInputHandler = [](const HomieNode& node, const String& property, const HomieRange& range, const String& value) { return false; };
+  Interface::get().globalInputHandler = [](const HomieNode& node, const HomieRange& range, const String& property, const String& value) { return false; };
   Interface::get().broadcastHandler = [](const String& level, const String& value) { return false; };
   Interface::get().setupFunction = []() {};
   Interface::get().loopFunction = []() {};
@@ -107,7 +115,11 @@ void HomieClass::setup() {
     Interface::get().getConfig().setHomieBootModeOnNextBoot(HomieBootMode::UNDEFINED);
   }
 
+#if HOMIE_CONFIG
   HomieBootMode _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
+#else
+  HomieBootMode _selectedHomieBootMode = HomieBootMode::NORMAL;
+#endif
 
   // select boot mode source
   if (_applicationHomieBootMode != HomieBootMode::UNDEFINED) {
@@ -120,8 +132,13 @@ void HomieClass::setup() {
 
   // validate selected mode and fallback as needed
   if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load()) {
+#if HOMIE_CONFIG
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
     _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
+#else
+    Interface::get().getLogger() << F("Configuration invalid. CONFIG MODE is disabled.") << endl;
+    ESP.restart();
+#endif
   }
 
   // run selected mode
@@ -129,10 +146,12 @@ void HomieClass::setup() {
     _boot = &_bootNormal;
     Interface::get().event.type = HomieEventType::NORMAL_MODE;
     Interface::get().eventHandler(Interface::get().event);
+#if HOMIE_CONFIG
   } else if (_selectedHomieBootMode == HomieBootMode::CONFIGURATION) {
     _boot = &_bootConfig;
     Interface::get().event.type = HomieEventType::CONFIGURATION_MODE;
     Interface::get().eventHandler(Interface::get().event);
+#endif
   } else if (_selectedHomieBootMode == HomieBootMode::STANDALONE) {
     _boot = &_bootStandalone;
     Interface::get().event.type = HomieEventType::STANDALONE_MODE;
@@ -141,6 +160,8 @@ void HomieClass::setup() {
     Helpers::abort(F("✖ Boot mode invalid"));
     return;  // never reached, here for clarity
   }
+
+  WiFi.disconnect(); // workaround for issue #351
 
   _boot->setup();
 }
@@ -332,6 +353,9 @@ Logger& HomieClass::getLogger() {
   return _logger;
 }
 
+#ifdef ESP32
+//FIXME: implement for ESP32
+#elif defined(ESP8266)
 void HomieClass::prepareToSleep() {
   Interface::get().getLogger() << F("Flagged for sleep by sketch") << endl;
   if (Interface::get().ready) {
@@ -350,5 +374,7 @@ void HomieClass::doDeepSleep(uint32_t time_us, RFMode mode) {
   Serial.flush();
   ESP.deepSleep(time_us, mode);
 }
+#endif // ESP32
+
 
 HomieClass Homie;

@@ -50,15 +50,17 @@ uint16_t SendingPromise::send(const String& value) {
   strcat(topic, Interface::get().getConfig().get().deviceId);
   strcat_P(topic, PSTR("/"));
   strcat(topic, _node->getId());
-  strcat_P(topic, PSTR("/"));
-  strcat(topic, _property->c_str());
-
   if (_range.isRange) {
     char rangeStr[5 + 1];  // max 65536
     itoa(_range.index, rangeStr, 10);
     strcat_P(topic, PSTR("_"));
     strcat(topic, rangeStr);
+    _range.isRange = false;                  //FIXME: This is a workaround. Problem is that Range is loaded from the property into SendingPromise, but the SendingPromise is global. (one SendingPromise for the HomieClass instance
+    _range.index = 0;
   }
+
+  strcat_P(topic, PSTR("/"));
+  strcat(topic, _property->c_str());
 
   uint16_t packetId = Interface::get().getMqttClient().publish(topic, _qos, _retained, value.c_str());
 

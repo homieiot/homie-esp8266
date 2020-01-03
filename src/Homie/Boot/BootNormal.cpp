@@ -20,9 +20,8 @@ BootNormal::BootNormal()
   , _mqttWillTopic(nullptr)
   , _mqttPayloadBuffer(nullptr)
   , _mqttTopicLevels(nullptr)
-  , _mqttTopicLevelsCount(0) {
-  strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
-  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
+  , _mqttTopicLevelsCount(0)
+  , _mqttTopicCopy(nullptr) {
 }
 
 BootNormal::~BootNormal() {
@@ -31,7 +30,14 @@ BootNormal::~BootNormal() {
 void BootNormal::setup() {
   Boot::setup();
 
+  strlcpy(_fwChecksum, ESP.getSketchMD5().c_str(), sizeof(_fwChecksum));
+  _fwChecksum[sizeof(_fwChecksum) - 1] = '\0';
+
+  #ifdef ESP32
+  //FIXME
+  #elif defined(ESP8266)
   Update.runAsync(true);
+  #endif // ESP32
 
   _statsTimer.setInterval(Interface::get().getConfig().get().deviceStatsInterval * 1000);
 
@@ -39,13 +45,13 @@ void BootNormal::setup() {
 
   // Generate topic buffer
   size_t baseTopicLength = strlen(Interface::get().getConfig().get().mqtt.baseTopic) + strlen(Interface::get().getConfig().get().deviceId);
-  size_t longestSubtopicLength = 29 + 1;  // /$implementation/ota/firmware
+  size_t longestSubtopicLength = 31 + 1;  // /$implementation/ota/firmware/+
   for (HomieNode* iNode : HomieNode::nodes) {
     size_t nodeMaxTopicLength = 1 + strlen(iNode->getId()) + 12 + 1;  // /id/$properties
     if (nodeMaxTopicLength > longestSubtopicLength) longestSubtopicLength = nodeMaxTopicLength;
 
     for (Property* iProperty : iNode->getProperties()) {
-      size_t propertyMaxTopicLength = 1 + strlen(iNode->getId()) + 1 + strlen(iProperty->getProperty()) + 1;
+      size_t propertyMaxTopicLength = 1 + strlen(iNode->getId()) + 1 + strlen(iProperty->getId()) + 1;
       if (iProperty->isSettable()) propertyMaxTopicLength += 4;  // /set
 
       if (propertyMaxTopicLength > longestSubtopicLength) longestSubtopicLength = propertyMaxTopicLength;
@@ -53,8 +59,13 @@ void BootNormal::setup() {
   }
   _mqttTopic = std::unique_ptr<char[]>(new char[baseTopicLength + longestSubtopicLength]);
 
+  #ifdef ESP32
+  _wifiGotIpHandler = WiFi.onEvent(std::bind(&BootNormal::_onWifiGotIp, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
+  _wifiDisconnectedHandler = WiFi.onEvent(std::bind(&BootNormal::_onWifiDisconnected, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
+  #elif defined(ESP8266)
   _wifiGotIpHandler = WiFi.onStationModeGotIP(std::bind(&BootNormal::_onWifiGotIp, this, std::placeholders::_1));
   _wifiDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&BootNormal::_onWifiDisconnected, this, std::placeholders::_1));
+  #endif // ESP32
 
   Interface::get().getMqttClient().onConnect(std::bind(&BootNormal::_onMqttConnected, this));
   Interface::get().getMqttClient().onDisconnect(std::bind(&BootNormal::_onMqttDisconnected, this, std::placeholders::_1));
@@ -62,20 +73,34 @@ void BootNormal::setup() {
   Interface::get().getMqttClient().onPublish(std::bind(&BootNormal::_onMqttPublish, this, std::placeholders::_1));
 
   Interface::get().getMqttClient().setServer(Interface::get().getConfig().get().mqtt.server.host, Interface::get().getConfig().get().mqtt.server.port);
+
+#if ASYNC_TCP_SSL_ENABLED
+  Interface::get().getLogger() << "SSL is: " << Interface::get().getConfig().get().mqtt.server.ssl.enabled << endl;
+  Interface::get().getMqttClient().setSecure(Interface::get().getConfig().get().mqtt.server.ssl.enabled);
+  if (Interface::get().getConfig().get().mqtt.server.ssl.enabled && Interface::get().getConfig().get().mqtt.server.ssl.hasFingerprint) {
+    char hexBuf[MAX_FINGERPRINT_STRING_LENGTH];
+    Helpers::byteArrayToHexString(Interface::get().getConfig().get().mqtt.server.ssl.fingerprint, hexBuf, MAX_FINGERPRINT_SIZE);
+    Interface::get().getLogger() << "Using fingerprint: " << hexBuf << endl;
+    Interface::get().getMqttClient().addServerFingerprint((const uint8_t*)Interface::get().getConfig().get().mqtt.server.ssl.fingerprint);
+  }
+#endif
+
   Interface::get().getMqttClient().setMaxTopicLength(MAX_MQTT_TOPIC_LENGTH);
   _mqttClientId = std::unique_ptr<char[]>(new char[strlen(Interface::get().brand) + 1 + strlen(Interface::get().getConfig().get().deviceId) + 1]);
   strcpy(_mqttClientId.get(), Interface::get().brand);
   strcat_P(_mqttClientId.get(), PSTR("-"));
   strcat(_mqttClientId.get(), Interface::get().getConfig().get().deviceId);
   Interface::get().getMqttClient().setClientId(_mqttClientId.get());
-  char* mqttWillTopic = _prefixMqttTopic(PSTR("/$online"));
+  char* mqttWillTopic = _prefixMqttTopic(PSTR("/$state"));
   _mqttWillTopic = std::unique_ptr<char[]>(new char[strlen(mqttWillTopic) + 1]);
   memcpy(_mqttWillTopic.get(), mqttWillTopic, strlen(mqttWillTopic) + 1);
-  Interface::get().getMqttClient().setWill(_mqttWillTopic.get(), 1, true, "false");
+  Interface::get().getMqttClient().setWill(_mqttWillTopic.get(), 1, true, "lost");
 
   if (Interface::get().getConfig().get().mqtt.auth) Interface::get().getMqttClient().setCredentials(Interface::get().getConfig().get().mqtt.username, Interface::get().getConfig().get().mqtt.password);
 
+#if HOMIE_CONFIG
   ResetHandler::Attach();
+#endif
 
   Interface::get().getConfig().log();
 
@@ -97,6 +122,9 @@ void BootNormal::loop() {
     ESP.restart();
   }
 
+  for (HomieNode* iNode : HomieNode::nodes) {
+    if (iNode->runLoopDisconnected ||Interface::get().getMqttClient().connected()) iNode->loop();
+  }
   if (_mqttReconnectTimer.check()) {
     _mqttConnect();
     return;
@@ -140,14 +168,19 @@ void BootNormal::loop() {
 
   if (_mqttOfflineMessageId == 0 && Interface::get().flaggedForSleep) {
     Interface::get().getLogger() << F("Device in preparation to sleep...") << endl;
-    _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "false");
+    _mqttOfflineMessageId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$state")), 1, true, "sleeping");
   }
 
   if (_statsTimer.check()) {
+    char statsIntervalStr[3 + 1];
+    itoa(Interface::get().getConfig().get().deviceStatsInterval+5, statsIntervalStr, 10);
+    Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
+    Interface::get().getLogger() << F("  • Interval: ") << statsIntervalStr << F("s (") << Interface::get().getConfig().get().deviceStatsInterval << F("s including 5s grace time)") << endl;
+    uint16_t intervalPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/interval")), 1, true, statsIntervalStr);
+
     uint8_t quality = Helpers::rssiToPercentage(WiFi.RSSI());
     char qualityStr[3 + 1];
     itoa(quality, qualityStr, 10);
-    Interface::get().getLogger() << F("〽 Sending statistics...") << endl;
     Interface::get().getLogger() << F("  • Wi-Fi signal quality: ") << qualityStr << F("%") << endl;
     uint16_t signalPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/signal")), 1, true, qualityStr);
 
@@ -157,14 +190,12 @@ void BootNormal::loop() {
     Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
     uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
 
-    if (signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+    if (intervalPacketId != 0 && signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+    Interface::get().event.type = HomieEventType::SENDING_STATISTICS;
+    Interface::get().eventHandler(Interface::get().event);
   }
 
   Interface::get().loopFunction();
-
-  for (HomieNode* iNode : HomieNode::nodes) {
-    iNode->loop();
-  }
 }
 
 void BootNormal::_prefixMqttTopic() {
@@ -204,10 +235,14 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     switch (update_error) {
       case UPDATE_ERROR_SIZE:               // new firmware size is zero
       case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
+      #ifdef ESP32
+      //FIXME
+      #elif defined(ESP8266)
       case UPDATE_ERROR_NEW_FLASH_CONFIG:   // bad new flash config (does not match flash ID)
         code = 400;  // 400 Bad Request
         info.concat(F("BAD_FIRMWARE"));
         break;
+      #endif //ESP32
       case UPDATE_ERROR_MD5:
         code = 400;  // 400 Bad Request
         info.concat(F("BAD_CHECKSUM"));
@@ -246,7 +281,11 @@ void BootNormal::_wifiConnect() {
 
     if (WiFi.getMode() != WIFI_STA) WiFi.mode(WIFI_STA);
 
+    #ifdef ESP32
+    WiFi.setHostname(Interface::get().getConfig().get().deviceId);
+    #elif defined(ESP8266)
     WiFi.hostname(Interface::get().getConfig().get().deviceId);
+    #endif // ESP32
     if (strcmp_P(Interface::get().getConfig().get().wifi.ip, PSTR("")) != 0) {  // on _validateConfigWifi there is a requirement for mask and gateway
       IPAddress convertedIp;
       convertedIp.fromString(Interface::get().getConfig().get().wifi.ip);
@@ -278,11 +317,31 @@ void BootNormal::_wifiConnect() {
       WiFi.begin(Interface::get().getConfig().get().wifi.ssid, Interface::get().getConfig().get().wifi.password);
     }
 
+    #ifdef ESP32
+    WiFi.setAutoConnect(false);
+    WiFi.setAutoReconnect(false);
+    #elif defined(ESP8266)
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
+    #endif // ESP32
   }
 }
 
+#ifdef ESP32
+void BootNormal::_onWifiGotIp(WiFiEvent_t event, WiFiEventInfo_t info) {
+  if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
+  Interface::get().getLogger() << F("✔ Wi-Fi connected, IP: ") << IPAddress(info.got_ip.ip_info.ip.addr) << endl;
+  Interface::get().getLogger() << F("Triggering WIFI_CONNECTED event...") << endl;
+  Interface::get().event.type = HomieEventType::WIFI_CONNECTED;
+  Interface::get().event.ip = IPAddress(info.got_ip.ip_info.ip.addr);
+  Interface::get().event.mask = IPAddress(info.got_ip.ip_info.netmask.addr);
+  Interface::get().event.gateway = IPAddress(info.got_ip.ip_info.gw.addr);
+  Interface::get().eventHandler(Interface::get().event);
+  MDNS.begin(Interface::get().getConfig().get().deviceId);
+
+  _mqttConnect();
+}
+#elif defined(ESP8266)
 void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   if (Interface::get().led.enabled) Interface::get().getBlinker().stop();
   Interface::get().getLogger() << F("✔ Wi-Fi connected, IP: ") << event.ip << endl;
@@ -292,16 +351,33 @@ void BootNormal::_onWifiGotIp(const WiFiEventStationModeGotIP& event) {
   Interface::get().event.mask = event.mask;
   Interface::get().event.gateway = event.gw;
   Interface::get().eventHandler(Interface::get().event);
+#if HOMIE_MDNS
   MDNS.begin(Interface::get().getConfig().get().deviceId);
+#endif
 
   _mqttConnect();
 }
+#endif // ESP32
 
+#ifdef ESP32
+void BootNormal::_onWifiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+  Interface::get().ready = false;
+  if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
+  _statsTimer.deactivate();
+  Interface::get().getLogger() << F("✖ Wi-Fi disconnected, reason: ") << info.disconnected.reason << endl;
+  Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
+  Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
+  Interface::get().event.wifiReason = info.disconnected.reason;
+  Interface::get().eventHandler(Interface::get().event);
+
+  _wifiConnect();
+}
+#elif defined(ESP8266)
 void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& event) {
   Interface::get().ready = false;
   if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
-  _statsTimer.reset();
-  Interface::get().getLogger() << F("✖ Wi-Fi disconnected") << endl;
+  _statsTimer.deactivate();
+  Interface::get().getLogger() << F("✖ Wi-Fi disconnected, reason: ") << event.reason << endl;
   Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
   Interface::get().event.wifiReason = event.reason;
@@ -309,10 +385,12 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
 
   _wifiConnect();
 }
+#endif // ESP32
 
 void BootNormal::_mqttConnect() {
   if (!Interface::get().disable) {
     if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_MQTT_DELAY);
+    _mqttConnectNotified = false;
     Interface::get().getLogger() << F("↕ Attempting to connect to MQTT...") << endl;
     Interface::get().getMqttClient().connect();
   }
@@ -321,6 +399,10 @@ void BootNormal::_mqttConnect() {
 void BootNormal::_advertise() {
   uint16_t packetId;
   switch (_advertisementProgress.globalStep) {
+    case AdvertisementProgress::GlobalStep::PUB_INIT:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$state")), 1, true, "init");
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_HOMIE;
+      break;
     case AdvertisementProgress::GlobalStep::PUB_HOMIE:
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$homie")), 1, true, HOMIE_VERSION);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NAME;
@@ -347,16 +429,22 @@ void BootNormal::_advertise() {
       String nodes;
       for (HomieNode* node : HomieNode::nodes) {
         nodes.concat(node->getId());
+        if (node->isRange())
+          nodes.concat(F("[]"));
         nodes.concat(F(","));
       }
       if (HomieNode::nodes.size() >= 1) nodes.remove(nodes.length() - 1);
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$nodes")), 1, true, nodes.c_str());
-      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL;
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS;
       break;
     }
+    case AdvertisementProgress::GlobalStep::PUB_STATS:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats")), 1, true, "uptime");
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL;
+      break;
     case AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL:
       char statsIntervalStr[3 + 1];
-      itoa(STATS_SEND_INTERVAL_SEC / 1000, statsIntervalStr, 10);
+      itoa(Interface::get().getConfig().get().deviceStatsInterval+5, statsIntervalStr, 10);
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/interval")), 1, true, statsIntervalStr);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_FW_NAME;
       break;
@@ -373,14 +461,18 @@ void BootNormal::_advertise() {
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION;
       break;
     case AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION:
+      #ifdef ESP32
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp32");
+      #elif defined(ESP8266)
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation")), 1, true, "esp8266");
+      #endif // ESP32
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_CONFIG;
       break;
     case AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_CONFIG:
     {
       char* safeConfigFile = Interface::get().getConfig().getSafeConfigFile();
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config")), 1, true, safeConfigFile);
-      free(safeConfigFile);
+      delete safeConfigFile;
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_VERSION;
       break;
     }
@@ -393,7 +485,7 @@ void BootNormal::_advertise() {
       if (packetId != 0) {
         if (HomieNode::nodes.size()) {  // skip if no nodes to publish
           _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_NODES;
-          _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+          _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
           _advertisementProgress.currentNodeIndex = 0;
         } else {
           _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
@@ -405,41 +497,208 @@ void BootNormal::_advertise() {
       HomieNode* node = HomieNode::nodes[_advertisementProgress.currentNodeIndex];
       std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(node->getId()) + 12 + 1]);  // /id/$properties
       switch (_advertisementProgress.nodeStep) {
+        case AdvertisementProgress::NodeStep::PUB_NAME:
+          strcpy_P(subtopic.get(), PSTR("/"));
+          strcat(subtopic.get(), node->getId());
+          strcat_P(subtopic.get(), PSTR("/$name"));
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, node->getName());
+          if (packetId != 0) _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+          break;
         case AdvertisementProgress::NodeStep::PUB_TYPE:
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$type"));
           packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, node->getType());
-          if (packetId != 0) _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES;
+          if (packetId != 0) _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_ARRAY;
           break;
+        case AdvertisementProgress::NodeStep::PUB_ARRAY:
+        {
+          if (!node->isRange()) {
+            _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES;
+            break;
+          }
+          strcpy_P(subtopic.get(), PSTR("/"));
+          strcat(subtopic.get(), node->getId());
+          strcat_P(subtopic.get(), PSTR("/$array"));
+          String arrayInfo;
+          arrayInfo.concat(node->getLower());
+          arrayInfo.concat("-");
+          arrayInfo.concat(node->getUpper());
+
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, arrayInfo.c_str());
+          if (packetId != 0) {
+            _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_ARRAY_NODES;
+            _advertisementProgress.currentArrayNodeIndex = node->getLower();
+          }
+          break;
+        }
+        case AdvertisementProgress::NodeStep::PUB_ARRAY_NODES:
+        {
+          String id;
+          id.concat(node->getId());
+          id.concat("_");
+          id.concat(_advertisementProgress.currentArrayNodeIndex);
+          strcpy_P(subtopic.get(), PSTR("/"));
+          strcat(subtopic.get(), id.c_str());
+          strcat_P(subtopic.get(), PSTR("/$name"));
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, id.c_str());
+          if (packetId != 0) {
+            if (_advertisementProgress.currentArrayNodeIndex < node->getUpper()) {
+              _advertisementProgress.currentArrayNodeIndex++;
+            } else {
+              _advertisementProgress.currentArrayNodeIndex = node->getLower();
+              _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES;
+            }
+          }
+          break;
+        }
         case AdvertisementProgress::NodeStep::PUB_PROPERTIES:
+        {
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$properties"));
           String properties;
           for (Property* iProperty : node->getProperties()) {
-            properties.concat(iProperty->getProperty());
-            if (iProperty->isRange()) {
-              properties.concat("[");
-              properties.concat(iProperty->getLower());
-              properties.concat("-");
-              properties.concat(iProperty->getUpper());
-              properties.concat("]");
-            }
-            if (iProperty->isSettable()) properties.concat(":settable");
+            properties.concat(iProperty->getId());
             properties.concat(",");
           }
           if (node->getProperties().size() >= 1) properties.remove(properties.length() - 1);
           packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, properties.c_str());
           if (packetId != 0) {
-            if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
-              _advertisementProgress.currentNodeIndex++;
-              _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+            if (node->getProperties().size()) {
+              // There are properties of the node to be advertised
+              _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_PROPERTIES_ATTRIBUTES;
+              _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_NAME;
+              _advertisementProgress.currentPropertyIndex = 0;
             } else {
-              _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
+              // No properties of the node to be advertised
+              if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
+                // There are nodes to be advertised
+                _advertisementProgress.currentNodeIndex++;
+                _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
+                _advertisementProgress.currentPropertyIndex = 0;
+                _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_NAME;
+              } else {
+                // All nodes have been advertised
+                _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
+              }
             }
           }
           break;
+        }
+        case AdvertisementProgress::NodeStep::PUB_PROPERTIES_ATTRIBUTES:
+        {
+          HomieNode* node = HomieNode::nodes[_advertisementProgress.currentNodeIndex];
+          Property* iProperty = node->getProperties()[_advertisementProgress.currentPropertyIndex];
+          std::unique_ptr<char[]> subtopic = std::unique_ptr<char[]>(new char[1 + strlen(node->getId()) + 1 +strlen(iProperty->getId()) + 10 + 1]);  // /nodeId/propId/$settable
+          switch (_advertisementProgress.propertyStep) {
+            case AdvertisementProgress::PropertyStep::PUB_NAME:
+              if (iProperty->getName() && (iProperty->getName()[0] != '\0')) {
+                strcpy_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), node->getId());
+                strcat_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), iProperty->getId());
+                strcat_P(subtopic.get(), PSTR("/$name"));
+                packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getName());
+                if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_SETTABLE;
+              } else {
+                _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_SETTABLE;
+              }
+              break;
+            case AdvertisementProgress::PropertyStep::PUB_SETTABLE:
+              if (iProperty->isSettable()) {
+                strcpy_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), node->getId());
+                strcat_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), iProperty->getId());
+                strcat_P(subtopic.get(), PSTR("/$settable"));
+                packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, "true");
+                if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_RETAINED;
+              } else {
+                _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_RETAINED;
+              }
+              break;
+            case AdvertisementProgress::PropertyStep::PUB_RETAINED:
+              if (!iProperty->isRetained()) {
+                strcpy_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), node->getId());
+                strcat_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), iProperty->getId());
+                strcat_P(subtopic.get(), PSTR("/$retained"));
+                packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, "false");
+                if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_DATATYPE;
+              } else {
+                _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_DATATYPE;
+              }
+              break;
+            case AdvertisementProgress::PropertyStep::PUB_DATATYPE:
+              if (iProperty->getDatatype() && (iProperty->getDatatype()[0] != '\0')) {
+                strcpy_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), node->getId());
+                strcat_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), iProperty->getId());
+                strcat_P(subtopic.get(), PSTR("/$datatype"));
+                packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getDatatype());
+                if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_UNIT;
+              } else {
+                _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_UNIT;
+              }
+              break;
+            case AdvertisementProgress::PropertyStep::PUB_UNIT:
+              if (iProperty->getUnit() && (iProperty->getUnit()[0] != '\0')) {
+                strcpy_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), node->getId());
+                strcat_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), iProperty->getId());
+                strcat_P(subtopic.get(), PSTR("/$unit"));
+                packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getUnit());
+                if (packetId != 0) _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_FORMAT;
+              } else {
+                _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_FORMAT;
+              }
+              break;
+            case AdvertisementProgress::PropertyStep::PUB_FORMAT:
+            {
+              bool sent = false;
+              if (iProperty->getFormat() && (iProperty->getFormat()[0] != '\0')) {
+                strcpy_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), node->getId());
+                strcat_P(subtopic.get(), PSTR("/"));
+                strcat(subtopic.get(), iProperty->getId());
+                strcat_P(subtopic.get(), PSTR("/$format"));
+                packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, iProperty->getFormat());
+                if (packetId != 0) sent = true;
+              } else {
+                sent = true;
+              }
+
+              if (sent) {
+                if (_advertisementProgress.currentPropertyIndex < node->getProperties().size() - 1) {
+                  // Not all properties of the node have been advertised
+                  _advertisementProgress.currentPropertyIndex++;
+                  _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_NAME;
+                } else {
+                  // All properties of the node have been advertised
+                  if (_advertisementProgress.currentNodeIndex < HomieNode::nodes.size() - 1) {
+                    // Not all nodes have been advertised
+                    _advertisementProgress.currentNodeIndex++;
+                    _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
+                    _advertisementProgress.currentPropertyIndex = 0;
+                    _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_NAME;
+                  } else {
+                    // All nodes have been advertised -> next global step
+                    _advertisementProgress.currentNodeIndex = 0;
+                    _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
+                    _advertisementProgress.currentPropertyIndex = 0;
+                    _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_NAME;
+                    _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::SUB_IMPLEMENTATION_OTA;
+                  }
+                }
+              }
+              break;
+            }
+          }
+        }
       }
       break;
     }
@@ -464,11 +723,11 @@ void BootNormal::_advertise() {
       String broadcast_topic(Interface::get().getConfig().get().mqtt.baseTopic);
       broadcast_topic.concat("$broadcast/+");
       packetId = Interface::get().getMqttClient().subscribe(broadcast_topic.c_str(), 2);
-      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_ONLINE;
+      if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_READY;
       break;
     }
-    case AdvertisementProgress::GlobalStep::PUB_ONLINE:
-      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$online")), 1, true, "true");
+    case AdvertisementProgress::GlobalStep::PUB_READY:
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$state")), 1, true, "ready");
       if (packetId != 0) _advertisementProgress.done = true;
       break;
   }
@@ -477,6 +736,9 @@ void BootNormal::_advertise() {
 void BootNormal::_onMqttConnected() {
   _mqttDisconnectNotified = false;
   _mqttReconnectTimer.deactivate();
+  _statsTimer.activate();
+
+  Update.end();
 
   Interface::get().getLogger() << F("Sending initial information...") << endl;
 
@@ -487,12 +749,14 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
   Interface::get().ready = false;
   _mqttConnectNotified = false;
   _advertisementProgress.done = false;
-  _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_HOMIE;
-  _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_TYPE;
+  _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_INIT;
+  _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_NAME;
+  _advertisementProgress.propertyStep = AdvertisementProgress::PropertyStep::PUB_NAME;
   _advertisementProgress.currentNodeIndex = 0;
+  _advertisementProgress.currentPropertyIndex = 0;
   if (!_mqttDisconnectNotified) {
-    _statsTimer.reset();
-    Interface::get().getLogger() << F("✖ MQTT disconnected") << endl;
+    _statsTimer.deactivate();
+    Interface::get().getLogger() << F("✖ MQTT disconnected, reason: ") << (int8_t)reason << endl;
     Interface::get().getLogger() << F("Triggering MQTT_DISCONNECTED event...") << endl;
     Interface::get().event.type = HomieEventType::MQTT_DISCONNECTED;
     Interface::get().event.mqttReason = reason;
@@ -510,32 +774,36 @@ void BootNormal::_onMqttDisconnected(AsyncMqttClientDisconnectReason reason) {
     }
 
     _mqttConnect();
-
-  } else {
-    _mqttReconnectTimer.activate();
   }
+  _mqttReconnectTimer.activate();
 }
 
 void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
   if (total == 0) return;  // no empty message possible
 
-  // split topic on each "/"
   if (index == 0) {
-    __splitTopic(topic);
+    // Copy the topic
+    size_t topicLength = strlen(topic);
+    _mqttTopicCopy = std::unique_ptr<char[]>(new char[topicLength+1]);
+    memcpy(_mqttTopicCopy.get(), topic, topicLength);
+    _mqttTopicCopy.get()[topicLength] = '\0';
+
+    // Split the topic copy on each "/"
+    __splitTopic(_mqttTopicCopy.get());
   }
 
   // 1. Handle OTA firmware (not copied to payload buffer)
-  if (__handleOTAUpdates(topic, payload, properties, len, index, total))
+  if (__handleOTAUpdates(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   // 2. Fill Payload Buffer
-  if (__fillPayloadBuffer(topic, payload, properties, len, index, total))
+  if (__fillPayloadBuffer(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   /* Arrived here, the payload is complete */
 
   // 3. handle broadcasts
-  if (__handleBroadcasts(topic, payload, properties, len, index, total))
+  if (__handleBroadcasts(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   // 4.all following messages are only for this deviceId
@@ -543,15 +811,15 @@ void BootNormal::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessa
     return;
 
   // 5. handle reset
-  if (__handleResets(topic, payload, properties, len, index, total))
+  if (__handleResets(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   // 6. handle config set
-  if (__handleConfig(topic, payload, properties, len, index, total))
+  if (__handleConfig(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 
   // 7. here, we're sure we have a node property
-  if (__handleNodeProperty(topic, payload, properties, len, index, total))
+  if (__handleNodeProperty(_mqttTopicCopy.get(), payload, properties, len, index, total))
     return;
 }
 
@@ -844,27 +1112,22 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
 
   char* node = _mqttTopicLevels.get()[1];
   char* property = _mqttTopicLevels.get()[2];
-  HomieNode* homieNode = HomieNode::find(node);
-  if (!homieNode) {
-    Interface::get().getLogger() << F("Node ") << node << F(" not registered") << endl;
-    return true;
-  }
 
-#ifdef DEBUG
-  Interface::get().getLogger() << F("Recived network message for ") << homieNode->getId() << endl;
-#endif // DEBUG
+  #ifdef DEBUG
+    Interface::get().getLogger() << F("Recived network message for ") << homieNode->getId() << endl;
+  #endif // DEBUG
 
   int16_t rangeSeparator = -1;
-  for (uint16_t i = 0; i < strlen(property); i++) {
-    if (property[i] == '_') {
+  for (uint16_t i = 0; i < strlen(node); i++) {
+    if (node[i] == '_') {
       rangeSeparator = i;
       break;
     }
   }
   if (rangeSeparator != -1) {
     range.isRange = true;
-    property[rangeSeparator] = '\0';
-    char* rangeIndexStr = property + rangeSeparator + 1;
+    node[rangeSeparator] = '\0';
+    char* rangeIndexStr = node + rangeSeparator + 1;
     String rangeIndexTest = String(rangeIndexStr);
     for (uint8_t i = 0; i < rangeIndexTest.length(); i++) {
       if (!isDigit(rangeIndexTest.charAt(i))) {
@@ -875,19 +1138,24 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
     range.index = rangeIndexTest.toInt();
   }
 
+  HomieNode* homieNode = nullptr;
+  homieNode = HomieNode::find(node);
+
+  if (!homieNode) {
+    Interface::get().getLogger() << F("Node ") << node << F(" not registered") << endl;
+    return true;
+  }
+
+  if (homieNode->isRange()) {
+    if (range.index < homieNode->getLower() || range.index > homieNode->getUpper()) {
+      Interface::get().getLogger() << F("Range index ") << range.index << F(" is not within the bounds of ") << homieNode->getId() << endl;
+      return true;
+    }
+  }
+
   Property* propertyObject = nullptr;
   for (Property* iProperty : homieNode->getProperties()) {
-    if (range.isRange) {
-      if (iProperty->isRange() && strcmp(property, iProperty->getProperty()) == 0) {
-        if (range.index >= iProperty->getLower() && range.index <= iProperty->getUpper()) {
-          propertyObject = iProperty;
-          break;
-        } else {
-          Interface::get().getLogger() << F("Range index ") << range.index << F(" is not within the bounds of ") << property << endl;
-          return true;
-        }
-      }
-    } else if (strcmp(property, iProperty->getProperty()) == 0) {
+    if (strcmp(property, iProperty->getId()) == 0) {
       propertyObject = iProperty;
       break;
     }
@@ -898,33 +1166,33 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
     return true;
   }
 
-#ifdef DEBUG
-  Interface::get().getLogger() << F("Calling global input handler...") << endl;
-#endif // DEBUG
-  bool handled = Interface::get().globalInputHandler(*homieNode, String(property), range, String(_mqttPayloadBuffer.get()));
+  #ifdef DEBUG
+    Interface::get().getLogger() << F("Calling global input handler...") << endl;
+  #endif // DEBUG
+  bool handled = Interface::get().globalInputHandler(*homieNode, range, String(property), String(_mqttPayloadBuffer.get()));
   if (handled) return true;
 
-#ifdef DEBUG
-  Interface::get().getLogger() << F("Calling node input handler...") << endl;
-#endif // DEBUG
-  handled = homieNode->handleInput(String(property), range, String(_mqttPayloadBuffer.get()));
+  #ifdef DEBUG
+    Interface::get().getLogger() << F("Calling node input handler...") << endl;
+  #endif // DEBUG
+  handled = homieNode->handleInput(range, String(property), String(_mqttPayloadBuffer.get()));
   if (handled) return true;
 
-#ifdef DEBUG
-  Interface::get().getLogger() << F("Calling property input handler...") << endl;
-#endif // DEBUG
+  #ifdef DEBUG
+    Interface::get().getLogger() << F("Calling property input handler...") << endl;
+  #endif // DEBUG
   handled = propertyObject->getInputHandler()(range, String(_mqttPayloadBuffer.get()));
 
   if (!handled) {
     Interface::get().getLogger() << F("No handlers handled the following packet:") << endl;
     Interface::get().getLogger() << F("  • Node ID: ") << node << endl;
-    Interface::get().getLogger() << F("  • Property: ") << property << endl;
     Interface::get().getLogger() << F("  • Is range? ");
     if (range.isRange) {
       Interface::get().getLogger() << F("yes (") << range.index << F(")") << endl;
     } else {
       Interface::get().getLogger() << F("no") << endl;
     }
+    Interface::get().getLogger() << F("  • Property: ") << property << endl;
     Interface::get().getLogger() << F("  • Value: ") << _mqttPayloadBuffer.get() << endl;
   }
 

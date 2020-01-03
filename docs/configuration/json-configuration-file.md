@@ -24,7 +24,9 @@ Below is the format of the JSON configuration you will have to provide:
     "base_topic": "devices/",
     "auth": true,
     "username": "user",
-    "password": "pass"
+    "password": "pass",
+    "ssl": true,
+    "ssl_fingerprint": "a27992d3420c89f293d351378ba5f5675f74fe3c"
   },
   "ota": {
     "enabled": true
@@ -46,7 +48,7 @@ Here are the rules:
    - `bssid` and `channel` have to be defined together and these settings are independand of settings related to static IP
    - to define static IP, `ip` (IP address), `mask` (netmask) and `gw` (gateway) settings have to be defined at the same time
    - to define second DNS `dns2` the first one `dns1` has to be defined. Set DNS without `ip`, `mask` and `gw` does not affect the configuration (dns server will be provided by DHCP). It is not required to set DNS servers.
-
+* `ssl_fingerprint` can optionally be defined if `ssl` is enabled. The public key of the MQTT server is then verified against the fingerprint.
 
 Default values if not provided:
 
@@ -57,3 +59,7 @@ Default values if not provided:
 * `mqtt.auth`: `false`
 
 The `mqtt.host` field can be either an IP or an hostname.
+
+!!! tip "OTA"
+    Homie-esp8266 supports `Over the Air` update if you enabled this in configuration (`ota.enabled: true`).
+    For more details see: [OTA updates](../others/ota-configuration-updates.md)

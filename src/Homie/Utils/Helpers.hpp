@@ -17,5 +17,7 @@ class Helpers {
   static bool validateMd5(const char* md5);
   static std::unique_ptr<char[]> cloneString(const String& string);
   static void ipToString(const IPAddress& ip, char* str);
+  static void hexStringToByteArray(const char* hexStr, uint8_t* hexArray, uint8_t size);
+  static void byteArrayToHexString(const uint8_t* hexArray, char* hexStr, uint8_t size);
 };
 }  // namespace HomieInternals

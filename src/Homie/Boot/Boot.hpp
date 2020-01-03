@@ -2,7 +2,11 @@
 
 #include "Arduino.h"
 
+#ifdef ESP32
+#include <WiFi.h>
+#elif defined(ESP8266)
 #include <ESP8266WiFi.h>
+#endif // ESP32
 #include "../../StreamingOperator.hpp"
 #include "../Datatypes/Interface.hpp"
 #include "../Constants.hpp"
