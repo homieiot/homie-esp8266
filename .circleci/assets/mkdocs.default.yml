@@ -13,7 +13,8 @@ markdown_extensions:
   - footnotes
   - codehilite
   - admonition
-  - toc(permalink=true)
+  - toc:
+      permalink: true
   - pymdownx.arithmatex
   - pymdownx.betterem(smart_enable=all)
   - pymdownx.caret
