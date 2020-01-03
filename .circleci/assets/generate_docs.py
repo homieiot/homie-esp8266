@@ -41,7 +41,9 @@ def generate_docs(data):
   zip_file.extractall(unzip_path)
   src_path = glob.glob(unzip_path + '/*')[0]
 
-  if not os.path.isfile(src_path + '/mkdocs.yml'): shutil.copy(current_dir + '/mkdocs.default.yml', src_path + '/mkdocs.yml')
+  # now do it always
+  # if not os.path.isfile(src_path + '/mkdocs.yml'):
+  shutil.copy(current_dir + '/mkdocs.default.yml', src_path + '/mkdocs.yml')
 
   subprocess.call(['mkdocs', 'build'], cwd=src_path)
   shutil.copytree(src_path + '/site', output_dir + '/' + DOCS_PATH + '/' + data['path'])
