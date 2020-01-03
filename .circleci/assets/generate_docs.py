@@ -3,7 +3,7 @@
 
 import json
 import urllib
-import urllib2
+import urllib.request
 import tempfile
 import zipfile
 import glob
