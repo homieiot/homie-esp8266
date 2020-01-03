@@ -35,7 +35,7 @@ def generate_docs(data):
   print('Generating docs for ' + data['tag'] + ' (' + data['description'] + ') at /' + data['path'] + '...')
   zip_url = 'https://github.com/homieiot/homie-esp8266/archive/' + data['tag'] + '.zip'
   zip_path = tempfile.mkstemp()[1]
-  urllib.urlretrieve(zip_url, zip_path)
+  urllib.request.urlretrieve(zip_url, zip_path)
 
   zip_file = zipfile.ZipFile(zip_path, 'r')
   unzip_path = tempfile.mkdtemp()
@@ -55,7 +55,7 @@ def generate_configurators(data):
     file_path = current_dir + data['file']
   else: # url
     file_path = tempfile.mkstemp()[1]
-    urllib.urlretrieve(data['url'], file_path)
+    urllib.request.urlretrieve(data['url'], file_path)
 
   prefix_output = output_dir + '/' + CONFIGURATORS_PATH + '/' + data['path']
   try:
