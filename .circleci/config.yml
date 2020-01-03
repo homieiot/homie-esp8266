@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/code
     docker:
-      - image: circleci/python:2.7
+      - image: circleci/python:3.8.1
     steps:
       - checkout
       - run:
@@ -38,7 +38,7 @@ jobs:
   lint:
     working_directory: ~/code
     docker:
-      - image: circleci/python:2.7
+      - image: circleci/python:3.8.1
     steps:
       - checkout
       - run:
@@ -49,7 +49,7 @@ jobs:
   generate_docs:
     working_directory: ~/code
     docker:
-      - image: circleci/python:2.7
+      - image: circleci/python:3.8.1
     steps:
       - checkout
       - run:
