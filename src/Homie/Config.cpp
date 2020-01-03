@@ -68,7 +68,6 @@ bool Config::load() {
 
   const char* reqName = parsedJson["name"];
   const char* reqWifiSsid = reqWifi["ssid"];
-  const char* reqWifiPassword = reqWifi["password"];
   const char* reqMqttHost = reqMqtt["host"];
 
   /* Optional config items */
@@ -78,6 +77,7 @@ bool Config::load() {
 
   uint16_t reqWifiChannel = reqWifi["channel"] | 0;
   const char* reqWifiBssid = reqWifi["bssid"] | "";
+  const char* reqWifiPassword = reqWifi["password"]; // implicit | nullptr;
   const char* reqWifiIp = reqWifi["ip"] | "";
   const char* reqWifiMask = reqWifi["mask"] | "";
   const char* reqWifiGw = reqWifi["gw"] | "";
@@ -164,9 +164,9 @@ char* Config::getSafeConfigFile() const {
   parsedJson["mqtt"].as<JsonObject>().remove("password");
 
   size_t jsonBufferLength = measureJson(jsonDoc) + 1;
-  std::unique_ptr<char[]> jsonString(new char[jsonBufferLength]);
-  serializeJson(jsonDoc, jsonString.get(), jsonBufferLength);
-  return strdup(jsonString.get());
+  char* jsonString = new char[jsonBufferLength];
+  serializeJson(jsonDoc, jsonString, jsonBufferLength);
+  return jsonString;
 }
 
 void Config::erase() {

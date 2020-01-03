@@ -131,8 +131,13 @@ void BootConfig::_onWifiConnectRequest(AsyncWebServerRequest *request) {
   JsonObject parsedJson = parseJsonDoc.as<JsonObject>();
   JsonVariant wifiSsid = parsedJson["ssid"];
   JsonVariant wifiPassword = parsedJson["password"];
-  if (!wifiSsid.as<const char*>() || !wifiPassword.is<const char*>()) {
-    __SendJSONError(request, F("✖ SSID and password required"));
+  if (!wifiSsid.as<const char*>()) {
+    __SendJSONError(request, F("✖ SSID required"));
+    return;
+  }
+
+  if (!wifiPassword.isNull() && !wifiPassword.is<const char*>()) {
+    __SendJSONError(request, F("✖ Password is not a string"));
     return;
   }
 

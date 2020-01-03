@@ -472,7 +472,7 @@ void BootNormal::_advertise() {
     {
       char* safeConfigFile = Interface::get().getConfig().getSafeConfigFile();
       packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/config")), 1, true, safeConfigFile);
-      free(safeConfigFile);
+      delete safeConfigFile;
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_IMPLEMENTATION_VERSION;
       break;
     }

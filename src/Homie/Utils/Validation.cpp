@@ -102,13 +102,15 @@ ConfigValidationResult Validation::_validateConfigWifi(const JsonObject object) 
   {
     JsonVariant wifiPassword = wifi["password"];
 
-    if (!wifiPassword.is<const char*>()) {
-      result.reason = F("wifi.password is not a string");
-      return result;
-    }
-    if (wifiPassword.as<const char*>() && strlen(wifiPassword.as<const char*>()) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
-      result.reason = F("wifi.password is too long");
-      return result;
+    if (!wifiPassword.isNull()) {
+      if (!wifiPassword.as<const char*>()) {
+        result.reason = F("wifi.password is not a string");
+        return result;
+      }
+      if (strlen(wifiPassword.as<const char*>()) + 1 > MAX_WIFI_PASSWORD_LENGTH) {
+        result.reason = F("wifi.password is too long");
+        return result;
+      }
     }
   }
 
@@ -343,17 +345,19 @@ ConfigValidationResult Validation::_validateConfigOta(const JsonObject object) {
 
   JsonVariant ota = object["ota"];
 
-  if (!ota.is<JsonObject>()) {
-    result.reason = F("ota is not an object");
-    return result;
-  }
-
-  {
-    JsonVariant otaEnabled = ota["enabled"];
-
-    if (!otaEnabled.is<bool>()) {
-      result.reason = F("ota.enabled is not a boolean");
+  if (!ota.isNull()) {
+    if (!ota.is<JsonObject>()) {
+      result.reason = F("ota is not an object");
       return result;
+    }
+
+    {
+      JsonVariant otaEnabled = ota["enabled"];
+
+      if (!otaEnabled.isNull() && !otaEnabled.is<bool>()) {
+        result.reason = F("ota.enabled is not a boolean");
+        return result;
+      }
     }
   }
 
