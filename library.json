@@ -5,12 +5,18 @@
   "description": "ESP8266 framework for Homie, a lightweight MQTT convention for the IoT",
   "homepage": "https://homieiot.github.io/homie-esp8266/",
   "license": "MIT",
-  "authors":
-  {
-    "name": "Marvin Roger",
-    "url": "https://www.marvinroger.fr",
-    "maintainer": true
-  },
+  "authors": [
+    {
+      "name": "Marvin Roger",
+      "url": "https://www.marvinroger.fr",
+      "maintainer": true
+    },
+    {
+      "name": "Ian Hubbertz",
+      "url": "https://github.com/euphi",
+      "maintainer": true
+    }
+  ],
   "repository":
   {
     "type": "git",
