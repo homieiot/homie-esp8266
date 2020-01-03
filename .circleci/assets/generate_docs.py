@@ -17,7 +17,6 @@ import string
 FIRST_RELEASE_ID=3084382
 DOCS_PATH = 'docs'
 DOCS_BRANCHES = [
-  { 'tag': 'develop-v3', 'description': 'V3 develop branch (development)', 'path': 'develop-v3' },
   { 'tag': 'develop', 'description': 'develop branch (development)', 'path': 'develop' },
   { 'tag': 'master', 'description': 'master branch (stable)', 'path': 'stable' }
 ]
