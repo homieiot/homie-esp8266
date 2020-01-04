@@ -13,9 +13,9 @@ This branch of Homie for ESP8266 implements [Homie 3.0.1](https://github.com/hom
 
 ## Download
 
-The Git repository contains the development version of Homie for ESP8266. Stable releases are available [on the releases page](https://github.com/homieiot/homie-esp8266/releases).
+The Git repository contains the development version of Homie for ESP8266. 
+Stable releases are available [on the releases page](https://github.com/homieiot/homie-esp8266/releases).
 
-Note that there is no release of the 3.x.y branch yet. Please use the git repository if you are interested in latest development.
 
 ## Using with PlatformIO
 
@@ -65,13 +65,13 @@ Happy coding with PlatformIO!
 ## Features
 
 * Automatic connection/reconnection to Wi-Fi/MQTT
-* [JSON configuration file](http://homieiot.github.io/homie-esp8266/docs/develop-v3/configuration/json-configuration-file) to configure the device
-* [Cute HTTP API / Web UI / App](http://homieiot.github.io/homie-esp8266/docs/develop-v3/configuration/http-json-api) to remotely send the configuration to the device and get information about it
-* [Custom settings](http://homieiot.github.io/homie-esp8266/docs/develop-v3/advanced-usage/custom-settings)
-* [OTA over MQTT](http://homieiot.github.io/homie-esp8266/docs/develop-v3/others/ota-configuration-updates)
-* [Magic bytes](http://homieiot.github.io/homie-esp8266/docs/develop-v3/advanced-usage/magic-bytes)
-* Available in the [PlatformIO registry](http://platformio.org/#!/lib/show/555/Homie) **Please note that this is the latest release from V2 branch** - see above how to use latest v3 version with platformio.
-* Pretty straightforward sketches, a simple light for example: (**TODO**: adapt to V3)
+* [JSON configuration file](https://homieiot.github.io/homie-esp8266/docs/stable/configuration/json-configuration-file) to configure the device
+* [Cute HTTP API / Web UI / App](https://homieiot.github.io/homie-esp8266/docs/stable/configuration/http-json-api) to remotely send the configuration to the device and get information about it
+* [Custom settings](https://homieiot.github.io/homie-esp8266/docs/stable/advanced-usage/custom-settings)
+* [OTA over MQTT](https://homieiot.github.io/homie-esp8266/docs/stable/others/ota-configuration-updates)
+* [Magic bytes](https://homieiot.github.io/homie-esp8266/docs/stable/advanced-usage/magic-bytes)
+* Available in the [PlatformIO registry](http://platformio.org/#!/lib/show/555/Homie)
+* Pretty [straightforward sketches](./examples), a simple light for example: (**TODO**: adapt to V3)
 
 ```c++
 #include <Homie.h>
