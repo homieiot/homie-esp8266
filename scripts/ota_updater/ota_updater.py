@@ -13,7 +13,9 @@ def on_connect(client, userdata, flags, rc):
     else:
         print("Connected with result code {}".format(rc))
 
-    client.subscribe("{base_topic}{device_id}/$state".format(**userdata))
+    client.subscribe("{base_topic}{device_id}/$state".format(**userdata))  # v3 / v4 devices
+    client.subscribe("{base_topic}{device_id}/$online".format(**userdata))  # v2 devices
+
 
     print("Waiting for device to come online...")
 
@@ -66,8 +68,8 @@ def on_message(client, userdata, msg):
             print("Device ota disabled, aborting...")
             client.disconnect()
 
-    elif msg.topic.endswith('$state'):
-        if msg.payload == 'false':
+    elif msg.topic.endswith('$state') or msg.topic.endswith('$online'):
+        if (msg.topic.endswith('$state') and msg.payload != 'ready') or (msg.topic.endswith('$online') and msg.payload == 'false'): 
             return
 
         # calcluate firmware md5
