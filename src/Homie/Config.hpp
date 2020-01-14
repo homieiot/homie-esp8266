@@ -38,6 +38,7 @@ class Config {
   bool _valid;
 
   bool _spiffsBegin();
+  void _patchJsonObject(JsonObject object, JsonObject patch);
 };
 
 const ConfigStruct& Config::get() const {

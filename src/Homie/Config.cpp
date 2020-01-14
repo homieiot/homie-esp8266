@@ -249,26 +249,7 @@ bool Config::patch(const char* patch) {
   deserializeJson(configJsonDoc, configJson);
   JsonObject configObject = configJsonDoc.as<JsonObject>();
 
-  // To do alow object that dont currently exist to be added like settings.
-  // if settings wasnt there origionally then it should be allowed to be added by incremental.
-  for (JsonObject::iterator it = patchObject.begin(); it != patchObject.end(); ++it) {
-    if (patchObject[it->key()].is<JsonObject>()) {
-      JsonObject subObject = patchObject[it->key()].as<JsonObject>();
-      for (JsonObject::iterator it2 = subObject.begin(); it2 != subObject.end(); ++it2) {
-        if (!configObject.containsKey(it->key()) || !configObject[it->key()].is<JsonObject>()) {
-          String error = "✖ Config does not contain a ";
-          error.concat(it->key().c_str());
-          error.concat(" object");
-          Interface::get().getLogger() << error << endl;
-          return false;
-        }
-        JsonObject subConfigObject = configObject[it->key()].as<JsonObject>();
-        subConfigObject[it2->key()] = it2->value();
-      }
-    } else {
-      configObject[it->key()] = it->value();
-    }
-  }
+  _patchJsonObject(configObject, patchObject);
 
   ConfigValidationResult configValidationResult = Validation::validateConfig(configObject);
   if (!configValidationResult.valid) {
@@ -279,6 +260,26 @@ bool Config::patch(const char* patch) {
   write(configObject);
 
   return true;
+}
+
+void Config::_patchJsonObject(JsonObject object, JsonObject patch) {
+  for (JsonPair patchItem : patch) {
+    JsonVariant patchElement = patchItem.value();
+    JsonVariant objectElement = object[patchItem.key()];
+
+    // If both object element and patch element are objects, then recursively call this method again
+    if (objectElement.is<JsonObject>() && patchElement.is<JsonObject>()) {
+      _patchJsonObject(objectElement.as<JsonObject>(), patchElement.as<JsonObject>());
+    } else {
+      // Delete the object element if the patch element is null
+      if (patchElement.isNull()) {
+        object.remove(patchItem.key());
+      } else {
+        // Otherwise replace the object element value with the patch element value
+        object[patchItem.key()] = patchElement;
+      }
+    }
+  }
 }
 
 bool Config::isValid() const {
