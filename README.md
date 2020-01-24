@@ -52,7 +52,7 @@ framework = arduino
 build_flags = -D PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY
 
 ; the latest development branch (convention V3.0.x) 
-lib_deps = https://github.com/homieiot/homie-esp8266.git#develop-v3
+lib_deps = https://github.com/homieiot/homie-esp8266.git#develop
 
 ```
 
