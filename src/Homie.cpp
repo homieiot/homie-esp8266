@@ -353,9 +353,6 @@ Logger& HomieClass::getLogger() {
   return _logger;
 }
 
-#ifdef ESP32
-//FIXME: implement for ESP32
-#elif defined(ESP8266)
 void HomieClass::prepareToSleep() {
   Interface::get().getLogger() << F("Flagged for sleep by sketch") << endl;
   if (Interface::get().ready) {
@@ -369,6 +366,32 @@ void HomieClass::prepareToSleep() {
   }
 }
 
+#ifdef ESP32
+void HomieClass::doDeepSleep(uint64_t time_us) {
+  Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
+  Serial.flush();
+
+  esp_sleep_enable_timer_wakeup(time_us);
+
+  esp_deep_sleep_start();
+}
+void HomieClass::doDeepSleep(gpio_num_t wakeupPin, int logicLevel) {
+  Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
+  Serial.flush();
+
+  esp_sleep_enable_ext0_wakeup(wakeupPin, logicLevel);
+
+  esp_deep_sleep_start();
+}
+void HomieClass::doDeepSleep(uint64_t pinMask, esp_sleep_ext1_wakeup_mode_t mode) {
+  Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
+  Serial.flush();
+
+  esp_sleep_enable_ext1_wakeup(pinMask, mode);
+
+  esp_deep_sleep_start();
+}
+#elif defined(ESP8266)
 void HomieClass::doDeepSleep(uint64_t time_us, RFMode mode) {
   Interface::get().getLogger() << F("💤 Device is deep sleeping...") << endl;
   Serial.flush();
