@@ -139,6 +139,7 @@ void BootNormal::loop() {
     return;
   }
 
+  if (_otaOngoing) return;
   // here, we finished the advertisement
 
   if (!_mqttConnectNotified) {
@@ -217,7 +218,8 @@ bool BootNormal::_publishOtaStatus(int status, const char* info) {
     payload.concat(info);
   }
 
-  return Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$implementation/ota/status")), 0, true, payload.c_str()) != 0;
+  return Interface::get().getMqttClient().publish(
+            _prefixMqttTopic(PSTR("/$implementation/ota/status")), 0, true, payload.c_str()) != 0;
 }
 
 void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
@@ -1025,9 +1027,14 @@ bool HomieInternals::BootNormal::__handleOTAUpdates(char* topic, char* payload, 
         Interface::get().event.sizeTotal = _otaSizeTotal;
         Interface::get().eventHandler(Interface::get().event);
 
-        _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
+        static int count = 0;
+        if (count == 100) {
+          _publishOtaStatus(206, progress.c_str());  // 206 Partial Content
+          count = 0;
+        }
+        ++count;
 
-                                                   //  Done with the update?
+                                                  //  Done with the update?
         if (index + len == total) {
           // With base64-coded firmware, we may have provided a length off by one or two
           // to Update.begin() because the base64-coded firmware may use padding (one or
