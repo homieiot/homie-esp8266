@@ -19,7 +19,7 @@ void loop() {
 
 # Organizing the sketch in good and safe order
 
-Despite the example above, consider do not adding code into `loop()` function. ESP8266 is relatively weak MCU, and Homie manages few important environmental tasks. Interferring with Homie might boomerang by sudden crashes. Advised way to basic Homie is:
+The example above is good to demonstrate usage of `Homie.isConnected()`. However, consider do not adding any code into `loop()` function. ESP8266 is relatively weak MCU, and Homie manages few important environmental tasks. Interferring with Homie might boomerang by sudden crashes. Advised sketch of Homie is:
 ```c++
 #include <Homie.h>
 
@@ -50,6 +50,19 @@ void loop() {
 
 This way you can be sure the run is safe enough (unless you use blocking delay, then it is not) and the sketch keeps 'regular' structure of `setup()`/`loop()` just in terms of Homie.
 
+## Why it's needed `setupHandler()` in addition to `setup()` in Homie?
+`setup()` starts execution immediately after power on/wake up. `setupHandler()` starts to run when WiFi established the connection.
+
+## Why it's needed `loopHandler()` in addition to `loop()` in Homie?
+`loop()` starts to run then `setup() is completed`. This somehow controls a run of `setupHandler()`. The `loopHandler()` serves safe way to run the loop.
+
+## Why this understanding is important?
+1. Once your code in `setupHandler()` and `loopHandler()` engaged, you can be pretty sure the `Homie.isConnected()` is true without checking it. Unless, you intend your device is mobile and might reach out of WiFi coverage in the middle of the run.
+1. The `loop()` often starts before Wifi is connected. "Wifi connected" event causes significant load on the MCU with Wifi related tasks, also with sending initial MQTT reports. Therefore, running complex commands around the moment of "Wifi connected" might cause malfunction/crash.
+
+As solution, heavy commands (massive initializations, long calculations, SPIFFS reading/writing, etc.) should be initiated in one of 2 cases:
+ - very early in setup() before "Wifi connected".
+ - way after "Wifi connected" (non-blocking wait 3-5 seconds and then do the heavy commands).
 
 # Get access to the configuration
 
