@@ -17,6 +17,40 @@ void loop() {
 }
 ```
 
+# Organizing the sketch in good and safe order
+
+Despite the example above, consider do not adding code into `loop()` function. ESP8266 is relatively weak MCU, and Homie manages few important environmental tasks. Interferring with Homie might boomerang by sudden crashes. Advised way to basic Homie is:
+```c++
+#include <Homie.h>
+
+void setupHandler() {
+  // Code which should run AFTER the WiFi is connected.
+}
+
+void loopHandler() {
+  // Code which should run in normal loop(), after setupHandler() finished.
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial << endl << endl;
+
+  Homie_setFirmware("bare-minimum", "1.0.0"); // The underscore is not a typo! See Magic bytes
+  Homie.setSetupFunction(setupHandler).setLoopFunction(loopHandler);
+  
+ // Code which should run BEFORE the WiFi is connected.
+
+  Homie.setup();
+}
+
+void loop() {
+  Homie.loop();
+}
+```
+
+This way you can be sure the run is safe enough (unless you use blocking delay, then it is not) and the sketch keeps 'regular' structure of `setup()`/`loop()` just in terms of Homie.
+
+
 # Get access to the configuration
 
 You can get access to the configuration of the device. The representation of the configuration is:
