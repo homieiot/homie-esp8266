@@ -108,3 +108,38 @@ You can get access to the underlying MQTT client. For example, to disconnect fro
 ```c++
 Homie.getMqttClient().disconnect();
 ```
+
+# Keep and get MQTT reports while WiFi is not connected
+
+```c++
+#include <cppQueue.h>
+
+HomieNode myNode("q_test", "test"); 
+
+// Struct for Queueing of postponed MQTT messages. Needed to gather messages while Wifi isn't connected yet.
+typedef struct strRec {
+  char topic[10];
+  char msg[90];
+} Rec;
+Queue msg_q(sizeof(Rec), 7, FIFO, true);  // RAM is limited. Keep reasonable Q length (5-10 messages).
+
+// Here comes all other stuff, inclusing setup() and loop().
+
+```
+
+In functions, where WiFi is not expected, keep the report as example:
+```c++
+Rec r = {"alert", "Low storage space is free on SPIFF."};
+msg_q.push(&r);
+```
+
+To release (AKA send) all kept messages from the queue, add in `loopHandler()`:
+```c++
+while (!msg_q.isEmpty() && Homie.isConnected()) {
+  Rec r;
+  msg_q.pop(&r);
+  myNode.setProperty(r.topic).setRetained(false).send(r.msg);
+}
+```
+
+It might be good practice to use the queue always, not only when WiFi is down. This might make Homie job easier, and you get stability as benefit.
