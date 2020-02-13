@@ -14,9 +14,10 @@ void setup() {
 }
 ```
 
-**Tip** "setDefaultValue() before Homie.setup()"
-    As shown in the example above, the **default value** has to be set **before** `Homie.setup()` is called.
-    Otherwise you get an error on startup if there is also no value configured in JSON configuration file.
+**Tip:** "setDefaultValue() before Homie.setup()"
+
+   As shown in the example above, the **default value** has to be set **before** `Homie.setup()` is called.
+   Otherwise you get an error on startup if there is also no value configured in JSON configuration file.
 
 An `HomieSetting` instance can be of the following types:
 
@@ -45,12 +46,14 @@ In order to change custom settings send via MQTT the JSON Object to: `homie/<dev
 JSON object should be flat string. From the example above it becomes:
 `{"settings":{"percentage":75}}`
 
-**Tip** Updated custom settings are saved to SPIFFS automatically.
-Once you updated the custom settings Homie will save it to the Flash and reboot itself.
-The reboot causes the updated and stored setting be read into RAM and be used in actual code.
+**Tip:** Updated custom settings are saved to SPIFFS automatically.
 
-**Tip** If function of your Homie device is sensitive to reboots, then consider other method of custom settings.
-Sometimes, the device is designed for non-interrupted service. So the reset by setting update is not acceptable and can affect the device function/behavior.
+   Once you updated the custom settings Homie will save it to the Flash and reboot itself.
+   The reboot causes the updated and stored setting be read into RAM and be used in actual code.
+
+**Tip:** If function of your Homie device is sensitive to reboots, then consider other method of custom settings.
+
+   Sometimes, the device is designed for non-interrupted service. So the reset by setting update is not acceptable and can affect the device function/behavior.
 
 # Example
 See the following example for a concrete use case:
