@@ -19,7 +19,7 @@ void loop() {
 
 # Organizing the sketch in good and safe order
 
-The example above is good to demonstrate usage of `Homie.isConnected()`. However, consider do not adding any code into `loop()` function. ESP8266 is relatively weak MCU, and Homie manages few important environmental tasks. Interferring with Homie might boomerang by sudden crashes. Advised sketch of Homie is:
+The example above is good to demonstrate usage of `Homie.isConnected()`. However, consider to not add any code into `loop()` function. ESP8266 is relatively weak MCU and Homie manages a few important environmental tasks. Interferring with Homie might boomerang by sudden crashes. Advised sketch of Homie is:
 ```c++
 #include <Homie.h>
 
@@ -50,13 +50,13 @@ void loop() {
 
 This way you can be sure the run is safe enough (unless you use blocking delay, then it is not) and the sketch keeps 'regular' structure of `setup()`/`loop()` just in terms of Homie.
 
-## Why it's needed `setupHandler()` in addition to `setup()` in Homie?
-`setup()` starts execution immediately after power on/wake up. `setupHandler()` starts to run when WiFi established the connection.
+## Why is `setupHandler()` needed in addition to `setup()` in Homie?
+`setup()` starts execution immediately after power on/wake up. `setupHandler()` starts to run after WiFi established the connection.
 
 ## Why it's needed `loopHandler()` in addition to `loop()` in Homie?
-`loop()` starts to run then `setup() is completed`. This somehow controls a run of `setupHandler()`. The `loopHandler()` serves safe way to run the loop.
+`loop()` starts to run then `setup()` is completed. This somehow controls a run of `setupHandler()`. The `loopHandler()` serves safe way to run the loop.
 
-## Why this understanding is important?
+## Why is this understanding important?
 1. Once your code in `setupHandler()` and `loopHandler()` engaged, you can be pretty sure the `Homie.isConnected()` is true without checking it. Unless, you intend your device is mobile and might reach out of WiFi coverage in the middle of the run.
 1. The `loop()` often starts before Wifi is connected. "Wifi connected" event causes significant load on the MCU with Wifi related tasks, also with sending initial MQTT reports. Therefore, running complex commands around the moment of "Wifi connected" might cause malfunction/crash.
 
