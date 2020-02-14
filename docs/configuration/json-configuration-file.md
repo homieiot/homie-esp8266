@@ -49,6 +49,7 @@ Here are the rules:
    - to define static IP, `ip` (IP address), `mask` (netmask) and `gw` (gateway) settings have to be defined at the same time
    - to define second DNS `dns2` the first one `dns1` has to be defined. Set DNS without `ip`, `mask` and `gw` does not affect the configuration (dns server will be provided by DHCP). It is not required to set DNS servers.
 * `ssl_fingerprint` can optionally be defined if `ssl` is enabled. The public key of the MQTT server is then verified against the fingerprint.
+* Homie's limits for MQTT broker username and password are ``32`` symbols. If it needs to be it longer the limit can be changed with ``MAX_MQTT_CREDS_LENGHT`` in the ``Limit.hpp`` file
 
 Default values if not provided:
 
