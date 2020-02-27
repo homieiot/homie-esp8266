@@ -51,7 +51,7 @@ JSON object should be flat string. From the example above it becomes:
    Once you updated the custom settings Homie will save it to the Flash and reboot itself.
    The reboot causes the updated and stored setting be read into RAM and be used in actual code.
 
-**Tip:** If function of your Homie device is sensitive to reboots, then consider other method of custom settings.
+!!! tip If function of your Homie device is sensitive to reboots, then consider other method of custom settings.
 
    Sometimes, the device is designed for non-interrupted service. So the reset by setting update is not acceptable and can affect the device function/behavior.
 
