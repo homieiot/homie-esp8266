@@ -46,7 +46,7 @@ In order to change custom settings send via MQTT the JSON Object to: `homie/<dev
 JSON object should be flat string. From the example above it becomes:
 `{"settings":{"percentage":75}}`
 
-**Tip:** Updated custom settings are saved to SPIFFS automatically.
+!!! tip Updated custom settings are saved to SPIFFS automatically.
 
    Once you updated the custom settings Homie will save it to the Flash and reboot itself.
    The reboot causes the updated and stored setting be read into RAM and be used in actual code.
