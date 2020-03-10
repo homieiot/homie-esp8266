@@ -210,6 +210,7 @@ HomieClass& HomieClass::setLedPin(uint8_t pin, uint8_t on) {
 
   Interface::get().led.pin = pin;
   Interface::get().led.on = on;
+  Interface::get().led.enabled = true;
 
   return *this;
 }
