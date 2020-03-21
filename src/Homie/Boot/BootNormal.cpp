@@ -2,6 +2,13 @@
 
 using namespace HomieInternals;
 
+// needed to read vcc
+#ifdef ESP32
+//FIXME
+#elif defined(ESP8266)
+ADC_MODE(ADC_VCC);
+#endif // ESP32
+
 BootNormal::BootNormal()
   : Boot("normal")
   , _mqttReconnectTimer(MQTT_RECONNECT_INITIAL_INTERVAL, MQTT_RECONNECT_MAX_BACKOFF)
@@ -191,7 +198,17 @@ void BootNormal::loop() {
     Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
     uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
 
-    if (intervalPacketId != 0 && signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+    #ifdef ESP32
+    //FIXME
+    uint16_t supplyPacketId = 1;
+    #elif defined(ESP8266)
+    char supplyStr[5 + 1];
+    sprintf(supplyStr, "%5.3f", ESP.getVcc() / 1000.0);
+    Interface::get().getLogger() << F("  • Supply: ") << supplyStr << F("V") << endl;
+    uint16_t supplyPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/supply")), 1, true, supplyStr);
+    #endif // ESP32
+
+    if (intervalPacketId != 0 && signalPacketId != 0 && uptimePacketId != 0 && supplyPacketId !=0) _statsTimer.tick();
     Interface::get().event.type = HomieEventType::SENDING_STATISTICS;
     Interface::get().eventHandler(Interface::get().event);
   }
@@ -441,7 +458,11 @@ void BootNormal::_advertise() {
       break;
     }
     case AdvertisementProgress::GlobalStep::PUB_STATS:
-      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats")), 1, true, "uptime");
+      #ifdef ESP32
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats")), 1, true, "uptime,signal");
+      #elif defined(ESP8266)
+      packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats")), 1, true, "uptime,signal,supply");
+      #endif // ESP32
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL;
       break;
     case AdvertisementProgress::GlobalStep::PUB_STATS_INTERVAL:
