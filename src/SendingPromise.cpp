@@ -22,8 +22,7 @@ SendingPromise& SendingPromise::setRetained(bool retained) {
   return *this;
 }
 
-SendingPromise &SendingPromise::setSetRetained(bool retained)
-{
+SendingPromise &SendingPromise::setSetRetained(bool retained) {
   _setRetained = retained;
   return *this;
 }
