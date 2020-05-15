@@ -15,6 +15,7 @@ class SendingPromise {
   SendingPromise();
   SendingPromise& setQos(uint8_t qos);
   SendingPromise& setRetained(bool retained);
+  SendingPromise& setSetRetained(bool retained);
   SendingPromise& overwriteSetter(bool overwrite);
   SendingPromise& setRange(const HomieRange& range);
   SendingPromise& setRange(uint16_t rangeIndex);
@@ -34,6 +35,7 @@ class SendingPromise {
   const String* _property;
   uint8_t _qos;
   bool _retained;
+  bool _setRetained;
   bool _overwriteSetter;
   HomieRange _range;
 };
