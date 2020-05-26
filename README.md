@@ -8,9 +8,11 @@ An Arduino for ESP8266 / ESP32 implementation of [Homie](https://github.com/homi
 
 This branch of Homie for ESP8266 implements [Homie 3.0.1](https://github.com/homieiot/convention/releases/tag/v3.0.1) and adds support for ESP32.
 
+[![works with MQTT Homie](https://homieiot.github.io/img/works-with-homie.svg "works with MQTT Homie")](https://homieiot.github.io/)
+
 ## Download
 
-The Git repository contains the development version of Homie for ESP8266. 
+The Git repository contains the development version of Homie for ESP8266.
 Stable releases are available [on the releases page](https://github.com/homieiot/homie-esp8266/releases).
 
 
@@ -51,7 +53,7 @@ board = ...
 framework = arduino
 build_flags = -D PIO_FRAMEWORK_ARDUINO_LWIP2_LOW_MEMORY
 
-; the latest development branch (convention V3.0.x) 
+; the latest development branch (convention V3.0.x)
 lib_deps = https://github.com/homieiot/homie-esp8266.git#develop
 
 ```

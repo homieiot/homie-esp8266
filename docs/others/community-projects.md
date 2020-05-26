@@ -1,5 +1,7 @@
 This page lists the projects made by the community to work with Homie.
 
+[![works with MQTT Homie](https://homieiot.github.io/img/works-with-homie.svg "[works with MQTT Homie")](https://homieiot.github.io/)
+
 # [jpmens/homie-ota](https://github.com/jpmens/homie-ota)
 
 homie-ota is written in Python. It provides an OTA server for Homie devices as well as a simple inventory which can be useful to keep track of Homie devices. homie-ota also enables you to trigger an OTA update (over MQTT, using the Homie convention) from within its inventory. New firmware can be uploaded to homie-ota which detects firmware name (fwname) and version (fwversion) from the uploaded binary blob, thanks to an idea and code contributed by Marvin.
