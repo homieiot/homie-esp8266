@@ -1,6 +1,6 @@
 This page lists the projects made by the community to work with Homie.
 
-[![works with MQTT Homie](https://homieiot.github.io/img/works-with-homie.svg](https://homieiot.github.io/)
+[![works with MQTT Homie](https://homieiot.github.io/img/works-with-homie.svg)](https://homieiot.github.io/)
 
 # [jpmens/homie-ota](https://github.com/jpmens/homie-ota)
 
