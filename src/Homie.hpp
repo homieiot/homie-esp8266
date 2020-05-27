@@ -64,10 +64,12 @@ class HomieClass {
   static const ConfigStruct& getConfiguration();
   AsyncMqttClient& getMqttClient();
   Logger& getLogger();
-  #ifdef ESP32
-  //FIXME implement on ESP32
-  #elif defined(ESP8266)
   static void prepareToSleep();
+  #ifdef ESP32
+  static void doDeepSleep(uint64_t time_us = 0);
+  static void doDeepSleep(gpio_num_t wakeupPin, int logicLevel);
+  static void doDeepSleep(uint64_t pinMask, esp_sleep_ext1_wakeup_mode_t mode);
+  #elif defined(ESP8266)
   static void doDeepSleep(uint64_t time_us = 0, RFMode mode = RF_DEFAULT);
   #endif // ESP32
 
