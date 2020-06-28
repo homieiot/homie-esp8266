@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Arduino.h"
-
+#include <LittleFS.h>
 #include <ArduinoJson.h>
 #ifdef ESP32
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #endif // ESP32
 #include "FS.h"
 #include "Datatypes/Interface.hpp"
@@ -34,10 +34,10 @@ class Config {
 
  private:
   ConfigStruct _configStruct;
-  bool _spiffsBegan;
+  bool _littlefsBegan;
   bool _valid;
 
-  bool _spiffsBegin();
+  bool _littlefsBegin();
   void _patchJsonObject(JsonObject object, JsonObject patch);
 };
 
