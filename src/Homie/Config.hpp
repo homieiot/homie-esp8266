@@ -3,9 +3,6 @@
 #include "Arduino.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>
-#ifdef ESP32
-#include <LittleFS.h>
-#endif // ESP32
 #include "FS.h"
 #include "Datatypes/Interface.hpp"
 #include "Datatypes/ConfigStruct.hpp"
