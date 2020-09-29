@@ -123,7 +123,7 @@ void BootNormal::loop() {
   }
 
   for (HomieNode* iNode : HomieNode::nodes) {
-    if (iNode->runLoopDisconnected || (Interface::get().getMqttClient().connected()) && _mqttConnectNotified ) iNode->loop();
+    if (iNode->runLoopDisconnected || (Interface::get().getMqttClient().connected() && _mqttConnectNotified) ) iNode->loop();
   }
   if (_mqttReconnectTimer.check()) {
     _mqttConnect();
