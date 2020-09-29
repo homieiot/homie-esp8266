@@ -85,11 +85,11 @@ bool Config::load() {
   const char* reqWifiDns2 = reqWifi["dns2"] | "";
 
   uint16_t reqMqttPort = reqMqtt["port"] | DEFAULT_MQTT_PORT;
-  bool reqMqttSsl = reqMqtt["ssl"] | false;
+//  bool reqMqttSsl = reqMqtt["ssl"] | false;
   bool reqMqttAuth = reqMqtt["auth"] | false;
   const char* reqMqttUsername = reqMqtt["username"] | "";
   const char* reqMqttPassword = reqMqtt["password"] | "";
-  const char* reqMqttFingerprint = reqMqtt["ssl_fingerprint"] | "";
+//  const char* reqMqttFingerprint = reqMqtt["ssl_fingerprint"] | "";
   const char* reqMqttBaseTopic = reqMqtt["base_topic"] | DEFAULT_MQTT_BASE_TOPIC;
 
   strlcpy(_configStruct.name, reqName, MAX_FRIENDLY_NAME_LENGTH);
