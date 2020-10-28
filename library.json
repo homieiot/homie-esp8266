@@ -1,6 +1,6 @@
 {
   "name": "Homie",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "keywords": "iot, home, automation, mqtt, esp8266, async, sensor",
   "description": "ESP8266 framework for Homie, a lightweight MQTT convention for the IoT",
   "homepage": "https://homieiot.github.io/homie-esp8266/",
@@ -22,7 +22,7 @@
   "dependencies": [
     {
       "name": "ArduinoJson",
-      "version": "^6.11.4"
+      "version": "~6.11.4"
     },
     {
       "name": "AsyncMqttClient",
