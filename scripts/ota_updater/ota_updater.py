@@ -29,7 +29,9 @@ def on_message(client, userdata, msg):
         status = int(msg.payload.split()[0])
 
         if userdata.get("published"):
-            if status == 206: # in progress
+            if status == 202:
+                print("Checksum accepted")
+            elif status == 206: # in progress
                 # state in progress, print progress bar
                 progress, total = [int(x) for x in msg.payload.split()[1].split('/')]
                 bar_width = 30
@@ -44,6 +46,11 @@ def on_message(client, userdata, msg):
             elif status == 403: # forbidden
                 print("Device ota disabled, aborting...")
                 client.disconnect()
+            elif (status > 300) and (status < 500):
+                print("Other error '" + msg.payload + "', aborting...")
+                client.disconnect()
+            else:
+                print("Other error '" + msg.payload + "'")
 
     elif msg.topic.endswith('$fw/checksum'):
         checksum = msg.payload
@@ -126,6 +133,8 @@ def main(broker_host, broker_port, broker_username, broker_password, broker_ca_c
 
 if __name__ == '__main__':
     import argparse
+
+    print (sys.argv[1:])
 
     parser = argparse.ArgumentParser(
         description='ota firmware update scirpt for ESP8226 implemenation of the Homie mqtt IoT convention.')

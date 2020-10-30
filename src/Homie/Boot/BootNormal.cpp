@@ -339,7 +339,9 @@ void BootNormal::_onWifiGotIp(WiFiEvent_t event, WiFiEventInfo_t info) {
   Interface::get().event.mask = IPAddress(info.got_ip.ip_info.netmask.addr);
   Interface::get().event.gateway = IPAddress(info.got_ip.ip_info.gw.addr);
   Interface::get().eventHandler(Interface::get().event);
+#if HOMIE_MDNS
   MDNS.begin(Interface::get().getConfig().get().deviceId);
+#endif
 
   _mqttConnect();
 }
