@@ -392,7 +392,7 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
 #endif // ESP32
 
 void BootNormal::_mqttConnect() {
-  bool fence=!Interface::get().disable;;
+  bool fence = !Interface::get().disable;;
   #if defined(ESP8266)
     fence &= WiFi.isConnected();
   #endif // ESP32
