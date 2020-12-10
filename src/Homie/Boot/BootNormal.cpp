@@ -123,7 +123,7 @@ void BootNormal::loop() {
   }
 
   for (HomieNode* iNode : HomieNode::nodes) {
-    if (iNode->runLoopDisconnected || (Interface::get().getMqttClient().connected()) && _mqttConnectNotified ) iNode->loop();
+    if (iNode->runLoopDisconnected || (Interface::get().getMqttClient().connected() && _mqttConnectNotified) ) iNode->loop();
   }
   if (_mqttReconnectTimer.check()) {
     _mqttConnect();
@@ -387,16 +387,22 @@ void BootNormal::_onWifiDisconnected(const WiFiEventStationModeDisconnected& eve
   Interface::get().event.wifiReason = event.reason;
   Interface::get().eventHandler(Interface::get().event);
 
-  _wifiConnect();
+//  _wifiConnect();
 }
 #endif // ESP32
 
 void BootNormal::_mqttConnect() {
   if (!Interface::get().disable) {
-    if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_MQTT_DELAY);
-    _mqttConnectNotified = false;
-    Interface::get().getLogger() << F("↕ Attempting to connect to MQTT...") << endl;
-    Interface::get().getMqttClient().connect();
+    bool fence=!Interface::get().disable;;
+#if defined(ESP8266)
+    fence &= WiFi.isConnected();
+#endif // ESP32
+    if (fence) {
+      if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_MQTT_DELAY);
+      _mqttConnectNotified = false;
+      Interface::get().getLogger() << F("↕ Attempting to connect to MQTT...") << endl;
+      Interface::get().getMqttClient().connect();
+    }
   }
 }
 
