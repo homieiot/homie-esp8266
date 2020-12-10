@@ -5,6 +5,9 @@ import paho.mqtt.client as mqtt
 import base64, sys, math
 from hashlib import md5
 
+# Global variable for total bytes to transfer
+total = 0
+
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     if rc != 0:
@@ -19,9 +22,19 @@ def on_connect(client, userdata, flags, rc):
 
     print("Waiting for device to come online...")
 
+# Called from on_message to print a progress bar
+def on_progress(progress, total):
+    g_total = total
+    bar_width = 30
+    bar = int(bar_width*(progress/total))
+    print("\r[", '+'*bar, ' '*(bar_width-bar), "] ", progress, "/", total, end='', sep='')
+    if (progress == total):
+        print()
+    sys.stdout.flush()
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
+    global total
     # decode string for python2/3 compatiblity
     msg.payload = msg.payload.decode()
 
@@ -29,21 +42,27 @@ def on_message(client, userdata, msg):
         status = int(msg.payload.split()[0])
 
         if userdata.get("published"):
-            if status == 206: # in progress
+            if status == 200:
+                on_progress(total, total)
+                print("Firmware uploaded successfully. Waiting for device to come back online.")
+                sys.stdout.flush()
+            elif status == 202:
+                print("Checksum accepted")
+            elif status == 206: # in progress
                 # state in progress, print progress bar
                 progress, total = [int(x) for x in msg.payload.split()[1].split('/')]
-                bar_width = 30
-                bar = int(bar_width*(progress/total))
-                print("\r[", '+'*bar, ' '*(bar_width-bar), "] ", msg.payload.split()[1], end='', sep='')
-                if (progress == total):
-                    print()
-                sys.stdout.flush()
+                on_progress(progress, total)
             elif status == 304: # not modified
                 print("Device firmware already up to date with md5 checksum: {}".format(userdata.get('md5')))
                 client.disconnect()
             elif status == 403: # forbidden
                 print("Device ota disabled, aborting...")
                 client.disconnect()
+            elif (status > 300) and (status < 500):
+                print("Other error '" + msg.payload + "', aborting...")
+                client.disconnect()
+            else:
+                print("Other error '" + msg.payload + "'")
 
     elif msg.topic.endswith('$fw/checksum'):
         checksum = msg.payload
@@ -126,6 +145,8 @@ def main(broker_host, broker_port, broker_username, broker_password, broker_ca_c
 
 if __name__ == '__main__':
     import argparse
+
+    print (sys.argv[1:])
 
     parser = argparse.ArgumentParser(
         description='ota firmware update scirpt for ESP8226 implemenation of the Homie mqtt IoT convention.')
