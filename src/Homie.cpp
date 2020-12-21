@@ -5,7 +5,8 @@ using namespace HomieInternals;
 HomieClass::HomieClass()
   : _setupCalled(false)
   , _firmwareSet(false)
-  , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25") {
+  , __HOMIE_SIGNATURE("\x25\x48\x4f\x4d\x49\x45\x5f\x45\x53\x50\x38\x32\x36\x36\x5f\x46\x57\x25")
+  ,_boot(nullptr) {
   strlcpy(Interface::get().brand, DEFAULT_BRAND, MAX_BRAND_LENGTH);
   Interface::get().bootMode = HomieBootMode::UNDEFINED;
   Interface::get().configurationAp.secured = false;
@@ -400,5 +401,8 @@ void HomieClass::doDeepSleep(uint64_t time_us, RFMode mode) {
 }
 #endif // ESP32
 
+//HomieClass Homie;
+HomieClass& getHomie() {
+    return *(HomieClass::getInstance().get());
+}
 
-HomieClass Homie;
