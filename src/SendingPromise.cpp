@@ -72,7 +72,7 @@ uint16_t SendingPromise::send(const String& value) {
 
   if (_overwriteSetter) {
     strcat_P(topic, PSTR("/set"));
-    Interface::get().getMqttClient().publish(topic, 1, _setRetained, value.c_str());
+    Interface::get().getMqttClient().publish(topic, 2, _setRetained, value.c_str());
   }
 
   delete[] topic;
