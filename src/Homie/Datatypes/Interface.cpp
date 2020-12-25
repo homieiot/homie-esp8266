@@ -21,9 +21,9 @@ InterfaceData::InterfaceData()
 }
 
 namespace HomieInternals {
-    namespace Interface {
-        InterfaceData& get() {
-            return *( InterfaceData::getInstance().get());
-        }
-    }
+namespace Interface {
+   InterfaceData& get() {
+       return *( InterfaceData::getInstance().get());
+   }
+}
 }

@@ -34,7 +34,8 @@ using HomieClassPtr = std::shared_ptr<HomieClass>;
 class HomieClass: public std::enable_shared_from_this<HomieClass> {
     friend class ::HomieNode;
     friend SendingPromise;
-public:
+
+ public:
     static HomieClassPtr getInstance() {
         static HomieClassPtr m_inst = HomieClassPtr(new HomieClass());
         return m_inst;
