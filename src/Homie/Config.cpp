@@ -4,21 +4,11 @@ using namespace HomieInternals;
 
 Config::Config()
   : _configStruct()
-  , _spiffsBegan(false)
   , _valid(false) {
 }
 
 bool Config::_spiffsBegin() {
-  if (!_spiffsBegan) {
-#ifdef ESP32
-    _spiffsBegan = SPIFFS.begin(true);
-#elif defined(ESP8266)
-    _spiffsBegan = SPIFFS.begin();
-#endif
-    if (!_spiffsBegan) Interface::get().getLogger() << F("✖ Cannot mount filesystem") << endl;
-  }
-
-  return _spiffsBegan;
+  return _fs._fsBegin();
 }
 
 bool Config::load() {
