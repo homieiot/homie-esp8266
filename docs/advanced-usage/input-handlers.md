@@ -3,7 +3,7 @@ There are four types of input handlers:
 * Global input handler. This unique handler will handle every changed settable properties for all nodes
 
 ```c++
-bool globalInputHandler(const HomieNode& node, const String& property, const HomieRange& range, const String& value) {
+bool globalInputHandler(const HomieNode& node, const HomieRange& range, const String& property, const String& value) {
 
 }
 
