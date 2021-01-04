@@ -89,7 +89,7 @@ Set the configuration AP password.
 * **`password`**: the configuration AP password
 
 ```c++
-Homie& setGlobalInputHandler(std::function<bool(const String& nodeId, const String& property, const HomieRange& range, const String& value)> handler);
+Homie& setGlobalInputHandler(std::function<bool(const HomieNode& node, const HomieRange& range, const String& property, const String& value)> handler);
 ```
 
 Set input handler for subscribed properties.
@@ -222,7 +222,7 @@ Get the underlying `Logger` object, which is only a wrapper around `Serial` by d
 # HomieNode
 
 ```c++
-HomieNode(const char* id, const char* type, std::function<bool(const String& property, const HomieRange& range, const String& value)> handler = );
+HomieNode(const char* id, const char* name, const char* type, bool range, uint16_t lower, uint16_t upper, std::function<bool(const HomieRange& range, const String& property, const String& value)> handler);
 ```
 
 Constructor of an HomieNode object.
@@ -245,14 +245,11 @@ Return the type of the node.
 
 ```c++
 PropertyInterface& advertise(const char* property);
-PropertyInterface& advertiseRange(const char* property, uint16_t lower, uint16_t upper);
 ```
 
 Advertise a property / range property on the node.
 
 * **`property`**: Property to advertise
-* **`lower`**: Lower bound of the range
-* **`upper`**: Upper bound of the range
 
 This returns a reference to `PropertyInterface` on which you can call:
 
