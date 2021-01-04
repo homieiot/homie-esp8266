@@ -16,16 +16,16 @@ void setup() {
 * Node input handlers. This handler will handle every changed settable properties of a specific node
 
 ```c++
-bool nodeInputHandler(const String& property, const HomieRange& range, const String& value) {
+bool nodeInputHandler(const HomieRange& range, const String& property, const String& value) {
 
 }
 
-HomieNode node("id", "type", nodeInputHandler);
+HomieNode node("id", "type", false, 0, 0, nodeInputHandler);
 ```
 
 * Virtual callback from node input handler
 
-You can create your own class derived from HomieNode that implements the virtual method `bool HomieNode::handleInput(const String& property, const String& value)`. The default node input handler then automatically calls your callback.
+You can create your own class derived from HomieNode that implements the virtual method `bool HomieNode::handleInput(const HomieRange& range, const String& property, const String& value)`. The default node input handler then automatically calls your callback.
 
 ```c++
 class RelaisNode : public HomieNode {
@@ -33,7 +33,7 @@ class RelaisNode : public HomieNode {
 	RelaisNode(): HomieNode("Relais", "switch8");
 
  protected:
-  virtual bool handleInput(const String& property, const HomieRange& range, const String& value) {
+  virtual bool handleInput(const HomieRange& range, const String& property, const String& value) {
 
   }
 };
