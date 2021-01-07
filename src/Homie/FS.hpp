@@ -21,10 +21,11 @@ namespace HomieInternals {
 class FS {
  public:
   FS();
-  bool _fsBegin();
-  static void doSomething();
+  bool begin();
+  bool exists(const char *filepath);
+  File open(const char* path, const char* mode);
 
  private:
-  bool _fsBegan;
+  bool _began;
 };
 }  // namespace HomieInternals

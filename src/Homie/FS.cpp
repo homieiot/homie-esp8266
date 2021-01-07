@@ -1,31 +1,36 @@
 #include "FS.hpp"
+
 #include "Datatypes/Interface.hpp"
 
 HomieInternals::FS::FS()
-  : _fsBegan(false) {
+  : _began(false) {
 }
 
-bool HomieInternals::FS::_fsBegin() {
-  if (!_fsBegan) {
+bool HomieInternals::FS::begin() {
+  if (!_began) {
 #ifdef ESP32
 #ifdef HOMIE_SPIFFS
-    _fsBegan = SPIFFS.begin(true);
+    _began = SPIFFS.begin(true);
 #elif defined(HOMIE_LITTLEFS)
-    _fsBegan = LittleFS.begin();
+    _began = LittleFS.begin();
 #endif
 #elif defined(ESP8266)
 #ifdef HOMIE_SPIFFS
-    _fsBegan = SPIFFS.begin();
+    _began = SPIFFS.begin();
 #elif defined(HOMIE_LITTLEFS)
-    _fsBegan = LittleFS.begin();
+    _began = LittleFS.begin();
 #endif
 #endif
-    if (!_fsBegan) Interface::get().getLogger() << F("✖ Cannot mount filesystem") << endl;
+    if (!_began) Interface::get().getLogger() << F("✖ Cannot mount filesystem") << endl;
   }
 
-  return _fsBegan;
+  return _began;
 }
 
-void HomieInternals::FS::doSomething() {
-  bool lala = false;
+bool HomieInternals::FS::exists(const char *filepath) {
+  return SPIFFS.exists(filepath);
+}
+
+File HomieInternals::FS::open(const char* path, const char* mode) {
+  return SPIFFS.open(path, mode);
 }

@@ -2,26 +2,28 @@
 
 using namespace HomieInternals;
 
+HomieInternals::FS Config::_fs = HomieInternals::FS();
+
 Config::Config()
   : _configStruct()
   , _valid(false) {
 }
 
 bool Config::_spiffsBegin() {
-  return _fs._fsBegin();
+  return _fs.begin();
 }
 
 bool Config::load() {
-  if (!_spiffsBegin()) { return false; }
+  if (!_fs.begin()) { return false; }
 
   _valid = false;
 
-  if (!SPIFFS.exists(CONFIG_FILE_PATH)) {
+  if (!_fs.exists(CONFIG_FILE_PATH)) {
     Interface::get().getLogger() << F("✖ ") << CONFIG_FILE_PATH << F(" doesn't exist") << endl;
     return false;
   }
 
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  File configFile = _fs.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return false;
@@ -138,7 +140,7 @@ bool Config::load() {
 }
 
 char* Config::getSafeConfigFile() const {
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  File configFile = _fs.open(CONFIG_FILE_PATH, "r");
   size_t configSize = configFile.size();
 
   char buf[MAX_JSON_CONFIG_FILE_SIZE];
@@ -160,19 +162,19 @@ char* Config::getSafeConfigFile() const {
 }
 
 void Config::erase() {
-  if (!_spiffsBegin()) { return; }
+  if (!_fs.begin()) { return; }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
   SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
 }
 
 void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
-  if (!_spiffsBegin()) { return; }
+  if (!_fs.begin()) { return; }
 
   if (bootMode == HomieBootMode::UNDEFINED) {
     SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
   } else {
-    File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
+    File bootModeFile = _fs.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
     if (!bootModeFile) {
       Interface::get().getLogger() << F("✖ Cannot open NEXTMODE file") << endl;
       return;
