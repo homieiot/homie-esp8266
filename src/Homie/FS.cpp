@@ -34,3 +34,7 @@ bool HomieInternals::FS::exists(const char *filepath) {
 File HomieInternals::FS::open(const char* path, const char* mode) {
   return SPIFFS.open(path, mode);
 }
+
+bool HomieInternals::FS::remove(const char* path) {
+  return SPIFFS.remove(path);
+}

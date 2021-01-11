@@ -12,7 +12,9 @@
 
 // config mode requires SPIFFS as ESP Async Webserver only works with SPIFFS
 #if HOMIE_CONFIG
+#ifndef HOMIE_SPIFFS
 #define HOMIE_SPIFFS
+#endif
 #endif
 
 // default should be SPIFFS, except using LittleFS is explicitely defined

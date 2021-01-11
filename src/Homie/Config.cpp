@@ -9,10 +9,6 @@ Config::Config()
   , _valid(false) {
 }
 
-bool Config::_spiffsBegin() {
-  return _fs.begin();
-}
-
 bool Config::load() {
   if (!_fs.begin()) { return false; }
 
@@ -164,15 +160,15 @@ char* Config::getSafeConfigFile() const {
 void Config::erase() {
   if (!_fs.begin()) { return; }
 
-  SPIFFS.remove(CONFIG_FILE_PATH);
-  SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
+  _fs.remove(CONFIG_FILE_PATH);
+  _fs.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
 }
 
 void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
   if (!_fs.begin()) { return; }
 
   if (bootMode == HomieBootMode::UNDEFINED) {
-    SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
+    _fs.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
   } else {
     File bootModeFile = _fs.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "w");
     if (!bootModeFile) {
@@ -187,9 +183,9 @@ void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
 }
 
 HomieBootMode Config::getHomieBootModeOnNextBoot() {
-  if (!_spiffsBegin()) { return HomieBootMode::UNDEFINED; }
+  if (!_fs.begin()) { return HomieBootMode::UNDEFINED; }
 
-  File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
+  File bootModeFile = _fs.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
   if (bootModeFile) {
     int v = bootModeFile.parseInt();
     bootModeFile.close();
@@ -200,11 +196,11 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
 }
 
 void Config::write(const JsonObject config) {
-  if (!_spiffsBegin()) { return; }
+  if (!_fs.begin()) { return; }
 
-  SPIFFS.remove(CONFIG_FILE_PATH);
+  _fs.remove(CONFIG_FILE_PATH);
 
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
+  File configFile = _fs.open(CONFIG_FILE_PATH, "w");
   if (!configFile) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return;
@@ -214,7 +210,7 @@ void Config::write(const JsonObject config) {
 }
 
 bool Config::patch(const char* patch) {
-  if (!_spiffsBegin()) { return false; }
+  if (!_fs.begin()) { return false; }
 
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonDoc;
 
@@ -224,7 +220,7 @@ bool Config::patch(const char* patch) {
   }
 
   JsonObject patchObject = patchJsonDoc.as<JsonObject>();
-  File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
+  File configFile = _fs.open(CONFIG_FILE_PATH, "r");
   if (!configFile) {
     Interface::get().getLogger() << F("✖ Cannot open config file") << endl;
     return false;

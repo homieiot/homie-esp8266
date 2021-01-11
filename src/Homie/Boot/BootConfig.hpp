@@ -10,7 +10,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <AsyncTCP.h>
-#include <SPIFFS.h>
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -40,6 +39,7 @@ class BootConfig : public Boot {
   void loop();
 
  private:
+  FS _fs;
   AsyncWebServer _http;
   HTTPClient _httpClient;
   DNSServer _dns;

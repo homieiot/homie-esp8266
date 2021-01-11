@@ -24,6 +24,7 @@ class FS {
   bool begin();
   bool exists(const char *filepath);
   File open(const char* path, const char* mode);
+  bool remove(const char* path);
 
  private:
   bool _began;
