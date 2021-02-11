@@ -34,6 +34,7 @@ jobs:
       - run: platformio ci ./examples/SingleButton --board=esp01_1m --board=nodemcuv2 --board=esp32dev
       - run: platformio ci ./examples/SonoffDualShutters --board=esp01_1m --board=nodemcuv2 --board=esp32dev
       - run: platformio ci ./examples/TemperatureSensor --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+      - run: platformio ci ./examples/Broadcast -O "build_flags = -D HOMIE_LITTLEFS" --board=esp01_1m --board=nodemcuv2 --board=esp32dev
 
   lint:
     working_directory: ~/code

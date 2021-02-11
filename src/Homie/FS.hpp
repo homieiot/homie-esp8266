@@ -2,20 +2,15 @@
 
 #include "Constants.hpp"
 
-#ifdef ESP32
-#ifdef HOMIE_SPIFFS
+#if defined(HOMIE_SPIFFS)
+#if defined(ESP8266)
+#include <FS.h>
+#elif defined(ESP32)
 #include <SPIFFS.h>
 #endif
-#ifdef HOMIE_LITTLEFS
-#include <LITTLEFS.h>
-#endif
-#elif defined(ESP8266)
-#ifdef HOMIE_SPIFFS
-#include "FS.h"
 #elif defined(HOMIE_LITTLEFS)
-#include "LittleFS.h"
+#include <LittleFS.h>
 #endif
-#endif // ESP32
 
 namespace HomieInternals {
 class FS {
