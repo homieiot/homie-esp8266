@@ -9,7 +9,11 @@
 #include <SPIFFS.h>
 #endif
 #elif defined(HOMIE_LITTLEFS)
+#if defined(ESP8266)
 #include <LittleFS.h>
+#elif defined(ESP32)
+#include <LITTLEFS.h>
+#endif
 #endif
 
 namespace HomieInternals {
