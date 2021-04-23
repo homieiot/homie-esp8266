@@ -18,7 +18,7 @@ void onHomieEvent(const HomieEvent& event) {
       break;
     case HomieEventType::READY_TO_SLEEP:
       Homie.getLogger() << "Ready to sleep" << endl;
-      Homie.doDeepSleep();
+      Homie.doDeepSleep(60000000); // 60 sec
       break;
   }
 }
@@ -35,3 +35,5 @@ void loop() {
   t.update();
 }
 ```
+
+Be aware that you have to connect the pin `D0` to the pin `RST`, otherwise the board won't wake up.
