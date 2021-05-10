@@ -18,7 +18,6 @@ Its lets you do useful things like:
    * Sunset / rise
    * When another property changes
 
-
 # [euphi/HomieLoggerNode](https://github.com/euphi/HomieLoggerNode)
 
 This library adds the ability to send log messages via mqtt.
