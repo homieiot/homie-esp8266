@@ -17,3 +17,7 @@ Its lets you do useful things like:
    * When a network device is dis/connected (i.e. your phone joins your wifi, turn the lights on)
    * Sunset / rise
    * When another property changes
+
+# [euphi/HomieLoggerNode](https://github.com/euphi/HomieLoggerNode)
+
+This library adds the ability to send log messages via mqtt.
