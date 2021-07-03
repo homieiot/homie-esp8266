@@ -42,6 +42,7 @@ class BootConfig : public Boot {
  private:
   AsyncWebServer _http;
   HTTPClient _httpClient;
+  WiFiClient _wifiClient;
   DNSServer _dns;
   uint8_t _ssidCount;
   bool _wifiScanAvailable;

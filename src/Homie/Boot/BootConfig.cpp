@@ -312,7 +312,7 @@ void BootConfig::_proxyHttpRequest(AsyncWebServerRequest *request) {
 
   // send request to destination (as in incoming host header)
   _httpClient.setUserAgent(F("ESP8266-Homie"));
-  _httpClient.begin(url);
+  _httpClient.begin(_wifiClient, url);
   // copy headers
   for (size_t i = 0; i < request->headers(); i++) {
     _httpClient.addHeader(request->headerName(i), request->header(i));
