@@ -191,7 +191,13 @@ void BootNormal::loop() {
     Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
     uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
 
-    if (intervalPacketId != 0 && signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+    uint32_t freeHeap = ESP.getFreeHeap();
+    char freeHeapStr[20 + 1];
+    utoa(freeHeap, freeHeapStr, 10);
+    Interface::get().getLogger() << F("  • FreeHeap: ") << freeHeapStr << F("b") << endl;
+    uint16_t freeHeapPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/free-heap")), 1, true, freeHeapStr);
+
+    if (intervalPacketId != 0 && signalPacketId != 0 && uptimePacketId != 0 && freeHeapPacketId != 0) _statsTimer.tick();
     Interface::get().event.type = HomieEventType::SENDING_STATISTICS;
     Interface::get().eventHandler(Interface::get().event);
   }
