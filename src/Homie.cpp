@@ -130,8 +130,11 @@ void HomieClass::setup() {
     _selectedHomieBootMode = HomieBootMode::NORMAL;
   }
 
+  // load and check config file
+  bool isConfigured = Interface::get().getConfig().load();
+
   // validate selected mode and fallback as needed
-  if (_selectedHomieBootMode == HomieBootMode::NORMAL && !Interface::get().getConfig().load()) {
+  if (_selectedHomieBootMode == HomieBootMode::NORMAL && !isConfigured) {
 #if HOMIE_CONFIG
     Interface::get().getLogger() << F("Configuration invalid. Using CONFIG MODE") << endl;
     _selectedHomieBootMode = HomieBootMode::CONFIGURATION;
@@ -308,7 +311,7 @@ HomieClass& HomieClass::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
 }
 
 bool HomieClass::isConfigured() {
-  return Interface::get().getConfig().load();
+  return Interface::get().getConfig().isValid();
 }
 
 bool HomieClass::isConnected() {
