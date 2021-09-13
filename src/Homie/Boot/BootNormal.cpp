@@ -191,7 +191,13 @@ void BootNormal::loop() {
     Interface::get().getLogger() << F("  • Uptime: ") << uptimeStr << F("s") << endl;
     uint16_t uptimePacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/uptime")), 1, true, uptimeStr);
 
-    if (intervalPacketId != 0 && signalPacketId != 0 && uptimePacketId != 0) _statsTimer.tick();
+    uint32_t freeHeap = ESP.getFreeHeap();
+    char freeHeapStr[20 + 1];
+    utoa(freeHeap, freeHeapStr, 10);
+    Interface::get().getLogger() << F("  • FreeHeap: ") << freeHeapStr << F("b") << endl;
+    uint16_t freeHeapPacketId = Interface::get().getMqttClient().publish(_prefixMqttTopic(PSTR("/$stats/free-heap")), 1, true, freeHeapStr);
+
+    if (intervalPacketId != 0 && signalPacketId != 0 && uptimePacketId != 0 && freeHeapPacketId != 0) _statsTimer.tick();
     Interface::get().event.type = HomieEventType::SENDING_STATISTICS;
     Interface::get().eventHandler(Interface::get().event);
   }
@@ -1122,10 +1128,6 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
   char* node = _mqttTopicLevels.get()[1];
   char* property = _mqttTopicLevels.get()[2];
 
-  #ifdef DEBUG
-    Interface::get().getLogger() << F("Recived network message for ") << homieNode->getId() << endl;
-  #endif // DEBUG
-
   int16_t rangeSeparator = -1;
   for (uint16_t i = 0; i < strlen(node); i++) {
     if (node[i] == '_') {
@@ -1149,6 +1151,10 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
 
   HomieNode* homieNode = nullptr;
   homieNode = HomieNode::find(node);
+
+  #ifdef DEBUG
+    Interface::get().getLogger() << F("Recived network message for ") << homieNode->getId() << endl;
+  #endif // DEBUG
 
   if (!homieNode) {
     Interface::get().getLogger() << F("Node ") << node << F(" not registered") << endl;
