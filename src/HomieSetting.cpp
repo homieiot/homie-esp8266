@@ -106,7 +106,7 @@ bool HomieSetting<const char*>::isConstChar() const { return true; }
 template<>
 const char* HomieSetting<const char*>::getType() const { return "string"; }
 template<>
-void HomieSetting<const char*>::ffree() const { free((char*)_value); }
+void HomieSetting<const char*>::ffree() const { free(reinterpret_cast<char*>_value); }
 
 // Needed because otherwise undefined reference to
 template class HomieSetting<bool>;
