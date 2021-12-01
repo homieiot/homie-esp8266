@@ -63,6 +63,7 @@ bool HomieSetting<T>::validate(T candidate) const {
 
 template <class T>
 void HomieSetting<T>::set(T value) {
+  ffree();
   _value = value;
   _provided = true;
 }
@@ -83,21 +84,29 @@ template<>
 bool HomieSetting<bool>::isBool() const { return true; }
 template<>
 const char* HomieSetting<bool>::getType() const { return "bool"; }
+template<>
+void HomieSetting<bool>::ffree() const {}
 
 template<>
 bool HomieSetting<long>::isLong() const { return true; }
 template<>
 const char* HomieSetting<long>::getType() const { return "long"; }
+template<>
+void HomieSetting<long>::ffree() const {}
 
 template<>
 bool HomieSetting<double>::isDouble() const { return true; }
 template<>
 const char* HomieSetting<double>::getType() const { return "double"; }
+template<>
+void HomieSetting<double>::ffree() const {}
 
 template<>
 bool HomieSetting<const char*>::isConstChar() const { return true; }
 template<>
 const char* HomieSetting<const char*>::getType() const { return "string"; }
+template<>
+void HomieSetting<const char*>::ffree() const { free((char*)_value); }
 
 // Needed because otherwise undefined reference to
 template class HomieSetting<bool>;
