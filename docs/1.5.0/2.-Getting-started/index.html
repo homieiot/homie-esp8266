@@ -1,0 +1,1065 @@
+
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="The Homie for ESP8266 documentation.">
+      
+      
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.pipeline.stopwords" content="True">
+      
+        <meta name="lang:search.pipeline.trimmer" content="True">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.6.0">
+    
+    
+      
+        <title>Getting started - Homie for ESP8266</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application.1b62728e.css">
+      
+        <link rel="stylesheet" href="../assets/stylesheets/application-palette.a8b3c06d.css">
+      
+      
+        
+        
+        <meta name="theme-color" content="#ef5350">
+      
+    
+    
+      <script src="../assets/javascripts/modernizr.268332fc.js"></script>
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+    
+    <link rel="stylesheet" href="../assets/fonts/material-icons.css">
+    
+    
+    
+      
+    
+    
+  </head>
+  
+    
+    
+    <body dir="ltr" data-md-color-primary="red" data-md-color-accent="red">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#getting-started" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href=".." title="Homie for ESP8266" class="md-header-nav__button md-logo">
+          
+            <img src="../assets/logo.png" width="24" height="24">
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          
+            <span class="md-header-nav__topic">
+              Homie for ESP8266
+            </span>
+            <span class="md-header-nav__topic">
+              
+                Getting started
+              
+            </span>
+          
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+<a href="https://github.com/homieiot/homie-esp8266/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    homieiot/homie-esp8266
+  </div>
+</a>
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+        
+
+<nav class="md-tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  <li class="md-tabs__item">
+    
+      <a href=".." class="md-tabs__link md-tabs__link--active">
+        Welcome
+      </a>
+    
+  </li>
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../quickstart/what-is-it.md" class="md-tabs__link">
+          Quickstart
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../advanced-usage/built-in-led.md" class="md-tabs__link">
+          Advanced usage
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../configuration/json-configuration-file.md" class="md-tabs__link">
+          Configuration
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../others/ota-configuration-updates.md" class="md-tabs__link">
+          Others
+        </a>
+      
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+      
+      <main class="md-main" role="main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href=".." title="Homie for ESP8266" class="md-nav__button md-logo">
+      
+        <img src="../assets/logo.png" width="48" height="48">
+      
+    </a>
+    Homie for ESP8266
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+<a href="https://github.com/homieiot/homie-esp8266/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    homieiot/homie-esp8266
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Welcome" class="md-nav__link">
+      Welcome
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Quickstart
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Quickstart
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../quickstart/what-is-it.md" title="What is it?" class="md-nav__link">
+      What is it?
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../quickstart/getting-started.md" title="Getting started" class="md-nav__link">
+      Getting started
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Advanced usage
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        Advanced usage
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/built-in-led.md" title="Built-in LED" class="md-nav__link">
+      Built-in LED
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/branding.md" title="Branding" class="md-nav__link">
+      Branding
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/events.md" title="Events" class="md-nav__link">
+      Events
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/logging.md" title="Logging" class="md-nav__link">
+      Logging
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/streaming-operator.md" title="Streaming operator" class="md-nav__link">
+      Streaming operator
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/input-handlers.md" title="Input handlers" class="md-nav__link">
+      Input handlers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/broadcast.md" title="Broadcast" class="md-nav__link">
+      Broadcast
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/custom-settings.md" title="Custom settings" class="md-nav__link">
+      Custom settings
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/resetting.md" title="Resetting" class="md-nav__link">
+      Resetting
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/compiler-flags.md" title="Compiler-Flags" class="md-nav__link">
+      Compiler-Flags
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/standalone-mode.md" title="Standalone mode" class="md-nav__link">
+      Standalone mode
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/magic-bytes.md" title="Magic bytes" class="md-nav__link">
+      Magic bytes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/range-properties.md" title="Range properties" class="md-nav__link">
+      Range properties
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/deep-sleep.md" title="Deep sleep" class="md-nav__link">
+      Deep sleep
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/miscellaneous.md" title="Miscellaneous" class="md-nav__link">
+      Miscellaneous
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/ui-bundle.md" title="UI Bundle" class="md-nav__link">
+      UI Bundle
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Configuration
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        Configuration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/json-configuration-file.md" title="JSON configuration file" class="md-nav__link">
+      JSON configuration file
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/http-json-api.md" title="HTTP JSON API" class="md-nav__link">
+      HTTP JSON API
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Others
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        Others
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/ota-configuration-updates.md" title="OTA/configuration updates" class="md-nav__link">
+      OTA/configuration updates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/homie-implementation-specifics.md" title="Homie implementation specifics" class="md-nav__link">
+      Homie implementation specifics
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/limitations-and-known-issues.md" title="Limitations and known issues" class="md-nav__link">
+      Limitations and known issues
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/troubleshooting.md" title="Troubleshooting" class="md-nav__link">
+      Troubleshooting
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/cpp-api-reference.md" title="C++ API reference" class="md-nav__link">
+      C++ API reference
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/upgrade-guide-from-v1-to-v2.md" title="Upgrade guide from v1 to v2" class="md-nav__link">
+      Upgrade guide from v1 to v2
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/upgrade-guide-from-v2-to-v3.md" title="Upgrade guide from v2 to v3" class="md-nav__link">
+      Upgrade guide from v2 to v3
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/community-projects.md" title="Community projects" class="md-nav__link">
+      Community projects
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installing-homie-for-esp8266" class="md-nav__link">
+    Installing Homie for ESP8266
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1a-for-the-arduino-ide" class="md-nav__link">
+    1a. For the Arduino IDE
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1b-with-platformio" class="md-nav__link">
+    1b. With PlatformIO
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bare-minimum-sketch" class="md-nav__link">
+    Bare minimum sketch
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-to-the-ap-and-configuring-the-device" class="md-nav__link">
+    Connecting to the AP and configuring the device
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-what-happens-in-normal-mode" class="md-nav__link">
+    Understanding what happens in normal mode
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#visual-codes" class="md-nav__link">
+    Visual codes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#under-the-hood" class="md-nav__link">
+    Under the hood
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-an-useful-sketch" class="md-nav__link">
+    Creating an useful sketch
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-sensor-node" class="md-nav__link">
+    Creating a sensor node
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/homieiot/homie-esp8266/edit/master/docs/2.-Getting-started.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
+<p>This <em>Getting Started</em> guide assumes you have an ESP8266 board with an user-configurable LED, and an user programmable button, like a NodeMCU DevKit 1.0, for example. These restrictions can be lifted. (see <a href="../3.-Advanced-usage/">Advanced usage</a>)</p>
+<p>To use Homie for ESP8266, you will need:</p>
+<ul>
+<li>An ESP8266</li>
+<li>The Arduino IDE for ESP8266 (version 2.2.0 minimum)</li>
+<li>Basic knowledge of the Arduino environment (upload a sketch, import libraries, ...)</li>
+<li>To understand <a href="https://git.io/homieiot">the Homie convention</a></li>
+</ul>
+<h2 id="installing-homie-for-esp8266">Installing Homie for ESP8266<a class="headerlink" href="#installing-homie-for-esp8266" title="Permanent link">&para;</a></h2>
+<p>There are two ways to install Homie for ESP8266.</p>
+<h3 id="1a-for-the-arduino-ide">1a. For the Arduino IDE<a class="headerlink" href="#1a-for-the-arduino-ide" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Download the <a href="https://github.com/marvinroger/homie-esp8266/releases/latest">latest release</a></li>
+<li>Load the <code class="codehilite"><span class="na">.zip</span></code> with <strong>Sketch → Include Library → Add .ZIP Library</strong></li>
+</ol>
+<p>Homie for ESP8266 has 3 dependencies: <code class="codehilite"><span class="err">ArduinoJson</span></code>, <code class="codehilite"><span class="err">Bounce2</span></code> and <code class="codehilite"><span class="err">PubSubClient</span></code>. You can install them through the Arduino IDE, with <strong>Sketch → Include Library → Manage Libraries</strong>. Be sure the installed version is &gt;= 5.0.8 for <code class="codehilite"><span class="err">ArduinoJson</span></code>, &gt;= 2.0 for <code class="codehilite"><span class="err">Bounce2</span></code>, &gt;= 2.5 for <code class="codehilite"><span class="err">PubSubClient</span></code>.</p>
+<h3 id="1b-with-platformio">1b. With <a href="http://platformio.org">PlatformIO</a><a class="headerlink" href="#1b-with-platformio" title="Permanent link">&para;</a></h3>
+<p>In a terminal, run <code class="codehilite"><span class="err">platformio lib install 555</span></code>.</p>
+<p>Dependencies are installed automatically.</p>
+<h2 id="bare-minimum-sketch">Bare minimum sketch<a class="headerlink" href="#bare-minimum-sketch" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Homie.h&gt;</span><span class="cp"></span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">setup</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">loop</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>This is the bare minimum needed for Homie for ESP8266 to work correctly.
+If you upload this sketch, you will notice the LED of the ESP8266 will light on <img alt="LED solid" src="../assets/led_solid.gif" />. This is because you are in <code class="codehilite"><span class="err">configuration</span></code> mode.</p>
+<p>Homie for ESP8266 has 3 modes of operation:</p>
+<ol>
+<li>
+<p>The <code class="codehilite"><span class="err">configuration</span></code> mode is the initial one. It spawns an AP and an HTTP webserver exposing a JSON API. To interact with it, you have to connect to the AP. Then, an HTTP client can get the list of available Wi-Fi networks, and send the credentials (like the Wi-Fi SSID, the Wi-Fi password, ...). Once the device receives the credentials, it boots into <code class="codehilite"><span class="err">normal</span></code> mode.</p>
+</li>
+<li>
+<p>The <code class="codehilite"><span class="err">normal</span></code> mode is the mode the device will be most of the time. It connects to the Wi-Fi, to the MQTT, it sends initial informations to the Homie server (like the local IP, the version of the firmware currently running, ...) and it subscribes from the MQTT to properties change. The device can return to <code class="codehilite"><span class="err">configuration</span></code> mode in different ways (press of a button or custom function, see <a href="../3.-Advanced-usage/">3. Advanced usage</a>).</p>
+</li>
+<li>
+<p>The <code class="codehilite"><span class="err">OTA</span></code> mode is triggered from the <code class="codehilite"><span class="err">normal</span></code> mode when the MQTT server sends a version different from the current firmware version. It will reach the OTA HTTP server and flash the latest firmware available. When it ends (either a success or a failure), it returns to <code class="codehilite"><span class="err">normal</span></code> mode.</p>
+</li>
+</ol>
+<p><strong><u>Very important:</u> As a rule of thumb, never block the device with blocking code for more than 50ms or so.</strong> Otherwise, you may very probably experience unexpected behaviors.</p>
+<h2 id="connecting-to-the-ap-and-configuring-the-device">Connecting to the AP and configuring the device<a class="headerlink" href="#connecting-to-the-ap-and-configuring-the-device" title="Permanent link">&para;</a></h2>
+<p>Homie for ESP8266 has spawned a secure AP named <code class="codehilite"><span class="err">Homie-xxxxxxxx</span></code>. For example, if the AP is named <code class="codehilite"><span class="err">Homie-c631f278</span></code>, the AP password is <code class="codehilite"><span class="err">c631f278</span></code>. Connect to it.</p>
+<p><em>Note</em>: This <code class="codehilite"><span class="err">c631f278</span></code> ID is unique to each device, and you cannot change it. If you reflash a new sketch, this ID won't change.</p>
+<p>Once connected, the webserver is available at <code class="codehilite"><span class="c">http://homie.config</span></code>. To bypass the built-in DNS server, you can reach directly <code class="codehilite"><span class="err">192.168.1.1</span></code>. You can then configure the device using the <a href="../6.-Configuration-API/">Configuration API</a>. When the device receives its configuration, it will reboot to <code class="codehilite"><span class="err">normal</span></code> mode.</p>
+<h2 id="understanding-what-happens-in-normal-mode">Understanding what happens in <code class="codehilite"><span class="err">normal</span></code> mode<a class="headerlink" href="#understanding-what-happens-in-normal-mode" title="Permanent link">&para;</a></h2>
+<h3 id="visual-codes">Visual codes<a class="headerlink" href="#visual-codes" title="Permanent link">&para;</a></h3>
+<p>When the device boots in <code class="codehilite"><span class="err">normal</span></code> mode, it will start blinking:</p>
+<ul>
+<li><img alt="Wi-Fi LED blinking" src="../assets/led_wifi.gif" /> Slowly when connecting to the Wi-Fi</li>
+<li><img alt="MQTT LED blinking" src="../assets/led_mqtt.gif" /> Faster when connecting to the MQTT broker</li>
+</ul>
+<p>This way, you can have a quick feedback on what's going on. If both connections are established, the LED will stay off. Note the device will also blink during the automatic reconnection, if the connection to the Wi-Fi or the MQTT broker is lost.</p>
+<h3 id="under-the-hood">Under the hood<a class="headerlink" href="#under-the-hood" title="Permanent link">&para;</a></h3>
+<p>Although the sketch looks like it does not do anything, it actually does quite a lot:</p>
+<ul>
+<li>It automatically connects to the Wi-Fi and MQTT broker. No more network boilerplate code</li>
+<li>It exposes the Homie device on MQTT (as devices / <code class="codehilite"><span class="err">device ID</span></code>, e.g. <code class="codehilite"><span class="err">devices/c631f278</span></code>).</li>
+<li>It subscribes to the special device property <code class="codehilite"><span class="err">$ota</span></code>, automatically rebooting in OTA mode if OTA is available</li>
+<li>It checks for a button press on the ESP8266, to return to <code class="codehilite"><span class="err">configuration</span></code> mode</li>
+</ul>
+<h2 id="creating-an-useful-sketch">Creating an useful sketch<a class="headerlink" href="#creating-an-useful-sketch" title="Permanent link">&para;</a></h2>
+<p>Now that we understand how Homie for ESP8266 works, let's create an useful sketch. We want to create a smart light.</p>
+<div class="codehilite"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Homie.h&gt;</span><span class="cp"></span>
+
+<span class="k">const</span> <span class="kt">int</span> <span class="n">PIN_RELAY</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+
+<span class="n">HomieNode</span> <span class="nf">lightNode</span><span class="p">(</span><span class="s">&quot;light&quot;</span><span class="p">,</span> <span class="s">&quot;switch&quot;</span><span class="p">);</span>
+
+<span class="kt">bool</span> <span class="nf">lightOnHandler</span><span class="p">(</span><span class="n">String</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="s">&quot;true&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">digitalWrite</span><span class="p">(</span><span class="n">PIN_RELAY</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>
+    <span class="n">Homie</span><span class="p">.</span><span class="n">setNodeProperty</span><span class="p">(</span><span class="n">lightNode</span><span class="p">,</span> <span class="s">&quot;on&quot;</span><span class="p">,</span> <span class="s">&quot;true&quot;</span><span class="p">);</span> <span class="c1">// Update the state of the light</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Light is on&quot;</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="s">&quot;false&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">digitalWrite</span><span class="p">(</span><span class="n">PIN_RELAY</span><span class="p">,</span> <span class="n">LOW</span><span class="p">);</span>
+    <span class="n">Homie</span><span class="p">.</span><span class="n">setNodeProperty</span><span class="p">(</span><span class="n">lightNode</span><span class="p">,</span> <span class="s">&quot;on&quot;</span><span class="p">,</span> <span class="s">&quot;false&quot;</span><span class="p">);</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Light is off&quot;</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">pinMode</span><span class="p">(</span><span class="n">PIN_RELAY</span><span class="p">,</span> <span class="n">OUTPUT</span><span class="p">);</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">PIN_RELAY</span><span class="p">,</span> <span class="n">LOW</span><span class="p">);</span>
+
+  <span class="n">Homie</span><span class="p">.</span><span class="n">setFirmware</span><span class="p">(</span><span class="s">&quot;awesome-relay&quot;</span><span class="p">,</span> <span class="s">&quot;1.0.0&quot;</span><span class="p">);</span>
+  <span class="n">lightNode</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s">&quot;on&quot;</span><span class="p">,</span> <span class="n">lightOnHandler</span><span class="p">);</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">registerNode</span><span class="p">(</span><span class="n">lightNode</span><span class="p">);</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">setup</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">loop</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Alright, step by step:</p>
+<ol>
+<li>We create a node with an ID of <code class="codehilite"><span class="err">light</span></code> and a type of <code class="codehilite"><span class="err">switch</span></code> with <code class="codehilite"><span class="err">HomieNode lightNode(&quot;light&quot;, &quot;switch&quot;)</span></code></li>
+<li>We set the name and the version of the firmware with <code class="codehilite"><span class="err">Homie.setFirmware(&quot;awesome-light&quot; ,&quot;1.0.0&quot;);</span></code></li>
+<li>We want our <code class="codehilite"><span class="err">light</span></code> node to subscribe to the <code class="codehilite"><span class="err">on</span></code> property. We do that with <code class="codehilite"><span class="err">lightNode.subscribe(&quot;on&quot;, lightOnHandler);</span></code>. The <code class="codehilite"><span class="err">lightOnHandler</span></code> function will be called when the value of this property is changed</li>
+<li>We tell Homie for ESP8266 to expose our <code class="codehilite"><span class="err">light</span></code> node by registering it. We do this with <code class="codehilite"><span class="err">Homie.registerNode(lightNode);</span></code></li>
+<li>In the <code class="codehilite"><span class="err">lightOnHandler</span></code> function, we want to update the state of the <code class="codehilite"><span class="err">light</span></code> node. We do this with <code class="codehilite"><span class="err">Homie.setNodeProperty(lightNode, &quot;on&quot;, &quot;true&quot;);</span></code></li>
+</ol>
+<p>In about thirty SLOC, we have achieved to create a smart light, without any hard-coded credentials, with automatic reconnection in case of network failure, and with OTA support. Not bad, right?</p>
+<h2 id="creating-a-sensor-node">Creating a sensor node<a class="headerlink" href="#creating-a-sensor-node" title="Permanent link">&para;</a></h2>
+<p>In the previous example sketch, we were reacting on property changes. But what if we want, for example, to send a temperature every 5 minute? We could do this in the Arduino <code class="codehilite"><span class="err">loop()</span></code> function. But then, we would have to check if we are in <code class="codehilite"><span class="err">normal</span></code> mode, and we would have to ensure the network connection is up before sending any property. Boring.</p>
+<p>Fortunately, Homie for ESP8266 provides an easy way to do that.</p>
+<div class="codehilite"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Homie.h&gt;</span><span class="cp"></span>
+
+<span class="k">const</span> <span class="kt">int</span> <span class="n">TEMPERATURE_INTERVAL</span> <span class="o">=</span> <span class="mi">300</span><span class="p">;</span>
+
+<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">lastTemperatureSent</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="n">HomieNode</span> <span class="nf">temperatureNode</span><span class="p">(</span><span class="s">&quot;temperature&quot;</span><span class="p">,</span> <span class="s">&quot;temperature&quot;</span><span class="p">);</span>
+
+<span class="kt">void</span> <span class="nf">setupHandler</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Do what you want to prepare your sensor</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loopHandler</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">millis</span><span class="p">()</span> <span class="o">-</span> <span class="n">lastTemperatureSent</span> <span class="o">&gt;=</span> <span class="n">TEMPERATURE_INTERVAL</span> <span class="o">*</span> <span class="mi">1000UL</span> <span class="o">||</span> <span class="n">lastTemperatureSent</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">float</span> <span class="n">temperature</span> <span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// Fake temperature here, for the example</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;Temperature: &quot;</span><span class="p">);</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="n">temperature</span><span class="p">);</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">&quot; °C&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Homie</span><span class="p">.</span><span class="n">setNodeProperty</span><span class="p">(</span><span class="n">temperatureNode</span><span class="p">,</span> <span class="s">&quot;temperature&quot;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="n">temperature</span><span class="p">),</span> <span class="nb">true</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">lastTemperatureSent</span> <span class="o">=</span> <span class="n">millis</span><span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Sending failed&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">setFirmware</span><span class="p">(</span><span class="s">&quot;awesome-temperature&quot;</span><span class="p">,</span> <span class="s">&quot;1.0.0&quot;</span><span class="p">);</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">registerNode</span><span class="p">(</span><span class="n">temperatureNode</span><span class="p">);</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">setSetupFunction</span><span class="p">(</span><span class="n">setupHandler</span><span class="p">);</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">setLoopFunction</span><span class="p">(</span><span class="n">loopHandler</span><span class="p">);</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">setup</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Homie</span><span class="p">.</span><span class="n">loop</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>The only new things here are the <code class="codehilite"><span class="err">Homie.setSetupFunction(setupHandler);</span></code> and <code class="codehilite"><span class="err">Homie.setLoopFunction(loopHandler);</span></code> calls. The setup function will be called once, when the device is in <code class="codehilite"><span class="err">normal</span></code> mode and the network connection is up. The loop function will be called everytime, when the device is in <code class="codehilite"><span class="err">normal</span></code> mode and the network connection is up. This provides a nice level of abstraction.</p>
+<p>Now that you understand the basic usage of Homie for ESP8266, you can head on to the <a href="../3.-Advanced-usage/">Advanced usage</a> page to learn about more powerful features like input handlers and the event system.</p>
+                
+                  
+                
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        powered by
+        <a href="https://www.mkdocs.org">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/">
+          Material for MkDocs</a>
+      </div>
+      
+  <div class="md-footer-social">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.css">
+    
+      <a href="http://homieiot.github.io/homie-esp8266/configurators/v2/" class="md-footer-social__link fa fa-cog"></a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application.808e90bb.js"></script>
+      
+      <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
+      
+    
+  </body>
+</html>

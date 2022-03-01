@@ -1,0 +1,876 @@
+
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="The Homie for ESP8266 documentation.">
+      
+      
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.pipeline.stopwords" content="True">
+      
+        <meta name="lang:search.pipeline.trimmer" content="True">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.6.0">
+    
+    
+      
+        <title>JSON configuration file - Homie for ESP8266</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application.1b62728e.css">
+      
+        <link rel="stylesheet" href="../assets/stylesheets/application-palette.a8b3c06d.css">
+      
+      
+        
+        
+        <meta name="theme-color" content="#ef5350">
+      
+    
+    
+      <script src="../assets/javascripts/modernizr.268332fc.js"></script>
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+    
+    <link rel="stylesheet" href="../assets/fonts/material-icons.css">
+    
+    
+    
+      
+    
+    
+  </head>
+  
+    
+    
+    <body dir="ltr" data-md-color-primary="red" data-md-color-accent="red">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#json-configuration-file" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href=".." title="Homie for ESP8266" class="md-header-nav__button md-logo">
+          
+            <img src="../assets/logo.png" width="24" height="24">
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          
+            <span class="md-header-nav__topic">
+              Homie for ESP8266
+            </span>
+            <span class="md-header-nav__topic">
+              
+                JSON configuration file
+              
+            </span>
+          
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+<a href="https://github.com/homieiot/homie-esp8266/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    homieiot/homie-esp8266
+  </div>
+</a>
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+        
+
+<nav class="md-tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  <li class="md-tabs__item">
+    
+      <a href=".." class="md-tabs__link md-tabs__link--active">
+        Welcome
+      </a>
+    
+  </li>
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../quickstart/what-is-it.md" class="md-tabs__link">
+          Quickstart
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../advanced-usage/built-in-led.md" class="md-tabs__link">
+          Advanced usage
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../configuration/json-configuration-file.md" class="md-tabs__link">
+          Configuration
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../others/ota-configuration-updates.md" class="md-tabs__link">
+          Others
+        </a>
+      
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+      
+      <main class="md-main" role="main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href=".." title="Homie for ESP8266" class="md-nav__button md-logo">
+      
+        <img src="../assets/logo.png" width="48" height="48">
+      
+    </a>
+    Homie for ESP8266
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+<a href="https://github.com/homieiot/homie-esp8266/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    homieiot/homie-esp8266
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Welcome" class="md-nav__link">
+      Welcome
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Quickstart
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Quickstart
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../quickstart/what-is-it.md" title="What is it?" class="md-nav__link">
+      What is it?
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../quickstart/getting-started.md" title="Getting started" class="md-nav__link">
+      Getting started
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Advanced usage
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        Advanced usage
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/built-in-led.md" title="Built-in LED" class="md-nav__link">
+      Built-in LED
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/branding.md" title="Branding" class="md-nav__link">
+      Branding
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/events.md" title="Events" class="md-nav__link">
+      Events
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/logging.md" title="Logging" class="md-nav__link">
+      Logging
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/streaming-operator.md" title="Streaming operator" class="md-nav__link">
+      Streaming operator
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/input-handlers.md" title="Input handlers" class="md-nav__link">
+      Input handlers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/broadcast.md" title="Broadcast" class="md-nav__link">
+      Broadcast
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/custom-settings.md" title="Custom settings" class="md-nav__link">
+      Custom settings
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/resetting.md" title="Resetting" class="md-nav__link">
+      Resetting
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/compiler-flags.md" title="Compiler-Flags" class="md-nav__link">
+      Compiler-Flags
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/standalone-mode.md" title="Standalone mode" class="md-nav__link">
+      Standalone mode
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/magic-bytes.md" title="Magic bytes" class="md-nav__link">
+      Magic bytes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/range-properties.md" title="Range properties" class="md-nav__link">
+      Range properties
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/deep-sleep.md" title="Deep sleep" class="md-nav__link">
+      Deep sleep
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/miscellaneous.md" title="Miscellaneous" class="md-nav__link">
+      Miscellaneous
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced-usage/ui-bundle.md" title="UI Bundle" class="md-nav__link">
+      UI Bundle
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Configuration
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        Configuration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/json-configuration-file.md" title="JSON configuration file" class="md-nav__link">
+      JSON configuration file
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/http-json-api.md" title="HTTP JSON API" class="md-nav__link">
+      HTTP JSON API
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Others
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        Others
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/ota-configuration-updates.md" title="OTA/configuration updates" class="md-nav__link">
+      OTA/configuration updates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/homie-implementation-specifics.md" title="Homie implementation specifics" class="md-nav__link">
+      Homie implementation specifics
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/limitations-and-known-issues.md" title="Limitations and known issues" class="md-nav__link">
+      Limitations and known issues
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/troubleshooting.md" title="Troubleshooting" class="md-nav__link">
+      Troubleshooting
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/cpp-api-reference.md" title="C++ API reference" class="md-nav__link">
+      C++ API reference
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/upgrade-guide-from-v1-to-v2.md" title="Upgrade guide from v1 to v2" class="md-nav__link">
+      Upgrade guide from v1 to v2
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/upgrade-guide-from-v2-to-v3.md" title="Upgrade guide from v2 to v3" class="md-nav__link">
+      Upgrade guide from v2 to v3
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../others/community-projects.md" title="Community projects" class="md-nav__link">
+      Community projects
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/homieiot/homie-esp8266/edit/master/docs/5.-JSON-configuration-file.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="json-configuration-file">JSON configuration file<a class="headerlink" href="#json-configuration-file" title="Permanent link">&para;</a></h1>
+<p>To configure your device, you have two choices: manually flashing the configuration file to the SPIFFS at the <code class="codehilite"><span class="err">/homie/config.json</span></code> (see <a href="http://esp8266.github.io/Arduino/versions/2.1.0/doc/filesystem.html#uploading-files-to-file-system">Uploading files to file system</a>), so you can bypass the <code class="codehilite"><span class="err">configuration</span></code> mode, or send it through the <a href="../6.-Configuration-API/">Configuration API</a>.</p>
+<p>Below is the format of the JSON configuration you will have to provide:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;The kitchen light&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;device_id&quot;</span><span class="p">:</span> <span class="s2">&quot;kitchen-light&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;wifi&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;ssid&quot;</span><span class="p">:</span> <span class="s2">&quot;Network_1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;I&#39;m a Wi-Fi password!&quot;</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;mqtt&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;host&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.1.10&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="mi">1883</span><span class="p">,</span>
+    <span class="nt">&quot;mdns&quot;</span><span class="p">:</span> <span class="s2">&quot;mqtt&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;base_topic&quot;</span><span class="p">:</span> <span class="s2">&quot;devices/&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;auth&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;pass&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;ssl&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;fingerprint&quot;</span><span class="p">:</span> <span class="s2">&quot;CF 05 98 89 CA FF 8E D8 5E 5C E0 C2 E4 F7 E6 C3 C7 50 DD 5C&quot;</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;ota&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;host&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.1.10&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+    <span class="nt">&quot;mdns&quot;</span><span class="p">:</span> <span class="s2">&quot;ota&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/custom_ota&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;ssl&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;fingerprint&quot;</span><span class="p">:</span> <span class="s2">&quot;CF 05 98 89 CA FF 8E D8 5E 5C E0 C2 E4 F7 E6 C3 C7 50 DD 5C&quot;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>The above JSON contains every field that can be customized.</p>
+<p>Here are the rules:</p>
+<ul>
+<li><code class="codehilite"><span class="err">name</span></code>, <code class="codehilite"><span class="err">wifi.ssid</span></code>, <code class="codehilite"><span class="err">wifi.password</span></code>, <code class="codehilite"><span class="err">mqtt.host</span></code> (or <code class="codehilite"><span class="err">mqtt.mdns</span></code>) and <code class="codehilite"><span class="err">ota.enabled</span></code> are mandatory</li>
+<li><code class="codehilite"><span class="err">wifi.password</span></code> can be <code class="codehilite"><span class="err">&quot;&quot;</span></code> if connecting to an open network</li>
+<li>If <code class="codehilite"><span class="err">mqtt.auth</span></code> is <code class="codehilite"><span class="err">true</span></code>, <code class="codehilite"><span class="err">mqtt.username</span></code> and <code class="codehilite"><span class="err">mqtt.password</span></code> must be provided</li>
+<li>If a <code class="codehilite"><span class="err">mdns</span></code> field is set, the device will ignore the <code class="codehilite"><span class="err">host</span></code> and <code class="codehilite"><span class="err">port</span></code> fields and query for the corresponding mDNS service and get the first IP and port found</li>
+</ul>
+<p>Default values if not provided:</p>
+<ul>
+<li><code class="codehilite"><span class="err">device_id</span></code>: the hardware device ID (eg. <code class="codehilite"><span class="err">1a2b3c4d</span></code>)</li>
+<li><code class="codehilite"><span class="err">mqtt.port</span></code>: <code class="codehilite"><span class="err">1883</span></code></li>
+<li><code class="codehilite"><span class="err">mqtt.base_topic</span></code>: <code class="codehilite"><span class="err">devices/</span></code></li>
+<li><code class="codehilite"><span class="err">mqtt.auth</span></code>: <code class="codehilite"><span class="err">false</span></code></li>
+<li><code class="codehilite"><span class="err">mqtt.ssl</span></code>: <code class="codehilite"><span class="err">false</span></code></li>
+<li><code class="codehilite"><span class="err">ota.host</span></code>: same as <code class="codehilite"><span class="err">mqtt.host</span></code></li>
+<li><code class="codehilite"><span class="err">ota.port</span></code>: <code class="codehilite"><span class="err">80</span></code></li>
+<li><code class="codehilite"><span class="err">ota.path</span></code>: <code class="codehilite"><span class="err">/ota</span></code></li>
+<li><code class="codehilite"><span class="err">ota.ssl</span></code>: <code class="codehilite"><span class="err">false</span></code></li>
+</ul>
+<p><code class="codehilite"><span class="err">host</span></code> fields can be either an IP or an hostname.</p>
+<p>The SSL fingerprints can be of the following format:</p>
+<ul>
+<li><code class="codehilite"><span class="err">CF 05 98 89 CA FF 8E D8 5E 5C E0 C2 E4 F7 E6 C3 C7 50 DD 5C</span></code></li>
+<li><code class="codehilite"><span class="n">CF</span><span class="o">:</span><span class="mi">05</span><span class="o">:</span><span class="mi">98</span><span class="o">:</span><span class="mi">89</span><span class="o">:</span><span class="n">CA</span><span class="o">:</span><span class="n">FF</span><span class="o">:</span><span class="mi">8</span><span class="n">E</span><span class="o">:</span><span class="n">D8</span><span class="o">:</span><span class="mi">5</span><span class="n">E</span><span class="o">:</span><span class="mi">5</span><span class="n">C</span><span class="o">:</span><span class="n">E0</span><span class="o">:</span><span class="n">C2</span><span class="o">:</span><span class="n">E4</span><span class="o">:</span><span class="n">F7</span><span class="o">:</span><span class="n">E6</span><span class="o">:</span><span class="n">C3</span><span class="o">:</span><span class="n">C7</span><span class="o">:</span><span class="mi">50</span><span class="o">:</span><span class="n">DD</span><span class="o">:</span><span class="mi">5</span><span class="n">C</span></code></li>
+<li><code class="codehilite"><span class="err">cf 05 98 89 ca ff 8e d8 5e 5c e0 c2 e4 f7 e6 c3 c7 50 dd 5c</span></code></li>
+<li><code class="codehilite"><span class="n">cf</span><span class="o">:</span><span class="mi">05</span><span class="o">:</span><span class="mi">98</span><span class="o">:</span><span class="mi">89</span><span class="o">:</span><span class="n">ca</span><span class="o">:</span><span class="n">ff</span><span class="o">:</span><span class="mi">8</span><span class="n">e</span><span class="o">:</span><span class="n">d8</span><span class="o">:</span><span class="mi">5</span><span class="n">e</span><span class="o">:</span><span class="mi">5</span><span class="n">c</span><span class="o">:</span><span class="n">e0</span><span class="o">:</span><span class="n">c2</span><span class="o">:</span><span class="n">e4</span><span class="o">:</span><span class="n">f7</span><span class="o">:</span><span class="n">e6</span><span class="o">:</span><span class="n">c3</span><span class="o">:</span><span class="n">c7</span><span class="o">:</span><span class="mi">50</span><span class="o">:</span><span class="n">dd</span><span class="o">:</span><span class="mi">5</span><span class="n">c</span></code></li>
+</ul>
+                
+                  
+                
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        powered by
+        <a href="https://www.mkdocs.org">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/">
+          Material for MkDocs</a>
+      </div>
+      
+  <div class="md-footer-social">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.css">
+    
+      <a href="http://homieiot.github.io/homie-esp8266/configurators/v2/" class="md-footer-social__link fa fa-cog"></a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application.808e90bb.js"></script>
+      
+      <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
+      
+    
+  </body>
+</html>
