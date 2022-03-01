@@ -61,6 +61,7 @@ class HomieSetting : public HomieInternals::IHomieSetting {
   bool isLong() const;
   bool isDouble() const;
   bool isConstChar() const;
+  void ffree() const;
 
   const char* getType() const;
 };
