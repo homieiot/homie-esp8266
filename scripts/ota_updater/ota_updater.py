@@ -27,7 +27,7 @@ def on_progress(progress, total):
     g_total = total
     bar_width = 30
     bar = int(bar_width*(progress/total))
-    print("\r[", '+'*bar, ' '*(bar_width-bar), "] ", progress, "/", total, end='', sep='')
+    print("\r[", '+'*bar, ' '*(bar_width-bar), "] ", progress, end='', sep='')
     if (progress == total):
         print()
     sys.stdout.flush()
