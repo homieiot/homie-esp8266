@@ -188,9 +188,9 @@ void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
       return;
     }
 
-    bootModeFile.printf("#%d", bootMode);
+    bootModeFile.printf("#%d", static_cast<int>(bootMode));
     bootModeFile.close();
-    Interface::get().getLogger().printf("Setting next boot mode to %d\n", bootMode);
+    Interface::get().getLogger().printf("Setting next boot mode to %d\n", static_cast<int>(bootMode));
   }
 }
 
