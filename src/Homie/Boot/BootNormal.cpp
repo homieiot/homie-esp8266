@@ -60,8 +60,8 @@ void BootNormal::setup() {
   _mqttTopic = std::unique_ptr<char[]>(new char[baseTopicLength + longestSubtopicLength]);
 
   #ifdef ESP32
-  _wifiGotIpHandler = WiFi.onEvent(std::bind(&BootNormal::_onWifiGotIp, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
-  _wifiDisconnectedHandler = WiFi.onEvent(std::bind(&BootNormal::_onWifiDisconnected, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
+  _wifiGotIpHandler = WiFi.onEvent(std::bind(&BootNormal::_onWifiGotIp, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+  _wifiDisconnectedHandler = WiFi.onEvent(std::bind(&BootNormal::_onWifiDisconnected, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
   #elif defined(ESP8266)
   _wifiGotIpHandler = WiFi.onStationModeGotIP(std::bind(&BootNormal::_onWifiGotIp, this, std::placeholders::_1));
   _wifiDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&BootNormal::_onWifiDisconnected, this, std::placeholders::_1));
@@ -374,10 +374,10 @@ void BootNormal::_onWifiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
   Interface::get().ready = false;
   if (Interface::get().led.enabled) Interface::get().getBlinker().start(LED_WIFI_DELAY);
   _statsTimer.deactivate();
-  Interface::get().getLogger() << F("✖ Wi-Fi disconnected, reason: ") << info.disconnected.reason << endl;
+  Interface::get().getLogger() << F("✖ Wi-Fi disconnected, reason: ") << info.wifi_sta_disconnected.reason << endl;
   Interface::get().getLogger() << F("Triggering WIFI_DISCONNECTED event...") << endl;
   Interface::get().event.type = HomieEventType::WIFI_DISCONNECTED;
-  Interface::get().event.wifiReason = info.disconnected.reason;
+  Interface::get().event.wifiReason = info.wifi_sta_disconnected.reason;
   Interface::get().eventHandler(Interface::get().event);
 
   _wifiConnect();
