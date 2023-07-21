@@ -138,7 +138,7 @@ bool Config::load() {
         setting->set(reqSetting.as<double>());
       } else if (iSetting->isConstChar()) {
         HomieSetting<const char*>* setting = static_cast<HomieSetting<const char*>*>(iSetting);
-        setting->set(strdup(reqSetting.as<const char*>()));
+        setting->set(reqSetting.as<const char*>());
       }
     }
   }
