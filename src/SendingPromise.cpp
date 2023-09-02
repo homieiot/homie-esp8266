@@ -7,6 +7,7 @@ SendingPromise::SendingPromise()
 , _property(nullptr)
 , _qos(0)
 , _retained(false)
+, _setRetained(true)
 , _overwriteSetter(false)
 , _range { .isRange = false, .index = 0 } {
 }
@@ -18,6 +19,11 @@ SendingPromise& SendingPromise::setQos(uint8_t qos) {
 
 SendingPromise& SendingPromise::setRetained(bool retained) {
   _retained = retained;
+  return *this;
+}
+
+SendingPromise &SendingPromise::setSetRetained(bool retained) {
+  _setRetained = retained;
   return *this;
 }
 
@@ -66,7 +72,7 @@ uint16_t SendingPromise::send(const String& value) {
 
   if (_overwriteSetter) {
     strcat_P(topic, PSTR("/set"));
-    Interface::get().getMqttClient().publish(topic, 1, true, value.c_str());
+    Interface::get().getMqttClient().publish(topic, 2, _setRetained, value.c_str());
   }
 
   delete[] topic;
