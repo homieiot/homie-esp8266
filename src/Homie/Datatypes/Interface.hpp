@@ -19,11 +19,19 @@ class Config;
 class SendingPromise;
 class HomieClass;
 
-class InterfaceData {
+class InterfaceData;
+using InterfaceDataPtr = std::shared_ptr<InterfaceData>;
+
+class InterfaceData :  public std::enable_shared_from_this<InterfaceData> {
   friend HomieClass;
 
  public:
-  InterfaceData();
+    static InterfaceDataPtr getInstance() {
+        static InterfaceDataPtr m_inst = InterfaceDataPtr(new InterfaceData());
+        return m_inst;
+    }
+    InterfaceData(const InterfaceData&) = delete;
+    InterfaceData& operator=(const InterfaceData&) = delete;
 
   /***** User configurable data *****/
   char brand[MAX_BRAND_LENGTH];
@@ -74,18 +82,14 @@ class InterfaceData {
   SendingPromise& getSendingPromise() { return *_sendingPromise; }
 
  private:
+  InterfaceData();
   Logger* _logger;
   Blinker* _blinker;
   Config* _config;
   AsyncMqttClient* _mqttClient;
   SendingPromise* _sendingPromise;
 };
-
-class Interface {
- public:
-  static InterfaceData& get();
-
- private:
-  static InterfaceData _interface;
-};
+namespace Interface {
+    extern  InterfaceData& get();
+}
 }  // namespace HomieInternals

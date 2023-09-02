@@ -2,8 +2,6 @@
 
 using namespace HomieInternals;
 
-InterfaceData Interface::_interface;  // need to define the static variable
-
 InterfaceData::InterfaceData()
   : brand{ '\0' }
   , bootMode{ HomieBootMode::UNDEFINED }
@@ -22,6 +20,10 @@ InterfaceData::InterfaceData()
   , _sendingPromise{ nullptr } {
 }
 
-InterfaceData& Interface::get() {
-  return _interface;
+namespace HomieInternals {
+namespace Interface {
+  InterfaceData& get() {
+    return *( InterfaceData::getInstance().get());
+  }
+}
 }

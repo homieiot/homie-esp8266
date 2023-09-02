@@ -28,12 +28,21 @@
 #define Homie_setBrand(brand) const char* __FLAGGED_BRAND = "\xfb\x2a\xf5\x68\xc0" brand "\x6e\x2f\x0f\xeb\x2d"; Homie.__setBrand(__FLAGGED_BRAND);
 
 namespace HomieInternals {
-class HomieClass {
-  friend class ::HomieNode;
-  friend SendingPromise;
+class HomieClass;
+using HomieClassPtr = std::shared_ptr<HomieClass>;
+
+class HomieClass: public std::enable_shared_from_this<HomieClass> {
+    friend class ::HomieNode;
+    friend SendingPromise;
 
  public:
-  HomieClass();
+    static HomieClassPtr getInstance() {
+        static HomieClassPtr m_inst = HomieClassPtr(new HomieClass());
+        return m_inst;
+    }
+    HomieClass(const HomieClass&) = delete;
+    HomieClass& operator=(const HomieClass&) = delete;
+
   ~HomieClass();
   void setup();
   void loop();
@@ -74,6 +83,7 @@ class HomieClass {
   #endif // ESP32
 
  private:
+  HomieClass();
   bool _setupCalled;
   bool _firmwareSet;
   Boot* _boot;
@@ -95,4 +105,6 @@ class HomieClass {
 };
 }  // namespace HomieInternals
 
-extern HomieInternals::HomieClass Homie;
+//extern HomieInternals::HomieClass Homie;
+#define Homie (getHomie())
+extern HomieInternals::HomieClass& getHomie();

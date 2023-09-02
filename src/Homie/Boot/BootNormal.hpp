@@ -43,7 +43,7 @@ namespace HomieInternals {
 class BootNormal : public Boot {
  public:
   BootNormal();
-  ~BootNormal();
+  virtual ~BootNormal();
   void setup();
   void loop();
 
