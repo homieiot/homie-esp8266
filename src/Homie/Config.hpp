@@ -3,10 +3,7 @@
 #include "Arduino.h"
 
 #include <ArduinoJson.h>
-#ifdef ESP32
-#include <SPIFFS.h>
-#endif // ESP32
-#include "FS.h"
+#include "FS.hpp"
 #include "Datatypes/Interface.hpp"
 #include "Datatypes/ConfigStruct.hpp"
 #include "Utils/DeviceId.hpp"
@@ -34,7 +31,7 @@ class Config {
 
  private:
   ConfigStruct _configStruct;
-  bool _spiffsBegan;
+  static FS _fs;
   bool _valid;
 
   bool _spiffsBegin();

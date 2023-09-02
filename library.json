@@ -42,6 +42,12 @@
     },
     {
       "name": "ESP Async WebServer"
+    },
+    {
+      "owner": "lorol",
+      "name": "LittleFS_esp32",
+      "version": "^1.0.5",
+      "platforms": ["espressif32"]
     }
   ],
   "export": {

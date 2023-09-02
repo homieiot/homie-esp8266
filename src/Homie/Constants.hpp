@@ -10,6 +10,28 @@
 #define HOMIE_CONFIG 1
 #endif
 
+// config mode requires SPIFFS as ESP Async Webserver only works with SPIFFS
+#if HOMIE_CONFIG
+#ifndef HOMIE_SPIFFS
+#define HOMIE_SPIFFS
+#endif
+#endif
+
+// default should be SPIFFS, except using LittleFS is explicitely defined
+#ifndef HOMIE_LITTLEFS
+#ifndef HOMIE_SPIFFS
+#define HOMIE_SPIFFS
+#endif
+#endif
+
+// fail if none or both are defined
+#if defined(HOMIE_SPIFFS) && defined(HOMIE_LITTLEFS)
+#error "Only one of HOMIE_SPIFFS and HOMIE_LITTLEFS must be defined. HOMIE_CONFIG requires HOMIE_SPIFFS."
+#endif
+#if !(defined(HOMIE_SPIFFS) || defined(HOMIE_LITTLEFS))
+#error "At least one of HOMIE_SPIFFS or HOMIE_LITTLEFS needs to be defined."
+#endif
+
 namespace HomieInternals {
   const char HOMIE_VERSION[] = "3.0.1";
   const char HOMIE_ESP8266_VERSION[] = "3.0.0";
