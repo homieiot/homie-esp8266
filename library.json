@@ -41,7 +41,16 @@
       "version": "^2.1.0"
     },
     {
-      "name": "ESP Async WebServer"
+      "name": "ESPAsyncTCP",
+      "version": "1.2.0"
+    },
+    {
+      "name": "ESP Async WebServer",
+      "version": "1.2.3",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/me-no-dev/ESPAsyncWebServer.git"
+      }
     }
   ],
   "export": {
