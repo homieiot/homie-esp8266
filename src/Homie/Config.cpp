@@ -41,16 +41,16 @@ bool Config::load() {
 
   if (configSize >= MAX_JSON_CONFIG_FILE_SIZE) {
     Interface::get().getLogger() << F("✖ Config file too big") << endl;
+    configFile.close();
     return false;
   }
 
-  char buf[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(buf, configSize);
-  configFile.close();
-  buf[configSize] = '\0';
-
+  // Deserialize directly from file stream to save RAM
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
-  if (deserializeJson(jsonDoc, buf) != DeserializationError::Ok || !jsonDoc.is<JsonObject>()) {
+  DeserializationError error = deserializeJson(jsonDoc, configFile);
+  configFile.close();
+  
+  if (error != DeserializationError::Ok || !jsonDoc.is<JsonObject>()) {
     Interface::get().getLogger() << F("✖ Invalid JSON in the config file") << endl;
     return false;
   }
@@ -149,15 +149,12 @@ bool Config::load() {
 
 char* Config::getSafeConfigFile() const {
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
-  size_t configSize = configFile.size();
 
-  char buf[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(buf, configSize);
-  configFile.close();
-  buf[configSize] = '\0';
-
+  // Deserialize directly from file stream to save RAM
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
-  deserializeJson(jsonDoc, buf);
+  deserializeJson(jsonDoc, configFile);
+  configFile.close();
+  
   JsonObject parsedJson = jsonDoc.as<JsonObject>();
   parsedJson["wifi"].as<JsonObject>().remove("password");
   parsedJson["mqtt"].as<JsonObject>().remove("username");

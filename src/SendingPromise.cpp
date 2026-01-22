@@ -1,4 +1,5 @@
 #include "SendingPromise.hpp"
+#include "Homie/Limits.hpp"
 
 using namespace HomieInternals;
 
@@ -45,11 +46,15 @@ uint16_t SendingPromise::send(const String& value) {
     return 0;
   }
 
-  char* topic = new char[strlen(Interface::get().getConfig().get().mqtt.baseTopic) + strlen(Interface::get().getConfig().get().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 4 + 1];  // last + 6 for range _65536, last + 4 for /set
+  // Use a static buffer to avoid repeated allocations
+  static char topic[MAX_MQTT_TOPIC_LENGTH];
+  
+  // Build topic: baseTopic + deviceId + "/" + nodeId + ["_" + rangeIndex] + "/" + property [+ "/set"]
   strcpy(topic, Interface::get().getConfig().get().mqtt.baseTopic);
   strcat(topic, Interface::get().getConfig().get().deviceId);
   strcat_P(topic, PSTR("/"));
   strcat(topic, _node->getId());
+  
   if (_range.isRange) {
     char rangeStr[5 + 1];  // max 65536
     itoa(_range.index, rangeStr, 10);
@@ -68,8 +73,6 @@ uint16_t SendingPromise::send(const String& value) {
     strcat_P(topic, PSTR("/set"));
     Interface::get().getMqttClient().publish(topic, 1, true, value.c_str());
   }
-
-  delete[] topic;
 
   return packetId;
 }

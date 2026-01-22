@@ -218,14 +218,16 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
 }
 
 bool BootNormal::_publishOtaStatus(int status, const char* info) {
-  String payload(status);
+  // Use static buffer instead of String to save RAM
+  static char payload[64];
+  itoa(status, payload, 10);
   if (info) {
-    payload.concat(F(" "));
-    payload.concat(info);
+    strcat_P(payload, PSTR(" "));
+    strcat(payload, info);
   }
 
   return Interface::get().getMqttClient().publish(
-            _prefixMqttTopic(PSTR("/$implementation/ota/status")), 0, true, payload.c_str()) != 0;
+            _prefixMqttTopic(PSTR("/$implementation/ota/status")), 0, true, payload) != 0;
 }
 
 void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
@@ -239,7 +241,9 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     _flaggedForReboot = true;
   } else {
     int code;
-    String info;
+    const char* info = nullptr;
+    static char errorBuf[32];  // For INTERNAL_ERROR case
+    
     switch (update_error) {
       case UPDATE_ERROR_SIZE:               // new firmware size is zero
       case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
@@ -248,30 +252,31 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
       #elif defined(ESP8266)
       case UPDATE_ERROR_NEW_FLASH_CONFIG:   // bad new flash config (does not match flash ID)
         code = 400;  // 400 Bad Request
-        info.concat(F("BAD_FIRMWARE"));
+        info = "BAD_FIRMWARE";
         break;
       #endif //ESP32
       case UPDATE_ERROR_MD5:
         code = 400;  // 400 Bad Request
-        info.concat(F("BAD_CHECKSUM"));
+        info = "BAD_CHECKSUM";
         break;
       case UPDATE_ERROR_SPACE:
         code = 400;  // 400 Bad Request
-        info.concat(F("NOT_ENOUGH_SPACE"));
+        info = "NOT_ENOUGH_SPACE";
         break;
       case UPDATE_ERROR_WRITE:
       case UPDATE_ERROR_ERASE:
       case UPDATE_ERROR_READ:
         code = 500;  // 500 Internal Server Error
-        info.concat(F("FLASH_ERROR"));
+        info = "FLASH_ERROR";
         break;
       default:
         code = 500;  // 500 Internal Server Error
-        info.concat(F("INTERNAL_ERROR "));
-        info.concat(update_error);
+        strcpy_P(errorBuf, PSTR("INTERNAL_ERROR "));
+        itoa(update_error, errorBuf + strlen(errorBuf), 10);
+        info = errorBuf;
         break;
     }
-    _publishOtaStatus(code, info.c_str());
+    _publishOtaStatus(code, info);
 
     Interface::get().getLogger() << F("✖ OTA failed (") << code << F(" ") << info << F(")") << endl;
 
@@ -730,9 +735,11 @@ void BootNormal::_advertise() {
       break;
     case AdvertisementProgress::GlobalStep::SUB_BROADCAST:
     {
-      String broadcast_topic(Interface::get().getConfig().get().mqtt.baseTopic);
-      broadcast_topic.concat("$broadcast/+");
-      packetId = Interface::get().getMqttClient().subscribe(broadcast_topic.c_str(), 2);
+      // Use static buffer to avoid String allocation
+      static char broadcast_topic[MAX_MQTT_TOPIC_LENGTH];
+      strcpy(broadcast_topic, Interface::get().getConfig().get().mqtt.baseTopic);
+      strcat_P(broadcast_topic, PSTR("$broadcast/+"));
+      packetId = Interface::get().getMqttClient().subscribe(broadcast_topic, 2);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_READY;
       break;
     }
