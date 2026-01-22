@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - gh-pages
+  pull_request:
+    branches-ignore:
+      - gh-pages
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Install cpplint
+        run: pip install cpplint
+
+      - name: Run cpplint
+        run: make cpplint
+
+  build:
+    name: Build Examples
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example:
+          - Broadcast
+          - CustomSettings
+          - DoorSensor
+          - GlobalInputHandler
+          - HookToEvents
+          - IteadSonoff
+          - IteadSonoffButton
+          - LedStrip
+          - LightOnOff
+          - Ping
+          - SingleButton
+          - SonoffDualShutters
+          - TemperatureSensor
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install PlatformIO
+        run: pip install -U platformio
+
+      - name: Install library with dependencies
+        run: platformio lib -g install file://.
+
+      - name: Install Arduino Core for ESP8266
+        run: platformio platform install espressif8266
+
+      - name: Install Arduino Core for ESP32
+        run: platformio platform install espressif32
+
+      - name: Install example dependencies
+        run: platformio lib -g install Shutters@2.1.1 SonoffDual@1.1.0
+
+      - name: Build ${{ matrix.example }}
+        run: platformio ci ./examples/${{ matrix.example }} --board=esp01_1m --board=nodemcuv2 --board=esp32dev
+
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    # Only run on main/master branch, not on PRs
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Install documentation dependencies
+        run: pip install mkdocs==1.0.4 mkdocs-material==4.6.0 pygments==2.5.2 pymdown-extensions==6.2.1 markdown==3.1.1
+
+      - name: Build documentation
+        run: |
+          chmod +x ./.circleci/assets/generate_docs.py
+          ./.circleci/assets/generate_docs.py -o /tmp/site
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: success()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: /tmp/site
+          publish_branch: gh-pages
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: ':package: Deploy documentation from ${{ github.sha }}'
