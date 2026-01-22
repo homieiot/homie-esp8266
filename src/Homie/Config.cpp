@@ -22,7 +22,9 @@ bool Config::_spiffsBegin() {
 }
 
 bool Config::load() {
-  if (!_spiffsBegin()) { return false; }
+  if (!_spiffsBegin()) {
+    return false;
+  }
 
   _valid = false;
 
@@ -49,7 +51,7 @@ bool Config::load() {
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
   DeserializationError error = deserializeJson(jsonDoc, configFile);
   configFile.close();
-  
+
   if (error != DeserializationError::Ok || !jsonDoc.is<JsonObject>()) {
     Interface::get().getLogger() << F("✖ Invalid JSON in the config file") << endl;
     return false;
@@ -154,14 +156,14 @@ char* Config::getSafeConfigFile() const {
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
   DeserializationError error = deserializeJson(jsonDoc, configFile);
   configFile.close();
-  
+
   // If deserialization fails, return empty object
   if (error != DeserializationError::Ok) {
     char* emptyJson = new char[3];
     strcpy(emptyJson, "{}");
     return emptyJson;
   }
-  
+
   JsonObject parsedJson = jsonDoc.as<JsonObject>();
   parsedJson["wifi"].as<JsonObject>().remove("password");
   parsedJson["mqtt"].as<JsonObject>().remove("username");
@@ -174,14 +176,18 @@ char* Config::getSafeConfigFile() const {
 }
 
 void Config::erase() {
-  if (!_spiffsBegin()) { return; }
+  if (!_spiffsBegin()) {
+    return;
+  }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
   SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
 }
 
 void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
-  if (!_spiffsBegin()) { return; }
+  if (!_spiffsBegin()) {
+    return;
+  }
 
   if (bootMode == HomieBootMode::UNDEFINED) {
     SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
@@ -199,7 +205,9 @@ void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
 }
 
 HomieBootMode Config::getHomieBootModeOnNextBoot() {
-  if (!_spiffsBegin()) { return HomieBootMode::UNDEFINED; }
+  if (!_spiffsBegin()) {
+    return HomieBootMode::UNDEFINED;
+  }
 
   File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
   if (bootModeFile) {
@@ -212,7 +220,9 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
 }
 
 void Config::write(const JsonObject config) {
-  if (!_spiffsBegin()) { return; }
+  if (!_spiffsBegin()) {
+    return;
+  }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
 
@@ -226,7 +236,9 @@ void Config::write(const JsonObject config) {
 }
 
 bool Config::patch(const char* patch) {
-  if (!_spiffsBegin()) { return false; }
+  if (!_spiffsBegin()) {
+    return false;
+  }
 
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonDoc;
 

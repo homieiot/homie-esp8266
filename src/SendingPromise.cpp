@@ -48,15 +48,15 @@ uint16_t SendingPromise::send(const String& value) {
 
   // Use a local buffer to construct topic - ESP8266/ESP32 is single-threaded
   char topic[MAX_MQTT_TOPIC_LENGTH];
-  
+
   // Build topic: baseTopic + deviceId + "/" + nodeId + ["_" + rangeIndex] + "/" + property [+ "/set"]
   int offset = 0;
-  
+
   // Start with baseTopic + deviceId
-  offset = snprintf(topic, sizeof(topic), "%s%s/", 
+  offset = snprintf(topic, sizeof(topic), "%s%s/",
                     Interface::get().getConfig().get().mqtt.baseTopic,
                     Interface::get().getConfig().get().deviceId);
-  
+
   // Add nodeId with optional range
   if (_range.isRange) {
     offset += snprintf(topic + offset, sizeof(topic) - offset, "%s_%u/",
@@ -67,7 +67,7 @@ uint16_t SendingPromise::send(const String& value) {
     offset += snprintf(topic + offset, sizeof(topic) - offset, "%s/",
                        _node->getId());
   }
-  
+
   // Add property
   snprintf(topic + offset, sizeof(topic) - offset, "%s", _property->c_str());
 

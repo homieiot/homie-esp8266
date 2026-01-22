@@ -243,7 +243,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     int code;
     const char* info = nullptr;
     char errorBuf[32];  // For INTERNAL_ERROR case
-    
+
     switch (update_error) {
       case UPDATE_ERROR_SIZE:               // new firmware size is zero
       case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
@@ -445,7 +445,7 @@ void BootNormal::_advertise() {
       String nodes;
       size_t estimatedSize = HomieNode::nodes.size() * 30; // rough estimate
       nodes.reserve(estimatedSize);
-      
+
       for (HomieNode* node : HomieNode::nodes) {
         nodes.concat(node->getId());
         if (node->isRange())
@@ -539,7 +539,7 @@ void BootNormal::_advertise() {
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$array"));
-          
+
           // Use local buffer instead of String concatenation
           char arrayInfo[16]; // enough for "65535-65535"
           snprintf(arrayInfo, sizeof(arrayInfo), "%u-%u", node->getLower(), node->getUpper());
@@ -556,7 +556,7 @@ void BootNormal::_advertise() {
           // Use local buffer instead of String concatenation
           char id[MAX_NODE_ID_LENGTH + 1 + 5 + 1]; // nodeId + "_" + index (max 65535) + null
           snprintf(id, sizeof(id), "%s_%u", node->getId(), _advertisementProgress.currentArrayNodeIndex);
-          
+
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), id);
           strcat_P(subtopic.get(), PSTR("/$name"));
@@ -576,12 +576,12 @@ void BootNormal::_advertise() {
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$properties"));
-          
+
           // Pre-allocate buffer to avoid multiple reallocations
           String properties;
           size_t estimatedSize = node->getProperties().size() * 30; // rough estimate
           properties.reserve(estimatedSize);
-          
+
           for (Property* iProperty : node->getProperties()) {
             properties.concat(iProperty->getId());
             properties.concat(",");
