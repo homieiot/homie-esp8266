@@ -441,7 +441,11 @@ void BootNormal::_advertise() {
     }
     case AdvertisementProgress::GlobalStep::PUB_NODES_ATTR:
     {
+      // Pre-allocate buffer to avoid multiple reallocations
       String nodes;
+      size_t estimatedSize = HomieNode::nodes.size() * 30; // rough estimate
+      nodes.reserve(estimatedSize);
+      
       for (HomieNode* node : HomieNode::nodes) {
         nodes.concat(node->getId());
         if (node->isRange())
@@ -535,12 +539,16 @@ void BootNormal::_advertise() {
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$array"));
-          String arrayInfo;
-          arrayInfo.concat(node->getLower());
-          arrayInfo.concat("-");
-          arrayInfo.concat(node->getUpper());
+          
+          // Use static buffer instead of String concatenation
+          static char arrayInfo[16]; // enough for "65535-65535"
+          itoa(node->getLower(), arrayInfo, 10);
+          strcat_P(arrayInfo, PSTR("-"));
+          char upperStr[6];
+          itoa(node->getUpper(), upperStr, 10);
+          strcat(arrayInfo, upperStr);
 
-          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, arrayInfo.c_str());
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, arrayInfo);
           if (packetId != 0) {
             _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_ARRAY_NODES;
             _advertisementProgress.currentArrayNodeIndex = node->getLower();
@@ -549,14 +557,18 @@ void BootNormal::_advertise() {
         }
         case AdvertisementProgress::NodeStep::PUB_ARRAY_NODES:
         {
-          String id;
-          id.concat(node->getId());
-          id.concat("_");
-          id.concat(_advertisementProgress.currentArrayNodeIndex);
+          // Use static buffer instead of String concatenation
+          static char id[MAX_NODE_ID_LENGTH + 1 + 5 + 1]; // nodeId + "_" + index + null
+          strcpy(id, node->getId());
+          strcat_P(id, PSTR("_"));
+          char indexStr[6];
+          itoa(_advertisementProgress.currentArrayNodeIndex, indexStr, 10);
+          strcat(id, indexStr);
+          
           strcpy_P(subtopic.get(), PSTR("/"));
-          strcat(subtopic.get(), id.c_str());
+          strcat(subtopic.get(), id);
           strcat_P(subtopic.get(), PSTR("/$name"));
-          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, id.c_str());
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, id);
           if (packetId != 0) {
             if (_advertisementProgress.currentArrayNodeIndex < node->getUpper()) {
               _advertisementProgress.currentArrayNodeIndex++;
@@ -572,7 +584,12 @@ void BootNormal::_advertise() {
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$properties"));
+          
+          // Pre-allocate buffer to avoid multiple reallocations
           String properties;
+          size_t estimatedSize = node->getProperties().size() * 30; // rough estimate
+          properties.reserve(estimatedSize);
+          
           for (Property* iProperty : node->getProperties()) {
             properties.concat(iProperty->getId());
             properties.concat(",");
@@ -1077,7 +1094,7 @@ bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload
     _mqttTopicLevelsCount == 2
     && strcmp_P(_mqttTopicLevels.get()[0], PSTR("$broadcast")) == 0
     ) {
-    String broadcastLevel(_mqttTopicLevels.get()[1]);
+    const char* broadcastLevel = _mqttTopicLevels.get()[1];
     Interface::get().getLogger() << F("📢 Calling broadcast handler...") << endl;
     bool handled = Interface::get().broadcastHandler(broadcastLevel, _mqttPayloadBuffer.get());
     if (!handled) {
@@ -1146,14 +1163,14 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
     range.isRange = true;
     node[rangeSeparator] = '\0';
     char* rangeIndexStr = node + rangeSeparator + 1;
-    String rangeIndexTest = String(rangeIndexStr);
-    for (uint8_t i = 0; i < rangeIndexTest.length(); i++) {
-      if (!isDigit(rangeIndexTest.charAt(i))) {
+    // Validate range index is numeric
+    for (uint8_t i = 0; rangeIndexStr[i] != '\0'; i++) {
+      if (!isDigit(rangeIndexStr[i])) {
         Interface::get().getLogger() << F("Range index ") << rangeIndexStr << F(" is not valid") << endl;
         return true;
       }
     }
-    range.index = rangeIndexTest.toInt();
+    range.index = atoi(rangeIndexStr);
   }
 
   HomieNode* homieNode = nullptr;
