@@ -46,8 +46,8 @@ uint16_t SendingPromise::send(const String& value) {
     return 0;
   }
 
-  // Use a static buffer to avoid repeated allocations
-  static char topic[MAX_MQTT_TOPIC_LENGTH];
+  // Use a local buffer to construct topic - ESP8266/ESP32 is single-threaded
+  char topic[MAX_MQTT_TOPIC_LENGTH];
   
   // Build topic: baseTopic + deviceId + "/" + nodeId + ["_" + rangeIndex] + "/" + property [+ "/set"]
   strcpy(topic, Interface::get().getConfig().get().mqtt.baseTopic);
@@ -56,7 +56,7 @@ uint16_t SendingPromise::send(const String& value) {
   strcat(topic, _node->getId());
   
   if (_range.isRange) {
-    char rangeStr[5 + 1];  // max 65536
+    char rangeStr[6];  // max 65535 = 5 digits + null
     itoa(_range.index, rangeStr, 10);
     strcat_P(topic, PSTR("_"));
     strcat(topic, rangeStr);

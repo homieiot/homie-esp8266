@@ -218,8 +218,8 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
 }
 
 bool BootNormal::_publishOtaStatus(int status, const char* info) {
-  // Use static buffer instead of String to save RAM
-  static char payload[64];
+  // Use local buffer instead of String to save RAM
+  char payload[64];
   itoa(status, payload, 10);
   if (info) {
     strcat_P(payload, PSTR(" "));
@@ -242,7 +242,7 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
   } else {
     int code;
     const char* info = nullptr;
-    static char errorBuf[32];  // For INTERNAL_ERROR case
+    char errorBuf[32];  // For INTERNAL_ERROR case
     
     switch (update_error) {
       case UPDATE_ERROR_SIZE:               // new firmware size is zero
@@ -540,8 +540,8 @@ void BootNormal::_advertise() {
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$array"));
           
-          // Use static buffer instead of String concatenation
-          static char arrayInfo[16]; // enough for "65535-65535"
+          // Use local buffer instead of String concatenation
+          char arrayInfo[16]; // enough for "65535-65535"
           itoa(node->getLower(), arrayInfo, 10);
           strcat_P(arrayInfo, PSTR("-"));
           char upperStr[6];
@@ -557,8 +557,8 @@ void BootNormal::_advertise() {
         }
         case AdvertisementProgress::NodeStep::PUB_ARRAY_NODES:
         {
-          // Use static buffer instead of String concatenation
-          static char id[MAX_NODE_ID_LENGTH + 1 + 5 + 1]; // nodeId + "_" + index + null
+          // Use local buffer instead of String concatenation
+          char id[MAX_NODE_ID_LENGTH + 1 + 5 + 1]; // nodeId + "_" + index (max 65535) + null
           strcpy(id, node->getId());
           strcat_P(id, PSTR("_"));
           char indexStr[6];
@@ -752,8 +752,8 @@ void BootNormal::_advertise() {
       break;
     case AdvertisementProgress::GlobalStep::SUB_BROADCAST:
     {
-      // Use static buffer to avoid String allocation
-      static char broadcast_topic[MAX_MQTT_TOPIC_LENGTH];
+      // Use local buffer to avoid String allocation
+      char broadcast_topic[MAX_MQTT_TOPIC_LENGTH];
       strcpy(broadcast_topic, Interface::get().getConfig().get().mqtt.baseTopic);
       strcat_P(broadcast_topic, PSTR("$broadcast/+"));
       packetId = Interface::get().getMqttClient().subscribe(broadcast_topic, 2);
