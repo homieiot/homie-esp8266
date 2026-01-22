@@ -542,11 +542,7 @@ void BootNormal::_advertise() {
           
           // Use local buffer instead of String concatenation
           char arrayInfo[16]; // enough for "65535-65535"
-          itoa(node->getLower(), arrayInfo, 10);
-          strcat_P(arrayInfo, PSTR("-"));
-          char upperStr[6];
-          itoa(node->getUpper(), upperStr, 10);
-          strcat(arrayInfo, upperStr);
+          snprintf(arrayInfo, sizeof(arrayInfo), "%u-%u", node->getLower(), node->getUpper());
 
           packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, arrayInfo);
           if (packetId != 0) {
@@ -559,11 +555,7 @@ void BootNormal::_advertise() {
         {
           // Use local buffer instead of String concatenation
           char id[MAX_NODE_ID_LENGTH + 1 + 5 + 1]; // nodeId + "_" + index (max 65535) + null
-          strcpy(id, node->getId());
-          strcat_P(id, PSTR("_"));
-          char indexStr[6];
-          itoa(_advertisementProgress.currentArrayNodeIndex, indexStr, 10);
-          strcat(id, indexStr);
+          snprintf(id, sizeof(id), "%s_%u", node->getId(), _advertisementProgress.currentArrayNodeIndex);
           
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), id);

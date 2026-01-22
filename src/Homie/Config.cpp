@@ -152,8 +152,15 @@ char* Config::getSafeConfigFile() const {
 
   // Deserialize directly from file stream to save RAM
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
-  deserializeJson(jsonDoc, configFile);
+  DeserializationError error = deserializeJson(jsonDoc, configFile);
   configFile.close();
+  
+  // If deserialization fails, return empty object
+  if (error != DeserializationError::Ok) {
+    char* emptyJson = new char[3];
+    strcpy(emptyJson, "{}");
+    return emptyJson;
+  }
   
   JsonObject parsedJson = jsonDoc.as<JsonObject>();
   parsedJson["wifi"].as<JsonObject>().remove("password");
