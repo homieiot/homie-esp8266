@@ -78,7 +78,12 @@ jobs:
         run: platformio platform install espressif32
 
       - name: Install example dependencies
-        run: platformio lib -g install Shutters@2.1.1 SonoffDual@1.1.0
+        continue-on-error: true
+        run: |
+          # Install optional dependencies for SonoffDualShutters example from GitHub
+          # These libraries are not available in the PlatformIO registry
+          pio pkg install -g --library "https://github.com/marvinroger/arduino-shutters.git" || true
+          pio pkg install -g --library "https://github.com/marvinroger/arduino-sonoff-dual.git" || true
 
       - name: Build ${{ matrix.example }}
         run: platformio ci ./examples/${{ matrix.example }} --board=esp01_1m --board=nodemcuv2 --board=esp32dev
