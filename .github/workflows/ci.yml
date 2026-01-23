@@ -74,6 +74,14 @@ jobs:
       - name: Install Arduino Core for ESP32
         run: platformio platform install espressif32
 
+      - name: Install Homie library dependencies
+        run: |
+          # Install core dependencies from library.json
+          pio pkg install -g --library "ArduinoJson@~6.11.4"
+          pio pkg install -g --library "AsyncMqttClient@^0.8.0"
+          pio pkg install -g --library "Bounce2@^2.1.0"
+          pio pkg install -g --library "ESP Async WebServer"
+
       - name: Install example dependencies
         continue-on-error: true
         run: |
