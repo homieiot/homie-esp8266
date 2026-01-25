@@ -68,6 +68,9 @@ jobs:
       - name: Install PlatformIO
         run: pip install -U platformio
 
+      - name: Install Python dependencies for ESP32
+        run: pip install intelhex
+
       - name: Install Arduino Core for ESP8266
         run: platformio platform install espressif8266
 
@@ -93,7 +96,7 @@ jobs:
           pio pkg install -g --library "https://github.com/marvinroger/arduino-sonoff-dual.git" || true
 
       - name: Build ${{ matrix.example }}
-        run: platformio ci ./examples/${{ matrix.example }} --board=esp01_1m --board=nodemcuv2 --board=esp32dev --lib="."
+        run: platformio ci ./examples/${{ matrix.example }} --board=esp01_1m --board=nodemcuv2 --board=esp32dev --lib="." --project-option="lib_ignore=AsyncTCP_RP2040W"
 
   generate-docs:
     name: Generate Documentation
