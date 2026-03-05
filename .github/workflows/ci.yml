@@ -83,9 +83,8 @@ jobs:
           pio pkg install -g --library "ArduinoJson@~6.11.4"
           pio pkg install -g --library "AsyncMqttClient@^0.8.0"
           pio pkg install -g --library "Bounce2@^2.1.0"
-          # Install ESP Async WebServer from GitHub to get the correct version
-          # that supports both ESP8266 and ESP32 (avoids RP2040W variant)
-          pio pkg install -g --library "https://github.com/me-no-dev/ESPAsyncWebServer.git"
+          # Note: ESP Async WebServer is NOT installed globally to avoid platform conflicts
+          # It will be resolved per-platform by platformio ci based on library.json
 
       - name: Install example dependencies
         continue-on-error: true
@@ -96,7 +95,7 @@ jobs:
           pio pkg install -g --library "https://github.com/marvinroger/arduino-sonoff-dual.git" || true
 
       - name: Build ${{ matrix.example }}
-        run: platformio ci ./examples/${{ matrix.example }} --board=esp01_1m --board=nodemcuv2 --board=esp32dev --lib="." --project-option="lib_ignore=AsyncTCP_RP2040W"
+        run: platformio ci ./examples/${{ matrix.example }} --board=esp01_1m --board=nodemcuv2 --board=esp32dev --lib="." --project-option="lib_ignore=AsyncTCP_RP2040W" --project-option="lib_ldf_mode=chain+"
 
   generate-docs:
     name: Generate Documentation
