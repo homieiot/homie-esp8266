@@ -83,8 +83,8 @@ jobs:
           pio pkg install -g --library "ArduinoJson@~6.11.4"
           pio pkg install -g --library "AsyncMqttClient@^0.8.0"
           pio pkg install -g --library "Bounce2@^2.1.0"
-          # Note: ESP Async WebServer is NOT installed globally to avoid platform conflicts
-          # It will be resolved per-platform by platformio ci based on library.json
+          # Install ESP Async WebServer from GitHub (compatible with ESP8266 and ESP32)
+          pio pkg install -g --library "https://github.com/me-no-dev/ESPAsyncWebServer.git"
 
       - name: Install example dependencies
         continue-on-error: true
