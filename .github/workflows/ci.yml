@@ -80,10 +80,12 @@ jobs:
       - name: Install Homie library dependencies
         run: |
           # Install core dependencies from library.json
-          # ESP Async WebServer must be installed from GitHub to handle platform-specific variants correctly
           pio pkg install -g --library "ArduinoJson@~6.11.4"
           pio pkg install -g --library "AsyncMqttClient@^0.8.0"
           pio pkg install -g --library "Bounce2@^2.1.0"
+          # Install platform-specific async TCP libraries and ESP Async WebServer from GitHub
+          pio pkg install -g --library "https://github.com/me-no-dev/ESPAsyncTCP.git"
+          pio pkg install -g --library "https://github.com/me-no-dev/AsyncTCP.git"
           pio pkg install -g --library "https://github.com/me-no-dev/ESPAsyncWebServer.git"
 
       - name: Install example dependencies
