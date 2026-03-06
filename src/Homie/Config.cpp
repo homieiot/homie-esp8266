@@ -22,7 +22,9 @@ bool Config::_spiffsBegin() {
 }
 
 bool Config::load() {
-  if (!_spiffsBegin()) { return false; }
+  if (!_spiffsBegin()) {
+    return false;
+  }
 
   _valid = false;
 
@@ -41,16 +43,16 @@ bool Config::load() {
 
   if (configSize >= MAX_JSON_CONFIG_FILE_SIZE) {
     Interface::get().getLogger() << F("✖ Config file too big") << endl;
+    configFile.close();
     return false;
   }
 
-  char buf[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(buf, configSize);
-  configFile.close();
-  buf[configSize] = '\0';
-
+  // Deserialize directly from file stream to save RAM
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
-  if (deserializeJson(jsonDoc, buf) != DeserializationError::Ok || !jsonDoc.is<JsonObject>()) {
+  DeserializationError error = deserializeJson(jsonDoc, configFile);
+  configFile.close();
+
+  if (error != DeserializationError::Ok || !jsonDoc.is<JsonObject>()) {
     Interface::get().getLogger() << F("✖ Invalid JSON in the config file") << endl;
     return false;
   }
@@ -149,15 +151,19 @@ bool Config::load() {
 
 char* Config::getSafeConfigFile() const {
   File configFile = SPIFFS.open(CONFIG_FILE_PATH, "r");
-  size_t configSize = configFile.size();
 
-  char buf[MAX_JSON_CONFIG_FILE_SIZE];
-  configFile.readBytes(buf, configSize);
-  configFile.close();
-  buf[configSize] = '\0';
-
+  // Deserialize directly from file stream to save RAM
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> jsonDoc;
-  deserializeJson(jsonDoc, buf);
+  DeserializationError error = deserializeJson(jsonDoc, configFile);
+  configFile.close();
+
+  // If deserialization fails, return empty object
+  if (error != DeserializationError::Ok) {
+    char* emptyJson = new char[3];
+    strcpy(emptyJson, "{}");
+    return emptyJson;
+  }
+
   JsonObject parsedJson = jsonDoc.as<JsonObject>();
   parsedJson["wifi"].as<JsonObject>().remove("password");
   parsedJson["mqtt"].as<JsonObject>().remove("username");
@@ -170,14 +176,18 @@ char* Config::getSafeConfigFile() const {
 }
 
 void Config::erase() {
-  if (!_spiffsBegin()) { return; }
+  if (!_spiffsBegin()) {
+    return;
+  }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
   SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
 }
 
 void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
-  if (!_spiffsBegin()) { return; }
+  if (!_spiffsBegin()) {
+    return;
+  }
 
   if (bootMode == HomieBootMode::UNDEFINED) {
     SPIFFS.remove(CONFIG_NEXT_BOOT_MODE_FILE_PATH);
@@ -195,7 +205,9 @@ void Config::setHomieBootModeOnNextBoot(HomieBootMode bootMode) {
 }
 
 HomieBootMode Config::getHomieBootModeOnNextBoot() {
-  if (!_spiffsBegin()) { return HomieBootMode::UNDEFINED; }
+  if (!_spiffsBegin()) {
+    return HomieBootMode::UNDEFINED;
+  }
 
   File bootModeFile = SPIFFS.open(CONFIG_NEXT_BOOT_MODE_FILE_PATH, "r");
   if (bootModeFile) {
@@ -208,7 +220,9 @@ HomieBootMode Config::getHomieBootModeOnNextBoot() {
 }
 
 void Config::write(const JsonObject config) {
-  if (!_spiffsBegin()) { return; }
+  if (!_spiffsBegin()) {
+    return;
+  }
 
   SPIFFS.remove(CONFIG_FILE_PATH);
 
@@ -222,7 +236,9 @@ void Config::write(const JsonObject config) {
 }
 
 bool Config::patch(const char* patch) {
-  if (!_spiffsBegin()) { return false; }
+  if (!_spiffsBegin()) {
+    return false;
+  }
 
   StaticJsonDocument<MAX_JSON_CONFIG_ARDUINOJSON_BUFFER_SIZE> patchJsonDoc;
 

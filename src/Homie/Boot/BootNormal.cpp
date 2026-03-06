@@ -218,14 +218,16 @@ char* BootNormal::_prefixMqttTopic(PGM_P topic) {
 }
 
 bool BootNormal::_publishOtaStatus(int status, const char* info) {
-  String payload(status);
+  // Use local buffer instead of String to save RAM
+  char payload[64];
+  itoa(status, payload, 10);
   if (info) {
-    payload.concat(F(" "));
-    payload.concat(info);
+    strcat_P(payload, PSTR(" "));
+    strcat(payload, info);
   }
 
   return Interface::get().getMqttClient().publish(
-            _prefixMqttTopic(PSTR("/$implementation/ota/status")), 0, true, payload.c_str()) != 0;
+            _prefixMqttTopic(PSTR("/$implementation/ota/status")), 0, true, payload) != 0;
 }
 
 void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
@@ -239,7 +241,9 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
     _flaggedForReboot = true;
   } else {
     int code;
-    String info;
+    const char* info = nullptr;
+    char errorBuf[32];  // For INTERNAL_ERROR case
+
     switch (update_error) {
       case UPDATE_ERROR_SIZE:               // new firmware size is zero
       case UPDATE_ERROR_MAGIC_BYTE:         // new firmware does not have 0xE9 in first byte
@@ -248,30 +252,31 @@ void BootNormal::_endOtaUpdate(bool success, uint8_t update_error) {
       #elif defined(ESP8266)
       case UPDATE_ERROR_NEW_FLASH_CONFIG:   // bad new flash config (does not match flash ID)
         code = 400;  // 400 Bad Request
-        info.concat(F("BAD_FIRMWARE"));
+        info = "BAD_FIRMWARE";
         break;
       #endif //ESP32
       case UPDATE_ERROR_MD5:
         code = 400;  // 400 Bad Request
-        info.concat(F("BAD_CHECKSUM"));
+        info = "BAD_CHECKSUM";
         break;
       case UPDATE_ERROR_SPACE:
         code = 400;  // 400 Bad Request
-        info.concat(F("NOT_ENOUGH_SPACE"));
+        info = "NOT_ENOUGH_SPACE";
         break;
       case UPDATE_ERROR_WRITE:
       case UPDATE_ERROR_ERASE:
       case UPDATE_ERROR_READ:
         code = 500;  // 500 Internal Server Error
-        info.concat(F("FLASH_ERROR"));
+        info = "FLASH_ERROR";
         break;
       default:
         code = 500;  // 500 Internal Server Error
-        info.concat(F("INTERNAL_ERROR "));
-        info.concat(update_error);
+        strcpy_P(errorBuf, PSTR("INTERNAL_ERROR "));
+        itoa(update_error, errorBuf + strlen(errorBuf), 10);
+        info = errorBuf;
         break;
     }
-    _publishOtaStatus(code, info.c_str());
+    _publishOtaStatus(code, info);
 
     Interface::get().getLogger() << F("✖ OTA failed (") << code << F(" ") << info << F(")") << endl;
 
@@ -436,7 +441,11 @@ void BootNormal::_advertise() {
     }
     case AdvertisementProgress::GlobalStep::PUB_NODES_ATTR:
     {
+      // Pre-allocate buffer to avoid multiple reallocations
       String nodes;
+      size_t estimatedSize = HomieNode::nodes.size() * 30; // rough estimate
+      nodes.reserve(estimatedSize);
+
       for (HomieNode* node : HomieNode::nodes) {
         nodes.concat(node->getId());
         if (node->isRange())
@@ -530,12 +539,12 @@ void BootNormal::_advertise() {
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$array"));
-          String arrayInfo;
-          arrayInfo.concat(node->getLower());
-          arrayInfo.concat("-");
-          arrayInfo.concat(node->getUpper());
 
-          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, arrayInfo.c_str());
+          // Use local buffer instead of String concatenation
+          char arrayInfo[16]; // enough for "65535-65535"
+          snprintf(arrayInfo, sizeof(arrayInfo), "%u-%u", node->getLower(), node->getUpper());
+
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, arrayInfo);
           if (packetId != 0) {
             _advertisementProgress.nodeStep = AdvertisementProgress::NodeStep::PUB_ARRAY_NODES;
             _advertisementProgress.currentArrayNodeIndex = node->getLower();
@@ -544,14 +553,14 @@ void BootNormal::_advertise() {
         }
         case AdvertisementProgress::NodeStep::PUB_ARRAY_NODES:
         {
-          String id;
-          id.concat(node->getId());
-          id.concat("_");
-          id.concat(_advertisementProgress.currentArrayNodeIndex);
+          // Use local buffer instead of String concatenation
+          char id[MAX_NODE_ID_LENGTH + 1 + 5 + 1]; // nodeId + "_" + index (max 65535) + null
+          snprintf(id, sizeof(id), "%s_%u", node->getId(), _advertisementProgress.currentArrayNodeIndex);
+
           strcpy_P(subtopic.get(), PSTR("/"));
-          strcat(subtopic.get(), id.c_str());
+          strcat(subtopic.get(), id);
           strcat_P(subtopic.get(), PSTR("/$name"));
-          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, id.c_str());
+          packetId = Interface::get().getMqttClient().publish(_prefixMqttTopic(subtopic.get()), 1, true, id);
           if (packetId != 0) {
             if (_advertisementProgress.currentArrayNodeIndex < node->getUpper()) {
               _advertisementProgress.currentArrayNodeIndex++;
@@ -567,7 +576,12 @@ void BootNormal::_advertise() {
           strcpy_P(subtopic.get(), PSTR("/"));
           strcat(subtopic.get(), node->getId());
           strcat_P(subtopic.get(), PSTR("/$properties"));
+
+          // Pre-allocate buffer to avoid multiple reallocations
           String properties;
+          size_t estimatedSize = node->getProperties().size() * 30; // rough estimate
+          properties.reserve(estimatedSize);
+
           for (Property* iProperty : node->getProperties()) {
             properties.concat(iProperty->getId());
             properties.concat(",");
@@ -730,9 +744,11 @@ void BootNormal::_advertise() {
       break;
     case AdvertisementProgress::GlobalStep::SUB_BROADCAST:
     {
-      String broadcast_topic(Interface::get().getConfig().get().mqtt.baseTopic);
-      broadcast_topic.concat("$broadcast/+");
-      packetId = Interface::get().getMqttClient().subscribe(broadcast_topic.c_str(), 2);
+      // Use local buffer to avoid String allocation
+      char broadcast_topic[MAX_MQTT_TOPIC_LENGTH];
+      strcpy(broadcast_topic, Interface::get().getConfig().get().mqtt.baseTopic);
+      strcat_P(broadcast_topic, PSTR("$broadcast/+"));
+      packetId = Interface::get().getMqttClient().subscribe(broadcast_topic, 2);
       if (packetId != 0) _advertisementProgress.globalStep = AdvertisementProgress::GlobalStep::PUB_READY;
       break;
     }
@@ -1070,7 +1086,7 @@ bool HomieInternals::BootNormal::__handleBroadcasts(char * topic, char * payload
     _mqttTopicLevelsCount == 2
     && strcmp_P(_mqttTopicLevels.get()[0], PSTR("$broadcast")) == 0
     ) {
-    String broadcastLevel(_mqttTopicLevels.get()[1]);
+    const char* broadcastLevel = _mqttTopicLevels.get()[1];
     Interface::get().getLogger() << F("📢 Calling broadcast handler...") << endl;
     bool handled = Interface::get().broadcastHandler(broadcastLevel, _mqttPayloadBuffer.get());
     if (!handled) {
@@ -1139,14 +1155,14 @@ bool HomieInternals::BootNormal::__handleNodeProperty(char * topic, char * paylo
     range.isRange = true;
     node[rangeSeparator] = '\0';
     char* rangeIndexStr = node + rangeSeparator + 1;
-    String rangeIndexTest = String(rangeIndexStr);
-    for (uint8_t i = 0; i < rangeIndexTest.length(); i++) {
-      if (!isDigit(rangeIndexTest.charAt(i))) {
+    // Validate range index is numeric
+    for (uint8_t i = 0; rangeIndexStr[i] != '\0'; i++) {
+      if (!isDigit(rangeIndexStr[i])) {
         Interface::get().getLogger() << F("Range index ") << rangeIndexStr << F(" is not valid") << endl;
         return true;
       }
     }
-    range.index = rangeIndexTest.toInt();
+    range.index = atoi(rangeIndexStr);
   }
 
   HomieNode* homieNode = nullptr;

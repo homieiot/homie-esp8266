@@ -1,4 +1,5 @@
 #include "SendingPromise.hpp"
+#include "Homie/Limits.hpp"
 
 using namespace HomieInternals;
 
@@ -45,31 +46,41 @@ uint16_t SendingPromise::send(const String& value) {
     return 0;
   }
 
-  char* topic = new char[strlen(Interface::get().getConfig().get().mqtt.baseTopic) + strlen(Interface::get().getConfig().get().deviceId) + 1 + strlen(_node->getId()) + 1 + strlen(_property->c_str()) + 6 + 4 + 1];  // last + 6 for range _65536, last + 4 for /set
-  strcpy(topic, Interface::get().getConfig().get().mqtt.baseTopic);
-  strcat(topic, Interface::get().getConfig().get().deviceId);
-  strcat_P(topic, PSTR("/"));
-  strcat(topic, _node->getId());
+  // Use a local buffer to construct topic - ESP8266/ESP32 is single-threaded
+  char topic[MAX_MQTT_TOPIC_LENGTH];
+
+  // Build topic: baseTopic + deviceId + "/" + nodeId + ["_" + rangeIndex] + "/" + property [+ "/set"]
+  int offset = 0;
+
+  // Start with baseTopic + deviceId
+  offset = snprintf(topic, sizeof(topic), "%s%s/",
+                    Interface::get().getConfig().get().mqtt.baseTopic,
+                    Interface::get().getConfig().get().deviceId);
+
+  // Add nodeId with optional range
   if (_range.isRange) {
-    char rangeStr[5 + 1];  // max 65536
-    itoa(_range.index, rangeStr, 10);
-    strcat_P(topic, PSTR("_"));
-    strcat(topic, rangeStr);
-    _range.isRange = false;                  //FIXME: This is a workaround. Problem is that Range is loaded from the property into SendingPromise, but the SendingPromise is global. (one SendingPromise for the HomieClass instance
+    offset += snprintf(topic + offset, sizeof(topic) - offset, "%s_%u/",
+                       _node->getId(), _range.index);
+    _range.isRange = false;  //FIXME: This is a workaround. Problem is that Range is loaded from the property into SendingPromise, but the SendingPromise is global. (one SendingPromise for the HomieClass instance
     _range.index = 0;
+  } else {
+    offset += snprintf(topic + offset, sizeof(topic) - offset, "%s/",
+                       _node->getId());
   }
 
-  strcat_P(topic, PSTR("/"));
-  strcat(topic, _property->c_str());
+  // Add property
+  snprintf(topic + offset, sizeof(topic) - offset, "%s", _property->c_str());
 
   uint16_t packetId = Interface::get().getMqttClient().publish(topic, _qos, _retained, value.c_str());
 
   if (_overwriteSetter) {
-    strcat_P(topic, PSTR("/set"));
-    Interface::get().getMqttClient().publish(topic, 1, true, value.c_str());
+    // Append "/set" for setter overwrite
+    size_t topicLen = strlen(topic);
+    if (topicLen + 4 < sizeof(topic)) {  // Check space for "/set"
+      strcat_P(topic, PSTR("/set"));
+      Interface::get().getMqttClient().publish(topic, 1, true, value.c_str());
+    }
   }
-
-  delete[] topic;
 
   return packetId;
 }
